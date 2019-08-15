@@ -1,0 +1,88 @@
+<?xml version="1.0" ?>
+
+<launch>
+  <!-- arguments -->
+  <arg name="load_gripper" default="true" />
+  <arg name="load_base" default="true" />
+  <arg name="publish_rate" default="30" />
+  <arg name="paused" default="false" doc="Starts gazebo in paused mode" />
+  <arg name="gui" default="true" doc="Starts gazebo gui" />
+
+  <!-- assemble and load URDF -->
+  <group if="$(arg load_base)">
+    <param if="$(arg load_gripper)" name="robot_description" command="$(find xacro)/xacro --inorder $(find mopa_description)/robots/ridge_panda_hand.urdf.xacro" />
+    <param unless="$(arg load_gripper)" name="robot_description" command="$(find xacro)/xacro --inorder $(find mopa_description)/robots/ridge_panda.urdf.xacro" />
+  </group>
+  <group unless="$(arg load_base)">
+    <param unless="$(arg load_gripper)" name="robot_description" command="$(find xacro)/xacro --inorder $(find franka_description)/robots/panda_arm.urdf.xacro" />
+    <param if="$(arg load_gripper)" name="robot_description" command="$(find xacro)/xacro --inorder $(find franka_description)/robots/panda_arm_hand.urdf.xacro" />
+  </group>
+
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher" />
+
+  <!-- start simulated world -->
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" default="worlds/empty.world"/>
+    <arg name="paused" value="$(arg paused)"/>
+    <arg name="gui" value="$(arg gui)"/>
+  </include>
+
+  <!-- launch ridgeback control and teleop nodes -->
+  <include file="$(find ridgeback_control)/launch/control.launch" />
+  <include file="$(find ridgeback_control)/launch/teleop.launch">
+    <arg name="joystick" value="false"/>
+  </include>
+  <rosparam param="/gazebo_ros_control/pid_gains">
+    front_left_wheel:
+      p: 1
+      i: 0.1
+      d: 0
+    front_right_wheel:
+      p: 1
+      i: 0.1
+      d: 0
+    rear_left_wheel:
+      p: 1
+      i: 0.1
+      d: 0
+    rear_right_wheel:
+      p: 1
+      i: 0.1
+      d: 0
+  </rosparam>
+
+  <!-- spawn robot in gazebo -->
+  <node name="spawn_gazebo_model" pkg="gazebo_ros" type="spawn_model" args="-urdf -param robot_description -model fkahsdfklhdas -z 0.1" respawn="false" output="screen" />
+
+  <!-- If needed, broadcast static tf for robot root -->
+  <!-- <node pkg="tf2_ros" type="static_transform_publisher" name="virtual_joint_broadcaster_1" args="0 0 0 0 0 0 world panda_link0" /> -->
+
+  <!-- joint state publisher -->
+  <!-- <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
+    <param name="/use_gui" value="true"/>
+  </node> -->
+
+  <!-- Given the published joint states, publish tf for the robot links -->
+  <!-- <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="true" output="screen" /> -->
+
+
+
+  <!-- <node name="robot_joint_state_publisher" pkg="franka_visualization" type="robot_joint_state_publisher" output="screen">
+    <rosparam command="load" file="$(find franka_visualization)/config/robot_settings.yaml" />
+    <param name="robot_ip" value="$(arg robot_ip)" />
+    <param name="publish_rate" value="$(arg publish_rate)" />
+  </node>
+
+  <node name="gripper_joint_state_publisher" pkg="franka_visualization" type="gripper_joint_state_publisher" output="screen" if="$(arg load_gripper)">
+    <rosparam command="load" file="$(find franka_visualization)/config/gripper_settings.yaml" />
+    <param name="robot_ip" value="$(arg robot_ip)" />
+    <param name="publish_rate" value="$(arg publish_rate)" />
+  </node>
+
+  <node name="joint_state_publisher" type="joint_state_publisher" pkg="joint_state_publisher" output="screen">
+    <param name="rate" value="$(arg publish_rate)" />
+    <rosparam param="source_list">[robot_joint_state_publisher/joint_states, gripper_joint_state_publisher/joint_states]</rosparam>
+  </node> -->
+
+  <node pkg="rviz" type="rviz" output="screen" name="rviz" args="-d $(find mopa_gazebo)/launch/mopa.rviz"/>
+</launch>
