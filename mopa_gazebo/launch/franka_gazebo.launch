@@ -32,24 +32,12 @@
   <include file="$(find ridgeback_control)/launch/teleop.launch">
     <arg name="joystick" value="false"/>
   </include>
-  <rosparam param="/gazebo_ros_control/pid_gains">
-    front_left_wheel:
-      p: 1
-      i: 0.1
-      d: 0
-    front_right_wheel:
-      p: 1
-      i: 0.1
-      d: 0
-    rear_left_wheel:
-      p: 1
-      i: 0.1
-      d: 0
-    rear_right_wheel:
-      p: 1
-      i: 0.1
-      d: 0
-  </rosparam>
+
+  <!-- some franka parameters -->
+  <rosparam command="load" file="$(find mopa_gazebo)/config/joint_states.yaml" ns="franka"/>
+	<rosparam command="load" file="$(find mopa_gazebo)/config/joint_commands.yaml" ns="franka"/>
+	<rosparam command="load" file="$(find mopa_gazebo)/config/gripper_commands.yaml" ns="franka"/>
+	<rosparam command="load" file="$(find mopa_gazebo)/config/default.yaml"/>
 
   <!-- spawn robot in gazebo -->
   <node name="spawn_gazebo_model" pkg="gazebo_ros" type="spawn_model" args="-urdf -param robot_description -model fkahsdfklhdas -z 0.1" respawn="false" output="screen" />
