@@ -44,18 +44,12 @@
         args="cmd_vel ridgeback_velocity_controller/cmd_vel" />
 
   <!-- some franka parameters -->
-  <!-- <rosparam command="load" file="$(find mopa_gazebo)/config/joint_states.yaml" ns="franka"/> -->
-	<!-- <rosparam command="load" file="$(find mopa_gazebo)/config/joint_commands.yaml" ns="franka"/> -->
-	<rosparam command="load" file="$(find mopa_gazebo)/config/gripper_commands.yaml" ns="franka"/>
-	<rosparam command="load" file="$(find mopa_gazebo)/config/default.yaml"/>
-
+  <rosparam command="load" file="$(find mopa_gazebo)/config/gripper_commands.yaml" ns="franka"/>
+  <rosparam command="load" file="$(find mopa_gazebo)/config/default.yaml"/>
   <rosparam command="load" file="$(find mopa_control)/config/mopa_controllers.yaml"/>
 
   <!-- spawn robot in gazebo -->
   <node name="spawn_gazebo_model" pkg="gazebo_ros" type="spawn_model" args="-urdf -param robot_description -model fkahsdfklhdas -z 0.1" respawn="false" output="screen" />
-
-  <!-- Given the published joint states, publish tf for the robot links -->
-  <!-- <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="true" output="screen" /> -->
 
   <!-- launch franka controllers -->
   <node name="franka_controller_spawner" pkg="controller_manager" type="spawner" args=
