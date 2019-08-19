@@ -10,6 +10,9 @@
 // Boost headers
 #include <boost/shared_ptr.hpp>
 
+// Eigen headers
+#include <Eigen/Dense>
+
 // ROS headers
 #include <ros/ros.h>
 #include <ros/console.h>
@@ -43,7 +46,7 @@ void createArmClient(arm_control_client_Ptr& actionClient)
     throw std::runtime_error("Error in createArmClient: arm controller action server not available");
 }
 
-// Generates a simple trajectory with two waypoints to move TIAGo's arm
+// Generates a simple trajectory with two waypoints to move arm
 void waypoints_arm_goal(control_msgs::FollowJointTrajectoryGoal& goal)
 {
     std::vector<double> home_joint_states{0.0, -M_PI/4.0, 0.0, -3.0*M_PI/4.0, 0.0, M_PI/2.0, M_PI/4.0};
@@ -143,6 +146,10 @@ int get_joint_states(std::vector<double>& states, ros::NodeHandle &nh) {
 
 
 int main(int argc, char** argv) {
+    Eigen::MatrixXd m(2,2);
+    m(0,0) = 8;
+    ROS_INFO_STREAM("Matrix: " << m);
+
     ros::init(argc, argv, "jf_traj_node");
 
     // if (ros::console::set_logger_level(ROSCONSOLE_DEFAULT_NAME, ros::console::levels::Debug)) {
