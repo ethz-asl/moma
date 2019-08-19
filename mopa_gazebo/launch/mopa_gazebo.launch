@@ -28,42 +28,40 @@
   </include>
 
   <!-- launch ridgeback control and teleop nodes -->
-  <include file="$(find ridgeback_control)/launch/control.launch" />
   <include file="$(find ridgeback_control)/launch/teleop.launch">
     <arg name="joystick" value="false"/>
   </include>
+  <!-- <include file="$(find ridgeback_control)/launch/control.launch" /> -->
+  <!-- This ridgeback control node launches a joint publisher which is not required when using gazebo. Therefore the commands from the launch file are replicated here. -->
+  <rosparam command="load" file="$(find ridgeback_control)/config/control.yaml" />
+  <group if="$(optenv RIDGEBACK_CONTROL_EXTRAS 0)" >
+    <rosparam command="load" file="$(env RIDGEBACK_CONTROL_EXTRAS_PATH)" />
+  </group>
+  <node name="controller_spawner" pkg="controller_manager" type="spawner"
+        args="ridgeback_velocity_controller" />
+  <node pkg="robot_localization" type="ekf_localization_node" name="ekf_localization" />
+  <node pkg="topic_tools" type="relay" name="cmd_vel_relay"
+        args="cmd_vel ridgeback_velocity_controller/cmd_vel" />
 
   <!-- some franka parameters -->
-  <rosparam command="load" file="$(find mopa_gazebo)/config/joint_states.yaml" ns="franka"/>
-	<rosparam command="load" file="$(find mopa_gazebo)/config/joint_commands.yaml" ns="franka"/>
+  <!-- <rosparam command="load" file="$(find mopa_gazebo)/config/joint_states.yaml" ns="franka"/> -->
+	<!-- <rosparam command="load" file="$(find mopa_gazebo)/config/joint_commands.yaml" ns="franka"/> -->
 	<rosparam command="load" file="$(find mopa_gazebo)/config/gripper_commands.yaml" ns="franka"/>
 	<rosparam command="load" file="$(find mopa_gazebo)/config/default.yaml"/>
 
+  <rosparam command="load" file="$(find mopa_control)/config/mopa_controllers.yaml"/>
+
   <!-- spawn robot in gazebo -->
   <node name="spawn_gazebo_model" pkg="gazebo_ros" type="spawn_model" args="-urdf -param robot_description -model fkahsdfklhdas -z 0.1" respawn="false" output="screen" />
-
-  <!-- If needed, broadcast static tf for robot root -->
-  <!-- <node pkg="tf2_ros" type="static_transform_publisher" name="virtual_joint_broadcaster_1" args="0 0 0 0 0 0 world panda_link0" /> -->
-
-  <!-- joint state publisher -->
-  <!-- <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
-    <param name="/use_gui" value="true"/>
-  </node> -->
 
   <!-- Given the published joint states, publish tf for the robot links -->
   <!-- <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="true" output="screen" /> -->
 
   <!-- launch franka controllers -->
   <node name="franka_controller_spawner" pkg="controller_manager" type="spawner" args=
-		"franka/joint_state_controller
-		franka/joint1_position_controller
-		franka/joint2_position_controller
-		franka/joint3_position_controller
-		franka/joint4_position_controller
-		franka/joint5_position_controller
-		franka/joint6_position_controller
-		franka/joint7_position_controller
-		franka/gripper_position_controller"/>
+		"franka/position_joint_trajectory_controller
+		franka/gripper_position_controller
+        joint_state_controller"/>
 
   <node pkg="rviz" type="rviz" output="screen" name="rviz" args="-d $(find mopa_gazebo)/launch/mopa.rviz"/>
 </launch>

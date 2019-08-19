@@ -87,6 +87,15 @@
     <mu2>0.0</mu2>
   </gazebo>
 
+  <!-- Add transmission for rocker, just s.t. its joint state gets published -->
+  <transmission name="front_rocker_trans">
+  <type>transmission_interface/SimpleTransmission</type>
+  <joint name="front_rocker">
+   <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+  </joint>
+  <actuator name="front_rocker_dummy_act"/>
+  </transmission>
+
   <!-- This is an wheel-level solution to possibly revisit at a future date. -->
   <!--<gazebo>
     <plugin name="mecanum_gazebo" filename="libmecanum_force_plugin.so">
