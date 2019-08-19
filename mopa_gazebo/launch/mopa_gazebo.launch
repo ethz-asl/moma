@@ -44,8 +44,7 @@
         args="cmd_vel ridgeback_velocity_controller/cmd_vel" />
 
   <!-- some franka parameters -->
-  <rosparam command="load" file="$(find mopa_gazebo)/config/gripper_commands.yaml" ns="franka"/>
-  <rosparam command="load" file="$(find mopa_gazebo)/config/default.yaml"/>
+  <rosparam command="load" file="$(find mopa_control)/config/pid_gains.yaml"/>
   <rosparam command="load" file="$(find mopa_control)/config/mopa_controllers.yaml"/>
 
   <!-- spawn robot in gazebo -->

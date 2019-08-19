@@ -30,3 +30,9 @@ franka/position_joint_trajectory_controller:
       goal: 0.05
     panda_joint7:
       goal: 0.05
+
+franka/gripper_position_controller:
+  type: "position_controllers/JointGroupPositionController"
+  joints:
+  - panda_finger_joint1
+  - panda_finger_joint2
