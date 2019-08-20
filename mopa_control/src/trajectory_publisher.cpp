@@ -109,6 +109,9 @@ int main(int argc, char** argv) {
 
     BasicArmMovementSkills bam_skills(nh);
 
+
+    bam_skills.goAway();
+    ros::Duration(2.1).sleep();
     bam_skills.goHome();
 
     return EXIT_SUCCESS;

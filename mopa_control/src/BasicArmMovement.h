@@ -26,6 +26,7 @@ public:
     int getJointStates(std::vector<double>& states);
     int goToJointSetpoint(const std::vector<double>& joint_setpoints, double duration);
     int goHome();
+    int goAway();
 
 private:
     // Variables

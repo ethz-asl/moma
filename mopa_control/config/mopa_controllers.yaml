@@ -16,6 +16,7 @@ franka/position_joint_trajectory_controller:
     - panda_joint7
   constraints:
     goal_time: 0.5
+    stopped_velocity_tolerance: 0.1
     panda_joint1:
       goal: 0.05
     panda_joint2:

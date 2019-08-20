@@ -40,7 +40,13 @@ void BasicArmMovementSkills::createArmClient() {
 int BasicArmMovementSkills::getJointStates(std::vector<double>& states) {
     ROS_ASSERT(states.size() == NUM_JOINTS);
 
-    boost::shared_ptr<sensor_msgs::JointState const> current_joint_state_ptr = ros::topic::waitForMessage<sensor_msgs::JointState>("/joint_states", nh, ros::Duration(0.2));
+    boost::shared_ptr<sensor_msgs::JointState const> current_joint_state_ptr;
+    int counter = 0;
+    while (!current_joint_state_ptr && counter < 10) {
+        current_joint_state_ptr = ros::topic::waitForMessage<sensor_msgs::JointState>("/joint_states", nh, ros::Duration(0.2));
+        ++counter;
+    }
+
     if (!current_joint_state_ptr) {
         ROS_WARN("Could not read joint state message.");
         return EXIT_FAILURE;
@@ -58,20 +64,14 @@ int BasicArmMovementSkills::getJointStates(std::vector<double>& states) {
             return EXIT_FAILURE;
         } else {
             int index = std::distance(name_copy.begin(), it);
-            // ROS_INFO_STREAM("Joint state of joint " << ss.str() << " is at index " << index);
             states[i-1] = current_joint_state_ptr->position[index];
-            // ROS_INFO_STREAM("State is " << states[i-1]);
         }
     }
-    // ss.str(std::string());
-    // for (const double& val: states) {
-    //     ss << val << " ";
-    // }
-    // ROS_INFO_STREAM("Joint states: " << ss.str());
     return EXIT_SUCCESS;
 }
 
 int BasicArmMovementSkills::goToJointSetpoint(const std::vector<double>& joint_setpoints, double duration) {
+    ROS_INFO("Hi from go to setpoint");
     ROS_ASSERT(joint_setpoints.size() == NUM_JOINTS);
 
     traj.trajectory.points.resize(2);
@@ -79,7 +79,14 @@ int BasicArmMovementSkills::goToJointSetpoint(const std::vector<double>& joint_s
 
     std::vector<double> current_joint_states;
     current_joint_states.resize(NUM_JOINTS);
-    getJointStates(current_joint_states);
+    int res = getJointStates(current_joint_states);
+    if (res == EXIT_FAILURE) {
+        ROS_WARN("Couldn't get current joint state. Abort going to setpoint.");
+        return EXIT_FAILURE;
+    }
+
+    ROS_INFO_STREAM("Start point: " << util::stdVecToStr(current_joint_states));
+    ROS_INFO_STREAM("End point: " << util::stdVecToStr(joint_setpoints));
 
     int index = 0;
     traj.trajectory.points[index].positions = current_joint_states;
@@ -91,31 +98,22 @@ int BasicArmMovementSkills::goToJointSetpoint(const std::vector<double>& joint_s
     traj.trajectory.points[index].velocities = zeros;
     traj.trajectory.points[index].time_from_start = ros::Duration(duration);
 
-    traj.trajectory.header.stamp = ros::Time::now() + ros::Duration(1.0);
+    traj.trajectory.header.stamp = ros::Time::now() + ros::Duration(0.5);
 
     ROS_INFO("Sending trajectory command now ...");
-    ArmClient->sendGoal(traj);
-
-    // Wait for trajectory execution
-    bool flag_done = false;
-    auto state = ArmClient->getState();
-    ROS_DEBUG_STREAM("Current action state: " << state.toString());
-    while(!flag_done && ros::ok()) {
-        state = ArmClient->getState();
-        ROS_DEBUG_STREAM("Current action state: " << state.toString());
-        flag_done = state.isDone();
-        ros::Duration(0.1).sleep();
-    }
-
-    // ArmClient->waitForResult(ros::Duration(duration+1));
-    // ros::Duration(0.5).sleep();
-
+    ArmClient->sendGoalAndWait(traj, ros::Duration(duration + 2.0), ros::Duration(0.0));
 
     // Check trajectory status
+    auto state = ArmClient->getState();
     ROS_DEBUG_STREAM("Final action state: " << state.toString());
     if (state != actionlib::SimpleClientGoalState::SUCCEEDED) {
-        ROS_WARN_STREAM("Executing arm motion did NOT succeed: " << state.toString());
-        return EXIT_FAILURE;
+        ROS_WARN_STREAM("Action state response: " << state.toString());
+        control_msgs::FollowJointTrajectoryResultConstPtr action_res = ArmClient->getResult();
+        if (!(state == actionlib::SimpleClientGoalState::ABORTED && action_res->error_code == -5)) {
+            ROS_WARN("Trajectory NOT successful!");
+            ROS_WARN_STREAM("Result info: " << action_res->error_code);
+            return EXIT_FAILURE;
+        }
     }
     ROS_INFO("Executed trajectory successfully.");
     return EXIT_SUCCESS;
@@ -124,4 +122,10 @@ int BasicArmMovementSkills::goToJointSetpoint(const std::vector<double>& joint_s
 int BasicArmMovementSkills::goHome() {
     // TODO add logic to compute duration depending on starting position
     return goToJointSetpoint(home_state, 4.0);
+}
+
+int BasicArmMovementSkills::goAway() {
+    // TODO add logic to compute duration depending on starting position
+    std::vector<double> away_state{0.2,0.0,0.0,-1.5,-1.57,0.47,0.5};
+    return goToJointSetpoint(away_state, 4.0);
 }
