@@ -48,7 +48,7 @@
   <rosparam command="load" file="$(find mopa_control)/config/mopa_controllers.yaml"/>
 
   <!-- spawn robot in gazebo -->
-  <node name="spawn_gazebo_model" pkg="gazebo_ros" type="spawn_model" args="-urdf -param robot_description -model fkahsdfklhdas -z 0.1" respawn="false" output="screen" />
+  <node name="spawn_gazebo_model" pkg="gazebo_ros" type="spawn_model" args="-urdf -param robot_description -model mopa -z 0.1" respawn="false" output="screen" />
 
   <!-- launch franka controllers -->
   <node name="franka_controller_spawner" pkg="controller_manager" type="spawner" args=
@@ -56,5 +56,5 @@
 		franka/gripper_position_controller
         joint_state_controller"/>
 
-  <node pkg="rviz" type="rviz" output="screen" name="rviz" args="-d $(find mopa_gazebo)/launch/mopa.rviz"/>
+  <node pkg="rviz" type="rviz" output="screen" name="rviz" args="-d $(find mopa_control)/config/mopa.rviz"/>
 </launch>
