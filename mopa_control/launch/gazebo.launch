@@ -10,7 +10,7 @@
 
   <!-- assemble and load URDF -->
   <group if="$(arg load_base)">
-    <param if="$(arg load_gripper)" name="robot_description" command="$(find xacro)/xacro --inorder $(find mopa_description)/robots/ridge_panda_hand.urdf.xacro" />
+    <param if="$(arg load_gripper)" name="robot_description" command="$(find xacro)/xacro --inorder $(find mopa_description)/robots/ridgeback_panda_hand.urdf.xacro" />
     <param unless="$(arg load_gripper)" name="robot_description" command="$(find xacro)/xacro --inorder $(find mopa_description)/robots/ridge_panda.urdf.xacro" />
   </group>
   <group unless="$(arg load_base)">
@@ -42,12 +42,12 @@
 
   <!-- spawn robot in gazebo -->
   <node name="spawn_gazebo_model" pkg="gazebo_ros" type="spawn_model" args="-urdf -param robot_description
-      -model mopa -z 0.1 -J panda_joint6 3.0" respawn="false" output="screen" />
+      -model mopa -z 0.1" respawn="false" output="screen" />
 
   <!-- launch franka controllers -->
   <node name="franka_controller_spawner" pkg="controller_manager" type="spawner" args=
 		"franka/position_joint_trajectory_controller
-		franka/gripper_position_controller
-        joint_state_controller"/>
+		franka/gripper_action_controller
+        joint_state_controller" />
 
 </launch>
