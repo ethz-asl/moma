@@ -1,0 +1,23 @@
+<?xml version="1.0" ?>
+
+<!-- Top level launch file -->
+
+<launch>
+    <!-- arguments -->
+    <arg name="paused" default="false" doc="Starts gazebo in paused mode" />
+    <arg name="gui" default="true" doc="Starts gazebo gui" />
+    <arg name="world_name" default="$(find mopa_app_highlevel_planning)/config/planning_world.sdf" />
+
+    <!-- launch gazebo world -->
+    <include file="$(find gazebo_ros)/launch/empty_world.launch">
+      <arg name="world_name" value="$(arg world_name)"/>
+      <arg name="paused" value="$(arg paused)"/>
+      <arg name="gui" value="$(arg gui)"/>
+    </include>
+
+    <!-- spawn whole robot, including its control interfaces -->
+    <include file="$(find mopa_control)/launch/gazebo.launch" />
+
+    <!-- launch rviz -->
+    <node pkg="rviz" type="rviz" output="screen" name="rviz" args="-d $(find mopa_control)/config/mopa.rviz"/>
+</launch>
