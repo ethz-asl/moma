@@ -6,7 +6,17 @@
   <!-- arguments -->
   <arg name="load_gripper" default="true" />
   <arg name="load_base" default="true" />
-  <arg name="publish_rate" default="30" />
+  <arg name="world_name" default="worlds/empty.world"/>
+  <arg name="paused" default="false" doc="Starts gazebo in paused mode" />
+  <arg name="gui" default="true" doc="Starts gazebo gui" />
+  <arg name="launch_rviz" default="false" />
+
+  <!-- launch gazebo world -->
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" value="$(arg world_name)"/>
+    <arg name="paused" value="$(arg paused)"/>
+    <arg name="gui" value="$(arg gui)"/>
+  </include>
 
   <!-- assemble and load URDF -->
   <group if="$(arg load_base)">
@@ -49,5 +59,8 @@
 		"franka/position_joint_trajectory_controller
 		franka/gripper_action_controller
         joint_state_controller" />
+
+    <!-- launch rviz -->
+    <node if="$(arg launch_rviz)" pkg="rviz" type="rviz" output="screen" name="rviz" args="-d $(find mopa_control)/config/mopa.rviz"/>
 
 </launch>

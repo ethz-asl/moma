@@ -4,26 +4,17 @@
 
 <launch>
     <!-- arguments -->
-    <arg name="paused" default="false" doc="Starts gazebo in paused mode" />
-    <arg name="gui" default="true" doc="Starts gazebo gui" />
-    <arg name="world_name" default="$(find mopa_app_highlevel_planning)/config/planning_world.sdf" />
-    <arg name="load_gripper" default="false" />
     <arg name="launch_rviz" default="true" />
+    <arg name="launch_moveit_rviz" default="true" />
+    <arg name="world_name" default="worlds/empty.world"/>
 
-    <!-- launch gazebo world -->
-    <include file="$(find gazebo_ros)/launch/empty_world.launch">
-      <arg name="world_name" value="$(arg world_name)"/>
-      <arg name="paused" value="$(arg paused)"/>
-      <arg name="gui" value="$(arg gui)"/>
+    <include file="$(find mopa_control)/launch/gazebo.launch">
+        <arg name="world_name" value="$(arg world_name)" />
+        <arg name="launch_rviz" value="$(arg launch_rviz)" />
     </include>
 
-    <!-- spawn whole robot, including its control interfaces -->
-    <include file="$(find mopa_control)/launch/gazebo.launch" />
-
-
-
+    <!-- TODO -->
     <node pkg="tf2_ros" type="static_transform_publisher" name="virtual_joint_broadcaster_0" args="0 0 0 0 0 0 world base_link" />
-
 
     <!-- Load joint controller configurations from YAML file to parameter server -->
     <rosparam file="$(find mopa_moveit_config)/config/ros_controllers.yaml" command="load"/>
@@ -33,5 +24,5 @@
     </include>
 
     <!-- launch rviz -->
-    <include file="$(find mopa_moveit_config)/launch/moveit_rviz.launch" if="$(arg launch_rviz)" />
+    <include file="$(find mopa_moveit_config)/launch/moveit_rviz.launch" if="$(arg launch_moveit_rviz)" />
 </launch>
