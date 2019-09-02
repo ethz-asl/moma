@@ -1,5 +1,0 @@
-<?xml version="1.0" ?>
-
-<launch>
-    <node pkg="mopa_control" type="trajectory_publisher_node" output="screen" name="traj_pub" launch-prefix="gdbgui --args"/>
-</launch>
