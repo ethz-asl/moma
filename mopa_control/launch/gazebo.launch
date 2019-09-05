@@ -7,7 +7,7 @@
   <arg name="load_gripper" default="true" />
   <arg name="load_base" default="true" />
   <arg name="world_name" default="worlds/empty.world"/>
-  <arg name="paused" default="false" doc="Starts gazebo in paused mode" />
+  <arg name="paused" default="true" doc="Starts gazebo in paused mode" />
   <arg name="gui" default="true" doc="Starts gazebo gui" />
   <arg name="launch_rviz" default="false" />
 
@@ -18,15 +18,32 @@
     <arg name="gui" value="$(arg gui)"/>
   </include>
 
+
+
   <!-- assemble and load URDF -->
   <group if="$(arg load_base)">
-    <param if="$(arg load_gripper)" name="robot_description" command="$(find xacro)/xacro --inorder $(find mopa_description)/robots/ridgeback_panda_hand.urdf.xacro" />
-    <param unless="$(arg load_gripper)" name="robot_description" command="$(find xacro)/xacro --inorder $(find mopa_description)/robots/ridge_panda.urdf.xacro" />
+    <param if="$(arg load_gripper)" name="robot_description" command="$(find xacro)/xacro $(find mopa_description)/robots/ridgeback_panda_hand.urdf.xacro" />
+    <param unless="$(arg load_gripper)" name="robot_description" command="$(find xacro)/xacro $(find mopa_description)/robots/ridge_panda.urdf.xacro" />
   </group>
   <group unless="$(arg load_base)">
-    <param unless="$(arg load_gripper)" name="robot_description" command="$(find xacro)/xacro --inorder $(find franka_description)/robots/panda_arm.urdf.xacro" />
-    <param if="$(arg load_gripper)" name="robot_description" command="$(find xacro)/xacro --inorder $(find franka_description)/robots/panda_arm_hand.urdf.xacro" />
+    <param unless="$(arg load_gripper)" name="robot_description" command="$(find xacro)/xacro $(find franka_description)/robots/panda_arm.urdf.xacro" />
+    <param if="$(arg load_gripper)" name="robot_description" command="$(find xacro)/xacro $(find franka_description)/robots/panda_arm_hand.urdf.xacro" />
   </group>
+
+  <!-- spawn robot in gazebo -->
+  <node name="spawn_gazebo_model" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen" args="-urdf -param robot_description
+      -model mopa -z 0.03
+      -J panda_joint1 0
+      -J panda_joint2 -0.785
+      -J panda_joint3 0
+      -J panda_joint4 -2.1
+      -J panda_joint5 0
+      -J panda_joint6 1.571
+      -J panda_joint7 0.785" />
+  <!-- Setting the start position of joint4 causes issues. The standard Panda home position of that
+        joint would be -2.356. However, when choosing a value smaller than -2.1, the joint in the simulation
+        goes to a value which is outside its range, which breaks the simulation. -->
+
 
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher" />
 
@@ -49,10 +66,6 @@
   <!-- some franka parameters -->
   <rosparam command="load" file="$(find mopa_control)/config/pid_gains.yaml"/>
   <rosparam command="load" file="$(find mopa_control)/config/mopa_controllers.yaml"/>
-
-  <!-- spawn robot in gazebo -->
-  <node name="spawn_gazebo_model" pkg="gazebo_ros" type="spawn_model" args="-urdf -param robot_description
-      -model mopa -z 0.1" respawn="false" output="screen" />
 
   <!-- launch franka controllers -->
   <node name="franka_controller_spawner" pkg="controller_manager" type="spawner" args=
