@@ -113,7 +113,7 @@ catkin_package(
 ## Your package locations should be listed before other locations
 include_directories(
   ${catkin_INCLUDE_DIRS}
-  /usr/include/eigen3
+  # /usr/include/eigen3
 )
 
 ## Declare a C++ library
@@ -129,8 +129,8 @@ include_directories(
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-add_executable(trajectory_publisher_node src/trajectory_publisher.cpp src/BasicArmMovement.cpp)
-target_link_libraries(trajectory_publisher_node ${catkin_LIBRARIES})
+# add_executable(trajectory_publisher_node src/trajectory_publisher.cpp src/BasicArmMovement.cpp)
+# target_link_libraries(trajectory_publisher_node ${catkin_LIBRARIES})
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
