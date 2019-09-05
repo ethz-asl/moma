@@ -1,0 +1,11 @@
+moveit_setup_assistant_config:
+  URDF:
+    package: mopa_description
+    relative_path: robots/ridgeback_panda_hand.urdf.xacro
+    xacro_args: ""
+  SRDF:
+    relative_path: config/mopa.srdf
+  CONFIG:
+    author_name: Julian Förster
+    author_email: julian.foerster@mavt.ethz.ch
+    generated_timestamp: 1567428804
