@@ -7,18 +7,21 @@
   <arg name="load_gripper" default="true" />
   <arg name="load_base" default="true" />
   <arg name="world_name" default="worlds/empty.world"/>
-  <arg name="paused" default="true" doc="Starts gazebo in paused mode" />
   <arg name="gui" default="true" doc="Starts gazebo gui" />
   <arg name="launch_rviz" default="false" />
+  <!-- The simulation needs to be launched in paused mode. Otherwise, the initial position of the robot is not
+  set correctly. -->
+  <arg name="paused" default="true" doc="Starts gazebo in paused mode" />
 
-  <!-- launch gazebo world -->
-  <include file="$(find gazebo_ros)/launch/empty_world.launch">
-    <arg name="world_name" value="$(arg world_name)"/>
-    <arg name="paused" value="$(arg paused)"/>
-    <arg name="gui" value="$(arg gui)"/>
-  </include>
+  <!-- some franka parameters -->
+  <rosparam command="load" file="$(find mopa_control)/config/pid_gains.yaml"/>
+  <rosparam command="load" file="$(find mopa_control)/config/mopa_controllers.yaml"/>
 
-
+  <!-- launch franka controllers -->
+  <node name="franka_controller_spawner" pkg="controller_manager" type="spawner" args=
+		"franka/position_joint_trajectory_controller
+		franka/gripper_action_controller
+        joint_state_controller" />
 
   <!-- assemble and load URDF -->
   <group if="$(arg load_base)">
@@ -29,6 +32,13 @@
     <param unless="$(arg load_gripper)" name="robot_description" command="$(find xacro)/xacro $(find franka_description)/robots/panda_arm.urdf.xacro" />
     <param if="$(arg load_gripper)" name="robot_description" command="$(find xacro)/xacro $(find franka_description)/robots/panda_arm_hand.urdf.xacro" />
   </group>
+
+  <!-- launch gazebo world -->
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" value="$(arg world_name)"/>
+    <arg name="paused" value="$(arg paused)"/>
+    <arg name="gui" value="$(arg gui)"/>
+  </include>
 
   <!-- spawn robot in gazebo -->
   <node name="spawn_gazebo_model" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen" args="-urdf -param robot_description
@@ -43,7 +53,6 @@
   <!-- Setting the start position of joint4 causes issues. The standard Panda home position of that
         joint would be -2.356. However, when choosing a value smaller than -2.1, the joint in the simulation
         goes to a value which is outside its range, which breaks the simulation. -->
-
 
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher" />
 
@@ -63,17 +72,7 @@
   <node pkg="topic_tools" type="relay" name="cmd_vel_relay"
         args="cmd_vel ridgeback_velocity_controller/cmd_vel" />
 
-  <!-- some franka parameters -->
-  <rosparam command="load" file="$(find mopa_control)/config/pid_gains.yaml"/>
-  <rosparam command="load" file="$(find mopa_control)/config/mopa_controllers.yaml"/>
-
-  <!-- launch franka controllers -->
-  <node name="franka_controller_spawner" pkg="controller_manager" type="spawner" args=
-		"franka/position_joint_trajectory_controller
-		franka/gripper_action_controller
-        joint_state_controller" />
-
-    <!-- launch rviz -->
-    <node if="$(arg launch_rviz)" pkg="rviz" type="rviz" output="screen" name="rviz" args="-d $(find mopa_control)/config/mopa.rviz"/>
+  <!-- launch rviz -->
+  <node if="$(arg launch_rviz)" pkg="rviz" type="rviz" output="screen" name="rviz" args="-d $(find mopa_control)/config/mopa.rviz"/>
 
 </launch>
