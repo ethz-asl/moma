@@ -1,0 +1,3 @@
+[submodule "franka_ros"]
+	path = franka_ros
+	url = https://github.com/fjulian/franka_ros

@@ -1,4 +1,8 @@
 
+## Installing dependencies
+
+To install ros dependencies through apt-get, run the `install_dependencies.sh` shell script.
+
 ## How to run this
 
 To launch a simulation and some standard trajectory following controllers, run
