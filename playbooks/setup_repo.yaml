@@ -22,8 +22,10 @@
       shell: catkin init
       args:
         chdir: /home/franka/catkin_ws
-    - name: Should clone repository
-      debug:
-        msg: Currently I (@kekeblom) don't have access to the repository settings so I can't setup a deploy key. Repository has to be cloned manually for now.
+    - name: Copy repository over.
+      copy:
+        src: ../
+        dest: /home/franka/catkin_ws/src/chimera/
+        owner: yes
 
 
