@@ -1,0 +1,30 @@
+---
+- hosts: franka-box
+  remote_user: franka
+  tasks:
+    - name: Update package lists
+      become: yes
+      apt:
+        update_cache: true
+    - name: Install ros-franka
+      become: yes
+      apt:
+        name: "{{ packages }}"
+        state: present
+      vars:
+        packages:
+        - ros-melodic-franka-ros
+    - name: Create workspace src directory
+      file:
+        path: /home/franka/catkin_ws/src/
+        state: directory
+    - name: Initialize workspace
+      shell: catkin init
+      args:
+        chdir: /home/franka/catkin_ws
+    - name: Copy repository over.
+      copy:
+        src: ../
+        dest: /home/franka/catkin_ws/src/chimera/
+        owner: yes
+
