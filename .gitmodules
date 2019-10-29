@@ -1,0 +1,4 @@
+[submodule "franka_ros"]
+	path = franka_ros
+	url = git@github.com:ethz-asl/franka_ros.git
+	branch = melodic-devel
