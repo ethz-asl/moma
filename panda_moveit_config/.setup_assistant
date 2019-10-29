@@ -1,0 +1,11 @@
+moveit_setup_assistant_config:
+  URDF:
+    package: mopa_description
+    relative_path: robots/panda_hand_realsense.urdf.xacro
+    xacro_args: ""
+  SRDF:
+    relative_path: config/chimera.srdf
+  CONFIG:
+    author_name: Michel Breyer
+    author_email: mbreyer@ethz.ch
+    generated_timestamp: 1572368273

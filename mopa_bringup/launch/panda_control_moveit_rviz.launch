@@ -16,13 +16,17 @@
     <arg name="robot_description_xacro" value="$(find mopa_description)/robots/panda_hand_realsense.urdf.xacro"/>
   </include>
 
-  <include file="$(find panda_moveit_config)/launch/panda_moveit.launch">
+  <!-- <include file="$(find panda_moveit_config)/launch/panda_moveit.launch">
     <arg name="load_gripper" value="$(arg load_gripper)" />
+  </include> -->
+  <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="position_joint_trajectory_controller"/>
+  <include file="$(find panda_moveit_config)/launch/move_group.launch">
+    <!-- <arg name="load_gripper" value="$(arg load_gripper)" /> -->
   </include>
 
   <!-- <include file="$(find panda_moveit_config)/launch/moveit_rviz.launch" if="$(arg launch_rviz)" /> -->
   <group if="$(arg launch_rviz)">
-    <arg name="command_args" value="-d $(find mopa_bringup)/config/franka_planning.rviz" />
+    <arg name="command_args" value="-d $(find panda_moveit_config)/launch/moveit.rviz" />
     <node name="$(anon rviz)" pkg="rviz" type="rviz" respawn="false" args="$(arg command_args)" output="screen">
       <rosparam command="load" file="$(find panda_moveit_config)/config/kinematics.yaml"/>
     </node>
