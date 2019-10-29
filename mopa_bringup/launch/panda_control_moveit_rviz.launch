@@ -13,6 +13,7 @@
   <include file="$(find franka_control)/launch/franka_control.launch" >
     <arg name="robot_ip" value="$(arg robot_ip)" />
     <arg name="load_gripper" value="$(arg load_gripper)" />
+    <arg name="robot_description_xacro" value="$(find mopa_description)/robots/panda_hand_realsense.urdf.xacro"/>
   </include>
 
   <include file="$(find panda_moveit_config)/launch/panda_moveit.launch">

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="realsense">
+  <xacro:macro name="realsense" params="connected_to:='' ns:='' rpy:='0 0 0' xyz:='0 0 0' ">
+    <xacro:unless value="${connected_to == ''}">
+      <joint name="${ns}_realsense_joint" type="fixed">
+        <parent link="${connected_to}"/>
+        <child link="${ns}_realsense_link"/>
+        <origin xyz="${xyz}" rpy="${rpy}"/>
+      </joint>
+    </xacro:unless>
+
+    <xacro:arg name="gazebo" default="true"/>
+    <xacro:if value="$(arg gazebo)">
+      <!-- Gazebo Tags -->
+      <xacro:include filename="$(find mopa_description)/robots/realsense.gazebo.xacro"/>
+    </xacro:if>
+
+    <link name="${ns}_realsense_link">
+      <inertial>
+        <mass value="0.05" />
+        <inertia ixx="0.00014" ixy="0.0" ixz="0.0" iyy="0.00000384" iyz="0.0" izz="0.00014" />
+      </inertial>
+      <visual>
+        <geometry>
+          <mesh filename="package://mopa_description/meshes/realsense_r200.dae"/>
+        </geometry>
+        <material name="blueish">
+          <color rgb="0.01 0.73 0.99 1.0"/>
+        </material>
+      </visual>
+      <collision>
+        <geometry>
+          <box size="0.008 0.13 0.02"/>
+        </geometry>
+      </collision>
+    </link>
+  </xacro:macro>
+</robot>

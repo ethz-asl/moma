@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="chimera">
+  <xacro:include filename="$(find franka_description)/robots/panda_arm.xacro"/>
+  <xacro:include filename="$(find franka_description)/robots/hand.xacro"/>
+  <xacro:include filename="$(find mopa_description)/robots/realsense.xacro"/>
+  <xacro:panda_arm xyz="0 0 0" />
+  <xacro:hand ns="panda" rpy="0 0 ${-pi/4}" connected_to="panda_link8" />
+  <xacro:realsense ns="panda" rpy="3.14 -1.55 0.0" xyz="0.04 0.0 0.04" connected_to="panda_hand"/>
+</robot>
+
