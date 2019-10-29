@@ -23,12 +23,14 @@ The `playbooks/` directory contains some Ansible playbooks which are there to au
 
 To run a playbook, first install Ansible (`pip install --user ansible`). Copy the file `playbooks/hosts` to `/opt/ansible/hosts` or specify the inventory file with the `-i` option every time you run `ansible-playbook` (e.g. `ansible-playbook playbooks/setup_ros.yaml -i playbooks/hosts --ask-pass --ask-become-pass`.
 
-The hosts file is an inventory file specifying which machines the playbooks are run againts. Currently it only contains one group `franka-box` which's ip should point to the ubuntu machine controlling the Franka arm.
+The hosts file is an inventory file specifying which machines the playbooks are run against. Currently it only contains one group `franka-box` which's ip should point to the ubuntu machine controlling the Franka arm.
 
 Setting up the machine is done by running the commands:
-- `ansible-playbook playbooks/setup_ros.yaml --ask-pass --ask-become-pass`
-- `ansible-playbook playbooks/setup_repo.yaml --ask-pass --ask-become-pass`
-- `ansible-playbook playbooks/setup_realsense.yaml --ask-pass --ask-become-pass`
+```
+ansible-playbook playbooks/setup_ros.yaml --ask-pass --ask-become-pass
+ansible-playbook playbooks/setup_repo.yaml --ask-pass --ask-become-pass
+ansible-playbook playbooks/setup_realsense.yaml --ask-pass --ask-become-pass
+```
 
 ## TODO
 

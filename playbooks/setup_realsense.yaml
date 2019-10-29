@@ -33,6 +33,3 @@
       git:
         repo: https://github.com/IntelRealSense/realsense-ros.git
         dest: /home/franka/catkin_ws/src/realsense-ros.git
-
-
-
