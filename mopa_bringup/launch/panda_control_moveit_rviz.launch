@@ -1,0 +1,29 @@
+<?xml version="1.0" ?>
+
+<!-- Adapted from $(find panda_moveit_config)/launch/panda_control_moveit_rviz.launch -->
+
+<launch>
+  <arg name="robot_ip" default="172.16.0.2" />
+  <arg name="load_gripper" default="true" />
+  <arg name="launch_rviz" default="true" />
+
+  <!-- Fake transform between base and world -->
+  <node name="world_transform_publisher" pkg="tf" type="static_transform_publisher" args="0 0 0 0 0 0 1 world panda_link0 100"/>
+
+  <include file="$(find franka_control)/launch/franka_control.launch" >
+    <arg name="robot_ip" value="$(arg robot_ip)" />
+    <arg name="load_gripper" value="$(arg load_gripper)" />
+  </include>
+
+  <include file="$(find panda_moveit_config)/launch/panda_moveit.launch">
+    <arg name="load_gripper" value="$(arg load_gripper)" />
+  </include>
+
+  <!-- <include file="$(find panda_moveit_config)/launch/moveit_rviz.launch" if="$(arg launch_rviz)" /> -->
+  <group if="$(arg launch_rviz)">
+    <arg name="command_args" value="-d $(find mopa_bringup)/config/franka_planning.rviz" />
+    <node name="$(anon rviz)" pkg="rviz" type="rviz" respawn="false" args="$(arg command_args)" output="screen">
+      <rosparam command="load" file="$(find panda_moveit_config)/config/kinematics.yaml"/>
+    </node>
+  </group>
+</launch>
