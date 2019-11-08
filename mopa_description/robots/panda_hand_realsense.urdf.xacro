@@ -6,5 +6,9 @@
   <link name="panda_base"/>
   <xacro:panda_arm xyz="0 0 0" connected_to="panda_base"/>
   <xacro:hand ns="panda" rpy="0 0 ${-pi/4}" connected_to="panda_link8" />
-  <xacro:realsense ns="panda" rpy="3.14 -1.55 0.0" xyz="0.04 0.0 0.04" connected_to="panda_hand"/>
+
+  <!-- Hand-eye calibration -->
+  <xacro:property name="xyz_panda_link7_camera_link" value="0.06308534561732076 -0.08993980659751674 0.1481860837701407"/>
+  <xacro:property name="rpy_panda_link7_camera_link" value="-2.68850999 -1.56973844 -1.20267232"/>
+  <xacro:realsense ns="panda" rpy="${rpy_panda_link7_camera_link}" xyz="${xyz_panda_link7_camera_link}" connected_to="panda_link7"/>
 </robot>

@@ -4,7 +4,7 @@
     <xacro:unless value="${connected_to == ''}">
       <joint name="${ns}_realsense_joint" type="fixed">
         <parent link="${connected_to}"/>
-        <child link="${ns}_realsense_link"/>
+        <child link="camera_link"/>
         <origin xyz="${xyz}" rpy="${rpy}"/>
       </joint>
     </xacro:unless>
@@ -15,24 +15,37 @@
       <xacro:include filename="$(find mopa_description)/robots/realsense.gazebo.xacro"/>
     </xacro:if>
 
-    <link name="${ns}_realsense_link">
+    <!-- The following values model the aluminum peripherial case for the
+  	D435 camera, with the camera joint represented by the actual 
+  	peripherial camera tripod mount -->
+    <xacro:property name="d435_cam_width" value="0.090"/>
+    <xacro:property name="d435_cam_height" value="0.025"/>
+    <xacro:property name="d435_cam_depth" value="0.02505"/>
+    <xacro:property name="d435_cam_mount_from_center_offset" value="0.0149"/>
+  
+    <!-- The following offset is relative the the physical D435 camera peripherial
+  	camera tripod mount -->
+    <xacro:property name="d435_cam_depth_px" value="${d435_cam_mount_from_center_offset}"/>
+    <xacro:property name="d435_cam_depth_py" value="0.0175"/>
+    <xacro:property name="d435_cam_depth_pz" value="${d435_cam_height/2}"/>
+
+    <link name="camera_link">
       <inertial>
         <mass value="0.05" />
         <inertia ixx="0.00014" ixy="0.0" ixz="0.0" iyy="0.00000384" iyz="0.0" izz="0.00014" />
       </inertial>
       <visual>
+        <origin xyz="${d435_cam_mount_from_center_offset} ${-d435_cam_depth_py} 0" rpy="${pi/2} 0 ${pi/2}"/>
         <geometry>
-          <mesh filename="package://mopa_description/meshes/realsense_r200.dae"/>
+          <mesh filename="package://realsense2_description/meshes/d435.dae" />
         </geometry>
-        <material name="blueish">
-          <color rgb="0.01 0.73 0.99 1.0"/>
-        </material>
+        <material name="aluminum"/>
       </visual>
       <collision>
         <geometry>
-          <box size="0.008 0.13 0.02"/>
+          <box size="${d435_cam_depth} ${d435_cam_width} ${d435_cam_height}"/>
         </geometry>
       </collision>
     </link>
   </xacro:macro>
-</robot>
+</robot> 
