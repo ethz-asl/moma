@@ -38,5 +38,5 @@ ansible-playbook playbooks/setup_realsense.yaml --ask-pass --ask-become-pass
 - [ ] Make second gripper to move the actuated one in gazebo.
 - [ ] Fix frames (odom and world are still messed up)
 - [x] Set sensible start position in Gazebo simulation
-- [ ] Fix transform, visual and collision of the realsense in `panda_hand_realsense.urdf.xacro`
-- [ ] Update `mopa_moveit_config` and bringup launch launch files
+- [x] Fix transform, visual and collision of the realsense in `panda_hand_realsense.urdf.xacro`
+- [x] Update `mopa_moveit_config` and bringup launch launch files
