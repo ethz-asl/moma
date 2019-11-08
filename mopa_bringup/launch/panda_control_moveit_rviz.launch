@@ -7,9 +7,6 @@
   <arg name="load_gripper" default="true" />
   <arg name="launch_rviz" default="true" />
 
-  <!-- Fake transform between base and world -->
-  <node name="world_transform_publisher" pkg="tf" type="static_transform_publisher" args="0 0 0 0 0 0 1 world panda_link0 100"/>
-
   <include file="$(find franka_control)/launch/franka_control.launch" >
     <arg name="robot_ip" value="$(arg robot_ip)" />
     <arg name="load_gripper" value="$(arg load_gripper)" />

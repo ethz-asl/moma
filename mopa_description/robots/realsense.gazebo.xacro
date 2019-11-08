@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="panda">
 
-	<gazebo reference="${ns}_realsense_link">
+	<gazebo reference="camera_link">
     <sensor name="camera" type="depth">
       <pose>0.001 -0.045 0.003 0 0 0</pose>
       <update_rate>60</update_rate>
