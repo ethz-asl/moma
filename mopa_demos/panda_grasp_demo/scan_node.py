@@ -45,8 +45,12 @@ from math import pi
 from std_msgs.msg import String
 from sensor_msgs.msg import PointCloud2
 from moveit_commander.conversions import pose_to_list
+from tf2_sensor_msgs.tf2_sensor_msgs import do_transform_cloud
+from geometry_msgs.msg import TransformStamped
 
+import tf
 import actionlib
+from panda_grasp_demo.msg import ScanSceneAction, ScanSceneFeedback, ScanSceneResult
 
 import copy
 import numpy as np
@@ -78,20 +82,30 @@ def all_close(goal, actual, tolerance):
 
 class MoveGroupPythonIntefaceTutorial(object):
   """MoveGroupPythonIntefaceTutorial"""
-  def __init__(self):
+  def __init__(self, with_as=False):
     super(MoveGroupPythonIntefaceTutorial, self).__init__()
 
     # ROS init
     moveit_commander.roscpp_initialize(sys.argv)
-    rospy.init_node('pointcloud_scan_node', anonymous=True)
+    rospy.init_node('pointcloud_scan_action')
 
     # Subscribe to pointcloud topic
     rospy.Subscriber("/camera/depth/color/points", PointCloud2, self.pointcloud_callback)
     self.pointcloud_data = None
 
     # Poses [x y z qx qy qz qw]
-    self.first_pose = [0.609, 0.013, 0.552, 0.865, -0.318, -0.344, 0.182]
-    self.second_pose = [0.159, -0.015, 0.571, 0.339, 0.845, 0.139, 0.390]
+    self.scan_poses = [
+      [0.609, 0.013, 0.552, 0.865, -0.318, -0.344, 0.182],
+      [0.159, -0.015, 0.571, 0.339, 0.845, 0.139, 0.390]
+    ]
+
+    # Set up action server
+    if with_as:
+      self.action_name = rospy.get_name()
+      self._as = actionlib.SimpleActionServer(self.action_name, ScanSceneAction, execute_cb=self.execute_cb, auto_start=False)
+      # create messages that are used to publish feedback/result
+      self._feedback = ScanSceneFeedback()
+      self._result = ScanSceneResult()
 
     # Moveit stuff
     robot = moveit_commander.RobotCommander()
@@ -121,11 +135,60 @@ class MoveGroupPythonIntefaceTutorial(object):
     self.planning_frame = planning_frame
     self.eef_link = eef_link
     self.group_names = group_names
+    self.listener = tf.TransformListener()
+
+    # Start action server
+    if with_as:
+      self._as.start()
+
+  def execute_cb(self, goal):
+    success = True
+    self._feedback.percent_complete = 0.0
+    rospy.loginfo("Scanning action was triggered")
+
+    if goal.num_scan_poses > len(self.scan_poses):
+      self._result.success = False
+      rospy.info("Invalid goal set")
+      self._as.set_aborted(self._result)
+      success = False
+      return
+
+    for i in range(goal.num_scan_poses):
+      if self._as.is_preempt_requested():
+        rospy.loginfo("Got preempted")
+        self._as.set_preempted()
+        success = False
+        break
+      self.go_to_pose_goal(self.scan_poses[i])
+      self.store_pointcloud(i)
+      self._feedback.percent_complete = float(i+1)/float(goal.num_scan_poses)
+      self._as.publish_feedback(self._feedback)
+    
+    if success:
+      self._result.success = True
+      rospy.loginfo("Succeed")
+      self._as.set_succeeded(self._result)
 
   def pointcloud_callback(self, data):
     # rospy.loginfo(rospy.get_caller_id() + "I heard %s", data.data)
     self.pointcloud_data = copy.deepcopy(data)
-  
+     
+  def transform_pointcloud(self, msg):
+    frame = msg.header.frame_id
+    translation, rotation = self.listener.lookupTransform('panda_base', frame, rospy.Time())
+    transform_msg = TransformStamped()
+    transform_msg.transform.translation.x = translation[0]
+    transform_msg.transform.translation.y = translation[1]
+    transform_msg.transform.translation.z = translation[2]
+    transform_msg.transform.rotation.x = rotation[0]
+    transform_msg.transform.rotation.y = rotation[1]
+    transform_msg.transform.rotation.z = rotation[2]
+    transform_msg.transform.rotation.w = rotation[3]
+    transformed_msg = do_transform_cloud(msg, transform_msg)
+    transformed_msg.header = msg.header
+    transformed_msg.header.frame_id = 'panda_base'
+    return transformed_msg
+
   def go_to_pose_goal(self, pose):
     # pose = [x y z qx qy qz qw]
     
@@ -157,7 +220,8 @@ class MoveGroupPythonIntefaceTutorial(object):
       print("Didn't receive any pointcloud data yet.")
       return
     with open("/tmp/pointcloud"+str(idx)+".pkl", "wb") as f:
-      pickle.dump(self.pointcloud_data, f)
+      pointcloud_msg = self.transform_pointcloud(self.pointcloud_data)
+      pickle.dump(pointcloud_msg, f)
     print("Stored pointcloud "+str(idx))
 
 
@@ -294,17 +358,22 @@ class MoveGroupPythonIntefaceTutorial(object):
 
 def main():
   try:
-    scanner = MoveGroupPythonIntefaceTutorial()
+    with_action_server = True
+    scanner = MoveGroupPythonIntefaceTutorial(with_action_server)
 
-    print "============ Press `Enter` to go to first scanning pose ..."
-    raw_input()
-    scanner.go_to_pose_goal(scanner.first_pose)
-    scanner.store_pointcloud(1)
+    
+    if not with_action_server:
+      print "============ Press `Enter` to go to first scanning pose ..."
+      raw_input()
+      scanner.go_to_pose_goal(scanner.scan_poses[0])
+      scanner.store_pointcloud(1)
 
-    print "============ Press `Enter` to go to second scanning pose ..."
-    raw_input()
-    scanner.go_to_pose_goal(scanner.second_pose)
-    scanner.store_pointcloud(2)
+      print "============ Press `Enter` to go to second scanning pose ..."
+      raw_input()
+      scanner.go_to_pose_goal(scanner.scan_poses[1])
+      scanner.store_pointcloud(2)
+    else:
+      rospy.spin()
 
     return
 
