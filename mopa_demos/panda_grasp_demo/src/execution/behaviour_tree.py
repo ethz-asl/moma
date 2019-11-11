@@ -3,6 +3,8 @@ import py_trees_ros
 
 
 def get_root():
+    # For a sketch of the tree layout, see here (slide 2): https://docs.google.com/presentation/d/1swC5c1mbVn2TRDar-y0meTbrC9BUHnT9XWYPeFJlNxM/edit#slide=id.g70bc070381_0_32
+
     root = py_trees.composites.Selector()
 
     check_obj_in_ws = py_trees.behaviours.Success(name="Object in workspace?")
@@ -11,7 +13,8 @@ def get_root():
     check_obj_in_hand = py_trees.behaviours.Failure(name="Object in hand?")
 
     check_grasp_pose_known = py_trees.behaviours.Failure(name="Grasp pose known?")
-    action_get_grasp = py_trees.behaviours.Failure(name="Action compute grasp")
+    # action_get_grasp = py_trees.behaviours.Failure(name="Action compute grasp")
+    action_get_grasp = py_trees_ros.actions.ActionClient()
     composite_compute_grasp = py_trees.composites.Selector(children=[check_grasp_pose_known, action_get_grasp])
 
     action_grasp = py_trees.behaviours.Failure(name="Action do grasp")

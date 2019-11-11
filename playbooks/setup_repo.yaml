@@ -15,6 +15,7 @@
         packages:
         - ros-melodic-franka-ros
         - ros-melodic-py-trees
+        - ros-melodic-py-trees-ros
         - ros-melodic-pcl-conversions
     - name: Create workspace src directory
       file:
