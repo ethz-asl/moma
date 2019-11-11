@@ -1,4 +1,6 @@
-# Just a small client to test the scan action
+#!/usr/bin/env python
+
+"""Just a small client to test the scan action"""
 
 import rospy
 import actionlib
