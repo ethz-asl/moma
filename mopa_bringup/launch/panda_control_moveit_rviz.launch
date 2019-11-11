@@ -19,11 +19,7 @@
   </include>
   <!-- In Franka's correspondence to this MoveIt launch file, this block is put in its own launch file panda_moveit.launch. -->
 
-  <!-- <include file="$(find panda_moveit_config)/launch/moveit_rviz.launch" if="$(arg launch_rviz)" /> -->
-  <group if="$(arg launch_rviz)">
-    <arg name="command_args" value="-d $(find panda_moveit_config)/launch/moveit.rviz" />
-    <node name="$(anon rviz)" pkg="rviz" type="rviz" respawn="false" args="$(arg command_args)" output="screen">
-      <rosparam command="load" file="$(find panda_moveit_config)/config/kinematics.yaml"/>
-    </node>
-  </group>
+  <include if="$(arg launch_rviz)" file="$(find panda_moveit_config)/launch/moveit_rviz.launch">
+    <arg name="rviz_config" value="$(find panda_moveit_config)/launch/moveit.rviz" />
+  </include>
 </launch>
