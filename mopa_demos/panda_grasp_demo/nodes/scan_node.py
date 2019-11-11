@@ -115,31 +115,38 @@ class MoveGroupPythonIntefaceTutorial(object):
       self._as.start()
 
   def execute_cb(self, goal):
+    move_group = self.move_group
+
     success = True
     self._feedback.percent_complete = 0.0
     rospy.loginfo("Scanning action was triggered")
 
-    if goal.num_scan_poses > len(self.scan_poses):
+    if goal.num_scan_poses > len(self.scan_joints):
       self._result.success = False
       rospy.info("Invalid goal set")
       self._as.set_aborted(self._result)
-      success = False
       return
 
     for i in range(goal.num_scan_poses):
       if self._as.is_preempt_requested():
         rospy.loginfo("Got preempted")
-        self._as.set_preempted()
-        success = False
-        break
+        self._result.success = False
+        self._as.set_preempted(self._result)
+        return
       # self.go_to_pose_goal(self.scan_poses[i])
-      self.move_group.go(self.scan_joints[i])
+      move_group.go(self.scan_joints[i])
+      move_group.stop()
+      move_group.clear_pose_targets()
 
-      self.store_pointcloud(i)
+      res = self.store_pointcloud(i)
       self._feedback.percent_complete = float(i+1)/float(goal.num_scan_poses)
+      self._feedback.pointcloud_read_success = res
       self._as.publish_feedback(self._feedback)
     
+    # TODO run GPD to obtain grasp poses
+
     if success:
+      # TODO publish grasp pose(s) on dedicated topic
       self._result.success = True
       rospy.loginfo("Succeed")
       self._as.set_succeeded(self._result)
@@ -190,22 +197,24 @@ class MoveGroupPythonIntefaceTutorial(object):
     current_pose = self.move_group.get_current_pose().pose
     return all_close(pose_goal, current_pose, 0.01)
 
-  def go_to_joint_goal(self, joint_value):
+  def go_to_joint_goal(self, joint_value, wait_for_feedback=True):
     self.move_group.set_joint_value_target(joint_value)
     plan = self.move_group.plan()
-    raw_input("Press Enter to continue...")
+    if wait_for_feedback:
+      raw_input("Press Enter to continue...")
     self.move_group.execute(plan, wait=True)
     self.move_group.stop()
     self.move_group.clear_pose_targets()
 
   def store_pointcloud(self, idx):
     if self.pointcloud_data is None:
-      print("Didn't receive any pointcloud data yet.")
-      return
+      rospy.logwarn("Didn't receive any pointcloud data yet.")
+      return False
     with open("/tmp/pointcloud"+str(idx)+".pkl", "wb") as f:
       pointcloud_msg = self.transform_pointcloud(self.pointcloud_data)
       pickle.dump(pointcloud_msg, f)
-    print("Stored pointcloud "+str(idx))
+    rospy.loginfo("Stored pointcloud "+str(idx))
+    return True
 
   def wait_for_state_update(self, box_is_known=False, box_is_attached=False, timeout=4):
     start = rospy.get_time()

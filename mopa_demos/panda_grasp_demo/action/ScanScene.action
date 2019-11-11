@@ -6,3 +6,4 @@ bool success
 ---
 # Define a feedback message
 float32 percent_complete
+bool pointcloud_read_success
