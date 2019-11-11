@@ -129,16 +129,16 @@ class MoveGroupPythonIntefaceTutorial(object):
     success = True
     self._feedback.percent_complete = 0.0
     
-    # if goal.num_scan_poses > len(self.scan_poses):
-    #   self._result.success = False
-    #   rospy.info("Invalid goal set")
-    #   self._as.set_aborted(self._result)
-    #   success = False
-    #   return
+    if goal.num_scan_poses > len(self.scan_joints):
+      self._result.success = False
+      rospy.info("Invalid goal set")
+      self._as.set_aborted(self._result)
+      success = False
+      return
 
     captured_clouds = []
-    for i in range(len(self.scan_joints)):
-
+    for i in range(goal.num_scan_poses):
+   
       if self._as.is_preempt_requested():
         rospy.loginfo("Got preempted")
         self._as.set_preempted()
@@ -151,18 +151,21 @@ class MoveGroupPythonIntefaceTutorial(object):
       captured_clouds.append(cloud)
 
       self._feedback.percent_complete = float(i+1)/float(goal.num_scan_poses)
+      self._feedback.pointcloud_read_success = cloud is not None
       self._as.publish_feedback(self._feedback)
-    
+
+    stitched_cloud = self.stitch_point_clouds(captured_clouds)
+    self.stitched_point_cloud_pub.publish(stitched_cloud)
+    rospy.loginfo("Stitched point clouds") 
+
+    fname = "/tmp/stitched_cloud.pkl"
+    with open(fname, "w") as f:
+      pickle.dump(stitched_cloud, f)
+      rospy.loginfo("Wrote stitched cloud to %s" % fname)
+
+    # TODO run GPD to obtain grasp poses
+
     if success:
-      stitched_cloud = self.stitch_point_clouds(captured_clouds)
-      self.stitched_point_cloud_pub.publish(stitched_cloud)
-      rospy.loginfo("Stitched point clouds")      
-
-      fname = "/tmp/stitched_cloud.pkl"
-      with open(fname, "w") as f:
-        pickle.dump(stitched_cloud, f)
-        rospy.loginfo("Wrote stitched cloud to %s" % fname)
-
       rospy.loginfo("Succeed")
       self._result.success = True
       self._as.set_succeeded(self._result)
@@ -213,18 +216,19 @@ class MoveGroupPythonIntefaceTutorial(object):
     current_pose = self.move_group.get_current_pose().pose
     return all_close(pose_goal, current_pose, 0.01)
 
-  def go_to_joint_goal(self, joint_value):
+  def go_to_joint_goal(self, joint_value, wait_for_feedback=True):
     self.move_group.set_joint_value_target(joint_value)
     plan = self.move_group.plan()
-    raw_input("Press Enter to continue...")
+    if wait_for_feedback:
+      raw_input("Press Enter to continue...")
     self.move_group.execute(plan, wait=True)
     self.move_group.stop()
     self.move_group.clear_pose_targets()
 
   def capture_point_cloud(self):
     if self.pointcloud_data is None:
-      rospy.loginfo("Didn't receive any pointcloud data yet.")
-      return
+      rospy.logwarn("Didn't receive any pointcloud data yet.")
+      return None
     point_cloud_msg = self.transform_pointcloud(self.pointcloud_data)
     return point_cloud_msg
     
