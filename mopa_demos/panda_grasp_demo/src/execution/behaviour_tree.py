@@ -3,14 +3,29 @@ import py_trees_ros
 
 from panda_grasp_demo.msg import ScanSceneAction, ScanSceneGoal
 
+import std_msgs
 
 def get_root():
     # For a sketch of the tree layout, see here (slide 2): https://docs.google.com/presentation/d/1swC5c1mbVn2TRDar-y0meTbrC9BUHnT9XWYPeFJlNxM/edit#slide=id.g70bc070381_0_32
 
-    root = py_trees.composites.Selector()
+    # -------- Add nodes writing to blackboard -----------------------------------------
+
+    bb_root = py_trees.composites.Sequence()
+
+    grasp2bb = py_trees_ros.subscribers.ToBlackboard(name="grasp2bb",
+                                                     topic_name="/panda_demo/grasp_pose",
+                                                     topic_type=std_msgs.msg.String,
+                                                     blackboard_variables="grasp_pose",
+                                                     initialise_variables=None
+                                                    )
+    bb_root.add_child(grasp2bb)
+
+    # -------- Add nodes with condition checks and actions -----------------------------
+
+    action_root = py_trees.composites.Selector()
 
     check_obj_in_ws = py_trees.behaviours.Success(name="Object in workspace?")
-    root.add_child(py_trees.decorators.Inverter(check_obj_in_ws))
+    action_root.add_child(py_trees.decorators.Inverter(check_obj_in_ws))
 
     check_obj_in_hand = py_trees.behaviours.Failure(name="Object in hand?")
 
@@ -18,8 +33,8 @@ def get_root():
 
     scan_goal = ScanSceneGoal()
     scan_goal.num_scan_poses = 2
-    # action_get_grasp = py_trees.behaviours.SuccessEveryN(name="action_get_grasp", n=4)
-    action_get_grasp = py_trees.behaviours.Running(name="action_get_grasp")
+    # action_get_grasp = py_trees.behaviours.SuccessEveryN(name="Action compute grasp", n=4)
+    action_get_grasp = py_trees.behaviours.Running(name="Action compute grasp")
     # action_get_grasp = py_trees_ros.actions.ActionClient(name="Action compute grasp",
     #                                                      action_spec=ScanSceneAction,
     #                                                      action_goal=scan_goal,
@@ -36,7 +51,12 @@ def get_root():
     action_drop = py_trees.behaviours.Failure(name="Action drop object")
     composite_drop = py_trees.composites.Sequence(children=[composite_check_in_hand, action_drop])
 
-    root.add_child(composite_drop)
+    action_root.add_child(composite_drop)
+
+
+    # -------- Return root -----------------------------------------
+    root = py_trees.composites.Parallel(children=[bb_root, action_root])
+
     return root
 
 class PandaTree:
