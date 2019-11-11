@@ -1,6 +1,8 @@
 import py_trees
 import py_trees_ros
 
+from panda_grasp_demo.msg import ScanSceneAction, ScanSceneGoal
+
 
 def get_root():
     # For a sketch of the tree layout, see here (slide 2): https://docs.google.com/presentation/d/1swC5c1mbVn2TRDar-y0meTbrC9BUHnT9XWYPeFJlNxM/edit#slide=id.g70bc070381_0_32
@@ -13,8 +15,17 @@ def get_root():
     check_obj_in_hand = py_trees.behaviours.Failure(name="Object in hand?")
 
     check_grasp_pose_known = py_trees.behaviours.Failure(name="Grasp pose known?")
-    # action_get_grasp = py_trees.behaviours.Failure(name="Action compute grasp")
-    action_get_grasp = py_trees_ros.actions.ActionClient()
+
+    scan_goal = ScanSceneGoal()
+    scan_goal.num_scan_poses = 2
+    # action_get_grasp = py_trees.behaviours.SuccessEveryN(name="action_get_grasp", n=4)
+    action_get_grasp = py_trees.behaviours.Running(name="action_get_grasp")
+    # action_get_grasp = py_trees_ros.actions.ActionClient(name="Action compute grasp",
+    #                                                      action_spec=ScanSceneAction,
+    #                                                      action_goal=scan_goal,
+    #                                                      action_namespace="pointcloud_scan_action"
+    #                                                     )
+
     composite_compute_grasp = py_trees.composites.Selector(children=[check_grasp_pose_known, action_get_grasp])
 
     action_grasp = py_trees.behaviours.Failure(name="Action do grasp")
@@ -35,7 +46,7 @@ class PandaTree:
             py_trees.logging.level = py_trees.logging.Level.DEBUG
 
         self._root = get_root()
-        self.tree = py_trees.trees.BehaviourTree(self._root)
+        self.tree = py_trees_ros.trees.BehaviourTree(self._root)
 
         self.show_tree_console()
         self.tree.setup(timeout=15)
