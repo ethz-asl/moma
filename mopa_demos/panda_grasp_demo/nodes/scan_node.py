@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
+
 import sys
 import copy
 import rospy
@@ -12,6 +14,7 @@ from sensor_msgs.msg import PointCloud2
 from moveit_commander.conversions import pose_to_list
 from tf2_sensor_msgs.tf2_sensor_msgs import do_transform_cloud
 from geometry_msgs.msg import TransformStamped
+from sensor_msgs.point_cloud2 import read_points, create_cloud
 
 import tf
 import actionlib
@@ -51,12 +54,14 @@ class MoveGroupPythonIntefaceTutorial(object):
     super(MoveGroupPythonIntefaceTutorial, self).__init__()
 
     # ROS init
-    moveit_commander.roscpp_initialize(sys.argv)
     rospy.init_node('pointcloud_scan_action')
 
     # Subscribe to pointcloud topic
-    rospy.Subscriber("/camera/depth/color/points", PointCloud2, self.pointcloud_callback)
+    rospy.Subscriber("/camera/depth/color/points", PointCloud2, self.point_cloud_cb)
     self.pointcloud_data = None
+
+    # Setup MoveIt
+    self._setup_moveit()
 
     # Poses [x y z qx qy qz qw]
     # self.scan_poses = [
@@ -65,22 +70,42 @@ class MoveGroupPythonIntefaceTutorial(object):
     # ]
     self.scan_joints = [
       [-0.643, -0.678, 1.069, -1.823, 0.0436, 1.349, 1.104],
-      [0.525, -0.684, -0.851, -2.067, 0.210, 1.460, 0.600]
+      [0.525, -0.684, -0.851, -2.067, 0.210, 1.460, 0.600],
     ]
 
     # Set up action server
     if with_as:
       self.action_name = rospy.get_name()
       self._as = actionlib.SimpleActionServer(self.action_name, ScanSceneAction, execute_cb=self.execute_cb, auto_start=False)
-      # create messages that are used to publish feedback/result
+      
+      # Create messages that are used to publish feedback/result
       self._feedback = ScanSceneFeedback()
       self._result = ScanSceneResult()
 
-    # Configure Moveit commander
+    # Create publisher for stitched point cloud
+    self.stitched_point_cloud_pub = rospy.Publisher('/cloud_stitched', PointCloud2, queue_size=10)
+
+    # Misc variables
+    self.listener = tf.TransformListener()
+
+    # Start action server
+    if with_as:
+      self._as.start()
+
+  def _setup_moveit(self):
+    moveit_commander.roscpp_initialize(sys.argv)
+
     self.robot = moveit_commander.RobotCommander()
     self.scene = moveit_commander.PlanningSceneInterface()
     self.group_name = "panda_arm"
     self.move_group = moveit_commander.MoveGroupCommander(self.group_name)
+    self.planning_frame = self.move_group.get_planning_frame()
+    self.eef_link = self.move_group.get_end_effector_link()
+    self.group_names = self.robot.get_group_names()
+
+    print("============ Planning frame: %s" % self.planning_frame)
+    print("============ End effector link: %s" % self.eef_link)
+    print("============ Available Planning Groups:", self.group_names)
 
     # Scale accelerations and velocities
     self.move_group.set_max_acceleration_scaling_factor(0.5)
@@ -96,55 +121,53 @@ class MoveGroupPythonIntefaceTutorial(object):
     box_size = [1.0, 1.0, 0.205]
     self.scene.add_box(self.box_name, box_pose, size=box_size)
     self.wait_for_state_update(box_is_known=False, box_is_attached=False, timeout=4)
-
-    self.planning_frame = self.move_group.get_planning_frame()
-    print "============ Planning frame: %s" % self.planning_frame
-    self.eef_link = self.move_group.get_end_effector_link()
-    print "============ End effector link: %s" % self.eef_link
-    group_names = self.robot.get_group_names()
-    print "============ Available Planning Groups:", self.robot.get_group_names()
-    # print "============ Printing robot state"
-    # print robot.get_current_state()
-    print ""
-
-    # Misc variables
-    self.listener = tf.TransformListener()
-
-    # Start action server
-    if with_as:
-      self._as.start()
+    # TODO(mbreyer) check if this worked
 
   def execute_cb(self, goal):
-    success = True
-    self._feedback.percent_complete = 0.0
     rospy.loginfo("Scanning action was triggered")
 
-    if goal.num_scan_poses > len(self.scan_poses):
-      self._result.success = False
-      rospy.info("Invalid goal set")
-      self._as.set_aborted(self._result)
-      success = False
-      return
+    success = True
+    self._feedback.percent_complete = 0.0
+    
+    # if goal.num_scan_poses > len(self.scan_poses):
+    #   self._result.success = False
+    #   rospy.info("Invalid goal set")
+    #   self._as.set_aborted(self._result)
+    #   success = False
+    #   return
 
-    for i in range(goal.num_scan_poses):
+    captured_clouds = []
+    for i in range(len(self.scan_joints)):
+
       if self._as.is_preempt_requested():
         rospy.loginfo("Got preempted")
         self._as.set_preempted()
         success = False
         break
+  
       # self.go_to_pose_goal(self.scan_poses[i])
-      self.move_group.go(self.scan_joints[i])
+      self.go_to_joint_goal(self.scan_joints[i])
+      cloud = self.capture_point_cloud()
+      captured_clouds.append(cloud)
 
-      self.store_pointcloud(i)
       self._feedback.percent_complete = float(i+1)/float(goal.num_scan_poses)
       self._as.publish_feedback(self._feedback)
     
     if success:
-      self._result.success = True
+      stitched_cloud = self.stitch_point_clouds(captured_clouds)
+      self.stitched_point_cloud_pub.publish(stitched_cloud)
+      rospy.loginfo("Stitched point clouds")      
+
+      fname = "/tmp/stitched_cloud.pkl"
+      with open(fname, "w") as f:
+        pickle.dump(stitched_cloud, f)
+        rospy.loginfo("Wrote stitched cloud to %s" % fname)
+
       rospy.loginfo("Succeed")
+      self._result.success = True
       self._as.set_succeeded(self._result)
 
-  def pointcloud_callback(self, data):
+  def point_cloud_cb(self, data):
     # rospy.loginfo(rospy.get_caller_id() + "I heard %s", data.data)
     self.pointcloud_data = copy.deepcopy(data)
      
@@ -198,55 +221,53 @@ class MoveGroupPythonIntefaceTutorial(object):
     self.move_group.stop()
     self.move_group.clear_pose_targets()
 
-  def store_pointcloud(self, idx):
+  def capture_point_cloud(self):
     if self.pointcloud_data is None:
-      print("Didn't receive any pointcloud data yet.")
+      rospy.loginfo("Didn't receive any pointcloud data yet.")
       return
-    with open("/tmp/pointcloud"+str(idx)+".pkl", "wb") as f:
-      pointcloud_msg = self.transform_pointcloud(self.pointcloud_data)
-      pickle.dump(pointcloud_msg, f)
-    print("Stored pointcloud "+str(idx))
+    point_cloud_msg = self.transform_pointcloud(self.pointcloud_data)
+    return point_cloud_msg
+    
+  def stitch_point_clouds(self, clouds):
+    assert len(clouds) == 2
+  
+    points_out = []
+    for cloud in clouds:
+      points_out += list(read_points(cloud))
+
+    return create_cloud(cloud.header, cloud.fields, points_out)
 
   def wait_for_state_update(self, box_is_known=False, box_is_attached=False, timeout=4):
     start = rospy.get_time()
     seconds = rospy.get_time()
     while (seconds - start < timeout) and not rospy.is_shutdown():
-      # Test if the box is in attached objects
       attached_objects = self.scene.get_attached_objects([self.box_name])
       is_attached = len(attached_objects.keys()) > 0
-
-      # Test if the box is in the scene.
-      # Note that attaching the box will remove it from known_objects
       is_known = self.box_name in self.scene.get_known_object_names()
-
-      # Test if we are in the expected state
       if (box_is_attached == is_attached) and (box_is_known == is_known):
         return True
-
-      # Sleep so that we give other threads time on the processor
       rospy.sleep(0.1)
       seconds = rospy.get_time()
-
-    # If we exited the while loop without returning then we timed out
+  
     return False
 
 def main():
   try:
-    with_action_server = False
+    with_action_server = True
     scanner = MoveGroupPythonIntefaceTutorial(with_action_server)
 
     if not with_action_server:
-      print "============ Press `Enter` to go to first scanning pose ..."
+      print("============ Press `Enter` to go to first scanning pose ...")
       raw_input()
       # scanner.go_to_pose_goal(scanner.scan_poses[0])
       scanner.go_to_joint_goal(scanner.scan_joints[0])
-      scanner.store_pointcloud(1)
+      # scanner.store_pointcloud(1)
 
-      print "============ Press `Enter` to go to second scanning pose ..."
+      print("============ Press `Enter` to go to second scanning pose ...")
       raw_input()
       # scanner.go_to_pose_goal(scanner.scan_poses[1])
       scanner.go_to_joint_goal(scanner.scan_joints[1])
-      scanner.store_pointcloud(2)
+      # scanner.store_pointcloud(2)
     else:
       rospy.spin()
   except rospy.ROSInterruptException:
