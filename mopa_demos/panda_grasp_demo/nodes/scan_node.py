@@ -146,7 +146,7 @@ class MoveGroupPythonIntefaceTutorial(object):
         break
   
       # self.go_to_pose_goal(self.scan_poses[i])
-      self.go_to_joint_goal(self.scan_joints[i])
+      self.go_to_joint_goal(self.scan_joints[i], wait_for_feedback=False)
       cloud = self.capture_point_cloud()
       captured_clouds.append(cloud)
 
