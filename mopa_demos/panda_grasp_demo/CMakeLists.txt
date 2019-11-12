@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.3)
 project(panda_grasp_demo)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
-# add_compile_options(-std=c++11)
+add_compile_options(-std=c++11 -fPIC) 
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -10,13 +10,15 @@ project(panda_grasp_demo)
 find_package(catkin REQUIRED genmsg actionlib_msgs)
 
 ## System dependencies are found with CMake's conventions
-# find_package(Boost REQUIRED COMPONENTS system)
-
+find_package(Qt5 COMPONENTS Core Gui Widgets REQUIRED)
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
 ## See http://ros.org/doc/api/catkin/html/user_guide/setup_dot_py.html
 # catkin_python_setup()
+
+## QT setup
+set(CMAKE_AUTOMOC ON)
 
 ################################################
 ## Declare ROS messages, services and actions ##
@@ -108,15 +110,25 @@ catkin_package(
 
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
-include_directories(
-# include
-# ${catkin_INCLUDE_DIRS}
+include_directories(include
+    ${catkin_INCLUDE_DIRS}
+    ${Qt5Core_INCLUDE_DIRS}
+    ${Qt5Gui_INCLUDE_DIRS}
+    ${Qt5Widgets_INCLUDE_DIRS}
+)
+
+set(SOURCE_FILES
+  ${MOC_FILES}
+  src/button_panel.cpp
 )
 
 ## Declare a C++ library
-# add_library(${PROJECT_NAME}
-#   src/${PROJECT_NAME}/panda_grasp_demo.cpp
-# )
+add_library(${PROJECT_NAME}
+  ${SOURCE_FILES}
+)
+
+target_link_libraries(${PROJECT_NAME} ${QT_LIBRARIES} ${QT_GUI_LIBRARIES} ${CATKIN_LIBRARIES})
+
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
