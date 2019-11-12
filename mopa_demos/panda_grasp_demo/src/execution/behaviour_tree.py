@@ -28,7 +28,8 @@ def get_root():
     check_obj_in_ws = py_trees.behaviours.Success(name="Object in workspace?")
     action_root.add_child(py_trees.decorators.Inverter(check_obj_in_ws))
 
-    check_obj_in_hand = py_trees.behaviours.Failure(name="Object in hand?")
+    # check_obj_in_hand = py_trees.behaviours.Failure(name="Object in hand?")
+    check_obj_in_hand = py_trees.blackboard.CheckBlackboardVariable(name="Object in hand?", variable_name="object_in_hand", expected_value=True)
 
     # check_grasp_pose_known = py_trees.behaviours.Failure(name="Grasp pose known?")
     check_grasp_pose_known = py_trees.blackboard.CheckBlackboardVariable(name="Grasp pose known?", variable_name="target_grasp_pose")
@@ -47,12 +48,14 @@ def get_root():
     composite_compute_grasp = py_trees.composites.Selector(children=[check_grasp_pose_known, action_get_grasp])
 
     action_grasp = py_trees.behaviours.Running(name="Action do grasp")
-    composite_do_grasp = py_trees.composites.Sequence(children=[composite_compute_grasp, action_grasp])
+    set_object_in_hand_condition = py_trees.blackboard.SetBlackboardVariable(name="Set object in hand", variable_name="object_in_hand", variable_value=True)
+    composite_do_grasp = py_trees.composites.Sequence(children=[composite_compute_grasp, action_grasp, set_object_in_hand_condition])
 
     composite_check_in_hand = py_trees.composites.Selector(children=[check_obj_in_hand, composite_do_grasp])
 
     action_drop = py_trees.behaviours.Failure(name="Action drop object")
-    composite_drop = py_trees.composites.Sequence(children=[composite_check_in_hand, action_drop])
+    set_object_not_in_hand_condition = py_trees.blackboard.SetBlackboardVariable(name="Set object not in hand", variable_name="object_in_hand", variable_value=False)
+    composite_drop = py_trees.composites.Sequence(children=[composite_check_in_hand, action_drop, set_object_not_in_hand_condition])
 
     action_root.add_child(composite_drop)
 
