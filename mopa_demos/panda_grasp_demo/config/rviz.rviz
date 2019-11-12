@@ -84,6 +84,10 @@ Visualization Manager:
             Alpha: 1
             Show Axes: false
             Show Trail: false
+          panda_default_EE:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
           panda_hand:
             Alpha: 1
             Show Axes: false
@@ -194,6 +198,10 @@ Visualization Manager:
             Show Trail: false
             Value: true
           panda_base:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          panda_default_EE:
             Alpha: 1
             Show Axes: false
             Show Trail: false
