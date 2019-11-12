@@ -1,12 +1,12 @@
 Panels:
   - Class: rviz/Displays
-    Help Height: 84
+    Help Height: 70
     Name: Displays
     Property Tree Widget:
       Expanded:
-        - /StitchedPointCloud1
+        - /Global Options1
       Splitter Ratio: 0.7425600290298462
-    Tree Height: 261
+    Tree Height: 213
   - Class: rviz/Help
     Name: Help
   - Class: rviz/Views
@@ -329,6 +329,21 @@ Visualization Manager:
       Use Fixed Frame: true
       Use rainbow: true
       Value: true
+    - Alpha: 1
+      Axes Length: 0.10000000149011612
+      Axes Radius: 0.009999999776482582
+      Class: rviz/Pose
+      Color: 255; 25; 0
+      Enabled: true
+      Head Length: 0.30000001192092896
+      Head Radius: 0.10000000149011612
+      Name: GraspPose
+      Shaft Length: 1
+      Shaft Radius: 0.05000000074505806
+      Shape: Axes
+      Topic: /grasp_pose
+      Unreliable: false
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -345,7 +360,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/XYOrbit
-      Distance: 2.5226500034332275
+      Distance: 2.842573404312134
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -360,10 +375,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.4347970485687256
+      Pitch: 0.46979790925979614
       Target Frame: panda_base
       Value: XYOrbit (rviz)
-      Yaw: 5.514915466308594
+      Yaw: 5.529911518096924
     Saved: ~
 Window Geometry:
   Controls:

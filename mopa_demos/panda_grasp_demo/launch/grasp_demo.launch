@@ -14,13 +14,13 @@
     <node pkg="panda_grasp_demo" type="scan_node.py" name="pointcloud_scan_action" output="screen"/>
 
     <!-- Launch GPD -->
-  <!-- <node name="detect_grasps" pkg="gpd_ros" type="detect_grasps" output="screen">
-    <param name="cloud_type" value="0" />  0: PointCloud2, 1: CloudIndexed, 2: CloudSamples 
-    <param name="cloud_topic" value="/cloud_stitched" />
-    <param name="samples_topic" value="" />
-    <param name="config_file" value="$(find panda_grasp_demo)/config/gpd.cfg" />
-    <param name="rviz_topic" value="plot_grasps" />
-  </node> -->
+    <node name="detect_grasps" pkg="gpd_ros" type="detect_grasps" output="screen">
+      <param name="cloud_type" value="0" />
+      <param name="cloud_topic" value="/cloud_stitched" />
+      <param name="samples_topic" value="" />
+      <param name="config_file" value="$(find panda_grasp_demo)/config/gpd.cfg" />
+      <param name="rviz_topic" value="plot_grasps" />
+    </node>
 
     <!-- Launch RViz -->
     <node type="rviz" name="rviz" pkg="rviz" args="-d $(find panda_grasp_demo)/config/rviz.rviz"/>

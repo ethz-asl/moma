@@ -1,9 +1,7 @@
 # Define the goal
-uint32 num_scan_poses  # Specify which dishwasher we want to use
+uint32 num_scan_poses
 ---
 # Define the result
-bool success
+geometry_msgs/PoseStamped selected_grasp_pose
 ---
-# Define a feedback message
-float32 percent_complete
-bool pointcloud_read_success
+# Define the feedback

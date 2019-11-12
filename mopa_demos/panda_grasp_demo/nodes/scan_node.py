@@ -6,23 +6,21 @@ import sys
 import copy
 import rospy
 import moveit_commander
-import moveit_msgs.msg
-import geometry_msgs.msg
 from math import pi
 from std_msgs.msg import String
 from sensor_msgs.msg import PointCloud2
 from moveit_commander.conversions import pose_to_list
 from tf2_sensor_msgs.tf2_sensor_msgs import do_transform_cloud
-from geometry_msgs.msg import TransformStamped
+from geometry_msgs.msg import TransformStamped, Pose, PoseStamped
 from sensor_msgs.point_cloud2 import read_points, create_cloud
-
+from gpd_ros.msg import GraspConfigList
 import tf
 import actionlib
 from panda_grasp_demo.msg import ScanSceneAction, ScanSceneFeedback, ScanSceneResult
-
 import copy
 import numpy as np
 import pickle
+from scipy.spatial.transform import Rotation
 
 
 def all_close(goal, actual, tolerance):
@@ -39,10 +37,10 @@ def all_close(goal, actual, tolerance):
       if abs(actual[index] - goal[index]) > tolerance:
         return False
 
-  elif type(goal) is geometry_msgs.msg.PoseStamped:
+  elif type(goal) is PoseStamped:
     return all_close(goal.pose, actual.pose, tolerance)
 
-  elif type(goal) is geometry_msgs.msg.Pose:
+  elif type(goal) is Pose:
     return all_close(pose_to_list(goal), pose_to_list(actual), tolerance)
 
   return True
@@ -73,19 +71,16 @@ class MoveGroupPythonIntefaceTutorial(object):
       [-1.0761406668405233, -0.9812572320940955, 1.0510634288286071, -1.4203576079753408, 0.2339650344716178, 0.9772807318199377, 0.6811464487329869],
     ]
 
-    # 
-
     # Set up action server
     if with_as:
       self.action_name = rospy.get_name()
       self._as = actionlib.SimpleActionServer(self.action_name, ScanSceneAction, execute_cb=self.execute_cb, auto_start=False)
-      
-      # Create messages that are used to publish feedback/result
-      self._feedback = ScanSceneFeedback()
-      self._result = ScanSceneResult()
 
     # Create publisher for stitched point cloud
     self.stitched_point_cloud_pub = rospy.Publisher('/cloud_stitched', PointCloud2, queue_size=10)
+
+    # Create publisher for selected grasp
+    self.selected_grasp_pub = rospy.Publisher('/grasp_pose', PoseStamped, queue_size=10)
 
     # Misc variables
     self.listener = tf.TransformListener()
@@ -115,7 +110,7 @@ class MoveGroupPythonIntefaceTutorial(object):
 
     # Add collision box for the table
     self.box_name = "table"
-    box_pose = geometry_msgs.msg.PoseStamped()
+    box_pose = PoseStamped()
     box_pose.header.frame_id = "panda_link0"
     box_pose.pose.orientation.w = 1.0
     box_pose.pose.position.x = 0.65
@@ -127,15 +122,11 @@ class MoveGroupPythonIntefaceTutorial(object):
 
   def execute_cb(self, goal):
     rospy.loginfo("Scanning action was triggered")
+    result = ScanSceneResult()
 
-    success = True
-    self._feedback.percent_complete = 0.0
-    
     if goal.num_scan_poses > len(self.scan_joints):
-      self._result.success = False
       rospy.info("Invalid goal set")
-      self._as.set_aborted(self._result)
-      success = False
+      self._as.set_aborted(result)
       return
 
     captured_clouds = []
@@ -144,8 +135,7 @@ class MoveGroupPythonIntefaceTutorial(object):
       if self._as.is_preempt_requested():
         rospy.loginfo("Got preempted")
         self._as.set_preempted()
-        success = False
-        break
+        return
   
       # self.go_to_pose_goal(self.scan_poses[i])
       self.pointcloud_data = None
@@ -155,29 +145,56 @@ class MoveGroupPythonIntefaceTutorial(object):
       cloud = self.capture_point_cloud()
       captured_clouds.append(cloud)
 
-      self._feedback.percent_complete = float(i+1)/float(goal.num_scan_poses)
-      self._feedback.pointcloud_read_success = cloud is not None
-      self._as.publish_feedback(self._feedback)
-
     stitched_cloud = self.stitch_point_clouds(captured_clouds)
     self.stitched_point_cloud_pub.publish(stitched_cloud)
     rospy.loginfo("Stitched point clouds") 
 
-    fname = "/tmp/stitched_cloud.pkl"
-    with open(fname, "w") as f:
-      pickle.dump(stitched_cloud, f)
-      rospy.loginfo("Wrote stitched cloud to %s" % fname)
+    try:
+      grasp_candidates = rospy.wait_for_message("/detect_grasps/clustered_grasps", GraspConfigList, timeout=30)
+    except rospy.ROSException:
+      self._as.set_aborted(result)
+      return
 
-    # TODO run GPD to obtain grasp poses
-    if success:
-      rospy.loginfo("Succeed")
-      self._result.success = True
-      self._as.set_succeeded(self._result)
+    grasp_pose = self.select_grasp_pose(grasp_candidates)
+    self.selected_grasp_pub.publish(grasp_pose)
+
+    rospy.loginfo("Succeed")
+    result.selected_grasp_pose = grasp_pose
+    self._as.set_succeeded(result)
 
   def point_cloud_cb(self, data):
     # rospy.loginfo("Received point cloud with timestamp %s", data.header.stamp)
     self.pointcloud_data = copy.deepcopy(data)
      
+  def select_grasp_pose(self, grasp_config_list):
+    grasp = grasp_config_list.grasps[0]
+
+    x_axis = np.r_[grasp.axis.x, grasp.axis.y, grasp.axis.z]
+    y_axis = np.r_[grasp.binormal.x, grasp.binormal.y, grasp.binormal.z]
+    z_axis = np.r_[grasp.approach.x, grasp.approach.y, grasp.approach.z]
+    rot = Rotation.from_dcm(np.vstack([x_axis, y_axis, z_axis]).T)
+    quat = rot.as_quat()
+
+    offset = rot.apply([0, 0, 0.04])  # GPD defines points at the hand palm, not the fingertip
+  
+    pose = Pose()
+    pose.position.x = grasp.position.x + offset[0]
+    pose.position.y = grasp.position.y + offset[1]
+    pose.position.z = grasp.position.z + offset[2]
+
+    pose.orientation.x = quat[0]
+    pose.orientation.y = quat[1]
+    pose.orientation.z = quat[2]
+    pose.orientation.w = quat[3]
+
+    pose_stamped = PoseStamped()
+    pose_stamped.pose = pose
+    pose_stamped.header.stamp = rospy.Time.now()
+    pose_stamped.header.frame_id = "panda_base"
+
+    return pose_stamped
+
+
   def transform_pointcloud(self, msg):
     frame = msg.header.frame_id
     translation, rotation = self.listener.lookupTransform('panda_base', frame, rospy.Time())
@@ -200,7 +217,7 @@ class MoveGroupPythonIntefaceTutorial(object):
     move_group = self.move_group
 
     # Pose goal
-    pose_goal = geometry_msgs.msg.Pose()
+    pose_goal = Pose()
     pose_goal.orientation.x = pose[3]
     pose_goal.orientation.y = pose[4]
     pose_goal.orientation.z = pose[5]
