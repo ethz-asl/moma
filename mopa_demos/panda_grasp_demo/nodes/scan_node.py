@@ -69,9 +69,11 @@ class MoveGroupPythonIntefaceTutorial(object):
     #   [0.159, -0.015, 0.571, 0.339, 0.845, 0.139, 0.390]
     # ]
     self.scan_joints = [
-      [-0.643, -0.678, 1.069, -1.823, 0.0436, 1.349, 1.104],
-      [0.525, -0.684, -0.851, -2.067, 0.210, 1.460, 0.600],
+      [1.1617, -0.5194, -1.6787, -1.345415587151993, 0.27857345296034125, 0.9858770641287168, 0.48917187201250106],
+      [-1.0761406668405233, -0.9812572320940955, 1.0510634288286071, -1.4203576079753408, 0.2339650344716178, 0.9772807318199377, 0.6811464487329869],
     ]
+
+    # 
 
     # Set up action server
     if with_as:
@@ -146,7 +148,10 @@ class MoveGroupPythonIntefaceTutorial(object):
         break
   
       # self.go_to_pose_goal(self.scan_poses[i])
+      self.pointcloud_data = None
       self.go_to_joint_goal(self.scan_joints[i], wait_for_feedback=False)
+      rospy.sleep(0.5)
+
       cloud = self.capture_point_cloud()
       captured_clouds.append(cloud)
 
@@ -164,14 +169,13 @@ class MoveGroupPythonIntefaceTutorial(object):
       rospy.loginfo("Wrote stitched cloud to %s" % fname)
 
     # TODO run GPD to obtain grasp poses
-
     if success:
       rospy.loginfo("Succeed")
       self._result.success = True
       self._as.set_succeeded(self._result)
 
   def point_cloud_cb(self, data):
-    # rospy.loginfo(rospy.get_caller_id() + "I heard %s", data.data)
+    # rospy.loginfo("Received point cloud with timestamp %s", data.header.stamp)
     self.pointcloud_data = copy.deepcopy(data)
      
   def transform_pointcloud(self, msg):
@@ -230,6 +234,8 @@ class MoveGroupPythonIntefaceTutorial(object):
       rospy.logwarn("Didn't receive any pointcloud data yet.")
       return None
     point_cloud_msg = self.transform_pointcloud(self.pointcloud_data)
+    self.pointcloud_data = None
+    rospy.loginfo("Captured point cloud")
     return point_cloud_msg
     
   def stitch_point_clouds(self, clouds):
