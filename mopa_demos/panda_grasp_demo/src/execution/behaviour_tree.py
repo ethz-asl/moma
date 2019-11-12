@@ -34,16 +34,16 @@ def get_root():
     scan_goal = ScanSceneGoal()
     scan_goal.num_scan_poses = 2
     # action_get_grasp = py_trees.behaviours.SuccessEveryN(name="Action compute grasp", n=4)
-    action_get_grasp = py_trees.behaviours.Running(name="Action compute grasp")
-    # action_get_grasp = py_trees_ros.actions.ActionClient(name="Action compute grasp",
-    #                                                      action_spec=ScanSceneAction,
-    #                                                      action_goal=scan_goal,
-    #                                                      action_namespace="pointcloud_scan_action"
-    #                                                     )
+    # action_get_grasp = py_trees.behaviours.Running(name="Action compute grasp")
+    action_get_grasp = py_trees_ros.actions.ActionClient(name="Action compute grasp",
+                                                         action_spec=ScanSceneAction,
+                                                         action_goal=scan_goal,
+                                                         action_namespace="pointcloud_scan_action"
+                                                        )
 
     composite_compute_grasp = py_trees.composites.Selector(children=[check_grasp_pose_known, action_get_grasp])
 
-    action_grasp = py_trees.behaviours.Failure(name="Action do grasp")
+    action_grasp = py_trees.behaviours.Running(name="Action do grasp")
     composite_do_grasp = py_trees.composites.Sequence(children=[composite_compute_grasp, action_grasp])
 
     composite_check_in_hand = py_trees.composites.Selector(children=[check_obj_in_hand, composite_do_grasp])
