@@ -14,7 +14,12 @@ class ButtonPanel : public rviz::Panel {
     ButtonPanel(QWidget *parent = 0); 
 
     public Q_SLOTS:
-    void onButtonClick(); 
+    void onScanButtonClicked(); 
+    void onGraspButtonClicked();
+    void onStowButtonClicked();
+    private:
+    ros::NodeHandle node_handle;
+    ros::Publisher scan_publisher, grasp_publisher, stow_publisher;
 };
 } 
 #endif // BUTTON_PANEL_H

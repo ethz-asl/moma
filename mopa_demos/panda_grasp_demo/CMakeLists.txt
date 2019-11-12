@@ -7,7 +7,7 @@ add_compile_options(-std=c++11 -fPIC)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-find_package(catkin REQUIRED genmsg actionlib_msgs)
+find_package(catkin REQUIRED COMPONENTS roscpp genmsg actionlib_msgs std_msgs)
 
 ## System dependencies are found with CMake's conventions
 find_package(Qt5 COMPONENTS Core Gui Widgets REQUIRED)
