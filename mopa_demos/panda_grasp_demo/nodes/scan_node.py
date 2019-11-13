@@ -169,10 +169,11 @@ class MoveGroupPythonIntefaceTutorial(object):
     grasp = grasp_config_list.grasps[0]
 
     x_axis = np.r_[grasp.axis.x, grasp.axis.y, grasp.axis.z]
-    y_axis = np.r_[grasp.binormal.x, grasp.binormal.y, grasp.binormal.z]
+    y_axis = -np.r_[grasp.binormal.x, grasp.binormal.y, grasp.binormal.z]  # TODO(mbreyer) HACK fix this
     z_axis = np.r_[grasp.approach.x, grasp.approach.y, grasp.approach.z]
     rot = Rotation.from_dcm(np.vstack([x_axis, y_axis, z_axis]).T)
     quat = rot.as_quat()
+    print(np.linalg.norm(rot.as_dcm())) # TODO(mbreyer) make sure the det is positive
 
     offset = rot.apply([0, 0, 0.04])  # GPD defines points at the hand palm, not the fingertip
   
