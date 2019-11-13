@@ -51,7 +51,7 @@ class MoveGroupPythonIntefaceTutorial(object):
     super(MoveGroupPythonIntefaceTutorial, self).__init__()
 
     # ROS init
-    rospy.init_node('pointcloud_scan_action')
+    rospy.init_node('scan_action_node')
 
     # Subscribe to pointcloud topic
     rospy.Subscriber("/camera/depth/color/points", PointCloud2, self.point_cloud_cb)
@@ -72,7 +72,7 @@ class MoveGroupPythonIntefaceTutorial(object):
 
     # Set up action server
     if with_as:
-      action_name = rospy.get_name()
+      action_name = "pointcloud_scan_action"
       self._as = actionlib.SimpleActionServer(action_name, ScanSceneAction, execute_cb=self.execute_cb, auto_start=False)
 
     # Create publisher for stitched point cloud

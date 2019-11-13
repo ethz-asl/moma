@@ -10,8 +10,9 @@
         <arg name="launch_rviz" value="false"/>
     </include>
 
-    <!-- Launch the scan node -->
-    <node pkg="panda_grasp_demo" type="scan_node.py" name="pointcloud_scan_action" output="screen"/>
+    <!-- Launch the action nodes -->
+    <node pkg="panda_grasp_demo" type="scan_node.py" name="scan_action_node" output="screen"/>
+    <node pkg="panda_grasp_demo" type="drop_node.py" name="drop_action_node" output="screen"/>
 
     <!-- Launch GPD -->
     <node name="detect_grasps" pkg="gpd_ros" type="detect_grasps" output="screen">
