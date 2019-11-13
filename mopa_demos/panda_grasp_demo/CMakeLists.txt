@@ -55,7 +55,7 @@ set(CMAKE_AUTOMOC ON)
 # add_service_files(FILES ButtonPress.srv)
 
 ## Generate actions in the 'action' folder
-add_action_files(DIRECTORY action FILES ScanScene.action)
+add_action_files(DIRECTORY action FILES ScanScene.action Grasp.action Drop.action)
 
 ## Generate added messages and services with any dependencies listed here
 generate_messages(
