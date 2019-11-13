@@ -3,7 +3,6 @@
 from __future__ import print_function
 
 import sys
-import copy
 import rospy
 import moveit_commander
 from math import pi
@@ -73,8 +72,8 @@ class MoveGroupPythonIntefaceTutorial(object):
 
     # Set up action server
     if with_as:
-      self.action_name = rospy.get_name()
-      self._as = actionlib.SimpleActionServer(self.action_name, ScanSceneAction, execute_cb=self.execute_cb, auto_start=False)
+      action_name = rospy.get_name()
+      self._as = actionlib.SimpleActionServer(action_name, ScanSceneAction, execute_cb=self.execute_cb, auto_start=False)
 
     # Create publisher for stitched point cloud
     self.stitched_point_cloud_pub = rospy.Publisher('/cloud_stitched', PointCloud2, queue_size=10)
@@ -158,7 +157,7 @@ class MoveGroupPythonIntefaceTutorial(object):
     grasp_pose = self.select_grasp_pose(grasp_candidates)
     self.selected_grasp_pub.publish(grasp_pose)
 
-    rospy.loginfo("Succeed")
+    rospy.loginfo("Scanning action succeeded")
     result.selected_grasp_pose = grasp_pose
     self._as.set_succeeded(result)
 
