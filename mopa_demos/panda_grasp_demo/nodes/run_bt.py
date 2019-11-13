@@ -4,7 +4,7 @@ import py_trees
 import time
 import rospy
 
-from execution.behaviour_tree import PandaTree
+from panda_grasp_demo.execution.behaviour_tree import PandaTree
 
 DEBUG = False
 PRINT_TREE = False
