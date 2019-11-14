@@ -8,6 +8,7 @@ ButtonPanel::ButtonPanel(QWidget *parent) : rviz::Panel(parent), node_handle("ma
     scan_publisher = node_handle.advertise<std_msgs::Empty>("scan", 1000);
     grasp_publisher = node_handle.advertise<std_msgs::Empty>("grasp", 1000);
     stow_publisher = node_handle.advertise<std_msgs::Empty>("stow", 1000);
+    reset_publisher = node_handle.advertise<std_msgs::Empty>("reset", 1000);
 
     // Setup Panel.
     QVBoxLayout *layout = new QVBoxLayout;
@@ -40,6 +41,12 @@ void ButtonPanel::onStowButtonClicked() {
     ROS_INFO("Drop object button was clicked.");
     std_msgs::Empty msg;
     stow_publisher.publish(msg);
+}
+
+void ButtonPanel::onResetButtonClicked() {
+    ROS_INFO("Reset object button was clicked");
+    std_msgs::Empty msg;
+    reset_publisher.publish(msg);
 }
 
 }

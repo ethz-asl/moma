@@ -9,6 +9,20 @@ import std_msgs
 def get_root():
     # For a sketch of the tree layout, see here (slide 2): https://docs.google.com/presentation/d/1swC5c1mbVn2TRDar-y0meTbrC9BUHnT9XWYPeFJlNxM/edit#slide=id.g70bc070381_0_32
 
+    # -------- Add reset button -----------------------------------------
+
+    reset_root = py_trees.composites.Sequence()
+    button_reset = py_trees_ros.subscribers.WaitForData(name="Button reset?", topic_name="/manipulation_actions/reset", topic_type=std_msgs.msg.Empty)
+    var_reset = py_trees.blackboard.SetBlackboardVariable(variable_name="do_reset", variable_value=True)
+    reset_root.add_children([button_reset, var_reset])
+
+    reset_exec_root = py_trees.composites.Sequence()
+    check_var_reset = py_trees.blackboard.CheckBlackboardVariable(name="Check reset var", variable_name="do_reset", expected_value=True)
+    clear_var_reset = py_trees.blackboard.ClearBlackboardVariable(variable_name="do_reset")
+    reset_action1 = py_trees.blackboard.ClearBlackboardVariable(name="Clear grasp pose", variable_name="target_grasp_pose")
+    reset_action2 = py_trees.blackboard.SetBlackboardVariable(name="Set object not in hand", variable_name="object_in_hand", variable_value=False)
+    reset_exec_root.add_children([check_var_reset, clear_var_reset, reset_action1, reset_action2])
+
     # -------- Add nodes writing to blackboard -----------------------------------------
 
     bb_root = py_trees.composites.Sequence()
@@ -25,6 +39,8 @@ def get_root():
 
     action_root = py_trees.composites.Selector()
 
+    action_root.add_child(reset_exec_root)
+
     check_obj_in_ws = py_trees.behaviours.Success(name="Object in workspace?")
     action_root.add_child(py_trees.decorators.Inverter(check_obj_in_ws))
 
@@ -37,7 +53,7 @@ def get_root():
     # Action: compute grasp
     button_compute_grasp = py_trees_ros.subscribers.WaitForData(name="Button compute grasp?", topic_name="/manipulation_actions/scan", topic_type=std_msgs.msg.Empty)
     scan_goal = ScanSceneGoal()
-    scan_goal.num_scan_poses = 2
+    scan_goal.num_scan_poses = 5
     action_get_grasp = ActionClient_ResultSaver(name="Action compute grasp",
                                                          action_spec=ScanSceneAction,
                                                          action_goal=scan_goal,
@@ -77,7 +93,7 @@ def get_root():
     action_root.add_child(composite_drop)
 
     # -------- Return root -----------------------------------------
-    root = py_trees.composites.Parallel(children=[bb_root, action_root])
+    root = py_trees.composites.Parallel(children=[reset_root, bb_root, action_root])
 
     return root
 

@@ -24,7 +24,7 @@ def main():
         if PRINT_TREE:
             py_trees.display.print_ascii_tree(pt.tree.root, show_status=True)
         index += 1
-        time.sleep(1.0)   # Not really needed. Just for debugging.
+        time.sleep(0.5)   # Not really needed. Just for debugging.
 
     # Alternative to the while loop:
     # pt.tree.tick_tock(sleep_ms=1000, number_of_iterations=py_trees.trees.CONTINUOUS_TICK_TOCK)
