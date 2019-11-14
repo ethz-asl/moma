@@ -15,14 +15,17 @@ ButtonPanel::ButtonPanel(QWidget *parent) : rviz::Panel(parent), node_handle("ma
     QPushButton *scan_button = new QPushButton("Scan scene and plan grasp");
     QPushButton *grasp_button = new QPushButton("Grasp object");
     QPushButton *stow_button = new QPushButton("Stow object");
+    QPushButton *reset_button = new QPushButton("Reset object");
     layout->addWidget(scan_button);
     layout->addWidget(grasp_button);
     layout->addWidget(stow_button);
+    layout->addWidget(reset_button);
     setLayout(layout);
 
     connect(scan_button, &QPushButton::clicked, this, &ButtonPanel::onScanButtonClicked);
     connect(grasp_button, &QPushButton::clicked, this, &ButtonPanel::onGraspButtonClicked);
     connect(stow_button, &QPushButton::clicked, this, &ButtonPanel::onStowButtonClicked);
+    connect(reset_button, &QPushButton::clicked, this, &ButtonPanel::onResetButtonClicked);
 }
 
 void ButtonPanel::onScanButtonClicked() {
