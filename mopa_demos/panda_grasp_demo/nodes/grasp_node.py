@@ -30,41 +30,25 @@ class GraspExecutionNode(object):
 
         rospy.loginfo("Grasp action server ready")
 
-        self.grasp_pose_sub = rospy.Subscriber("/grasp_pose", PoseStamped, self.grasp_pose_cb, queue_size=10)
-
     def execute_cb(self, goal_msg):
         rospy.loginfo("Received grasp pose")
 
         self.panda_commander.move_group.set_max_velocity_scaling_factor(0.05)
         self.panda_commander.move_group.set_max_acceleration_scaling_factor(0.05)
 
-        # grasp_pose_msg = goal_msg.target_grasp_pose.pose
-        grasp_pose_msg = self.grasp_pose_msg
+        grasp_pose_msg = goal_msg.target_grasp_pose.pose
         T_base_grasp = pose_to_list(grasp_pose_msg)
 
         T_grasp_pregrasp = np.r_[0.0, 0.0, -0.1, 0.0, 0.0, 0.0, 1.0]
         T_base_pregrasp = multiply_transforms(T_base_grasp, T_grasp_pregrasp)
 
-        # T_base_pregrasp_Pose = PoseStamped()
-        # T_base_pregrasp_Pose.pose.position.x = T_base_pregrasp[0]
-        # T_base_pregrasp_Pose.pose.position.y = T_base_pregrasp[1]
-        # T_base_pregrasp_Pose.pose.position.z = T_base_pregrasp[2]
-        # T_base_pregrasp_Pose.pose.orientation.x = T_base_pregrasp[3]
-        # T_base_pregrasp_Pose.pose.orientation.y = T_base_pregrasp[4]
-        # T_base_pregrasp_Pose.pose.orientation.z = T_base_pregrasp[5]
-        # T_base_pregrasp_Pose.pose.orientation.w = T_base_pregrasp[6]
-        # T_base_pregrasp_Pose.header.stamp = rospy.Time.now()
-        # T_base_pregrasp_Pose.header.frame_id = "panda_base"
-        # self.selected_grasp_pub.publish(T_base_pregrasp_Pose)
-
-
         self.panda_commander.move_gripper(width=0.10)
 
-        # rospy.loginfo("Moving to pregrasp pose")
-        # self.panda_commander.goto_pose_target(T_base_pregrasp.tolist())
+        rospy.loginfo("Moving to pregrasp pose")
+        self.panda_commander.goto_pose_target(T_base_pregrasp.tolist())
         
         rospy.loginfo("Moving to grasp pose")
-        self.panda_commander.follow_cartesian_waypoints([T_base_pregrasp.tolist(), T_base_grasp])
+        self.panda_commander.follow_cartesian_waypoints([T_base_grasp])
         
         self.panda_commander.grasp(0.05)
         
@@ -72,11 +56,6 @@ class GraspExecutionNode(object):
         self.panda_commander.follow_cartesian_waypoints([T_base_pregrasp.tolist()])
 
         self._as.set_succeeded(GraspResult())
-
-    def grasp_pose_cb(self, stamped_pose):
-        # TODO remove this after passing correct grasp pose through BT
-        rospy.loginfo("Received grasp pose")
-        self.grasp_pose_msg = stamped_pose.pose
 
 
 if __name__ == '__main__':
