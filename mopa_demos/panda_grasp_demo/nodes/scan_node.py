@@ -154,6 +154,11 @@ class MoveGroupPythonIntefaceTutorial(object):
       self._as.set_aborted(result)
       return
 
+    if len(grasp_candidates.grasps) == 0:
+      # No grasps detected
+      self._as.set_aborted(result)
+      return
+
     grasp_pose = self.select_grasp_pose(grasp_candidates)
     self.selected_grasp_pub.publish(grasp_pose)
 
@@ -172,11 +177,20 @@ class MoveGroupPythonIntefaceTutorial(object):
     y_axis = -np.r_[grasp.binormal.x, grasp.binormal.y, grasp.binormal.z]  # TODO(mbreyer) HACK fix this
     z_axis = np.r_[grasp.approach.x, grasp.approach.y, grasp.approach.z]
     rot = Rotation.from_dcm(np.vstack([x_axis, y_axis, z_axis]).T)
-    quat = rot.as_quat()
-    print(np.linalg.norm(rot.as_dcm())) # TODO(mbreyer) make sure the det is positive
-
+    if np.linalg.det(rot.as_dcm()) < 0:
+      rospy.loginfo("Grasp pose vectors not a right-handed system. Flipping y-axis.")
+      y_axis = -y_axis
+      rot = Rotation.from_dcm(np.vstack([x_axis, y_axis, z_axis]).T)
     offset = rot.apply([0, 0, 0.04])  # GPD defines points at the hand palm, not the fingertip
   
+    # If x component is < 0, rotate around z by 180 deg
+    if x_axis[0] < 0:
+      rospy.loginfo("Flipped grasp pose. x-axis was pointing in negative direction.")
+      flip = Rotation.from_euler('z', 180, degrees=True)
+      rot = rot*flip
+
+    quat = rot.as_quat()
+
     pose = Pose()
     pose.position.x = grasp.position.x + offset[0]
     pose.position.y = grasp.position.y + offset[1]

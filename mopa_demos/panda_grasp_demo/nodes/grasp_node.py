@@ -23,6 +23,8 @@ class GraspExecutionNode(object):
     def __init__(self):
         self.panda_commander = PandaCommander("panda_arm")
 
+        self.selected_grasp_pub = rospy.Publisher('/pre_grasp_pose', PoseStamped, queue_size=10)
+
         self._as = SimpleActionServer("grasp_action", GraspAction, execute_cb=self.execute_cb, auto_start=False)
         self._as.start()
 
@@ -33,8 +35,8 @@ class GraspExecutionNode(object):
     def execute_cb(self, goal_msg):
         rospy.loginfo("Received grasp pose")
 
-        self.panda_commander.move_group.set_max_velocity_scaling_factor(0.2)
-        self.panda_commander.move_group.set_max_acceleration_scaling_factor(0.2)
+        self.panda_commander.move_group.set_max_velocity_scaling_factor(0.05)
+        self.panda_commander.move_group.set_max_acceleration_scaling_factor(0.05)
 
         # grasp_pose_msg = goal_msg.target_grasp_pose.pose
         grasp_pose_msg = self.grasp_pose_msg
@@ -43,13 +45,26 @@ class GraspExecutionNode(object):
         T_grasp_pregrasp = np.r_[0.0, 0.0, -0.1, 0.0, 0.0, 0.0, 1.0]
         T_base_pregrasp = multiply_transforms(T_base_grasp, T_grasp_pregrasp)
 
-        self.panda_commander.home_gripper()
+        # T_base_pregrasp_Pose = PoseStamped()
+        # T_base_pregrasp_Pose.pose.position.x = T_base_pregrasp[0]
+        # T_base_pregrasp_Pose.pose.position.y = T_base_pregrasp[1]
+        # T_base_pregrasp_Pose.pose.position.z = T_base_pregrasp[2]
+        # T_base_pregrasp_Pose.pose.orientation.x = T_base_pregrasp[3]
+        # T_base_pregrasp_Pose.pose.orientation.y = T_base_pregrasp[4]
+        # T_base_pregrasp_Pose.pose.orientation.z = T_base_pregrasp[5]
+        # T_base_pregrasp_Pose.pose.orientation.w = T_base_pregrasp[6]
+        # T_base_pregrasp_Pose.header.stamp = rospy.Time.now()
+        # T_base_pregrasp_Pose.header.frame_id = "panda_base"
+        # self.selected_grasp_pub.publish(T_base_pregrasp_Pose)
 
-        rospy.loginfo("Moving to pregrasp pose")
-        self.panda_commander.goto_pose_target(T_base_pregrasp.tolist())
+
+        self.panda_commander.move_gripper(width=0.10)
+
+        # rospy.loginfo("Moving to pregrasp pose")
+        # self.panda_commander.goto_pose_target(T_base_pregrasp.tolist())
         
         rospy.loginfo("Moving to grasp pose")
-        self.panda_commander.follow_cartesian_waypoints([T_base_grasp])
+        self.panda_commander.follow_cartesian_waypoints([T_base_pregrasp.tolist(), T_base_grasp])
         
         self.panda_commander.grasp(0.05)
         

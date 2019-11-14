@@ -35,7 +35,7 @@ def get_root():
     check_grasp_pose_known = py_trees.blackboard.CheckBlackboardVariable(name="Grasp pose known?", variable_name="target_grasp_pose")
 
     # Action: compute grasp
-    button_compute_grasp = py_trees_ros.subscribers.WaitForData(name="Button compute grasp?", topic_name="scan", topic_type=std_msgs.msg.Empty)
+    button_compute_grasp = py_trees_ros.subscribers.WaitForData(name="Button compute grasp?", topic_name="/manipulation_actions/scan", topic_type=std_msgs.msg.Empty)
     scan_goal = ScanSceneGoal()
     scan_goal.num_scan_poses = 2
     action_get_grasp = ActionClient_ResultSaver(name="Action compute grasp",
@@ -49,7 +49,7 @@ def get_root():
     composite_compute_grasp = py_trees.composites.Selector(children=[check_grasp_pose_known, composite_exec_get_grasp])
 
     # Action: execute grasp
-    button_do_grasp = py_trees_ros.subscribers.WaitForData(name="Button do grasp?", topic_name="grasp", topic_type=std_msgs.msg.Empty)
+    button_do_grasp = py_trees_ros.subscribers.WaitForData(name="Button do grasp?", topic_name="/manipulation_actions/grasp", topic_type=std_msgs.msg.Empty)
     action_grasp = py_trees.behaviours.Running(name="Action do grasp")
     grasp_goal = GraspGoal()
     action_grasp = py_trees_ros.actions.ActionClient(name="Action do grasp",
@@ -64,7 +64,7 @@ def get_root():
     composite_check_in_hand = py_trees.composites.Selector(children=[check_obj_in_hand, composite_do_grasp])
 
     # Action: drop object
-    button_drop = py_trees_ros.subscribers.WaitForData(name="Button drop object?", topic_name="stow", topic_type=std_msgs.msg.Empty)
+    button_drop = py_trees_ros.subscribers.WaitForData(name="Button drop object?", topic_name="/manipulation_actions/stow", topic_type=std_msgs.msg.Empty)
     drop_goal = DropGoal()
     action_drop = py_trees_ros.actions.ActionClient(name="Action drop object",
                                                     action_spec=DropAction,

@@ -7,7 +7,7 @@ import rospy
 from panda_grasp_demo.execution.behaviour_tree import PandaTree
 
 DEBUG = False
-PRINT_TREE = False
+PRINT_TREE = True
 
 def main():
     rospy.init_node("behaviour_tree_node")
