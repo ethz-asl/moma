@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="mopa">
+  <xacro:include filename="$(find mopa_description)/robots/ridgeback_simple/ridgeback_simple_static_actuated.xacro"/>
+  <xacro:include filename="$(find franka_description)/robots/panda_arm.xacro"/>
+  <xacro:include filename="$(find franka_description)/robots/hand.xacro"/>
+  <xacro:include filename="$(find mopa_description)/robots/ridgeback_simple/hokuyo_ust-10lx_mount.urdf.xacro" />
+
+
+  <!-- Initialize hokuyo -->
+  <xacro:hokuyo_ust-10lx_mount prefix="front"
+                               topic="front/scan"
+                               location="1" />
+  <xacro:hokuyo_ust-10lx_mount prefix="rear"
+                               topic="rear/scan"
+                               location="0" />
+
+  <!-- Attach panda arm to ridgeback simple -->
+  <xacro:panda_arm connected_to="top_link" xyz="0.3 0 0"/>
+  <xacro:hand ns="panda" rpy="0 0 ${-pi/4}" connected_to="panda_link8" />
+</robot>

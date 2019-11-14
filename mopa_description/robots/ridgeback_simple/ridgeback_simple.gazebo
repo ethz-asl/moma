@@ -1,0 +1,38 @@
+<?xml version='1.0' encoding='utf-8'?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="ridgeback_simple">
+
+	<gazebo reference="world_base_link"/>
+	<gazebo reference="base_link_x"/>
+	<gazebo reference="base_link_y"/>
+
+	 <transmission name="rbs_jointx_trans">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="base_link_joint_x">
+      <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="base_link_joint_x_motor">
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+  </transmission>
+
+  <transmission name="rbs_jointy_trans">
+   <type>transmission_interface/SimpleTransmission</type>
+   <joint name="base_link_joint_y">
+     <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+   </joint>
+   <actuator name="base_link_joint_y_motor">
+     <mechanicalReduction>1</mechanicalReduction>
+   </actuator>
+ </transmission>
+
+ <transmission name="rbs_jointth_trans">
+  <type>transmission_interface/SimpleTransmission</type>
+  <joint name="base_link_joint_th">
+    <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+  </joint>
+  <actuator name="base_link_joint_th_motor">
+    <mechanicalReduction>1</mechanicalReduction>
+  </actuator>
+</transmission>
+
+</robot>

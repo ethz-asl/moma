@@ -1,0 +1,132 @@
+<?xml version='1.0' encoding='utf-8'?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="ridgeback_simple">
+  <!-- <xacro:macro name="ridgeback_simple" params="hover_height:='0.5'"> -->
+
+  <xacro:property name="PI" value="3.1415926535897931" />
+
+  <material name="dark_grey"><color rgba="0.2 0.2 0.2 1.0" /></material>
+  <material name="light_grey"><color rgba="0.4 0.4 0.4 1.0" /></material>
+  <material name="red"><color rgba="0.8 0.0 0.0 1.0" /></material>
+  <material name="white"><color rgba="0.9 0.9 0.9 1.0" /></material>
+  <material name="yellow"><color rgba="0.8 0.8 0.0 1.0" /></material>
+  <material name="black"><color rgba="0.15 0.15 0.15 1.0" /></material>
+
+
+  <link name="world_base_link" />
+  <link name="base_link_x" />
+  <link name="base_link_y" />
+
+  <joint name="base_link_joint_x" type="prismatic">
+    <parent link="world_base_link"/>
+    <child link="base_link_x" />
+    <limit lower="-100" upper="100" effort="10000" velocity="0.4"/>
+  </joint>
+  <joint name="base_link_joint_y" type="prismatic">
+    <origin xyz="0 0 0" rpy="0 0 1.57" />
+    <parent link="base_link_x"/>
+    <child link="base_link_y" />
+    <limit lower="-100" upper="100" effort="10000" velocity="0.4"/>
+  </joint>
+  <joint name="base_link_joint_th" type="continuous">
+    <parent link="base_link_y"/>
+    <child link="base_link"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10000" velocity="0.75"/>
+  </joint>
+
+    <link name="base_link">
+
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <geometry>
+          <mesh filename="package://mopa_description/robots/ridgeback_simple/meshes/body.stl"/>
+        </geometry>
+        <material name="black" />
+      </visual>
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 ${PI}" />
+        <geometry>
+          <mesh filename="package://mopa_description/robots/ridgeback_simple/meshes/side-cover.stl"/>
+        </geometry>
+        <material name="yellow" />
+      </visual>
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <geometry>
+          <mesh filename="package://mopa_description/robots/ridgeback_simple/meshes/side-cover.stl"/>
+        </geometry>
+        <material name="yellow" />
+      </visual>
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <geometry>
+          <mesh filename="package://mopa_description/robots/ridgeback_simple/meshes/end-cover.stl" />
+        </geometry>
+        <material name="black" />
+      </visual>
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 ${PI}" />
+        <geometry>
+          <mesh filename="package://mopa_description/robots/ridgeback_simple/meshes/end-cover.stl" />
+        </geometry>
+        <material name="black" />
+      </visual>
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <geometry>
+          <mesh filename="package://mopa_description/robots/ridgeback_simple/meshes/lights.stl" />
+        </geometry>
+        <material name="white" />
+      </visual>
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 ${PI}" />
+        <geometry>
+          <mesh filename="package://mopa_description/robots/ridgeback_simple/meshes/lights.stl" />
+        </geometry>
+        <material name="red" />
+      </visual>
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <geometry>
+          <mesh filename="package://mopa_description/robots/ridgeback_simple/meshes/top.stl" />
+        </geometry>
+        <material name="black" />
+      </visual>
+
+      <collision>
+        <origin xyz="0 0 0"/>
+        <geometry>
+          <mesh filename="package://mopa_description/robots/ridgeback_simple/meshes/body-collision.stl"/>
+        </geometry>
+      </collision>
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <geometry>
+          <mesh filename="package://mopa_description/robots/ridgeback_simple/meshes/top.stl"/>
+        </geometry>
+      </collision>
+
+
+      <inertial>
+        <origin xyz="0.012 0.002 0.067" rpy="${PI/2} 0 ${PI/2}"/>
+        <mass value="165.304"/>
+        <inertia
+          ixx="4.4744" ixy="0.03098" ixz="0.003647"
+          iyy="7.1624" iyz="0.1228"
+          izz="4.6155"/>
+      </inertial>
+
+
+    </link>
+    <joint name="top_link_joint" type="fixed">
+      <origin xyz="0 0 0.28" rpy="0 0 0" />
+      <parent link="base_link"/>
+      <child link="top_link" />
+    </joint>
+
+    <link name="top_link">
+
+    </link>
+
+    <xacro:include filename="$(find mopa_description)/robots/ridgeback_simple/ridgeback_simple.gazebo" />
+</robot>
