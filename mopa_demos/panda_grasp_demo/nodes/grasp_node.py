@@ -30,9 +30,6 @@ class GraspActionNode(object):
     def execute_cb(self, goal_msg):
         rospy.loginfo("Received grasp pose")
 
-        self.panda_commander.move_group.set_max_velocity_scaling_factor(0.05)
-        self.panda_commander.move_group.set_max_acceleration_scaling_factor(0.05)
-
         grasp_pose_msg = goal_msg.target_grasp_pose.pose
         T_base_grasp = pose_to_list(grasp_pose_msg)
 
@@ -43,7 +40,7 @@ class GraspActionNode(object):
         self.panda_commander.move_gripper(width=0.10)
 
         rospy.loginfo("Moving to pregrasp pose")
-        self.panda_commander.goto_pose_target(T_base_pregrasp.tolist())
+        self.panda_commander.goto_pose_target(T_base_pregrasp.tolist(), max_velocity_scaling=0.2)
         
         rospy.loginfo("Moving to grasp pose")
         self.panda_commander.follow_cartesian_waypoints([T_base_grasp])

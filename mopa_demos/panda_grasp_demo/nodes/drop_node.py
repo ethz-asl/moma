@@ -28,7 +28,7 @@ class DropActionNode(object):
     def execute_cb(self, goal):
         rospy.loginfo("Dropping action was triggered")
    
-        self.panda_commander.goto_pose_target(self.drop_pose)
+        self.panda_commander.goto_pose_target(self.drop_pose, max_velocity_scaling=0.5)
 
         rospy.sleep(1.0)  # wait for the operator's hand to be placed under the EE
 

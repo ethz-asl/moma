@@ -71,7 +71,7 @@ class ScanActionNode(object):
                 self._as.set_preempted()
                 return
             self.pointcloud_data = None
-            self.panda_commander.goto_joint_target(self.scan_joints[i])
+            self.panda_commander.goto_joint_target(self.scan_joints[i], max_velocity_scaling=0.5)
             rospy.sleep(0.5)  # for the latest point clouds to be published
             cloud = self.capture_point_cloud()
             captured_clouds.append(cloud)
