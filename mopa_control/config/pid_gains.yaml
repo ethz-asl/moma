@@ -14,3 +14,6 @@ gazebo_ros_control:
     rear_left_wheel: {p: 1, i: 0.1, d: 0}
     rear_right_wheel: {p: 1, i: 0.1, d: 0}
     front_rocker: {p: 0, i: 0, d: 0}
+    world_base_x: {p: 10000, i: 0, d: 1000}
+    world_base_y: {p: 10000, i: 0, d: 1000}
+    world_base_th: {p: 10000, i: 0, d: 0}
