@@ -30,7 +30,8 @@ planner_configs:
     goal_bias: 0.05  # When close to goal select goal, with this probability? default: 0.05
   RRTConnect:
     type: geometric::RRTConnect
-    range: 0.0  # Max motion added to tree. ==> maxDistance_ default: 0.0, if 0.0, set on setup()
+    range: 5  # Max motion added to tree. ==> maxDistance_ default: 0.0, if 0.0, set on setup()
+    longest_valid_segment_fraction: 0.001
   RRTstar:
     type: geometric::RRTstar
     range: 0.0  # Max motion added to tree. ==> maxDistance_ default: 0.0, if 0.0, set on setup()
@@ -121,7 +122,7 @@ planner_configs:
     dense_delta_fraction: 0.001  # delta fraction for interface detection. default: 0.001
     max_failures: 5000  # maximum consecutive failure limit. default: 5000
 wbc:
-  default_planner_config: None
+  default_planner_config: RRTConnect
   planner_configs:
     - SBL
     - EST
@@ -149,7 +150,7 @@ wbc:
   projection_evaluator: joints(world_base_x,world_base_y)
   longest_valid_segment_fraction: 0.005
 hand:
-  default_planner_config: None
+  default_planner_config: ""
   planner_configs:
     - SBL
     - EST

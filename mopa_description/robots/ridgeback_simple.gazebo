@@ -115,6 +115,176 @@
         <actuator name="front_rocker_dummy_act"/>
     </transmission>
 
+    <gazebo reference="cam_link_f">
+    <sensor name="cam_link_f_sensor" type="depth">
+      <update_rate>5</update_rate>
+      <camera>
+        <horizontal_fov>1.5708</horizontal_fov>
+        <image>
+          <width>150</width>
+          <height>100</height>
+          <format>R8G8B8</format>
+        </image>
+        <clip>
+          <near>0.05</near>
+          <far>10</far>
+        </clip>
+      </camera>
+      <plugin name="cam_link_f_plugin" filename="libgazebo_ros_openni_kinect.so">
+        <baseline>0.2</baseline>
+        <alwaysOn>true</alwaysOn>
+        <updateRate>1</updateRate>
+        <cameraName>cam_link_f</cameraName>
+        <imageTopicName>/cam_link_f/depth/image_raw</imageTopicName>
+        <cameraInfoTopicName>/cam_link_f/depth/camera_info</cameraInfoTopicName>
+        <depthImageTopicName>/cam_link_f/depth/image_raw</depthImageTopicName>
+        <depthImageInfoTopicName>/cam_link_f/depth/camera_info</depthImageInfoTopicName>
+        <pointCloudTopicName>/cam_link_f/pointcloud</pointCloudTopicName>
+        <frameName>cam_link_f_optical</frameName>
+        <pointCloudCutoff>0.2</pointCloudCutoff>
+        <pointCloudCutoffMax>8.0</pointCloudCutoffMax>
+        <distortionK1>0.00000001</distortionK1>
+        <distortionK2>0.00000001</distortionK2>
+        <distortionK3>0.00000001</distortionK3>
+        <distortionT1>0.00000001</distortionT1>
+        <distortionT2>0.00000001</distortionT2>
+        <CxPrime>0</CxPrime>
+        <Cx>0</Cx>
+        <Cy>0</Cy>
+        <focalLength>0</focalLength>
+        <hackBaseline>0</hackBaseline>
+      </plugin>
+    </sensor>
+  </gazebo>
+
+  <gazebo reference="cam_link_r">
+  <sensor name="cam_link_r_sensor" type="depth">
+    <update_rate>5</update_rate>
+    <camera>
+      <horizontal_fov>1.5708</horizontal_fov>
+      <image>
+        <width>150</width>
+        <height>100</height>
+        <format>R8G8B8</format>
+      </image>
+      <clip>
+        <near>0.05</near>
+        <far>10</far>
+      </clip>
+    </camera>
+    <plugin name="cam_link_r_plugin" filename="libgazebo_ros_openni_kinect.so">
+      <baseline>0.2</baseline>
+      <alwaysOn>true</alwaysOn>
+      <updateRate>1</updateRate>
+      <cameraName>cam_link_r</cameraName>
+      <imageTopicName>/cam_link_r/depth/image_raw</imageTopicName>
+      <cameraInfoTopicName>/cam_link_r/depth/camera_info</cameraInfoTopicName>
+      <depthImageTopicName>/cam_link_r/depth/image_raw</depthImageTopicName>
+      <depthImageInfoTopicName>/cam_link_r/depth/camera_info</depthImageInfoTopicName>
+      <pointCloudTopicName>/cam_link_r/pointcloud</pointCloudTopicName>
+      <frameName>cam_link_r_optical</frameName>
+      <pointCloudCutoff>0.2</pointCloudCutoff>
+      <pointCloudCutoffMax>8.0</pointCloudCutoffMax>
+      <distortionK1>0.00000001</distortionK1>
+      <distortionK2>0.00000001</distortionK2>
+      <distortionK3>0.00000001</distortionK3>
+      <distortionT1>0.00000001</distortionT1>
+      <distortionT2>0.00000001</distortionT2>
+      <CxPrime>0</CxPrime>
+      <Cx>0</Cx>
+      <Cy>0</Cy>
+      <focalLength>0</focalLength>
+      <hackBaseline>0</hackBaseline>
+    </plugin>
+  </sensor>
+</gazebo>
+
+<gazebo reference="cam_link_l">
+<sensor name="cam_link_l_sensor" type="depth">
+  <update_rate>5</update_rate>
+  <camera>
+    <horizontal_fov>1.5708</horizontal_fov>
+    <image>
+      <width>150</width>
+      <height>100</height>
+      <format>R8G8B8</format>
+    </image>
+    <clip>
+      <near>0.05</near>
+      <far>10</far>
+    </clip>
+  </camera>
+  <plugin name="cam_link_l_plugin" filename="libgazebo_ros_openni_kinect.so">
+    <baseline>0.2</baseline>
+    <alwaysOn>true</alwaysOn>
+    <updateRate>1</updateRate>
+    <cameraName>cam_link_l</cameraName>
+    <imageTopicName>/cam_link_l/depth/image_raw</imageTopicName>
+    <cameraInfoTopicName>/cam_link_l/depth/camera_info</cameraInfoTopicName>
+    <depthImageTopicName>/cam_link_l/depth/image_raw</depthImageTopicName>
+    <depthImageInfoTopicName>/cam_link_l/depth/camera_info</depthImageInfoTopicName>
+    <pointCloudTopicName>/cam_link_l/pointcloud</pointCloudTopicName>
+    <frameName>cam_link_l_optical</frameName>
+    <pointCloudCutoff>0.2</pointCloudCutoff>
+    <pointCloudCutoffMax>8.0</pointCloudCutoffMax>
+    <distortionK1>0.00000001</distortionK1>
+    <distortionK2>0.00000001</distortionK2>
+    <distortionK3>0.00000001</distortionK3>
+    <distortionT1>0.00000001</distortionT1>
+    <distortionT2>0.00000001</distortionT2>
+    <CxPrime>0</CxPrime>
+    <Cx>0</Cx>
+    <Cy>0</Cy>
+    <focalLength>0</focalLength>
+    <hackBaseline>0</hackBaseline>
+  </plugin>
+</sensor>
+</gazebo>
+
+
+<gazebo reference="cam_link_b">
+<sensor name="cam_link_b_sensor" type="depth">
+  <update_rate>5</update_rate>
+  <camera>
+    <horizontal_fov>1.5708</horizontal_fov>
+    <image>
+      <width>150</width>
+      <height>100</height>
+      <format>R8G8B8</format>
+    </image>
+    <clip>
+      <near>0.05</near>
+      <far>10</far>
+    </clip>
+  </camera>
+  <plugin name="cam_link_b_plugin" filename="libgazebo_ros_openni_kinect.so">
+    <baseline>0.2</baseline>
+    <alwaysOn>true</alwaysOn>
+    <updateRate>1</updateRate>
+    <cameraName>cam_link_b</cameraName>
+    <imageTopicName>/cam_link_b/depth/image_raw</imageTopicName>
+    <cameraInfoTopicName>/cam_link_b/depth/camera_info</cameraInfoTopicName>
+    <depthImageTopicName>/cam_link_b/depth/image_raw</depthImageTopicName>
+    <depthImageInfoTopicName>/cam_link_b/depth/camera_info</depthImageInfoTopicName>
+    <pointCloudTopicName>/cam_link_b/pointcloud</pointCloudTopicName>
+    <frameName>cam_link_b_optical</frameName>
+    <pointCloudCutoff>0.2</pointCloudCutoff>
+    <pointCloudCutoffMax>8.0</pointCloudCutoffMax>
+    <distortionK1>0.00000001</distortionK1>
+    <distortionK2>0.00000001</distortionK2>
+    <distortionK3>0.00000001</distortionK3>
+    <distortionT1>0.00000001</distortionT1>
+    <distortionT2>0.00000001</distortionT2>
+    <CxPrime>0</CxPrime>
+    <Cx>0</Cx>
+    <Cy>0</Cy>
+    <focalLength>0</focalLength>
+    <hackBaseline>0</hackBaseline>
+  </plugin>
+</sensor>
+</gazebo>
+
+
     <!-- This is an wheel-level solution to possibly revisit at a future date. -->
     <!--<gazebo>
     <plugin name="mecanum_gazebo" filename="libmecanum_force_plugin.so">

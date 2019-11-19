@@ -8,4 +8,4 @@ moveit_setup_assistant_config:
   CONFIG:
     author_name: Julien Kindle
     author_email: jkindle@ethz.ch
-    generated_timestamp: 1573812518
+    generated_timestamp: 1573820801

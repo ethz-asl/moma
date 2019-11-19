@@ -175,6 +175,196 @@
     <limit effort="1000000" velocity="0.75"/>
   </joint>
 
+  <!-- Camera links -->
+  <link name="cam_link_f">
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <mass value="1" />
+      <inertia
+        ixx="1.0" ixy="0.0" ixz="0.0"
+        iyy="1.0" iyz="0.0"
+        izz="1.0" />
+    </inertial>
+  </link>
+  <link name="cam_link_f_i">
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <mass value="1" />
+      <inertia
+        ixx="1.0" ixy="0.0" ixz="0.0"
+        iyy="1.0" iyz="0.0"
+        izz="1.0" />
+    </inertial>
+  </link>
+  <link name="cam_link_f_optical">
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <mass value="1" />
+      <inertia
+        ixx="1.0" ixy="0.0" ixz="0.0"
+        iyy="1.0" iyz="0.0"
+        izz="1.0" />
+    </inertial>
+  </link>
+  <joint name="cam_link_f_joint1" type="fixed">
+    <origin xyz="0 0 0" rpy="1.5708 0 1.5708" />
+    <parent link="cam_link_f"/>
+    <child link="cam_link_f_i"/>
+  </joint>
+    <joint name="cam_link_f_joint2" type="fixed">
+    <origin xyz="0 0 0" rpy="0 0 3.141592" />
+    <parent link="cam_link_f_i"/>
+    <child link="cam_link_f_optical"/>
+  </joint>
+  <joint name="cam_link_f_joint3" type="fixed">
+    <origin xyz="0 0 1.0" rpy="0 0 0" />
+    <parent link="base_link"/>
+    <child link="cam_link_f"/>
+  </joint>
+
+  <link name="cam_link_b">
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <mass value="1" />
+      <inertia
+        ixx="1.0" ixy="0.0" ixz="0.0"
+        iyy="1.0" iyz="0.0"
+        izz="1.0" />
+    </inertial>
+  </link>
+  <link name="cam_link_b_i">
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <mass value="1" />
+      <inertia
+        ixx="1.0" ixy="0.0" ixz="0.0"
+        iyy="1.0" iyz="0.0"
+        izz="1.0" />
+    </inertial>
+  </link>
+  <link name="cam_link_b_optical">
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <mass value="1" />
+      <inertia
+        ixx="1.0" ixy="0.0" ixz="0.0"
+        iyy="1.0" iyz="0.0"
+        izz="1.0" />
+    </inertial>
+  </link>
+  <joint name="cam_link_b_joint1" type="fixed">
+    <origin xyz="0 0 0" rpy="1.5708 0 1.5708" />
+    <parent link="cam_link_b"/>
+    <child link="cam_link_b_i"/>
+  </joint>
+    <joint name="cam_link_b_joint2" type="fixed">
+    <origin xyz="0 0 0" rpy="0 0 3.141592" />
+    <parent link="cam_link_b_i"/>
+    <child link="cam_link_b_optical"/>
+  </joint>
+  <joint name="cam_link_b_joint3" type="fixed">
+    <origin xyz="0 0 1.0" rpy="0 0 3.141592" />
+    <parent link="base_link"/>
+    <child link="cam_link_b"/>
+  </joint>
+
+
+
+  <link name="cam_link_r">
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <mass value="1" />
+      <inertia
+        ixx="1.0" ixy="0.0" ixz="0.0"
+        iyy="1.0" iyz="0.0"
+        izz="1.0" />
+    </inertial>
+  </link>
+  <link name="cam_link_r_i">
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <mass value="1" />
+      <inertia
+        ixx="1.0" ixy="0.0" ixz="0.0"
+        iyy="1.0" iyz="0.0"
+        izz="1.0" />
+    </inertial>
+  </link>
+  <link name="cam_link_r_optical">
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <mass value="1" />
+      <inertia
+        ixx="1.0" ixy="0.0" ixz="0.0"
+        iyy="1.0" iyz="0.0"
+        izz="1.0" />
+    </inertial>
+  </link>
+  <joint name="cam_link_r_joint1" type="fixed">
+    <origin xyz="0 0 0" rpy="1.5708 0 1.5708" />
+    <parent link="cam_link_r"/>
+    <child link="cam_link_r_i"/>
+  </joint>
+    <joint name="cam_link_r_joint2" type="fixed">
+    <origin xyz="0 0 0" rpy="0 0 3.141592" />
+    <parent link="cam_link_r_i"/>
+    <child link="cam_link_r_optical"/>
+  </joint>
+  <joint name="cam_link_r_joint3" type="fixed">
+    <origin xyz="0 0 1.0" rpy="0 0 -1.5708" />
+    <parent link="base_link"/>
+    <child link="cam_link_r"/>
+  </joint>
+
+
+  <link name="cam_link_l">
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <mass value="1" />
+      <inertia
+        ixx="1.0" ixy="0.0" ixz="0.0"
+        iyy="1.0" iyz="0.0"
+        izz="1.0" />
+    </inertial>
+  </link>
+  <link name="cam_link_l_i">
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <mass value="1" />
+      <inertia
+        ixx="1.0" ixy="0.0" ixz="0.0"
+        iyy="1.0" iyz="0.0"
+        izz="1.0" />
+    </inertial>
+  </link>
+  <link name="cam_link_l_optical">
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <mass value="1" />
+      <inertia
+        ixx="1.0" ixy="0.0" ixz="0.0"
+        iyy="1.0" iyz="0.0"
+        izz="1.0" />
+    </inertial>
+  </link>
+  <joint name="cam_link_l_joint1" type="fixed">
+    <origin xyz="0 0 0" rpy="1.5708 0 1.5708" />
+    <parent link="cam_link_l"/>
+    <child link="cam_link_l_i"/>
+  </joint>
+    <joint name="cam_link_l_joint2" type="fixed">
+    <origin xyz="0 0 0" rpy="0 0 3.141592" />
+    <parent link="cam_link_l_i"/>
+    <child link="cam_link_l_optical"/>
+  </joint>
+  <joint name="cam_link_l_joint3" type="fixed">
+    <origin xyz="0 0 1.0" rpy="0 0 1.5708" />
+    <parent link="base_link"/>
+    <child link="cam_link_l"/>
+  </joint>
+
+
+
 
 
   <joint name="base_link_joint" type="fixed">
