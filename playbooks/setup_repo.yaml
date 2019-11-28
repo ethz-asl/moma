@@ -14,6 +14,10 @@
       vars:
         packages:
         - ros-melodic-franka-ros
+        - ros-melodic-py-trees
+        - ros-melodic-py-trees-ros
+        - ros-melodic-rqt-py-trees
+        - ros-melodic-pcl-conversions
     - name: Create workspace src directory
       file:
         path: /home/franka/catkin_ws/src/
@@ -23,8 +27,7 @@
       args:
         chdir: /home/franka/catkin_ws
     - name: Copy repository over.
-      copy:
-        src: ../
+      git:
+        repo: git@github.com:ethz-asl/chimera
         dest: /home/franka/catkin_ws/src/chimera/
-        owner: yes
-
+        version: master

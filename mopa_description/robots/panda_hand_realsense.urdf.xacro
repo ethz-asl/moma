@@ -11,4 +11,12 @@
   <xacro:property name="xyz_panda_link7_camera_link" value="0.06308534561732076 -0.08993980659751674 0.1481860837701407"/>
   <xacro:property name="rpy_panda_link7_camera_link" value="-2.68850999 -1.56973844 -1.20267232"/>
   <xacro:realsense ns="panda" rpy="${rpy_panda_link7_camera_link}" xyz="${xyz_panda_link7_camera_link}" connected_to="panda_link7"/>
+
+  <!-- Add EE frame -->
+  <link name="panda_default_EE"/>
+  <joint name="joint_link8_default_ee" type="fixed">
+        <parent link="panda_link8"/>
+        <child link="panda_default_EE"/>
+        <origin rpy="0.000 0.000 -0.785" xyz="0.000 0.000 0.103"/>
+  </joint>
 </robot>

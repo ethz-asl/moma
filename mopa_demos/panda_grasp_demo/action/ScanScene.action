@@ -1,0 +1,7 @@
+# Define the goal
+uint32 num_scan_poses
+---
+# Define the result
+geometry_msgs/PoseStamped selected_grasp_pose
+---
+# Define the feedback

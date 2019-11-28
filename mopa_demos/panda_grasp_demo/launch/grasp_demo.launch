@@ -1,0 +1,30 @@
+<?xml version="1.0" ?>
+<launch>
+    <!-- Launch the Realsense camera -->
+    <include file="$(find realsense2_camera)/launch/rs_camera.launch">
+        <arg name="enable_pointcloud" value="true"/>
+    </include>
+
+    <!-- Launch Panda controller and MoveIt -->
+    <include file="$(find mopa_bringup)/launch/panda_control_moveit_rviz.launch">
+        <arg name="launch_rviz" value="false"/>
+    </include>
+
+    <!-- Launch GPD -->
+    <node name="detect_grasps" pkg="gpd_ros" type="detect_grasps" output="screen">
+      <param name="cloud_type" value="0" />
+      <param name="cloud_topic" value="/cloud_stitched" />
+      <param name="samples_topic" value="" />
+      <param name="config_file" value="$(find panda_grasp_demo)/config/gpd.cfg" />
+      <param name="rviz_topic" value="plot_grasps" />
+    </node>
+
+    <!-- Launch the action nodes -->
+    <node pkg="panda_grasp_demo" type="scan_node.py" name="scan_action_node" output="screen"/>
+    <node pkg="panda_grasp_demo" type="grasp_node.py" name="grasp_action_node" output="screen"/>
+    <node pkg="panda_grasp_demo" type="drop_node.py" name="drop_action_node" output="screen"/>
+
+    <!-- Launch RViz -->
+    <node type="rviz" name="rviz" pkg="rviz" args="-d $(find panda_grasp_demo)/config/rviz.rviz"/>
+
+</launch>
