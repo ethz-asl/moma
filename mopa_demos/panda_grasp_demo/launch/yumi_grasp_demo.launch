@@ -1,0 +1,17 @@
+<?xml version="1.0" ?>
+<launch>
+    <arg name="launch_rviz" default="true" />
+
+    <!-- TODO Launch a camera for YuMi -->
+    <!-- <include file="$(find realsense2_camera)/launch/rs_camera.launch">
+        <arg name="enable_pointcloud" value="true"/>
+    </include> -->
+
+    <!-- TODO Launch YuMi controller and MoveIt -->
+
+    <!-- Launch grasp demo -->
+    <include file="$(find panda_grasp_demo)/launch/grasp_demo.launch">
+        <arg name="launch_rviz" value="$(arg launch_rviz)"/>
+    </include>
+
+</launch>
