@@ -6,3 +6,6 @@
 	path = ext/ridgeback
 	url = git@github.com:ethz-asl/ridgeback.git
 	branch = asl-devel
+[submodule "ext/realsense-ros"]
+	path = ext/realsense-ros
+	url = git@github.com:IntelRealSense/realsense-ros.git
