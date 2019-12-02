@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="mobmi">
+
+  <!-- Ridgeback -->
+  <xacro:include filename="$(find moma_description)/urdf/ridgeback.xacro"/>
+  <xacro:ridgeback/>
+
+  <!-- YuMi mount -->
+  <link name="ridgeback_yumi_mount_link">
+    <visual>
+      <geometry>
+        <mesh filename="package://moma_description/meshes/ridgeback_yumi_mount.dae"/>
+      </geometry>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://moma_description/meshes/ridgeback_yumi_mount.dae"/> 
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="ridgeback_yumi_mount_joint" type="fixed">
+    <origin xyz="0 0 0" rpy="0 0 1.571" />
+    <parent link="mid_mount" />
+    <child link="ridgeback_yumi_mount_link" />
+  </joint>
+
+  <!-- YuMi -->
+  <xacro:include filename="$(find moma_description)/urdf/yumi.xacro"/>
+  <xacro:yumi connected_to="ridgeback_yumi_mount_link" rpy="0 0 -${pi/2}"  xyz="0 -0.285 0.248"/>
+
+</robot>

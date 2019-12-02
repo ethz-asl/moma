@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="panda">
+  <xacro:macro name="panda" params="connected_to:='' rpy:='0 0 0' xyz:='0 0 0'">
+
+    <!-- Panda arm  -->
+    <xacro:include filename="$(find franka_description)/robots/panda_arm.xacro"/>
+    <xacro:panda_arm connected_to="${connected_to}" rpy="${rpy}" xyz="${xyz}"/>
+
+    <!-- Panda hand -->
+    <xacro:include filename="$(find franka_description)/robots/hand.xacro"/>
+    <xacro:hand ns="panda" rpy="0 0 ${-pi/4}" connected_to="panda_link8"/>
+
+    <!-- Add end effector frame for MoveIt -->
+    <link name="panda_default_ee"/>
+    <joint name="joint_link8_default_ee" type="fixed">
+      <parent link="panda_link8"/>
+      <child link="panda_default_ee"/>
+      <origin rpy="0.0 0.0 -0.785" xyz="0.0 0.0 0.103"/>
+    </joint>
+
+    <!-- Mount Realsense -->
+    <xacro:property name="xyz_panda_link7_camera_link" value="0.06308534561732076 -0.08993980659751674 0.1481860837701407"/>
+    <xacro:property name="rpy_panda_link7_camera_link" value="-2.68850999 -1.56973844 -1.20267232"/>
+    <xacro:include filename="$(find moma_description)/urdf/realsense.xacro"/>
+    <xacro:realsense ns="panda" connected_to="panda_link7" rpy="${rpy_panda_link7_camera_link}" xyz="${xyz_panda_link7_camera_link}"/>
+
+  </xacro:macro>
+</robot>
