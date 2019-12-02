@@ -4,7 +4,7 @@
 Clone this repository recursively, i.e.
 
 ```
-git clone --recursive git://github.com/ethz-asl/chimera.git
+git clone --recursive git@github.com:ethz-asl/moma.git
 ```
 
 To install ros dependencies through apt-get, run the `install_dependencies.sh` shell script.
