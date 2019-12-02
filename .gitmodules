@@ -2,3 +2,7 @@
 	path = ext/franka_ros
 	url = git@github.com:ethz-asl/franka_ros.git
 	branch = melodic-devel
+[submodule "ext/ridgeback"]
+	path = ext/ridgeback
+	url = git@github.com:ethz-asl/ridgeback.git
+	branch = asl-devel
