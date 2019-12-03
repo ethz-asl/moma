@@ -193,7 +193,7 @@ class ScanActionNode(object):
         pose_stamped = PoseStamped()
         pose_stamped.pose = pose
         pose_stamped.header.stamp = rospy.Time.now()
-        pose_stamped.header.frame_id = "panda_base"
+        pose_stamped.header.frame_id = "panda_link0"
 
         return pose_stamped
 
@@ -209,7 +209,7 @@ class ScanActionNode(object):
     def transform_pointcloud(self, msg):
         frame = msg.header.frame_id
         translation, rotation = self.listener.lookupTransform(
-            "panda_base", frame, rospy.Time()
+            "panda_link0", frame, rospy.Time()
         )
         transform_msg = TransformStamped()
         transform_msg.transform.translation.x = translation[0]
@@ -221,7 +221,7 @@ class ScanActionNode(object):
         transform_msg.transform.rotation.w = rotation[3]
         transformed_msg = do_transform_cloud(msg, transform_msg)
         transformed_msg.header = msg.header
-        transformed_msg.header.frame_id = "panda_base"
+        transformed_msg.header.frame_id = "panda_link0"
         return transformed_msg
 
     def stitch_point_clouds(self, clouds):
