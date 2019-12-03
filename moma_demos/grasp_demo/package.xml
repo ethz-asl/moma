@@ -10,11 +10,14 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <depend>std_msgs</depend>
   <depend>actionlib</depend>
   <depend>actionlib_msgs</depend>
-  <depend>roscpp</depend>
   <depend>geometry_msgs</depend>
+  <depend>roscpp</depend>
+  <depend>rospy</depend>
+  <depend>std_msgs</depend>
+  <depend>std_srvs</depend>
+  <depend>tf2_ros</depend>
 
   <depend>qtbase5-dev</depend>
   <exec_depend>rviz</exec_depend>
