@@ -18,13 +18,19 @@ class PandaCommander(object):
         self.move_group = moveit_commander.MoveGroupCommander(group_name)
 
         # Setup action clients to command the gripper
-        self.home_client = actionlib.SimpleActionClient("franka_gripper/homing", HomingAction)
+        self.home_client = actionlib.SimpleActionClient(
+            "franka_gripper/homing", HomingAction
+        )
         self.home_client.wait_for_server()
-        
-        self.move_client =  actionlib.SimpleActionClient("franka_gripper/move", MoveAction)
+
+        self.move_client = actionlib.SimpleActionClient(
+            "franka_gripper/move", MoveAction
+        )
         self.move_client.wait_for_server()
 
-        self.grasp_client = actionlib.SimpleActionClient("franka_gripper/grasp", GraspAction)
+        self.grasp_client = actionlib.SimpleActionClient(
+            "franka_gripper/grasp", GraspAction
+        )
         self.grasp_client.wait_for_server()
         rospy.loginfo("Connected to franka_gripper action servers")
 
@@ -50,14 +56,12 @@ class PandaCommander(object):
         assert type(poses) == list
 
         waypoints = []
-        for pose in poses: 
+        for pose in poses:
             pose_msg = list_to_pose(pose) if type(pose) is list else pose
             waypoints.append(pose_msg)
-        
+
         plan, fraction = self.move_group.compute_cartesian_path(
-            waypoints=waypoints,
-            eef_step=0.005,
-            jump_threshold=0.0
+            waypoints=waypoints, eef_step=0.005, jump_threshold=0.0
         )
         if fraction != 1.0:
             raise ValueError("Unable to plan entire path!")

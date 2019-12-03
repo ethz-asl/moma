@@ -17,12 +17,13 @@ def multiply_transforms(A, B):
 
 
 class GraspActionNode(object):
-
     def __init__(self):
         self.panda_commander = PandaCommander("panda_arm")
 
         # Setup action server
-        self._as = SimpleActionServer("grasp_action", GraspAction, execute_cb=self.execute_cb, auto_start=False)
+        self._as = SimpleActionServer(
+            "grasp_action", GraspAction, execute_cb=self.execute_cb, auto_start=False
+        )
         self._as.start()
 
         rospy.loginfo("Grasp action server ready")
@@ -40,21 +41,23 @@ class GraspActionNode(object):
         self.panda_commander.move_gripper(width=0.10)
 
         rospy.loginfo("Moving to pregrasp pose")
-        self.panda_commander.goto_pose_target(T_base_pregrasp.tolist(), max_velocity_scaling=0.2)
-        
+        self.panda_commander.goto_pose_target(
+            T_base_pregrasp.tolist(), max_velocity_scaling=0.2
+        )
+
         rospy.loginfo("Moving to grasp pose")
         self.panda_commander.follow_cartesian_waypoints([T_base_grasp])
-        
+
         rospy.loginfo("Grasping")
         self.panda_commander.grasp(0.05)
-        
+
         rospy.loginfo("Retrieving object")
         self.panda_commander.follow_cartesian_waypoints([T_base_pregrasp.tolist()])
 
         self._as.set_succeeded(GraspResult())
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     try:
         rospy.init_node("grasp_action_node")
         GraspActionNode()

@@ -21,7 +21,6 @@ from grasp_demo.panda_commander import PandaCommander
 
 
 class ScanActionNode(object):
-
     def __init__(self):
         # Panda commander
         self.panda_commander = PandaCommander("panda_arm")
@@ -32,25 +31,71 @@ class ScanActionNode(object):
 
         # Scan joint configurations
         self.scan_joints = [
-            [-0.13044640511344546, -1.3581389637834451, -0.7902883262964496, -2.2897565394284434, 0.04394716020347789, 1.2693998432689242, 1.0239726927690207],
-            [1.1617, -0.5194, -1.6787, -1.345415587151993, 0.27857345296034125, 0.9858770641287168, 0.48917187201250106],
-            [0.03534398500304972, 0.0792812212202517, 0.00024001071061285442, -1.2297476580268456, 0.07415731295971527, 0.9772190555466544, 0.8901656288974905],
-            [-1.0761406668405233, -0.9812572320940955, 1.0510634288286071, -1.4203576079753408, 0.2339650344716178, 0.9772807318199377, 0.6811464487329869],
-            [-0.3038625468067955, -1.2148889997380417, 0.812242864175488, -1.754142465942784, 0.16873402494854398, 1.1185604270829095, 0.9999408414952058]
+            [
+                -0.13044640511344546,
+                -1.3581389637834451,
+                -0.7902883262964496,
+                -2.2897565394284434,
+                0.04394716020347789,
+                1.2693998432689242,
+                1.0239726927690207,
+            ],
+            [
+                1.1617,
+                -0.5194,
+                -1.6787,
+                -1.345415587151993,
+                0.27857345296034125,
+                0.9858770641287168,
+                0.48917187201250106,
+            ],
+            [
+                0.03534398500304972,
+                0.0792812212202517,
+                0.00024001071061285442,
+                -1.2297476580268456,
+                0.07415731295971527,
+                0.9772190555466544,
+                0.8901656288974905,
+            ],
+            [
+                -1.0761406668405233,
+                -0.9812572320940955,
+                1.0510634288286071,
+                -1.4203576079753408,
+                0.2339650344716178,
+                0.9772807318199377,
+                0.6811464487329869,
+            ],
+            [
+                -0.3038625468067955,
+                -1.2148889997380417,
+                0.812242864175488,
+                -1.754142465942784,
+                0.16873402494854398,
+                1.1185604270829095,
+                0.9999408414952058,
+            ],
         ]
 
         # Create publisher for stitched point cloud
-        self.stitched_point_cloud_pub = rospy.Publisher('/cloud_stitched', PointCloud2, queue_size=10)
+        self.stitched_point_cloud_pub = rospy.Publisher(
+            "/cloud_stitched", PointCloud2, queue_size=10
+        )
 
         # Create publisher for selected grasp
-        self.selected_grasp_pub = rospy.Publisher('/grasp_pose', PoseStamped, queue_size=10)
+        self.selected_grasp_pub = rospy.Publisher(
+            "/grasp_pose", PoseStamped, queue_size=10
+        )
 
         # Misc variables
         self.listener = tf.TransformListener()
 
         # Set up action server
         action_name = "pointcloud_scan_action"
-        self._as = actionlib.SimpleActionServer(action_name, ScanSceneAction, execute_cb=self.execute_cb, auto_start=False)
+        self._as = actionlib.SimpleActionServer(
+            action_name, ScanSceneAction, execute_cb=self.execute_cb, auto_start=False
+        )
         self._as.start()
 
         rospy.loginfo("Scan action server ready")
@@ -71,17 +116,21 @@ class ScanActionNode(object):
                 self._as.set_preempted()
                 return
             self.pointcloud_data = None
-            self.panda_commander.goto_joint_target(self.scan_joints[i], max_velocity_scaling=0.5)
+            self.panda_commander.goto_joint_target(
+                self.scan_joints[i], max_velocity_scaling=0.5
+            )
             rospy.sleep(0.5)  # for the latest point clouds to be published
             cloud = self.capture_point_cloud()
             captured_clouds.append(cloud)
 
         stitched_cloud = self.stitch_point_clouds(captured_clouds)
         self.stitched_point_cloud_pub.publish(stitched_cloud)
-        rospy.loginfo("Stitched point clouds") 
+        rospy.loginfo("Stitched point clouds")
 
         try:
-            grasp_candidates = rospy.wait_for_message("/detect_grasps/clustered_grasps", GraspConfigList, timeout=30)
+            grasp_candidates = rospy.wait_for_message(
+                "/detect_grasps/clustered_grasps", GraspConfigList, timeout=30
+            )
         except rospy.ROSException:
             rospy.loginfo("GPD server timed out")
             self._as.set_aborted(result)
@@ -102,7 +151,7 @@ class ScanActionNode(object):
     def point_cloud_cb(self, data):
         # rospy.loginfo("Received point cloud with timestamp %s", data.header.stamp)
         self.pointcloud_data = copy.deepcopy(data)
-     
+
     def select_grasp_pose(self, grasp_config_list):
         grasp = grasp_config_list.grasps[0]
 
@@ -112,17 +161,23 @@ class ScanActionNode(object):
         rot_mat = np.vstack([x_axis, y_axis, z_axis]).T
 
         if np.linalg.det(rot_mat) < 0:
-            rospy.loginfo("Grasp pose vectors not a right-handed system. Flipping y-axis.")
+            rospy.loginfo(
+                "Grasp pose vectors not a right-handed system. Flipping y-axis."
+            )
             y_axis *= -1
             rot_mat = np.vstack([x_axis, y_axis, z_axis]).T
-        
+
         rot = Rotation.from_dcm(rot_mat)
 
         if x_axis[0] < 0:
-            rospy.loginfo("Flipped grasp pose. x-axis was pointing in negative direction")
-            rot = rot *  Rotation.from_euler("z", 180, degrees=True)
+            rospy.loginfo(
+                "Flipped grasp pose. x-axis was pointing in negative direction"
+            )
+            rot = rot * Rotation.from_euler("z", 180, degrees=True)
 
-        offset = rot.apply([0.0, 0.0, 0.04])  # GPD defines points at the hand palm, not the fingertip
+        offset = rot.apply(
+            [0.0, 0.0, 0.04]
+        )  # GPD defines points at the hand palm, not the fingertip
         quat = rot.as_quat()
 
         pose = Pose()
@@ -153,7 +208,9 @@ class ScanActionNode(object):
 
     def transform_pointcloud(self, msg):
         frame = msg.header.frame_id
-        translation, rotation = self.listener.lookupTransform('panda_base', frame, rospy.Time())
+        translation, rotation = self.listener.lookupTransform(
+            "panda_base", frame, rospy.Time()
+        )
         transform_msg = TransformStamped()
         transform_msg.transform.translation.x = translation[0]
         transform_msg.transform.translation.y = translation[1]
@@ -164,10 +221,10 @@ class ScanActionNode(object):
         transform_msg.transform.rotation.w = rotation[3]
         transformed_msg = do_transform_cloud(msg, transform_msg)
         transformed_msg.header = msg.header
-        transformed_msg.header.frame_id = 'panda_base'
+        transformed_msg.header.frame_id = "panda_base"
         return transformed_msg
 
-    def stitch_point_clouds(self, clouds):    
+    def stitch_point_clouds(self, clouds):
         points_out = []
         for cloud in clouds:
             points_out += list(read_points(cloud))
@@ -182,5 +239,6 @@ def main():
     except rospy.ROSInterruptException:
         pass
 
-if __name__ == '__main__':
-  main()
+
+if __name__ == "__main__":
+    main()

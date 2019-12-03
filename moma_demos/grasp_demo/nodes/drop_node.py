@@ -10,7 +10,6 @@ from grasp_demo.panda_commander import PandaCommander
 
 
 class DropActionNode(object):
-
     def __init__(self):
         # Panda commander
         self.panda_commander = PandaCommander("panda_arm")
@@ -20,14 +19,16 @@ class DropActionNode(object):
 
         # Set up action server
         action_name = "drop_action"
-        self._as = actionlib.SimpleActionServer(action_name, DropAction, execute_cb=self.execute_cb, auto_start=False)
+        self._as = actionlib.SimpleActionServer(
+            action_name, DropAction, execute_cb=self.execute_cb, auto_start=False
+        )
         self._as.start()
 
         rospy.loginfo("Drop action server ready")
 
     def execute_cb(self, goal):
         rospy.loginfo("Dropping action was triggered")
-   
+
         self.panda_commander.goto_pose_target(self.drop_pose, max_velocity_scaling=0.5)
 
         rospy.sleep(1.0)  # wait for the operator's hand to be placed under the EE
@@ -45,6 +46,7 @@ def main():
         rospy.spin()
     except rospy.ROSInterruptException:
         pass
+
 
 if __name__ == "__main__":
     main()
