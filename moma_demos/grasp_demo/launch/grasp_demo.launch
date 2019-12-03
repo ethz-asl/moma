@@ -20,6 +20,7 @@
     </node>
 
     <!-- Launch the action nodes -->
+    <node pkg="grasp_demo" type="reconstruct_point_cloud.py" name="point_cloud_reconstruction" output="screen"/>
     <node pkg="grasp_demo" type="scan_node.py" name="scan_action_node" output="screen"/>
     <node pkg="grasp_demo" type="grasp_node.py" name="grasp_action_node" output="screen"/>
     <node pkg="grasp_demo" type="drop_node.py" name="drop_action_node" output="screen"/>

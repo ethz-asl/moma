@@ -15,40 +15,49 @@ class PointCloudReconstruction(object):
     def __init__(self):
         self.base_frame = "panda_link0"
         self.sensor_topic_name = "/camera/depth/color/points"
-        self.max_num_points = 1280 * 720
+        self.max_num_points = 360 * 360
 
         self.running = False
-        self.count = 0
 
         # Subscribe to the sensor
-        rospy.Subscriber(self.sensor_topic_name, PointCloud2, self.sensor_cb)
+        rospy.Subscriber(
+            self.sensor_topic_name,
+            PointCloud2,
+            self.sensor_cb,
+            queue_size=1,
+            buff_size=2 * 6144000,  # default buff_size is too small
+        )
 
         # Create tf2 listener
         self.tf_buffer = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener(self.tf_buffer)
 
         # Advertise services to reset, start, and stop the point cloud integration
-        rospy.Service("stop", Trigger, self.reset)
-        rospy.Service("reset", Trigger, self.stop)
-        rospy.Service("start", Trigger, self.start)
+        rospy.Service("~reset", Trigger, self.reset)
+        rospy.Service("~start", Trigger, self.start)
+        rospy.Service("~stop", Trigger, self.stop)
 
         # Publish stitched point cloud
         self.point_cloud_pub = rospy.Publisher(
             "~point_cloud", PointCloud2, queue_size=10
         )
 
+        rospy.loginfo("Point cloud reconstruction node ready")
+
     def reset(self, request):
         self.points = None
+        return TriggerResponse()
 
     def start(self, request):
         self.running = True
+        return TriggerResponse()
 
     def stop(self, request):
         self.running = False
+        return TriggerResponse()
 
     def sensor_cb(self, point_cloud_msg):
-        self.count += 1
-        if not self.running or self.count % 30 != 0:
+        if not self.running:
             return
 
         header = point_cloud_msg.header
