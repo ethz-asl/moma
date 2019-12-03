@@ -1,11 +1,11 @@
 moveit_setup_assistant_config:
   URDF:
-    package: mopa_description
-    relative_path: robots/panda_hand_realsense.urdf.xacro
+    package: moma_description
+    relative_path: urdf/panda.urdf.xacro
     xacro_args: ""
   SRDF:
-    relative_path: config/chimera.srdf
+    relative_path: config/panda.srdf
   CONFIG:
     author_name: Michel Breyer
     author_email: mbreyer@ethz.ch
-    generated_timestamp: 1573565917
+    generated_timestamp: 1575384226
