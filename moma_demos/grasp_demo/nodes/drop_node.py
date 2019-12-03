@@ -5,8 +5,8 @@ from __future__ import print_function
 import actionlib
 import rospy
 
-from panda_grasp_demo.msg import DropAction, DropResult
-from panda_grasp_demo.panda_commander import PandaCommander
+from grasp_demo.msg import DropAction, DropResult
+from grasp_demo.panda_commander import PandaCommander
 
 
 class DropActionNode(object):

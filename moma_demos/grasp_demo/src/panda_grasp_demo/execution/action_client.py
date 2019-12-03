@@ -3,7 +3,7 @@
 import py_trees_ros
 import py_trees
 
-from panda_grasp_demo.msg import GraspGoal
+from grasp_demo.msg import GraspGoal
 
 
 class ActionClient_ResultSaver(py_trees_ros.actions.ActionClient):

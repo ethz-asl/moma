@@ -16,8 +16,8 @@ from sensor_msgs.point_cloud2 import read_points, create_cloud
 import tf
 from tf2_sensor_msgs.tf2_sensor_msgs import do_transform_cloud
 
-from panda_grasp_demo.msg import ScanSceneAction, ScanSceneFeedback, ScanSceneResult
-from panda_grasp_demo.panda_commander import PandaCommander
+from grasp_demo.msg import ScanSceneAction, ScanSceneFeedback, ScanSceneResult
+from grasp_demo.panda_commander import PandaCommander
 
 
 class ScanActionNode(object):

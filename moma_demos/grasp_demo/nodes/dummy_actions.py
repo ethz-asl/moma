@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import actionlib
-from panda_grasp_demo.msg import ScanSceneAction, ScanSceneResult, GraspAction, GraspResult, DropAction, DropResult
+from grasp_demo.msg import ScanSceneAction, ScanSceneResult, GraspAction, GraspResult, DropAction, DropResult
 from geometry_msgs.msg import PoseStamped
 import rospy
 

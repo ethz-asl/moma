@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>panda_grasp_demo</name>
+  <name>grasp_demo</name>
   <version>0.0.0</version>
-  <description>The panda_grasp_demo package</description>
+  <description>The grasp_demo package</description>
 
   <maintainer email="fjulian@todo.todo">fjulian</maintainer>
 

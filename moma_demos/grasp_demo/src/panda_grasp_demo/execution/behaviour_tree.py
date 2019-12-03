@@ -1,7 +1,7 @@
 import py_trees
 import py_trees_ros
 
-from panda_grasp_demo.msg import ScanSceneAction, ScanSceneGoal, GraspAction, GraspGoal, DropGoal, DropAction
+from grasp_demo.msg import ScanSceneAction, ScanSceneGoal, GraspAction, GraspGoal, DropGoal, DropAction
 from action_client import ActionClient_ResultSaver, ActionClient_BBgoal
 
 import std_msgs

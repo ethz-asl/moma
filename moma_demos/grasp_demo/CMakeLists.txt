@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(panda_grasp_demo)
+project(grasp_demo)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 add_compile_options(-std=c++11 -fPIC) 
@@ -96,7 +96,7 @@ generate_messages(
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
 #  INCLUDE_DIRS include
-#  LIBRARIES panda_grasp_demo
+#  LIBRARIES grasp_demo
 #  CATKIN_DEPENDS other_catkin_pkg
 #  DEPENDS system_lib
 )
@@ -135,7 +135,7 @@ target_link_libraries(${PROJECT_NAME} ${QT_LIBRARIES} ${QT_GUI_LIBRARIES} ${CATK
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-# add_executable(${PROJECT_NAME}_node src/panda_grasp_demo_node.cpp)
+# add_executable(${PROJECT_NAME}_node src/grasp_demo_node.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -201,7 +201,7 @@ target_link_libraries(${PROJECT_NAME} ${QT_LIBRARIES} ${QT_GUI_LIBRARIES} ${CATK
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_panda_grasp_demo.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_grasp_demo.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()
