@@ -13,7 +13,7 @@
     </include>
 
     <!-- Launch grasp demo -->
-    <include file="$(find panda_grasp_demo)/launch/grasp_demo.launch">
+    <include file="$(find grasp_demo)/launch/grasp_demo.launch">
         <arg name="launch_rviz" value="$(arg launch_rviz)"/>
     </include>
 
