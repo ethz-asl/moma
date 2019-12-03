@@ -28,6 +28,6 @@
         chdir: /home/franka/catkin_ws
     - name: Copy repository over.
       git:
-        repo: git@github.com:ethz-asl/chimera
-        dest: /home/franka/catkin_ws/src/chimera/
+        repo: git@github.com:ethz-asl/moma
+        dest: /home/franka/catkin_ws/src/moma
         version: master
