@@ -2,10 +2,10 @@
 	path = submodules/franka_ros
 	url = git@github.com:ethz-asl/franka_ros.git
 	branch = melodic-devel
-[submodule "ext/ridgeback"]
+[submodule "ridgeback"]
 	path = submodules/ridgeback
 	url = git@github.com:ethz-asl/ridgeback.git
 	branch = asl-devel
-[submodule "ext/realsense-ros"]
+[submodule "realsense-ros"]
 	path = submodules/realsense-ros
 	url = git@github.com:IntelRealSense/realsense-ros.git
