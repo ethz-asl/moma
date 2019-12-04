@@ -16,7 +16,7 @@ class SearchActionServer:
             action_name, SearchAction, execute_cb=self.search_cb, auto_start=False
         )
         self.action_server.start()
-        rospy.loginfo("Navigation action server started.")
+        rospy.loginfo("Search action server started.")
 
     def search_cb(self, msg):
         rospy.loginfo("Start following search waypoints")
