@@ -1,0 +1,5 @@
+# Request
+std_msgs/Empty req
+---
+# Reply
+geometry_msgs/Pose object_position

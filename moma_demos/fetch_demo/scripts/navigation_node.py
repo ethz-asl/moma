@@ -19,7 +19,7 @@ class NavigationActionServer:
         rospy.loginfo("Navigation action server started.")
 
     def nav_cb(self, msg):
-        rospy.loginfo("Starting navigation to target locations")
+        # rospy.loginfo("Starting navigation to target location")
         target_pose = msg.target_pose
         result = NavigationResult()
 
