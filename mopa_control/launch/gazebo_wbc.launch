@@ -4,6 +4,9 @@
 
 <launch>
   <!-- arguments -->
+  <arg name="robot_x" default="5.5" />
+  <arg name="robot_y" default="1.5" />
+  <arg name="robot_theta" default="0.0" />
   <arg name="load_gripper" default="true" />
   <arg name="load_base" default="true" />
   <arg name="world_name" default="worlds/empty.world"/>
@@ -50,8 +53,9 @@
       -J panda_joint5 0
       -J panda_joint6 1.571
       -J panda_joint7 0.785
-      -J world_base_x 3.5
-      -J world_base_y 1.5
+      -J world_base_x $(arg robot_x)
+      -J world_base_y $(arg robot_y)
+      -J world_base_th $(arg robot_theta)
       -unpause" />
   <!-- Setting the start position of joint4 causes issues. The standard Panda home position of that
         joint would be -2.356. However, when choosing a value smaller than -2.1, the joint in the simulation

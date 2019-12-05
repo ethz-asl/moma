@@ -16,4 +16,4 @@ gazebo_ros_control:
     front_rocker: {p: 0, i: 0, d: 0}
     world_base_x: {p: 10000, i: 0, d: 1000}
     world_base_y: {p: 10000, i: 0, d: 1000}
-    world_base_th: {p: 10000, i: 0, d: 0}
+    world_base_th: {p: 1000, i: 0, d: 0}
