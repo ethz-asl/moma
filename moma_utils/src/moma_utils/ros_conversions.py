@@ -4,14 +4,21 @@ import rospy
 import std_msgs.msg
 from sensor_msgs.msg import PointCloud2, PointField
 
+from moma_utils.transform import Rotation, Transform
+
 
 def to_point_msg(position):
-    """Convert numpy array to a Point message."""
+    """Convert a numpy array to a Point message."""
     msg = geometry_msgs.msg.Point()
     msg.x = position[0]
     msg.y = position[1]
     msg.z = position[2]
     return msg
+
+
+def from_vector3_msg(msg):
+    """Convert a Vector3 message to a numpy array."""
+    return np.r_[msg.x, msg.y, msg.z]
 
 
 def to_vector3_msg(vector3):
@@ -23,8 +30,13 @@ def to_vector3_msg(vector3):
     return msg
 
 
+def from_quat_msg(msg):
+    """Convert a Quaternion message to a Rotation object."""
+    return Rotation.from_quat([msg.x, msg.y, msg.z, msg.w])
+
+
 def to_quat_msg(orientation):
-    """Convert a `Rotation` object to a Quaternion message."""
+    """Convert a Rotation object to a Quaternion message."""
     quat = orientation.as_quat()
     msg = geometry_msgs.msg.Quaternion()
     msg.x = quat[0]
@@ -35,24 +47,28 @@ def to_quat_msg(orientation):
 
 
 def to_pose_msg(transform):
-    """Convert a `Transform` object to a Pose message."""
+    """Convert a Transform object to a Pose message."""
     msg = geometry_msgs.msg.Pose()
     msg.position = to_point_msg(transform.translation)
     msg.orientation = to_quat_msg(transform.rotation)
     return msg
 
 
-def to_point_cloud_msg(points, colors=None, frame=None, stamp=None):
-    """Convert list of unstructured points to a PointCloud2 message.
+def from_transform_msg(msg):
+    """Convert a Transform message to a Transform object."""
+    translation = from_vector3_msg(msg.translation)
+    rotation = from_quat_msg(msg.rotation)
+    return Transform(rotation, translation)
+
+
+def to_point_cloud_msg(points, frame_id=None, stamp=None):
+    """Convert a list of unstructured points to a PointCloud2 message.
 
     Args:
         points: Point coordinates as array of shape (N,3).
-        colors: Colors as array of shape (N,3).
-        frame
-        stamp
     """
     msg = PointCloud2()
-    msg.header.frame_id = frame
+    msg.header.frame_id = frame_id
     msg.header.stamp = stamp or rospy.Time.now()
 
     msg.height = 1
@@ -64,13 +80,10 @@ def to_point_cloud_msg(points, colors=None, frame=None, stamp=None):
         PointField("x", 0, PointField.FLOAT32, 1),
         PointField("y", 4, PointField.FLOAT32, 1),
         PointField("z", 8, PointField.FLOAT32, 1),
-        PointField("r", 12, PointField.FLOAT32, 1),
-        PointField("g", 16, PointField.FLOAT32, 1),
-        PointField("b", 20, PointField.FLOAT32, 1),
     ]
-    data = np.hstack([points, colors])
+    data = points
 
-    msg.point_step = 24
+    msg.point_step = 12
     msg.row_step = msg.point_step * points.shape[0]
     msg.data = data.astype(np.float32).tostring()
 
