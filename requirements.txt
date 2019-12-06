@@ -1,4 +1,5 @@
 catkin_tools
 pylint
 numpy
+open3d
 scipy
