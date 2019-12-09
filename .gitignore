@@ -1,3 +1,12 @@
-.venv
+# Byte-compiled files
+__pycache__/
 *.pyc
+
+# Environments
+.env
+.venv
+env
+venv
+
+# Vim stuff
 *.swp
