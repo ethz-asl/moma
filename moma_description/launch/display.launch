@@ -1,0 +1,19 @@
+<!--
+  visualize MoMa robots in RViz with a fake joint publisher
+
+  usage: roslaunch moma_description display.launch robot_name:={ridgeback, panda, mopa, yumi, mobmi}
+-->
+<launch>
+  <arg name="robot_name" default="mobmi"/>
+
+  <param name="robot_description" command="$(find xacro)/xacro $(find moma_description)/urdf/$(arg robot_name).urdf.xacro"/>
+
+  <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
+    <param name="use_gui" value="True"/>
+  </node>
+
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
+
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find moma_description)/launch/display.rviz"/>
+
+</launch>

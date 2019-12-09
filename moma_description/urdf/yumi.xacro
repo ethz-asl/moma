@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="yumi">
+  <xacro:macro name="yumi" params="connected_to:='' rpy:='0 0 0' xyz:='0 0 0'">
+
+    <!-- YuMi arms  -->
+    <xacro:include filename="$(find yumi_description)/urdf/Util/materials.xacro"/>
+    <xacro:include filename="$(find yumi_description)/urdf/Util/utilities.xacro"/>
+    <xacro:include filename="$(find yumi_description)/urdf/yumi.xacro"/>
+    <xacro:yumi name="yumi" hardware_interface="PositionJointInterface" parent="yumi_mount_link">
+      <origin/>  <!-- this has no effect -->
+    </xacro:yumi>
+
+    <xacro:unless value="${not connected_to}">
+      <joint name="${connected_to}_yumi_joint" type="fixed">
+        <parent link="${connected_to}"/>
+        <child link="yumi_base_link"/>
+        <origin rpy="${rpy}" xyz="${xyz}"/>
+      </joint>
+    </xacro:unless>
+
+    <!-- YuMi hands -->
+    <xacro:include filename="$(find yumi_description)/urdf/Grippers/yumi_servo_gripper.xacro"/>
+    <xacro:yumi_servo_gripper name="gripper_l" hardware_interface="hardware_interface/EffortJointInterface" parent="yumi_link_7_l">
+      <origin xyz="0 0 0.007" rpy="0 0 ${pi}"/>
+    </xacro:yumi_servo_gripper>
+    <xacro:yumi_servo_gripper name="gripper_r" hardware_interface="hardware_interface/EffortJointInterface" parent="yumi_link_7_r">
+      <origin xyz="0 0 0.007" rpy="0 0 ${pi}"/>
+    </xacro:yumi_servo_gripper>
+
+    <!-- TODO(mbreyer) mount pico flexx and chameleon -->
+
+  </xacro:macro>
+</robot>

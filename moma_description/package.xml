@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>moma_description</name>
+  <version>0.1.0</version>
+  <description>URDF files for the MoMa platforms</description>
+  <maintainer email="michel.breyer@mavt.ethz.ch">Michel Breyer</maintainer>
+  <license>TODO</license>
+
+  <author>moma developers</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <buildtool_depend>catkin_simple</buildtool_depend>
+
+  <exec_depend>xacro</exec_depend>
+  <exec_depend>ridgeback_description</exec_depend>
+  <exec_depend>franka_description</exec_depend>
+  <exec_depend>yumi_description</exec_depend>
+  <exec_depend>realsense2_description</exec_depend>
+</package>
