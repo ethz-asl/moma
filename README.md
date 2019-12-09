@@ -9,6 +9,14 @@ git clone --recursive git@github.com:ethz-asl/moma.git
 
 To install ros dependencies through apt-get, run the `install_dependencies.sh` shell script.
 
+Install Python dependencies within a virtual environment.
+
+```
+virtualenv -p python2 --system-site-packages .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
 ## How to run this
 
 To launch a simulation and some standard trajectory following controllers, run

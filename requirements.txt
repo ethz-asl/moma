@@ -1,0 +1,4 @@
+catkin_tools
+pylint
+numpy
+scipy
