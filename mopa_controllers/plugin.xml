@@ -1,7 +1,0 @@
-<library path="lib/libmopa_controllers">
-  <class name="mopa_controllers/CartesianVelocityController" type="mopa_controllers::CartesianVelocityController" base_class_type="controller_interface::ControllerBase">
-    <description>
-      A controller that executes cartesian velocities set via ROS messages.
-    </description>
-  </class>
-</library>

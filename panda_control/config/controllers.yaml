@@ -1,5 +1,5 @@
 cartesian_velocity_controller:
-    type: mopa_controllers/CartesianVelocityController
+    type: panda_control/CartesianVelocityController
     arm_id: panda
     rate_limiting:
         linear:

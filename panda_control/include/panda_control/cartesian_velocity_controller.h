@@ -6,21 +6,20 @@
 #include <controller_interface/multi_interface_controller.h>
 #include <franka_hw/franka_cartesian_command_interface.h>
 #include <franka_hw/franka_state_interface.h>
+#include <franka/rate_limiting.h>
 #include <hardware_interface/robot_hw.h>
 #include <ros/node_handle.h>
 #include <ros/time.h>
 
-#include <franka/rate_limiting.h>
-
 #include "ros/ros.h"
 #include "geometry_msgs/Twist.h"
 
-namespace mopa_controllers {
+namespace panda_control {
 
 class CartesianVelocityController : public controller_interface::MultiInterfaceController<
                                                franka_hw::FrankaVelocityCartesianInterface,
                                                franka_hw::FrankaStateInterface> {
- public:
+public:
   bool init(hardware_interface::RobotHW* robot_hardware, ros::NodeHandle& node_handle) override;
   void update(const ros::Time&, const ros::Duration& period) override;
   void starting(const ros::Time&) override;
@@ -28,7 +27,7 @@ class CartesianVelocityController : public controller_interface::MultiInterfaceC
 
   void cartesian_velocity_cb(const geometry_msgs::Twist::ConstPtr& msg);
 
- private:
+private:
   franka_hw::FrankaVelocityCartesianInterface* velocity_cartesian_interface_;
   std::unique_ptr<franka_hw::FrankaCartesianVelocityHandle> velocity_cartesian_handle_;
   std::unique_ptr<franka_hw::FrankaStateHandle> state_handle_;
@@ -48,4 +47,4 @@ class CartesianVelocityController : public controller_interface::MultiInterfaceC
   double max_jerk_angular;
 };
 
-}  // namespace mopa_controllers
+}  // namespace panda_control

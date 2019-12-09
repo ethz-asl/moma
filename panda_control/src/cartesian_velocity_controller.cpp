@@ -1,4 +1,4 @@
-#include <mopa_controllers/cartesian_velocity_controller.h>
+#include <panda_control/cartesian_velocity_controller.h>
 
 #include <array>
 #include <cmath>
@@ -11,7 +11,7 @@
 #include <pluginlib/class_list_macros.h>
 #include <ros/ros.h>
 
-namespace mopa_controllers
+namespace panda_control
 {
 
 bool CartesianVelocityController::init(hardware_interface::RobotHW *robot_hardware,
@@ -150,7 +150,7 @@ void CartesianVelocityController::stopping(const ros::Time & /*time*/)
   // BUILT-IN STOPPING BEHAVIOR SLOW DOWN THE ROBOT.
 }
 
-} // namespace mopa_controllers
+} // namespace panda_control
 
-PLUGINLIB_EXPORT_CLASS(mopa_controllers::CartesianVelocityController,
+PLUGINLIB_EXPORT_CLASS(panda_control::CartesianVelocityController,
                        controller_interface::ControllerBase)
