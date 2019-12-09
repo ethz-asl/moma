@@ -18,7 +18,7 @@ find_package(catkin REQUIRED COMPONENTS
 
 find_package(Franka 0.5.0 REQUIRED)
 
-# catkin_python_setup()
+catkin_python_setup()
 
 catkin_package(
   LIBRARIES franka_example_controllers
