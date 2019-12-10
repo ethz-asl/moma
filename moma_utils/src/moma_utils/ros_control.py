@@ -28,7 +28,7 @@ class ControllerManager(object):
         controller_states = self.list_controller_srv(ListControllersRequest())
         return controller_states
 
-    def switch_controller(self, start_controllers, stop_controllers):
+    def switch_controller(self, start_controllers=[], stop_controllers=[]):
         """Switch the currently running controllers.
 
         Args:

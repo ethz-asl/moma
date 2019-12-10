@@ -6,5 +6,4 @@
     <!-- Start our cartesian velocity controller -->
     <rosparam command="load" file="$(find panda_control)/config/controllers.yaml" />
     <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="cartesian_velocity_controller"/>
-    <!-- <node pkg="rviz" type="rviz" output="screen" name="rviz"/> -->
 </launch>

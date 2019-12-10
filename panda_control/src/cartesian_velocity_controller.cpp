@@ -10,6 +10,7 @@
 #include <hardware_interface/joint_command_interface.h>
 #include <pluginlib/class_list_macros.h>
 #include <ros/ros.h>
+#include <ros/console.h>
 
 namespace panda_control
 {
@@ -101,10 +102,10 @@ bool CartesianVelocityController::init(hardware_interface::RobotHW *robot_hardwa
     return false;
   }
 
-  velocity_command_subscriber_ = node_handle.subscribe("cartesian_velocity",
-                                                      10,
-                                                      &CartesianVelocityController::cartesian_velocity_cb,
-                                                      this);
+  velocity_command_subscriber_ = node_handle.subscribe("set_command",
+                                                       10,
+                                                       &CartesianVelocityController::cartesian_velocity_cb,
+                                                       this);
 
   return true;
 }
@@ -129,10 +130,11 @@ void CartesianVelocityController::cartesian_velocity_cb(const geometry_msgs::Twi
 }
 
 void CartesianVelocityController::update(const ros::Time & /* time */,
-                               const ros::Duration &period)
+                                         const ros::Duration &period)
 {
   time_since_last_command_ += period;
-  if (time_since_last_command_.toSec() > max_duration_between_commands_) {
+  if (time_since_last_command_.toSec() > max_duration_between_commands_)
+  {
     desired_velocity_command_ = {{0.0, 0.0, 0.0, 0.0, 0.0, 0.0}};
   }
 
