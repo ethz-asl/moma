@@ -10,3 +10,4 @@ cartesian_velocity_controller:
             velocity: 0.5
             acceleration: 5.0
             jerk: 2000.0
+    max_duration_between_commands: 0.1  # velocity is set to 0 if no new command is received within this time

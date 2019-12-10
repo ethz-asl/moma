@@ -31,20 +31,19 @@ private:
   franka_hw::FrankaVelocityCartesianInterface* velocity_cartesian_interface_;
   std::unique_ptr<franka_hw::FrankaCartesianVelocityHandle> velocity_cartesian_handle_;
   std::unique_ptr<franka_hw::FrankaStateHandle> state_handle_;
-  ros::Duration elapsed_time_;
 
-  ros::Subscriber velocity_command_subscriber;
+  ros::Subscriber velocity_command_subscriber_;
 
   std::array<double, 6> desired_velocity_command_;
-  ros::Duration time_since_last_command;
+  ros::Duration time_since_last_command_;
 
-  double max_duration_between_commands;
-  double max_velocity_linear;
-  double max_acceleration_linear;
-  double max_jerk_linear;
-  double max_velocity_angular;
-  double max_acceleration_angular;
-  double max_jerk_angular;
+  double max_duration_between_commands_;
+  double max_velocity_linear_;
+  double max_acceleration_linear_;
+  double max_jerk_linear_;
+  double max_velocity_angular_;
+  double max_acceleration_angular_;
+  double max_jerk_angular_;
 };
 
 }  // namespace panda_control

@@ -64,39 +64,44 @@ bool CartesianVelocityController::init(hardware_interface::RobotHW *robot_hardwa
     return false;
   }
 
-  // Rate limiting
-  if (!node_handle.getParam("rate_limiting/linear/velocity", max_velocity_linear))
+  // Load parameters
+  if (!node_handle.getParam("max_duration_between_commands", max_duration_between_commands_))
+  {
+    ROS_ERROR("CartesianVelocityController: Could not get parameter max_duration_between_commands");
+    return false;
+  }
+  if (!node_handle.getParam("rate_limiting/linear/velocity", max_velocity_linear_))
   {
     ROS_ERROR("CartesianVelocityController: Could not get parameter rate_limiting/linear/velocity");
     return false;
   }
-  if (!node_handle.getParam("rate_limiting/linear/acceleration", max_acceleration_linear))
+  if (!node_handle.getParam("rate_limiting/linear/acceleration", max_acceleration_linear_))
   {
     ROS_ERROR("CartesianVelocityController: Could not get parameter rate_limiting/acc/acceleration");
     return false;
   }
-  if (!node_handle.getParam("rate_limiting/linear/jerk", max_jerk_linear))
+  if (!node_handle.getParam("rate_limiting/linear/jerk", max_jerk_linear_))
   {
     ROS_ERROR("CartesianVelocityController: Could not get parameter rate_limiting/linear/jerk");
     return false;
   }
-  if (!node_handle.getParam("rate_limiting/angular/velocity", max_velocity_angular))
+  if (!node_handle.getParam("rate_limiting/angular/velocity", max_velocity_angular_))
   {
     ROS_ERROR("CartesianVelocityController: Could not get parameter rate_limiting/angular/velocity");
     return false;
   }
-  if (!node_handle.getParam("rate_limiting/angular/acceleration", max_acceleration_angular))
+  if (!node_handle.getParam("rate_limiting/angular/acceleration", max_acceleration_angular_))
   {
     ROS_ERROR("CartesianVelocityController: Could not get parameter rate_limiting/acc/acceleration");
     return false;
   }
-  if (!node_handle.getParam("rate_limiting/angular/jerk", max_jerk_angular))
+  if (!node_handle.getParam("rate_limiting/angular/jerk", max_jerk_angular_))
   {
     ROS_ERROR("CartesianVelocityController: Could not get parameter rate_limiting/angular/jerk");
     return false;
   }
 
-  velocity_command_subscriber = node_handle.subscribe("cartesian_velocity",
+  velocity_command_subscriber_ = node_handle.subscribe("cartesian_velocity",
                                                       10,
                                                       &CartesianVelocityController::cartesian_velocity_cb,
                                                       this);
@@ -106,7 +111,7 @@ bool CartesianVelocityController::init(hardware_interface::RobotHW *robot_hardwa
 
 void CartesianVelocityController::starting(const ros::Time & /* time */)
 {
-  elapsed_time_ = ros::Duration(0.0);
+  time_since_last_command_ = ros::Duration(0.0);
   desired_velocity_command_ = {{0.0, 0.0, 0.0, 0.0, 0.0, 0.0}};
 }
 
@@ -120,22 +125,25 @@ void CartesianVelocityController::cartesian_velocity_cb(const geometry_msgs::Twi
   desired_velocity_command_[4] = msg->angular.y;
   desired_velocity_command_[5] = msg->angular.z;
 
-  time_since_last_command = ros::Duration(0.0);
+  time_since_last_command_ = ros::Duration(0.0);
 }
 
 void CartesianVelocityController::update(const ros::Time & /* time */,
                                const ros::Duration &period)
 {
-  elapsed_time_ += period;
+  time_since_last_command_ += period;
+  if (time_since_last_command_.toSec() > max_duration_between_commands_) {
+    desired_velocity_command_ = {{0.0, 0.0, 0.0, 0.0, 0.0, 0.0}};
+  }
 
   auto state = state_handle_->getRobotState();
   auto velocity_command = franka::limitRate(
-      max_velocity_linear,
-      max_acceleration_linear,
-      max_jerk_linear,
-      max_velocity_angular,
-      max_acceleration_angular,
-      max_jerk_angular,
+      max_velocity_linear_,
+      max_acceleration_linear_,
+      max_jerk_linear_,
+      max_velocity_angular_,
+      max_acceleration_angular_,
+      max_jerk_angular_,
       desired_velocity_command_,
       state.O_dP_EE_c,
       state.O_ddP_EE_c);
