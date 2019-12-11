@@ -1,0 +1,7 @@
+<library path="lib/libpanda_control">
+  <class name="panda_control/CartesianVelocityController" type="panda_control::CartesianVelocityController" base_class_type="controller_interface::ControllerBase">
+    <description>
+      A controller that executes cartesian velocities set via ROS messages.
+    </description>
+  </class>
+</library>
