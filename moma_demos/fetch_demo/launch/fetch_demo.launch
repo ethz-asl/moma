@@ -18,6 +18,7 @@
     <node pkg="fetch_demo" type="navigation_node.py" name="navigation_action_node" output="screen"/>
     <node pkg="fetch_demo" type="object_detection_node.py" name="object_detection_node" output="screen"/>
     <node pkg="fetch_demo" type="search_node.py" name="search_action_node" output="screen"/>
+    <node pkg="fetch_demo" type="approach_node.py" name="approach_action_node" output="screen"/>
 
     <!-- Launch RViz -->
     <node if="$(arg launch_rviz)" type="rviz" name="rviz" pkg="rviz" args="-d $(find grasp_demo)/config/rviz.rviz"/>

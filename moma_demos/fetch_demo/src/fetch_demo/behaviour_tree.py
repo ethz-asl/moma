@@ -10,7 +10,10 @@ from grasp_demo.msg import (
     DropAction,
 )
 from fetch_demo.msg import SearchAction, SearchGoal, ApproachAction, ApproachGoal
-from action_client import ActionClient_ResultSaver, ActionClient_BBgoal
+from grasp_demo.execution.action_client import (
+    ActionClient_ResultSaver,
+    ActionClient_BBgoal,
+)
 
 import std_msgs
 
@@ -76,7 +79,7 @@ def get_root():
         name="Object position known?",
         variable_name="action_search_result",
         expected_value=True,
-        clearing_policy=py_trees.common.ClearingPolicy.ON_SUCCESS,
+        clearing_policy=py_trees.common.ClearingPolicy.ON_INITIALISE,
     )
 
     root_search = py_trees.composites.Selector(
@@ -97,7 +100,7 @@ def get_root():
         name="Object in reach?",
         variable_name="action_approach_result",
         expected_value=True,
-        clearing_policy=py_trees.common.ClearingPolicy.ON_SUCCESS,
+        clearing_policy=py_trees.common.ClearingPolicy.ON_INITIALISE,
     )
 
     root_approach = py_trees.composites.Selector(
@@ -144,7 +147,7 @@ def get_root():
         name="Object in hand?",
         variable_name="action_grasp_result",
         expected_value=True,
-        clearing_policy=py_trees.common.ClearingPolicy.ON_SUCCESS,
+        clearing_policy=py_trees.common.ClearingPolicy.ON_INITIALISE,
     )
 
     root_grasp = py_trees.composites.Selector(
@@ -168,7 +171,7 @@ def get_root():
         name="Object at target?",
         variable_name="action_drop_result",
         expected_value=True,
-        clearing_policy=py_trees.common.ClearingPolicy.NEVER,
+        clearing_policy=py_trees.common.ClearingPolicy.ON_INITIALISE,
     )
 
     root_drop = py_trees.composites.Selector(

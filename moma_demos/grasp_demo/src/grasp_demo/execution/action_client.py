@@ -10,13 +10,13 @@ from grasp_demo.msg import GraspGoal
 class ActionClient_ResultSaver(py_trees_ros.actions.ActionClient):
     def __init__(
         self,
-        name="Action Client",
+        name,
         action_spec,
         action_goal,
         action_namespace,
         override_feedback_message_on_running="moving",
         bb_var_name=None,
-        set_flag_instead_result=False
+        set_flag_instead_result=False,
     ):
         super(ActionClient_ResultSaver, self).__init__(
             name,
@@ -41,7 +41,11 @@ class ActionClient_ResultSaver(py_trees_ros.actions.ActionClient):
     def update(self):
         ret = super(ActionClient_ResultSaver, self).update()
         if ret == py_trees.Status.SUCCESS:
-            result = True if self.set_flag_instead_result else self.action_client.get_result()
+            result = (
+                True
+                if self.set_flag_instead_result
+                else self.action_client.get_result()
+            )
             self.blackboard.set(self.bb_var_name, result, overwrite=True)
         return ret
 
@@ -77,7 +81,9 @@ class ActionClient_BBgoal(py_trees_ros.actions.ActionClient):
 
     def initialise(self):
         super(ActionClient_BBgoal, self).initialise()
-        self.action_goal = self.goal_gen_callback(self.blackboard.get(self.bb_goal_var_name))
+        self.action_goal = self.goal_gen_callback(
+            self.blackboard.get(self.bb_goal_var_name)
+        )
         try:
             delattr(self.blackboard, self.bb_result_var_name)
         except AttributeError:
@@ -89,6 +95,10 @@ class ActionClient_BBgoal(py_trees_ros.actions.ActionClient):
             return py_trees.Status.INVALID
         ret = super(ActionClient_BBgoal, self).update()
         if ret == py_trees.Status.SUCCESS:
-            result = True if self.set_flag_instead_result else self.action_client.get_result()
+            result = (
+                True
+                if self.set_flag_instead_result
+                else self.action_client.get_result()
+            )
             self.blackboard.set(self.bb_result_var_name, result, overwrite=True)
         return ret
