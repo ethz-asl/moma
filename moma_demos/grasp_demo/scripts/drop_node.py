@@ -6,7 +6,7 @@ import actionlib
 import rospy
 
 from grasp_demo.msg import DropAction, DropResult
-from grasp_demo.panda_commander import PandaCommander
+from panda_control.panda_commander import PandaCommander
 
 
 class DropActionNode(object):

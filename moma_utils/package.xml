@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<package format="2">
+    <name>moma_utils</name>
+    <version>0.1.0</version>
+    <description>Common utilities for mobile manipulation tasks</description>
+
+    <maintainer email="michel.breyer@mavt.ethz.ch">Michel Breyer</maintainer>
+
+    <license>TODO</license>
+    <url></url>
+
+    <buildtool_depend>catkin</buildtool_depend>
+    <buildtool_depend>catkin_simple</buildtool_depend>
+
+    <depend>rospy</depend>
+    <depend>geometry_msgs</depend>
+    <depend>sensor_msgs</depend>
+    <depend>std_msgs</depend>
+
+</package>

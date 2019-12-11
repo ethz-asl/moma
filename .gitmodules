@@ -1,4 +1,11 @@
 [submodule "franka_ros"]
-	path = franka_ros
+	path = submodules/franka_ros
 	url = git@github.com:ethz-asl/franka_ros.git
 	branch = melodic-devel
+[submodule "ridgeback"]
+	path = submodules/ridgeback
+	url = git@github.com:ethz-asl/ridgeback.git
+	branch = asl-devel
+[submodule "realsense-ros"]
+	path = submodules/realsense-ros
+	url = git@github.com:IntelRealSense/realsense-ros.git
