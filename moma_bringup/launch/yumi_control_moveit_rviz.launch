@@ -4,7 +4,7 @@
   <arg name="rviz" default="true"/>
 
   <!-- Launch Yumi drivers -->
-  <!-- <include file="$(find yumi_support)/launch/robot_interface.launch"/> -->
+  <include file="$(find yumi_support)/launch/robot_interface.launch"/>
 
   <!-- Launch MoveIt -->
   <include file="$(find yumi_moveit_config)/launch/move_group.launch">
