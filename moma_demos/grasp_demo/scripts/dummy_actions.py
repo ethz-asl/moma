@@ -60,8 +60,7 @@ class DummyActionServers:
         result = DropResult()
         rospy.sleep(5.0)
         rospy.loginfo("Success")
-        # self.action_server_drop.set_succeeded(result)
-        self.action_server_drop.set_aborted()
+        self.action_server_drop.set_succeeded(result)
 
 
 def main():

@@ -29,41 +29,58 @@ def get_root():
 
     # -------- Add reset button -----------------------------------------
 
-    # reset_root = py_trees.composites.Sequence()
-    # button_reset = py_trees_ros.subscribers.WaitForData(
-    #     name="Button reset?",
-    #     topic_name="/manipulation_actions/reset",
-    #     topic_type=std_msgs.msg.Empty,
-    # )
-    # var_reset = py_trees.blackboard.SetBlackboardVariable(
-    #     variable_name="do_reset", variable_value=True
-    # )
-    # reset_root.add_children([button_reset, var_reset])
+    button_reset = py_trees_ros.subscribers.WaitForData(
+        name="Button reset?",
+        topic_name="/manipulation_actions/reset",
+        topic_type=std_msgs.msg.Empty,
+    )
+    var_reset = py_trees.blackboard.SetBlackboardVariable(
+        variable_name="do_reset", variable_value=True
+    )
+    reset_root = py_trees.composites.Sequence(children=[button_reset, var_reset])
 
-    # reset_exec_root = py_trees.composites.Sequence()
-    # check_var_reset = py_trees.blackboard.CheckBlackboardVariable(
-    #     name="Check reset var", variable_name="do_reset", expected_value=True
-    # )
-    # clear_var_reset = py_trees.blackboard.ClearBlackboardVariable(
-    #     variable_name="do_reset"
-    # )
-    # reset_action1 = py_trees.blackboard.ClearBlackboardVariable(
-    #     name="Clear grasp pose", variable_name="target_grasp_pose"
-    # )
-    # reset_action2 = py_trees.blackboard.SetBlackboardVariable(
-    #     name="Set object not in hand",
-    #     variable_name="object_in_hand",
-    #     variable_value=False,
-    # )
-    # reset_exec_root.add_children(
-    #     [check_var_reset, clear_var_reset, reset_action1, reset_action2]
-    # )
+    # Reset exec
+    check_var_reset = py_trees.blackboard.CheckBlackboardVariable(
+        name="Check reset var", variable_name="do_reset", expected_value=True
+    )
+    clear_var_reset = py_trees.blackboard.ClearBlackboardVariable(
+        variable_name="do_reset"
+    )
+    reset_action1 = py_trees.blackboard.ClearBlackboardVariable(
+        name="Clear object position known", variable_name="action_search_result"
+    )
+    reset_action2 = py_trees.blackboard.ClearBlackboardVariable(
+        name="Clear object in reach", variable_name="action_approach_result"
+    )
+    reset_action3 = py_trees.blackboard.ClearBlackboardVariable(
+        name="Clear grasp computed", variable_name="action_scan_result"
+    )
+    reset_action4 = py_trees.blackboard.ClearBlackboardVariable(
+        name="Clear object in hand", variable_name="action_grasp_result"
+    )
+    reset_action5 = py_trees.blackboard.ClearBlackboardVariable(
+        name="Clear object at target", variable_name="action_drop_result"
+    )
+    reset_exec_root = py_trees.composites.Sequence(
+        children=[
+            check_var_reset,
+            clear_var_reset,
+            reset_action1,
+            reset_action2,
+            reset_action3,
+            reset_action4,
+            reset_action5,
+        ],
+        blackbox_level=py_trees.common.BlackBoxLevel.DETAIL,
+    )
 
     # -------- Add nodes with condition checks and actions -----------------------------
 
-    # action_root = py_trees.composites.Selector()
-
-    # action_root.add_child(reset_exec_root)
+    button_next = py_trees_ros.subscribers.WaitForData(
+        name="Button next?",
+        topic_name="/manipulation_actions/next",
+        topic_type=std_msgs.msg.Empty,
+    )
 
     # Action: follow search waypoints
     action_search_goal = SearchGoal()
@@ -83,7 +100,7 @@ def get_root():
     )
 
     root_search = py_trees.composites.Selector(
-        children=[check_obj_pos_known, action_search]
+        children=[check_obj_pos_known, button_next, action_search]
     )
 
     # Action: approach object
@@ -106,7 +123,9 @@ def get_root():
     root_approach = py_trees.composites.Selector(
         children=[
             check_obj_in_reach,
-            py_trees.composites.Sequence(children=[root_search, action_approach]),
+            py_trees.composites.Sequence(
+                children=[root_search, button_next, action_approach]
+            ),
         ]
     )
 
@@ -129,7 +148,9 @@ def get_root():
     root_scan = py_trees.composites.Selector(
         children=[
             check_grasp_computed,
-            py_trees.composites.Sequence(children=[root_approach, action_scan]),
+            py_trees.composites.Sequence(
+                children=[root_approach, button_next, action_scan]
+            ),
         ]
     )
 
@@ -153,7 +174,9 @@ def get_root():
     root_grasp = py_trees.composites.Selector(
         children=[
             check_object_in_hand,
-            py_trees.composites.Sequence(children=[root_scan, action_grasp]),
+            py_trees.composites.Sequence(
+                children=[root_scan, button_next, action_grasp]
+            ),
         ]
     )
 
@@ -177,15 +200,16 @@ def get_root():
     root_drop = py_trees.composites.Selector(
         children=[
             check_object_at_target,
-            py_trees.composites.Sequence(children=[root_grasp, action_drop]),
+            py_trees.composites.Sequence(
+                children=[root_grasp, button_next, action_drop]
+            ),
         ]
     )
 
-    # action_root.add_child(root_drop)
+    action_root = py_trees.composites.Selector(children=[reset_exec_root, root_drop])
 
     # -------- Return root -----------------------------------------
-    # root = py_trees.composites.Parallel(children=[reset_root, action_root])
-    root = root_drop
+    root = py_trees.composites.Parallel(children=[reset_root, action_root])
 
     return root
 
