@@ -1,0 +1,209 @@
+import py_trees
+import py_trees_ros
+
+from grasp_demo.msg import (
+    ScanSceneAction,
+    ScanSceneGoal,
+    GraspAction,
+    GraspGoal,
+    DropGoal,
+    DropAction,
+)
+from fetch_demo.msg import SearchAction, SearchGoal, ApproachAction, ApproachGoal
+from action_client import ActionClient_ResultSaver, ActionClient_BBgoal
+
+import std_msgs
+
+
+def generate_grasp_goal_msg(target_grasp):
+    goal = GraspGoal()
+    goal.target_grasp_pose = target_grasp.selected_grasp_pose
+    return goal
+
+
+def get_root():
+    # For a sketch of the tree layout, see here (slide 2): https://docs.google.com/presentation/d/1swC5c1mbVn2TRDar-y0meTbrC9BUHnT9XWYPeFJlNxM/edit#slide=id.g70bc070381_0_32
+
+    # -------- Add reset button -----------------------------------------
+
+    # reset_root = py_trees.composites.Sequence()
+    # button_reset = py_trees_ros.subscribers.WaitForData(
+    #     name="Button reset?",
+    #     topic_name="/manipulation_actions/reset",
+    #     topic_type=std_msgs.msg.Empty,
+    # )
+    # var_reset = py_trees.blackboard.SetBlackboardVariable(
+    #     variable_name="do_reset", variable_value=True
+    # )
+    # reset_root.add_children([button_reset, var_reset])
+
+    # reset_exec_root = py_trees.composites.Sequence()
+    # check_var_reset = py_trees.blackboard.CheckBlackboardVariable(
+    #     name="Check reset var", variable_name="do_reset", expected_value=True
+    # )
+    # clear_var_reset = py_trees.blackboard.ClearBlackboardVariable(
+    #     variable_name="do_reset"
+    # )
+    # reset_action1 = py_trees.blackboard.ClearBlackboardVariable(
+    #     name="Clear grasp pose", variable_name="target_grasp_pose"
+    # )
+    # reset_action2 = py_trees.blackboard.SetBlackboardVariable(
+    #     name="Set object not in hand",
+    #     variable_name="object_in_hand",
+    #     variable_value=False,
+    # )
+    # reset_exec_root.add_children(
+    #     [check_var_reset, clear_var_reset, reset_action1, reset_action2]
+    # )
+
+    # -------- Add nodes with condition checks and actions -----------------------------
+
+    # action_root = py_trees.composites.Selector()
+
+    # action_root.add_child(reset_exec_root)
+
+    # Action: follow search waypoints
+    action_search_goal = SearchGoal()
+    action_search = ActionClient_ResultSaver(
+        name="action_search",
+        action_spec=SearchAction,
+        action_goal=action_search_goal,
+        action_namespace="search_action",
+        set_flag_instead_result=True,
+    )
+
+    check_obj_pos_known = py_trees.blackboard.CheckBlackboardVariable(
+        name="Object position known?",
+        variable_name="action_search_result",
+        expected_value=True,
+        clearing_policy=py_trees.common.ClearingPolicy.ON_SUCCESS,
+    )
+
+    root_search = py_trees.composites.Selector(
+        children=[check_obj_pos_known, action_search]
+    )
+
+    # Action: approach object
+    action_approach_goal = ApproachGoal()
+    action_approach = ActionClient_ResultSaver(
+        name="action_approach",
+        action_spec=ApproachAction,
+        action_goal=action_approach_goal,
+        action_namespace="approach_action",
+        set_flag_instead_result=True,
+    )
+
+    check_obj_in_reach = py_trees.blackboard.CheckBlackboardVariable(
+        name="Object in reach?",
+        variable_name="action_approach_result",
+        expected_value=True,
+        clearing_policy=py_trees.common.ClearingPolicy.ON_SUCCESS,
+    )
+
+    root_approach = py_trees.composites.Selector(
+        children=[
+            check_obj_in_reach,
+            py_trees.composites.Sequence(children=[root_search, action_approach]),
+        ]
+    )
+
+    # Action: scan
+    action_scan_goal = ScanSceneGoal()
+    action_scan = ActionClient_ResultSaver(
+        name="action_scan",
+        action_spec=ScanSceneAction,
+        action_goal=action_scan_goal,
+        action_namespace="pointcloud_scan_action",
+        set_flag_instead_result=False,
+    )
+
+    check_grasp_computed = py_trees.blackboard.CheckBlackboardVariable(
+        name="Grasp computed?",
+        variable_name="action_scan_result",
+        clearing_policy=py_trees.common.ClearingPolicy.NEVER,
+    )
+
+    root_scan = py_trees.composites.Selector(
+        children=[
+            check_grasp_computed,
+            py_trees.composites.Sequence(children=[root_approach, action_scan]),
+        ]
+    )
+
+    # Action: grasp
+    action_grasp = ActionClient_BBgoal(
+        name="action_grasp",
+        action_spec=GraspAction,
+        action_namespace="grasp_action",
+        goal_gen_callback=generate_grasp_goal_msg,
+        bb_goal_var_name="action_scan_result",
+        set_flag_instead_result=True,
+    )
+
+    check_object_in_hand = py_trees.blackboard.CheckBlackboardVariable(
+        name="Object in hand?",
+        variable_name="action_grasp_result",
+        expected_value=True,
+        clearing_policy=py_trees.common.ClearingPolicy.ON_SUCCESS,
+    )
+
+    root_grasp = py_trees.composites.Selector(
+        children=[
+            check_object_in_hand,
+            py_trees.composites.Sequence(children=[root_scan, action_grasp]),
+        ]
+    )
+
+    # Action: drop
+    action_drop_goal = DropGoal()
+    action_drop = ActionClient_ResultSaver(
+        name="action_drop",
+        action_spec=DropAction,
+        action_goal=action_drop_goal,
+        action_namespace="drop_action",
+        set_flag_instead_result=True,
+    )
+
+    check_object_at_target = py_trees.blackboard.CheckBlackboardVariable(
+        name="Object at target?",
+        variable_name="action_drop_result",
+        expected_value=True,
+        clearing_policy=py_trees.common.ClearingPolicy.NEVER,
+    )
+
+    root_drop = py_trees.composites.Selector(
+        children=[
+            check_object_at_target,
+            py_trees.composites.Sequence(children=[root_grasp, action_drop]),
+        ]
+    )
+
+    # action_root.add_child(root_drop)
+
+    # -------- Return root -----------------------------------------
+    # root = py_trees.composites.Parallel(children=[reset_root, action_root])
+    root = root_drop
+
+    return root
+
+
+class PandaTree:
+    def __init__(self, debug=False):
+
+        if debug:
+            py_trees.logging.level = py_trees.logging.Level.DEBUG
+
+        self._root = get_root()
+        self.tree = py_trees_ros.trees.BehaviourTree(self._root)
+
+        self.show_tree_console()
+
+    def show_tree_console(self):
+        print("=" * 20)
+        print("Behavior tree:")
+        print("-" * 20)
+        py_trees.display.print_ascii_tree(self.tree.root)
+        print("=" * 20)
+
+    def setup(self):
+        self.tree.setup(timeout=15)
