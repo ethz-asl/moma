@@ -1,0 +1,23 @@
+---
+- name: Create code directory
+  file:
+    path: /home/franka/code/
+    state: directory
+- name: Clone gpd
+  git:
+    repo: git@github.com:kekeblom/gpd
+    dest: /home/franka/code/gpd
+- name: Create build directory
+  file:
+    path: /home/franka/code/gpd/build/
+    state: directory
+- name: Build gpd
+  shell: cmake .. -DCMAKE_BUILD_TYPE=Release && make -j
+  args:
+    chdir: /home/franka/code/gpd/build/
+- name: Install gpd
+  become: true
+  shell: make install
+  args:
+    chdir: /home/franka/code/gpd/build/
+
