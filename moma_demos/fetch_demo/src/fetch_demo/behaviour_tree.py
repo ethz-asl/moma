@@ -74,6 +74,55 @@ def get_root():
         blackbox_level=py_trees.common.BlackBoxLevel.DETAIL,
     )
 
+    # -------- Add repeat button -----------------------------------------
+
+    button_repeat = py_trees_ros.subscribers.WaitForData(
+        name="Button repeat?",
+        topic_name="/manipulation_actions/repeat",
+        topic_type=std_msgs.msg.Empty,
+    )
+    var_repeat = py_trees.blackboard.SetBlackboardVariable(
+        variable_name="do_repeat", variable_value=True
+    )
+    reset_root = py_trees.composites.Sequence(children=[button_repeat, var_repeat])
+
+    # Repeat exec
+    check_var_repeat = py_trees.blackboard.CheckBlackboardVariable(
+        name="Check repeat var", variable_name="do_repeat", expected_value=True
+    )
+    clear_var_repeat = py_trees.blackboard.ClearBlackboardVariable(
+        variable_name="do_repeat"
+    )
+    # TODO implement repeat behavior
+
+    # reset_action1 = py_trees.blackboard.ClearBlackboardVariable(
+    #     name="Clear object position known", variable_name="action_search_result"
+    # )
+    # reset_action2 = py_trees.blackboard.ClearBlackboardVariable(
+    #     name="Clear object in reach", variable_name="action_approach_result"
+    # )
+    # reset_action3 = py_trees.blackboard.ClearBlackboardVariable(
+    #     name="Clear grasp computed", variable_name="action_scan_result"
+    # )
+    # reset_action4 = py_trees.blackboard.ClearBlackboardVariable(
+    #     name="Clear object in hand", variable_name="action_grasp_result"
+    # )
+    # reset_action5 = py_trees.blackboard.ClearBlackboardVariable(
+    #     name="Clear object at target", variable_name="action_drop_result"
+    # )
+    # reset_exec_root = py_trees.composites.Sequence(
+    #     children=[
+    #         check_var_reset,
+    #         clear_var_reset,
+    #         reset_action1,
+    #         reset_action2,
+    #         reset_action3,
+    #         reset_action4,
+    #         reset_action5,
+    #     ],
+    #     blackbox_level=py_trees.common.BlackBoxLevel.DETAIL,
+    # )
+
     # -------- Add nodes with condition checks and actions -----------------------------
 
     button_next = py_trees_ros.subscribers.WaitForData(
