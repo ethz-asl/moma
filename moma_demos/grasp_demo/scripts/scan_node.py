@@ -17,7 +17,7 @@ import tf
 from tf2_sensor_msgs.tf2_sensor_msgs import do_transform_cloud
 
 from grasp_demo.msg import ScanSceneAction, ScanSceneFeedback, ScanSceneResult
-from grasp_demo.panda_commander import PandaCommander
+from panda_control.panda_commander import PandaCommander
 
 
 class ScanActionNode(object):

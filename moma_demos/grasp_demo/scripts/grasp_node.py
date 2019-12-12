@@ -7,7 +7,7 @@ import rospy
 from scipy.spatial.transform import Rotation
 
 from grasp_demo.msg import GraspAction, GraspResult
-from grasp_demo.panda_commander import PandaCommander
+from panda_control.panda_commander import PandaCommander
 
 
 def multiply_transforms(A, B):

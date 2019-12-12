@@ -44,7 +44,7 @@ class DummyActionServers:
 
         rospy.sleep(1.0)
 
-        rospy.loginfo("Succeed")
+        rospy.loginfo("Success")
         result.selected_grasp_pose = grasp_pose
         self.action_server_scan.set_succeeded(result)
 
@@ -52,19 +52,19 @@ class DummyActionServers:
         rospy.loginfo("Grasping action was triggered")
         result = GraspResult()
         rospy.sleep(1.0)
-        rospy.loginfo("Succeed")
+        rospy.loginfo("Success")
         self.action_server_grasp.set_succeeded(result)
 
     def drop_cb(self, goal):
         rospy.loginfo("Drop action was triggered")
         result = DropResult()
-        rospy.sleep(1.0)
-        rospy.loginfo("Succeed")
+        rospy.sleep(5.0)
+        rospy.loginfo("Success")
         self.action_server_drop.set_succeeded(result)
 
 
 def main():
-    rospy.init_node("dummy_actions_node")
+    rospy.init_node("grasp_demo_dummy_actions_node")
 
     das = DummyActionServers()
 
