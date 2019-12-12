@@ -13,6 +13,7 @@ from fetch_demo.msg import SearchAction, SearchGoal, ApproachAction, ApproachGoa
 from grasp_demo.execution.action_client import (
     ActionClient_ResultSaver,
     ActionClient_BBgoal,
+    RepeatAction,
 )
 
 import std_msgs
@@ -25,7 +26,14 @@ def generate_grasp_goal_msg(target_grasp):
 
 
 def get_root():
-    # For a sketch of the tree layout, see here (slide 2): https://docs.google.com/presentation/d/1swC5c1mbVn2TRDar-y0meTbrC9BUHnT9XWYPeFJlNxM/edit#slide=id.g70bc070381_0_32
+
+    condition_variable_names = [
+        "action_drop_result",
+        "action_grasp_result",
+        "action_scan_result",
+        "action_approach_result",
+        "action_search_result",
+    ]
 
     # -------- Add reset button -----------------------------------------
 
@@ -46,31 +54,11 @@ def get_root():
     clear_var_reset = py_trees.blackboard.ClearBlackboardVariable(
         variable_name="do_reset"
     )
-    reset_action1 = py_trees.blackboard.ClearBlackboardVariable(
-        name="Clear object position known", variable_name="action_search_result"
-    )
-    reset_action2 = py_trees.blackboard.ClearBlackboardVariable(
-        name="Clear object in reach", variable_name="action_approach_result"
-    )
-    reset_action3 = py_trees.blackboard.ClearBlackboardVariable(
-        name="Clear grasp computed", variable_name="action_scan_result"
-    )
-    reset_action4 = py_trees.blackboard.ClearBlackboardVariable(
-        name="Clear object in hand", variable_name="action_grasp_result"
-    )
-    reset_action5 = py_trees.blackboard.ClearBlackboardVariable(
-        name="Clear object at target", variable_name="action_drop_result"
+    reset_action = RepeatAction(
+        name="Reset all", variable_names=condition_variable_names, repeat_all=True
     )
     reset_exec_root = py_trees.composites.Sequence(
-        children=[
-            check_var_reset,
-            clear_var_reset,
-            reset_action1,
-            reset_action2,
-            reset_action3,
-            reset_action4,
-            reset_action5,
-        ],
+        children=[check_var_reset, clear_var_reset, reset_action],
         blackbox_level=py_trees.common.BlackBoxLevel.DETAIL,
     )
 
@@ -84,7 +72,7 @@ def get_root():
     var_repeat = py_trees.blackboard.SetBlackboardVariable(
         variable_name="do_repeat", variable_value=True
     )
-    reset_root = py_trees.composites.Sequence(children=[button_repeat, var_repeat])
+    repeat_root = py_trees.composites.Sequence(children=[button_repeat, var_repeat])
 
     # Repeat exec
     check_var_repeat = py_trees.blackboard.CheckBlackboardVariable(
@@ -93,35 +81,13 @@ def get_root():
     clear_var_repeat = py_trees.blackboard.ClearBlackboardVariable(
         variable_name="do_repeat"
     )
-    # TODO implement repeat behavior
-
-    # reset_action1 = py_trees.blackboard.ClearBlackboardVariable(
-    #     name="Clear object position known", variable_name="action_search_result"
-    # )
-    # reset_action2 = py_trees.blackboard.ClearBlackboardVariable(
-    #     name="Clear object in reach", variable_name="action_approach_result"
-    # )
-    # reset_action3 = py_trees.blackboard.ClearBlackboardVariable(
-    #     name="Clear grasp computed", variable_name="action_scan_result"
-    # )
-    # reset_action4 = py_trees.blackboard.ClearBlackboardVariable(
-    #     name="Clear object in hand", variable_name="action_grasp_result"
-    # )
-    # reset_action5 = py_trees.blackboard.ClearBlackboardVariable(
-    #     name="Clear object at target", variable_name="action_drop_result"
-    # )
-    # reset_exec_root = py_trees.composites.Sequence(
-    #     children=[
-    #         check_var_reset,
-    #         clear_var_reset,
-    #         reset_action1,
-    #         reset_action2,
-    #         reset_action3,
-    #         reset_action4,
-    #         reset_action5,
-    #     ],
-    #     blackbox_level=py_trees.common.BlackBoxLevel.DETAIL,
-    # )
+    repeat_action = RepeatAction(
+        name="Repeat last", variable_names=condition_variable_names, repeat_all=False
+    )
+    repeat_exec_root = py_trees.composites.Sequence(
+        children=[check_var_repeat, clear_var_repeat, repeat_action],
+        blackbox_level=py_trees.common.BlackBoxLevel.DETAIL,
+    )
 
     # -------- Add nodes with condition checks and actions -----------------------------
 
@@ -255,10 +221,12 @@ def get_root():
         ]
     )
 
-    action_root = py_trees.composites.Selector(children=[reset_exec_root, root_drop])
+    action_root = py_trees.composites.Selector(
+        children=[reset_exec_root, repeat_exec_root, root_drop]
+    )
 
     # -------- Return root -----------------------------------------
-    root = py_trees.composites.Parallel(children=[reset_root, action_root])
+    root = py_trees.composites.Parallel(children=[reset_root, repeat_root, action_root])
 
     return root
 
@@ -283,3 +251,4 @@ class PandaTree:
 
     def setup(self):
         self.tree.setup(timeout=15)
+

@@ -8,7 +8,7 @@ import rospy
 
 from fetch_demo.behaviour_tree import PandaTree
 
-DEBUG = True
+DEBUG = False
 PRINT_TREE = True
 
 

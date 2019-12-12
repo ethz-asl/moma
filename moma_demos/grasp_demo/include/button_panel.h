@@ -18,9 +18,11 @@ class ButtonPanel : public rviz::Panel {
     void onGraspButtonClicked();
     void onStowButtonClicked();
     void onResetButtonClicked();
+    void onNextButtonClicked();
+    void onRepeatButtonClicked();
     private:
     ros::NodeHandle node_handle;
-    ros::Publisher scan_publisher, grasp_publisher, stow_publisher, reset_publisher;
+    ros::Publisher scan_publisher, grasp_publisher, stow_publisher, reset_publisher, next_publisher, repeat_publisher;
 };
 } 
 #endif // BUTTON_PANEL_H

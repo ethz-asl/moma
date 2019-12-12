@@ -102,3 +102,21 @@ class ActionClient_BBgoal(py_trees_ros.actions.ActionClient):
             )
             self.blackboard.set(self.bb_result_var_name, result, overwrite=True)
         return ret
+
+
+# Goes through list of blackboard variables. Clears first one that exists or all of them.
+class RepeatAction(py_trees.behaviours.Success):
+    def __init__(self, name, variable_names, repeat_all):
+        super(RepeatAction, self).__init__(name)
+        self.variable_names = variable_names
+        self.blackboard = py_trees.blackboard.Blackboard()
+        self.repeat_all = repeat_all
+
+    def initialise(self):
+        for var in self.variable_names:
+            try:
+                delattr(self.blackboard, var)
+                if not self.repeat_all:
+                    break
+            except AttributeError:
+                continue
