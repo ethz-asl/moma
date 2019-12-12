@@ -7,23 +7,22 @@
 #include <QPushButton>
 #include <QWidget>
 
-namespace control_gui {
+namespace control_gui
+{
 
-class ButtonPanel : public rviz::Panel {
-    public:
-    ButtonPanel(QWidget *parent = 0); 
+class ButtonPanel : public rviz::Panel
+{
+public:
+    ButtonPanel(QWidget *parent = 0);
 
-    public Q_SLOTS:
-    void onScanButtonClicked(); 
-    void onGraspButtonClicked();
-    void onStowButtonClicked();
-    void onResetButtonClicked();
+public Q_SLOTS:
     void onNextButtonClicked();
     void onRepeatButtonClicked();
-    private:
-    ros::NodeHandle node_handle;
-    ros::Publisher scan_publisher, grasp_publisher, stow_publisher, reset_publisher, next_publisher, repeat_publisher;
-};
-} 
-#endif // BUTTON_PANEL_H
+    void onResetButtonClicked();
 
+private:
+    ros::NodeHandle node_handle;
+    ros::Publisher reset_publisher, next_publisher, repeat_publisher;
+};
+} // namespace control_gui
+#endif // BUTTON_PANEL_H

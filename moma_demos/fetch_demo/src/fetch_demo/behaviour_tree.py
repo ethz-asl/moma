@@ -1,14 +1,6 @@
 import py_trees
 import py_trees_ros
 
-from grasp_demo.msg import (
-    ScanSceneAction,
-    ScanSceneGoal,
-    GraspAction,
-    GraspGoal,
-    DropGoal,
-    DropAction,
-)
 from fetch_demo.msg import SearchAction, SearchGoal, ApproachAction, ApproachGoal
 from grasp_demo.execution.action_client import (
     ActionClient_ResultSaver,
@@ -16,15 +8,13 @@ from grasp_demo.execution.action_client import (
     RepeatAction,
 )
 
-from grasp_demo.execution.behaviour_tree import get_bt_scan_grasp_drop
+from grasp_demo.execution.behaviour_tree import (
+    get_bt_scan_grasp_drop,
+    get_bt_reset,
+    generate_grasp_goal_msg,
+)
 
 import std_msgs
-
-
-def generate_grasp_goal_msg(target_grasp):
-    goal = GraspGoal()
-    goal.target_grasp_pose = target_grasp.selected_grasp_pose
-    return goal
 
 
 def get_bt_search_approach(subtree=None):
@@ -106,74 +96,22 @@ def get_root():
         "action_search_result",
     ]
 
-    # -------- Add reset button -----------------------------------------
+    # Add reset button
+    reset_root, reset_exec_root = get_bt_reset(condition_variable_names, reset_all=True)
 
-    button_reset = py_trees_ros.subscribers.WaitForData(
-        name="Button reset?",
-        topic_name="/manipulation_actions/reset",
-        topic_type=std_msgs.msg.Empty,
+    # Add repeat button
+    repeat_root, repeat_exec_root = get_bt_reset(
+        condition_variable_names, reset_all=False
     )
-    var_reset = py_trees.blackboard.SetBlackboardVariable(
-        variable_name="do_reset", variable_value=True
-    )
-    reset_root = py_trees.composites.Sequence(children=[button_reset, var_reset])
-    reset_root.blackbox_level = py_trees.common.BlackBoxLevel.DETAIL
 
-    # Reset exec
-    check_var_reset = py_trees.blackboard.CheckBlackboardVariable(
-        name="Check reset var", variable_name="do_reset", expected_value=True
-    )
-    clear_var_reset = py_trees.blackboard.ClearBlackboardVariable(
-        variable_name="do_reset"
-    )
-    reset_action = RepeatAction(
-        name="Reset all", variable_names=condition_variable_names, repeat_all=True
-    )
-    reset_exec_root = py_trees.composites.Sequence(
-        children=[check_var_reset, clear_var_reset, reset_action],
-        blackbox_level=py_trees.common.BlackBoxLevel.DETAIL,
-    )
-    reset_exec_root.blackbox_level = py_trees.common.BlackBoxLevel.DETAIL
-
-    # -------- Add repeat button -----------------------------------------
-
-    button_repeat = py_trees_ros.subscribers.WaitForData(
-        name="Button repeat?",
-        topic_name="/manipulation_actions/repeat",
-        topic_type=std_msgs.msg.Empty,
-    )
-    var_repeat = py_trees.blackboard.SetBlackboardVariable(
-        variable_name="do_repeat", variable_value=True
-    )
-    repeat_root = py_trees.composites.Sequence(children=[button_repeat, var_repeat])
-    repeat_root.blackbox_level = py_trees.common.BlackBoxLevel.DETAIL
-
-    # Repeat exec
-    check_var_repeat = py_trees.blackboard.CheckBlackboardVariable(
-        name="Check repeat var", variable_name="do_repeat", expected_value=True
-    )
-    clear_var_repeat = py_trees.blackboard.ClearBlackboardVariable(
-        variable_name="do_repeat"
-    )
-    repeat_action = RepeatAction(
-        name="Repeat last", variable_names=condition_variable_names, repeat_all=False
-    )
-    repeat_exec_root = py_trees.composites.Sequence(
-        children=[check_var_repeat, clear_var_repeat, repeat_action],
-        blackbox_level=py_trees.common.BlackBoxLevel.DETAIL,
-    )
-    repeat_exec_root.blackbox_level = py_trees.common.BlackBoxLevel.DETAIL
-
-    # -------- Add nodes with condition checks and actions -----------------------------
-
+    # Add nodes with condition checks and actions
     root_approach = get_bt_search_approach()
     root_drop = get_bt_scan_grasp_drop(subtree=root_approach)
 
+    # Assemble tree
     action_root = py_trees.composites.Selector(
         children=[reset_exec_root, repeat_exec_root, root_drop]
     )
-
-    # -------- Return root -----------------------------------------
     root = py_trees.composites.Parallel(children=[reset_root, repeat_root, action_root])
 
     return root
