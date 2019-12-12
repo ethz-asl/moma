@@ -28,7 +28,7 @@ roslaunch mopa_control gazebo.launch
 To launch a simulation together with MoveIt for motion planning, run
 
 ```
-roslaunch mopa_bringup gazebo_moveit.launch
+roslaunch moma_bringup gazebo_moveit.launch
 ```
 
 ## Setting up the ROS machine with Ansible
