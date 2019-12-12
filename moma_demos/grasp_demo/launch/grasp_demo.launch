@@ -16,12 +16,12 @@
       <param name="cloud_topic" value="/cloud_stitched" />
       <param name="samples_topic" value="" />
       <param name="config_file" value="$(find grasp_demo)/config/gpd.cfg" />
-      <param name="rviz_topic" value="plot_grasps" />
+      <param name="rviz_topic" value="plot_grasps" /> 
     </node>
 
     <!-- Launch the action nodes -->
     <node pkg="grasp_demo" type="scan_node.py" name="scan_action_node" output="screen"/>
-    <node pkg="grasp_demo" type="grasp_node.py" name="grasp_action_node" output="screen"/>
+    <node pkg="grasp_demo" type="grasp_node.py" name="grasp_action_node" output="screen"/> 
     <node pkg="grasp_demo" type="drop_node.py" name="drop_action_node" output="screen"/>
 
     <!-- Launch RViz -->

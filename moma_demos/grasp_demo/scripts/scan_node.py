@@ -105,7 +105,7 @@ class ScanActionNode(object):
         result = ScanSceneResult()
 
         if goal.num_scan_poses > len(self.scan_joints):
-            rospy.info("Invalid goal set")
+            rospy.loginfo("Invalid goal set")
             self._as.set_aborted(result)
             return
 
@@ -119,7 +119,7 @@ class ScanActionNode(object):
             self.panda_commander.goto_joint_target(
                 self.scan_joints[i], max_velocity_scaling=0.5
             )
-            rospy.sleep(0.5)  # for the latest point clouds to be published
+            rospy.sleep(0.1)  # for the latest point clouds to be published
             cloud = self.capture_point_cloud()
             captured_clouds.append(cloud)
 
