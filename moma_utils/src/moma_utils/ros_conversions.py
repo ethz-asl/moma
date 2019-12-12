@@ -16,6 +16,11 @@ def to_point_msg(position):
     return msg
 
 
+def from_point_msg(msg):
+    """Convert a Point messag to a numpy array."""
+    return np.r_[msg.x, msg.y, msg.z]
+
+
 def from_vector3_msg(msg):
     """Convert a Vector3 message to a numpy array."""
     return np.r_[msg.x, msg.y, msg.z]
@@ -52,6 +57,13 @@ def to_pose_msg(transform):
     msg.position = to_point_msg(transform.translation)
     msg.orientation = to_quat_msg(transform.rotation)
     return msg
+
+
+def from_pose_msg(msg):
+    """Convert a Pose msg to a Transform object."""
+    position = from_point_msg(msg.position)
+    orientation = from_quat_msg(msg.orientation)
+    return Transform(orientation, position)
 
 
 def from_transform_msg(msg):
