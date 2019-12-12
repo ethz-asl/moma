@@ -1,5 +1,5 @@
 ---
-- hosts: mobmi-ridgeback-machine
+- hosts: asl-ridgeback
   remote_user: asl-admin
   tasks:
     # Commented this for because I don't know of a way to import the docker image.

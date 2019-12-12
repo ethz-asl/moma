@@ -1,35 +1,31 @@
 # Mobile Manipulation Platform Guide
 
-This repository contains software to run on the MobMi (= Ridgeback + YuMi) mobile manipulation platform.
+This repository contains software to run on the Ridgeback mobile platform.
 
-If everything is already set up (should normally be the case), follow the steps in the section *Creating Custom Project Docker Image* to get started with your project.
+If everything is already set up (should normally be the case), follow the steps in the section [Creating Custom Project Docker Image](#creating-custom-project-docker-image) to get started with your project.
 
-If a basic Ubuntu is already installed and set up on the Ridgeback's onboard computer, but the MobMi Base Docker image needs to be adjusted, follow the steps in the section *Creating New Version of MobMi Base Image*.
+If a basic Ubuntu is already installed and set up on the Ridgeback's onboard computer, but the MobMi Base Docker image needs to be adjusted, follow the steps in the section [Creating New Version of MobMi Base Image](#creating-custom-project-docker-image).
 
 If you want to start from scratch and set up the onboard computer of the platform, follow the steps in the section *Setup of Host OS*.
-
 
 ## Setting up the Ridgeback PC with Ansible
 
 Run the following commands:
 
-```
+```bash
 ansible-playbook playbooks/setup_ros.yaml --ask-pass --ask-become-pass -i playbooks/hosts
 ansible-playbook playbooks/setup_ridgeback_node.yaml --ask-pass --ask-become-pass -i playbooks/hosts
 ```
 
 The Docker image with the ridgeback base container still needs to be uploaded and imported manually. For this, see section "Creating New Version of MobMi Base Image".
 
-
 ## Creating Custom Project Docker Image
 
 TODO
 
-
-
 ## Creating New Version of MobMi Base Image
 
-If the base image in `<repo-root>/mobmi-base-img` was modified, the following steps need to be followed to build it and to install it on the platform.
+If the base image docker file `<repo-root>/ridgeback_docker/Dockerfile` was modified, the following steps need to be followed to build it and to install it on the platform.
 
 ```bash
 cd <repo-root>/mobmi-base-img
@@ -43,37 +39,35 @@ docker build -t mobmi .
 
 Export image:
 
-```
+```bash
 docker save -o ../image.zip mobmi
 ```
 
 Copy to platform:
 
-```
+```bash
 scp ../image.zip asl-admin@192.168.131.1:images/image.zip
 ```
 
 Log into the platform via SSH:
 
-```
+```bash
 ssh asl-admin@192.168.131.1
 ```
 
  Import image:
 
-```
+```bash
 docker load -i image.zip
 ```
 
 Afterwards, the image could be run in a terminal using the following command. However, usually the systemd service will handle this for us (how to set this up is described below).
 
-```
+```bash
 /usr/bin/docker run --rm --name asl_base_container --network host -v /dev/input:/dev/input --privileged mobmi
 ```
 
 The option `--privileged` is required to allow access to USB devices, e.g. the Primesense camera.
-
-
 
 ## Setup of Host OS
 
@@ -87,7 +81,7 @@ Connect PS4 controller through host OS Bluetooth settings (e.g. on Ubuntu throug
 
 ### Install Docker
 
-According to the instructions: https://docs.docker.com/install/linux/docker-ce/ubuntu/
+According to the instructions: [https://docs.docker.com/install/linux/docker-ce/ubuntu/](https://docs.docker.com/install/linux/docker-ce/ubuntu/)
 
 ### Set up CAN service
 
@@ -116,8 +110,6 @@ To save resources, disable services that are not required for operation.
 
 - `sudo systemctl set-default multi-user.target` to disable the GUI.
 
-
-
 ## Other Information
 
 ### Startup Order
@@ -125,11 +117,6 @@ To save resources, disable services that are not required for operation.
 - `ros.launch` launches
   - `accessories.launch`
   - `base.launch`
-  - `primesense.launch`
-    
-    - launches a few nodes of type `static_transform_publisher` from package `tf`
-    
-      
 
 ### Startup Order in old setup
 

@@ -1,5 +1,5 @@
 ---
-- hosts: mobmi-ridgeback-machine
+- hosts: asl-ridgeback
   remote_user: asl-admin
   tasks:
     - name: Add apt repository

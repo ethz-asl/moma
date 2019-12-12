@@ -43,7 +43,6 @@ COPY launch/ros.launch /home/launch/
 
 # Install further dependencies and configurations
 RUN apt-get install -y ros-$ROS_DISTRO-xacro \
-                        ros-$ROS_DISTRO-openni2-launch \
                         ros-$ROS_DISTRO-robot-state-publisher \
                         ros-$ROS_DISTRO-imu-filter-madgwick \
                         ros-$ROS_DISTRO-diagnostic-aggregator \
