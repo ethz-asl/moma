@@ -2,12 +2,12 @@ cmake_minimum_required(VERSION 2.8.3)
 project(grasp_demo)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
-add_compile_options(-std=c++11 -fPIC) 
+add_compile_options(-std=c++11 -fPIC)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-find_package(catkin REQUIRED COMPONENTS roscpp genmsg actionlib_msgs geometry_msgs std_msgs sensor_msgs)
+find_package(catkin REQUIRED COMPONENTS roscpp genmsg actionlib_msgs geometry_msgs std_msgs message_generation sensor_msgs)
 
 ## System dependencies are found with CMake's conventions
 find_package(Qt5 COMPONENTS Core Gui Widgets REQUIRED)
@@ -47,12 +47,11 @@ set(CMAKE_AUTOMOC ON)
 ## Generate messages in the 'msg' folder
 # add_message_files(
 #   FILES
-#   Message1.msg
-#   Message2.msg
 # )
 
 ## Generate services in the 'srv' folder
-# add_service_files(FILES ButtonPress.srv)
+# add_service_files(FILES
+# )
 
 ## Generate actions in the 'action' folder
 add_action_files(DIRECTORY action FILES ScanScene.action Grasp.action Drop.action SelectGrasp.action)
@@ -95,12 +94,9 @@ generate_messages(
 ## LIBRARIES: libraries you create in this project that dependent projects also need
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
-catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES grasp_demo
-#  CATKIN_DEPENDS other_catkin_pkg
-#  DEPENDS system_lib
-)
+# catkin_package(
+#   CATKIN_DEPENDS messsage_runtime
+# )
 
 ###########
 ## Build ##
@@ -118,6 +114,7 @@ include_directories(include
 set(SOURCE_FILES
   ${MOC_FILES}
   src/button_panel.cpp
+  src/semantic_button_panel.cpp
 )
 
 ## Declare a C++ library
