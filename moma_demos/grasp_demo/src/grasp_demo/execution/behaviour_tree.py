@@ -91,7 +91,7 @@ def get_bt_scan_grasp_drop(subtree=None):
         name="action_scan",
         action_spec=ScanSceneAction,
         action_goal=action_scan_goal,
-        action_namespace="pointcloud_scan_action",
+        action_namespace="scan_action",
         set_flag_instead_result=False,
     )
 
@@ -122,7 +122,7 @@ def get_bt_scan_grasp_drop(subtree=None):
     action_grasp = ActionClient_BBgoal(
         name="action_grasp",
         action_spec=GraspAction,
-        action_namespace="grasp_action",
+        action_namespace="grasp_execution_action",
         goal_gen_callback=generate_grasp_goal_msg,
         bb_goal_var_name="action_scan_result",
         set_flag_instead_result=True,

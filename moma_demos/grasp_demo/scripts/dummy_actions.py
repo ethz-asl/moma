@@ -15,14 +15,14 @@ import rospy
 
 class DummyActionServers:
     def __init__(self):
-        action_name = "pointcloud_scan_action"
+        action_name = "scan_action"
         self.action_server_scan = actionlib.SimpleActionServer(
             action_name, ScanSceneAction, execute_cb=self.scan_cb, auto_start=False
         )
         self.action_server_scan.start()
         rospy.loginfo("Scan action server running.")
 
-        action_name = "grasp_action"
+        action_name = "grasp_execution_action"
         self.action_server_grasp = actionlib.SimpleActionServer(
             action_name, GraspAction, execute_cb=self.grasp_cb, auto_start=False
         )

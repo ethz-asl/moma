@@ -1,0 +1,7 @@
+# Define the goal
+sensor_msgs/PointCloud2 pointcloud_scene
+---
+# Define the result
+geometry_msgs/PoseStamped target_grasp_pose
+---
+# Define the feedback
