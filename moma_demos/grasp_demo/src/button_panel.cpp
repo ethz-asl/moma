@@ -28,8 +28,6 @@ ButtonPanel::ButtonPanel(QWidget *parent) : rviz::Panel(parent), node_handle("ma
     connect(grasp_button, &QPushButton::clicked, this, &ButtonPanel::onGraspButtonClicked);
     connect(stow_button, &QPushButton::clicked, this, &ButtonPanel::onStowButtonClicked);
     connect(reset_button, &QPushButton::clicked, this, &ButtonPanel::onResetButtonClicked);
-
-    setButtons();
 }
 
 void ButtonPanel::onScanButtonClicked() {

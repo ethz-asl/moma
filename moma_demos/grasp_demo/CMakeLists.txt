@@ -48,6 +48,7 @@ set(CMAKE_AUTOMOC ON)
 add_message_files(
   FILES
   Instances.msg
+  Instance.msg
 )
 
 ## Generate services in the 'srv' folder

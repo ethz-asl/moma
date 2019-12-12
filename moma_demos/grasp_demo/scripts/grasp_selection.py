@@ -2,19 +2,27 @@ import rospy
 from sensor_msgs.msg import PointCloud2
 from gpd_ros.msg import GraspConfigList
 from geometry_msgs.msg import TransformStamped, Pose, PoseStamped
+from grasp_demo.srv import GetScenePointcloud, GetListSemanticInstances
+from grasp_demo.msg import Instances
 
 class GraspSelection(object):
     def __init__(self):
-        rospy.init_node("grasp_planner")
+        rospy.init_node("grasp_selection")
         self.use_vbpp = rospy.get_param("use_vbpp", False)
         self.stitched_cloud_sub = rospy.Subscriber('scan_action_node/cloud', PointCloud2, self._cloud_cb)
         self.grasp_planner_pub = rospy.Publisher('/cloud_stitched', PointCloud2)
+        if self.use_vbpp:
+            self.scene_cloud_service = rospy.ServiceProxy('get_scene_pointcloud', GetScenePointCloud)
+            self.instances_service = rospy.ServiceProxy('get_list_semantic_instances', GetListSemanticInstances)
+            self.instance_publisher = rospy.Publisher('instances')
+        else:
+            self.scene_cloud_service = None
+            self.instances_service = None
+            self.instance_publisher = None
 
     def _cloud_cb(self, msg):
         if self.use_vbpp:
-            # Should probably do nothing. The grasp planning should be triggered when the
-            # object to be picked is selected.
-            raise NotImplementedError()
+            self._update_labels()
         else:
             self._plan_grasp(msg)
 
@@ -85,6 +93,12 @@ class GraspSelection(object):
 
         return pose_stamped
 
+    def _update_labels(self):
+        response = self.instances_service()
+        msg = Instances()
+        msg.instance_ids = response.instance_ids
+        msg.semantic_categories = response.semantic_categories
+        self.instance_publisher.publish(msg)
 
 def main():
     node = GraspSelection()
