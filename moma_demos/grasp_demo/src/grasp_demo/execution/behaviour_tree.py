@@ -4,6 +4,8 @@ import py_trees_ros
 from grasp_demo.msg import (
     ScanSceneAction,
     ScanSceneGoal,
+    SelectGraspAction,
+    SelectGraspGoal,
     GraspAction,
     GraspGoal,
     DropGoal,
@@ -14,9 +16,15 @@ from action_client import ActionClient_ResultSaver, ActionClient_BBgoal, RepeatA
 import std_msgs
 
 
-def generate_grasp_goal_msg(target_grasp):
+def generate_grasp_goal_msg(msg):
     goal = GraspGoal()
-    goal.target_grasp_pose = target_grasp.selected_grasp_pose
+    goal.target_grasp_pose = msg.target_grasp_pose
+    return goal
+
+
+def generate_selection_goal_msg(msg):
+    goal = SelectGraspGoal()
+    goal.pointcloud_scene = msg.pointcloud_scene
     return goal
 
 
@@ -84,7 +92,7 @@ def get_bt_repeat(condition_variable_names):
     repeat_exec_root.blackbox_level = py_trees.common.BlackBoxLevel.DETAIL
 
 
-def get_bt_scan_grasp_drop(subtree=None):
+def get_bt_scan_select_grasp_drop(subtree=None):
     # Action: scan
     action_scan_goal = ScanSceneGoal()
     action_scan = ActionClient_ResultSaver(
@@ -95,10 +103,10 @@ def get_bt_scan_grasp_drop(subtree=None):
         set_flag_instead_result=False,
     )
 
-    check_grasp_computed = py_trees.blackboard.CheckBlackboardVariable(
-        name="Grasp computed?",
+    check_scene_scanned = py_trees.blackboard.CheckBlackboardVariable(
+        name="Scene scanned?",
         variable_name="action_scan_result",
-        clearing_policy=py_trees.common.ClearingPolicy.NEVER,
+        clearing_policy=py_trees.common.ClearingPolicy.ON_INITIALISE,
     )
 
     button_next = py_trees_ros.subscribers.WaitForData(
@@ -109,11 +117,42 @@ def get_bt_scan_grasp_drop(subtree=None):
 
     root_scan = py_trees.composites.Selector(
         children=[
-            check_grasp_computed,
+            check_scene_scanned,
             py_trees.composites.Sequence(
                 children=[button_next, action_scan]
                 if subtree is None
                 else [subtree, button_next, action_scan]
+            ),
+        ]
+    )
+
+    # Action: select grasp
+    action_grasp_select = ActionClient_BBgoal(
+        name="action_select",
+        action_spec=SelectGraspAction,
+        action_namespace="grasp_selection_action",
+        goal_gen_callback=generate_selection_goal_msg,
+        bb_goal_var_name="action_scan_result",
+        set_flag_instead_result=False,
+    )
+
+    check_grasp_selected = py_trees.blackboard.CheckBlackboardVariable(
+        name="Grasp selected?",
+        variable_name="action_select_result",
+        clearing_policy=py_trees.common.ClearingPolicy.ON_INITIALISE,
+    )
+
+    button_next = py_trees_ros.subscribers.WaitForData(
+        name="Button next?",
+        topic_name="/manipulation_actions/next",
+        topic_type=std_msgs.msg.Empty,
+    )
+
+    root_grasp_select = py_trees.composites.Selector(
+        children=[
+            check_grasp_selected,
+            py_trees.composites.Sequence(
+                children=[root_scan, button_next, action_grasp_select]
             ),
         ]
     )
@@ -124,7 +163,7 @@ def get_bt_scan_grasp_drop(subtree=None):
         action_spec=GraspAction,
         action_namespace="grasp_execution_action",
         goal_gen_callback=generate_grasp_goal_msg,
-        bb_goal_var_name="action_scan_result",
+        bb_goal_var_name="action_select_result",
         set_flag_instead_result=True,
     )
 
@@ -145,7 +184,7 @@ def get_bt_scan_grasp_drop(subtree=None):
         children=[
             check_object_in_hand,
             py_trees.composites.Sequence(
-                children=[root_scan, button_next, action_grasp]
+                children=[root_grasp_select, button_next, action_grasp]
             ),
         ]
     )
@@ -191,6 +230,7 @@ def get_root():
     condition_variable_names = [
         "action_drop_result",
         "action_grasp_result",
+        "action_select_result",
         "action_scan_result",
     ]
 
@@ -203,7 +243,7 @@ def get_root():
     )
 
     # Add nodes with condition checks and actions
-    root_drop = get_bt_scan_grasp_drop()
+    root_drop = get_bt_scan_select_grasp_drop()
 
     # Assemble tree
     action_root = py_trees.composites.Selector(

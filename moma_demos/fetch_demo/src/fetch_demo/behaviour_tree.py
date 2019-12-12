@@ -9,7 +9,7 @@ from grasp_demo.execution.action_client import (
 )
 
 from grasp_demo.execution.behaviour_tree import (
-    get_bt_scan_grasp_drop,
+    get_bt_scan_select_grasp_drop,
     get_bt_reset,
     generate_grasp_goal_msg,
 )
@@ -91,6 +91,7 @@ def get_root():
     condition_variable_names = [
         "action_drop_result",
         "action_grasp_result",
+        "action_select_result",
         "action_scan_result",
         "action_approach_result",
         "action_search_result",
@@ -106,7 +107,7 @@ def get_root():
 
     # Add nodes with condition checks and actions
     root_approach = get_bt_search_approach()
-    root_drop = get_bt_scan_grasp_drop(subtree=root_approach)
+    root_drop = get_bt_scan_select_grasp_drop(subtree=root_approach)
 
     # Assemble tree
     action_root = py_trees.composites.Selector(

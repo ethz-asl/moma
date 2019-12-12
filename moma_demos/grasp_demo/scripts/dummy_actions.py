@@ -8,8 +8,11 @@ from grasp_demo.msg import (
     GraspResult,
     DropAction,
     DropResult,
+    SelectGraspAction,
+    SelectGraspResult,
 )
 from geometry_msgs.msg import PoseStamped
+from sensor_msgs.msg import PointCloud2
 import rospy
 
 
@@ -21,6 +24,16 @@ class DummyActionServers:
         )
         self.action_server_scan.start()
         rospy.loginfo("Scan action server running.")
+
+        action_name = "grasp_selection_action"
+        self.action_server_grasp_select = actionlib.SimpleActionServer(
+            action_name,
+            SelectGraspAction,
+            execute_cb=self.grasp_selection_cb,
+            auto_start=False,
+        )
+        self.action_server_grasp_select.start()
+        rospy.loginfo("Grasp select server running.")
 
         action_name = "grasp_execution_action"
         self.action_server_grasp = actionlib.SimpleActionServer(
@@ -40,13 +53,25 @@ class DummyActionServers:
         rospy.loginfo("Scanning action was triggered")
         result = ScanSceneResult()
 
+        pc = PointCloud2()
+
+        rospy.sleep(1.0)
+
+        rospy.loginfo("Success")
+        result.pointcloud_scene = pc
+        self.action_server_scan.set_succeeded(result)
+
+    def grasp_selection_cb(self, goal):
+        rospy.loginfo("Grasp selection was triggered")
+        result = SelectGraspResult()
+
         grasp_pose = PoseStamped()
 
         rospy.sleep(1.0)
 
         rospy.loginfo("Success")
-        result.selected_grasp_pose = grasp_pose
-        self.action_server_scan.set_succeeded(result)
+        result.target_grasp_pose = grasp_pose
+        self.action_server_grasp_select.set_succeeded(result)
 
     def grasp_cb(self, goal):
         rospy.loginfo("Grasping action was triggered")
