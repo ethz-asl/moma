@@ -12,6 +12,8 @@ from grasp_demo.execution.behaviour_tree import (
     get_bt_scan_select_grasp_drop,
     get_bt_reset,
     generate_grasp_goal_msg,
+    get_button_next_check,
+    get_bt_topics2bb,
 )
 
 import std_msgs
@@ -35,11 +37,7 @@ def get_bt_search_approach(subtree=None):
         clearing_policy=py_trees.common.ClearingPolicy.ON_INITIALISE,
     )
 
-    button_next = py_trees_ros.subscribers.WaitForData(
-        name="Button next?",
-        topic_name="/manipulation_actions/next",
-        topic_type=std_msgs.msg.Empty,
-    )
+    button_next = get_button_next_check()
 
     root_search = py_trees.composites.Selector(
         children=[
@@ -69,11 +67,7 @@ def get_bt_search_approach(subtree=None):
         clearing_policy=py_trees.common.ClearingPolicy.ON_INITIALISE,
     )
 
-    button_next = py_trees_ros.subscribers.WaitForData(
-        name="Button next?",
-        topic_name="/manipulation_actions/next",
-        topic_type=std_msgs.msg.Empty,
-    )
+    button_next = get_button_next_check()
 
     root_approach = py_trees.composites.Selector(
         children=[
@@ -105,6 +99,9 @@ def get_root():
         condition_variable_names, reset_all=False
     )
 
+    # Subscriber
+    subscriber_root = get_bt_topics2bb()
+
     # Add nodes with condition checks and actions
     root_approach = get_bt_search_approach()
     root_drop = get_bt_scan_select_grasp_drop(subtree=root_approach)
@@ -113,7 +110,9 @@ def get_root():
     action_root = py_trees.composites.Selector(
         children=[reset_exec_root, repeat_exec_root, root_drop]
     )
-    root = py_trees.composites.Parallel(children=[reset_root, repeat_root, action_root])
+    root = py_trees.composites.Parallel(
+        children=[reset_root, repeat_root, subscriber_root, action_root]
+    )
 
     return root
 

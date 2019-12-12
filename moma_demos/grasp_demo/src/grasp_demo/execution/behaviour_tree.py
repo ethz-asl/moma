@@ -57,7 +57,6 @@ def get_bt_reset(condition_variable_names, reset_all):
     reset_exec_root = py_trees.composites.Sequence(
         name="Do " + action_name,
         children=[check_var_reset, clear_var_reset, reset_action],
-        blackbox_level=py_trees.common.BlackBoxLevel.DETAIL,
     )
     reset_exec_root.blackbox_level = py_trees.common.BlackBoxLevel.DETAIL
     return reset_root, reset_exec_root
@@ -85,11 +84,48 @@ def get_bt_repeat(condition_variable_names):
     repeat_action = RepeatAction(
         name="Repeat last", variable_names=condition_variable_names, repeat_all=False
     )
+    click_next_button = py_trees.blackboard.SetBlackboardVariable(
+        name="Click next", variable_name="button_pressed_override", variable_value=True
+    )
     repeat_exec_root = py_trees.composites.Sequence(
-        children=[check_var_repeat, clear_var_repeat, repeat_action],
-        blackbox_level=py_trees.common.BlackBoxLevel.DETAIL,
+        children=[check_var_repeat, clear_var_repeat, repeat_action, click_next_button]
     )
     repeat_exec_root.blackbox_level = py_trees.common.BlackBoxLevel.DETAIL
+
+
+def get_bt_topics2bb():
+    button_next_2bb = py_trees_ros.subscribers.EventToBlackboard(
+        name="Next button listener",
+        topic_name="/manipulation_actions/next",
+        variable_name="button_pressed",
+    )
+    topics2bb = py_trees.composites.Sequence("Topics2BB", children=[button_next_2bb])
+    topics2bb.blackbox_level = py_trees.common.BlackBoxLevel.DETAIL
+    return topics2bb
+
+
+def get_button_next_check():
+    # vars_to_check = ["button_pressed_override", "button_pressed"]
+    vars_to_check = ["button_pressed"]
+    children = []
+    for var in vars_to_check:
+        child = py_trees.composites.Sequence(
+            name=var,
+            children=[
+                py_trees.blackboard.WaitForBlackboardVariable(
+                    name="Check " + var, variable_name=var, expected_value=True,
+                ),
+                py_trees.blackboard.ClearBlackboardVariable(
+                    name="Clear " + var, variable_name=var
+                ),
+            ],
+        )
+        if var == "button_pressed_override":
+            child = py_trees.decorators.RunningIsFailure(child=child)
+        children.append(child)
+    button_next = py_trees.composites.Selector(name="Button next?", children=children)
+    button_next.blackbox_level = py_trees.common.BlackBoxLevel.DETAIL
+    return button_next
 
 
 def get_bt_scan_select_grasp_drop(subtree=None):
@@ -109,11 +145,7 @@ def get_bt_scan_select_grasp_drop(subtree=None):
         clearing_policy=py_trees.common.ClearingPolicy.ON_INITIALISE,
     )
 
-    button_next = py_trees_ros.subscribers.WaitForData(
-        name="Button next?",
-        topic_name="/manipulation_actions/next",
-        topic_type=std_msgs.msg.Empty,
-    )
+    button_next = get_button_next_check()
 
     root_scan = py_trees.composites.Selector(
         children=[
@@ -142,11 +174,7 @@ def get_bt_scan_select_grasp_drop(subtree=None):
         clearing_policy=py_trees.common.ClearingPolicy.ON_INITIALISE,
     )
 
-    button_next = py_trees_ros.subscribers.WaitForData(
-        name="Button next?",
-        topic_name="/manipulation_actions/next",
-        topic_type=std_msgs.msg.Empty,
-    )
+    button_next = get_button_next_check()
 
     root_grasp_select = py_trees.composites.Selector(
         children=[
@@ -174,11 +202,7 @@ def get_bt_scan_select_grasp_drop(subtree=None):
         clearing_policy=py_trees.common.ClearingPolicy.ON_INITIALISE,
     )
 
-    button_next = py_trees_ros.subscribers.WaitForData(
-        name="Button next?",
-        topic_name="/manipulation_actions/next",
-        topic_type=std_msgs.msg.Empty,
-    )
+    button_next = get_button_next_check()
 
     root_grasp = py_trees.composites.Selector(
         children=[
@@ -206,11 +230,7 @@ def get_bt_scan_select_grasp_drop(subtree=None):
         clearing_policy=py_trees.common.ClearingPolicy.ON_INITIALISE,
     )
 
-    button_next = py_trees_ros.subscribers.WaitForData(
-        name="Button next?",
-        topic_name="/manipulation_actions/next",
-        topic_type=std_msgs.msg.Empty,
-    )
+    button_next = get_button_next_check()
 
     root_drop = py_trees.composites.Selector(
         children=[
@@ -242,6 +262,9 @@ def get_root():
         condition_variable_names, reset_all=False
     )
 
+    # Subscriber
+    subscriber_root = get_bt_topics2bb()
+
     # Add nodes with condition checks and actions
     root_drop = get_bt_scan_select_grasp_drop()
 
@@ -249,7 +272,9 @@ def get_root():
     action_root = py_trees.composites.Selector(
         children=[reset_exec_root, repeat_exec_root, root_drop]
     )
-    root = py_trees.composites.Parallel(children=[reset_root, repeat_root, action_root])
+    root = py_trees.composites.Parallel(
+        children=[reset_root, repeat_root, subscriber_root, action_root]
+    )
 
     return root
 
