@@ -46,6 +46,7 @@ def get_root():
         variable_name="do_reset", variable_value=True
     )
     reset_root = py_trees.composites.Sequence(children=[button_reset, var_reset])
+    reset_root.blackbox_level = py_trees.common.BlackBoxLevel.DETAIL
 
     # Reset exec
     check_var_reset = py_trees.blackboard.CheckBlackboardVariable(
@@ -61,6 +62,7 @@ def get_root():
         children=[check_var_reset, clear_var_reset, reset_action],
         blackbox_level=py_trees.common.BlackBoxLevel.DETAIL,
     )
+    reset_exec_root.blackbox_level = py_trees.common.BlackBoxLevel.DETAIL
 
     # -------- Add repeat button -----------------------------------------
 
@@ -73,6 +75,7 @@ def get_root():
         variable_name="do_repeat", variable_value=True
     )
     repeat_root = py_trees.composites.Sequence(children=[button_repeat, var_repeat])
+    repeat_root.blackbox_level = py_trees.common.BlackBoxLevel.DETAIL
 
     # Repeat exec
     check_var_repeat = py_trees.blackboard.CheckBlackboardVariable(
@@ -88,14 +91,9 @@ def get_root():
         children=[check_var_repeat, clear_var_repeat, repeat_action],
         blackbox_level=py_trees.common.BlackBoxLevel.DETAIL,
     )
+    repeat_exec_root.blackbox_level = py_trees.common.BlackBoxLevel.DETAIL
 
     # -------- Add nodes with condition checks and actions -----------------------------
-
-    button_next = py_trees_ros.subscribers.WaitForData(
-        name="Button next?",
-        topic_name="/manipulation_actions/next",
-        topic_type=std_msgs.msg.Empty,
-    )
 
     # Action: follow search waypoints
     action_search_goal = SearchGoal()
@@ -114,8 +112,17 @@ def get_root():
         clearing_policy=py_trees.common.ClearingPolicy.ON_INITIALISE,
     )
 
+    button_next = py_trees_ros.subscribers.WaitForData(
+        name="Button next?",
+        topic_name="/manipulation_actions/next",
+        topic_type=std_msgs.msg.Empty,
+    )
+
     root_search = py_trees.composites.Selector(
-        children=[check_obj_pos_known, button_next, action_search]
+        children=[
+            check_obj_pos_known,
+            py_trees.composites.Sequence(children=[button_next, action_search]),
+        ]
     )
 
     # Action: approach object
@@ -133,6 +140,12 @@ def get_root():
         variable_name="action_approach_result",
         expected_value=True,
         clearing_policy=py_trees.common.ClearingPolicy.ON_INITIALISE,
+    )
+
+    button_next = py_trees_ros.subscribers.WaitForData(
+        name="Button next?",
+        topic_name="/manipulation_actions/next",
+        topic_type=std_msgs.msg.Empty,
     )
 
     root_approach = py_trees.composites.Selector(
@@ -158,6 +171,12 @@ def get_root():
         name="Grasp computed?",
         variable_name="action_scan_result",
         clearing_policy=py_trees.common.ClearingPolicy.NEVER,
+    )
+
+    button_next = py_trees_ros.subscribers.WaitForData(
+        name="Button next?",
+        topic_name="/manipulation_actions/next",
+        topic_type=std_msgs.msg.Empty,
     )
 
     root_scan = py_trees.composites.Selector(
@@ -186,6 +205,12 @@ def get_root():
         clearing_policy=py_trees.common.ClearingPolicy.ON_INITIALISE,
     )
 
+    button_next = py_trees_ros.subscribers.WaitForData(
+        name="Button next?",
+        topic_name="/manipulation_actions/next",
+        topic_type=std_msgs.msg.Empty,
+    )
+
     root_grasp = py_trees.composites.Selector(
         children=[
             check_object_in_hand,
@@ -210,6 +235,12 @@ def get_root():
         variable_name="action_drop_result",
         expected_value=True,
         clearing_policy=py_trees.common.ClearingPolicy.ON_INITIALISE,
+    )
+
+    button_next = py_trees_ros.subscribers.WaitForData(
+        name="Button next?",
+        topic_name="/manipulation_actions/next",
+        topic_type=std_msgs.msg.Empty,
     )
 
     root_drop = py_trees.composites.Selector(

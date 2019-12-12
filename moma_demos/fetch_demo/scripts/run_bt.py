@@ -16,6 +16,7 @@ def main():
     rospy.init_node("behaviour_tree_node")
 
     pt = PandaTree(debug=DEBUG)
+
     pt.setup()
 
     index = 1
