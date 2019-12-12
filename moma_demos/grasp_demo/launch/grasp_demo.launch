@@ -2,11 +2,6 @@
 <launch>
     <arg name="launch_rviz" default="true" />
 
-    <!-- Launch Panda controller and MoveIt -->
-    <include file="$(find moma_bringup)/launch/panda_control_moveit_rviz.launch">
-        <arg name="launch_rviz" value="false"/>
-    </include>
-
     <!-- Launch GPD -->
     <node name="detect_grasps" pkg="gpd_ros" type="detect_grasps" output="screen">
       <param name="cloud_type" value="0" />
