@@ -3,7 +3,8 @@
   <name>moma_bringup</name>
   <version>0.0.0</version>
   <description>The moma_bringup package</description>
-  <maintainer email="fjulian@todo.todo">fjulian</maintainer>
+  <maintainer email="mbreyer@ethz.ch">Michel Breyer</maintainer>
+  <maintainer email="fjulian@ethz.ch">Julian Foerster</maintainer>
   <license>TODO</license>
 
   <buildtool_depend>catkin</buildtool_depend>
