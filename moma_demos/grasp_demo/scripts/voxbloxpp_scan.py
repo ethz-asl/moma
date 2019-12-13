@@ -13,6 +13,7 @@ import rospy
 from scipy.spatial.transform import Rotation
 from sensor_msgs.msg import PointCloud2
 from std_srvs.srv import Empty, EmptyRequest
+from vpp_msgs.srv import GetScenePointcloud, GetScenePointcloudRequest
 
 from grasp_demo.msg import ScanSceneAction, ScanSceneFeedback, ScanSceneResult
 from panda_control.panda_commander import PandaCommander
@@ -75,10 +76,24 @@ class VoxbloxPPScanAction(object):
             ],
         ]
 
+        self.home_joints = [0.0, -0.785, 0.0, -2.356, 0.0, 1.57, 0.785]
+
+        # Create service to reset Voxblox++ map
+        reset_srv_name = "/gsm_node/reset_map"
+        rospy.wait_for_service(reset_srv_name)
+        self.reset_map = rospy.ServiceProxy(reset_srv_name, Empty)
+
         # Create service to trigger Voxblox++ integration
         integration_srv_name = "/gsm_node/toggle_integration"
         rospy.wait_for_service(integration_srv_name)
         self.toggle_integration = rospy.ServiceProxy(integration_srv_name, Empty)
+
+        # Create service to query point cloud
+        point_cloud_srv_name = "/gsm_node/get_scene_pointcloud"
+        rospy.wait_for_service(point_cloud_srv_name)
+        self.query_point_cloud = rospy.ServiceProxy(
+            point_cloud_srv_name, GetScenePointcloud
+        )
 
         self._as.start()
         rospy.loginfo("Scan action server ready")
@@ -86,22 +101,32 @@ class VoxbloxPPScanAction(object):
     def execute_cb(self, goal):
         rospy.loginfo("Scanning action was triggered")
 
-        self.toggle_integration(EmptyRequest())
+        self.panda_commander.move_group.set_max_acceleration_scaling_factor(0.2)
+        self.reset_map(EmptyRequest())
 
-        for joints in self.scan_joints:
+        for i, joints in enumerate(self.scan_joints):
+
+            if i == 1:
+                self.toggle_integration(EmptyRequest())
 
             if self._as.is_preempt_requested():
                 rospy.loginfo("Got preempted")
                 self._as.set_preempted()
                 return
 
-            self.panda_commander.goto_joint_target(joints, max_velocity_scaling=0.2)
+            self.panda_commander.goto_joint_target(joints, max_velocity_scaling=0.3)
 
         self.toggle_integration(EmptyRequest())
 
         # Wait for the scene point cloud
         # TODO(mbreyer) trigger "/gsm_node/get_scene_pointcloud" here, currently this is a manual process
-        cloud = rospy.wait_for_message("/gsm_node/cloud", PointCloud2)
+        msg = self.query_point_cloud(GetScenePointcloudRequest())
+        cloud = msg.scene_cloud
+        # cloud = rospy.wait_for_message("/gsm_node/cloud", PointCloud2)
+
+        self.panda_commander.goto_joint_target(
+            self.home_joints, max_velocity_scaling=0.4
+        )
 
         result = ScanSceneResult(pointcloud_scene=cloud)
         self._as.set_succeeded(result)

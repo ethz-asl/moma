@@ -11,8 +11,12 @@
       <param name="rviz_topic" value="plot_grasps" /> 
     </node>
 
+    <!-- Launch Voxblox++ -->
+    <!-- <include file="$(find grasp_demo)/launch/voxbloxpp.launch"/> -->
+
     <!-- Launch the action nodes -->
-    <node pkg="grasp_demo" type="simple_scan.py" name="scan_action_node" output="screen"/>
+    <!-- <node pkg="grasp_demo" type="simple_scan.py" name="scan_action_node" output="screen"/> -->
+    <node pkg="grasp_demo" type="voxbloxpp_scan.py" name="scan_action_node" output="screen"/>
     <node pkg="grasp_demo" type="grasp_selection.py" name="grasp_selection_action_node" output="screen"/> 
     <node pkg="grasp_demo" type="grasp_execution.py" name="grasp_execution_action_node" output="screen"/> 
     <node pkg="grasp_demo" type="drop_node.py" name="drop_action_node" output="screen"/>

@@ -93,6 +93,7 @@ class GraspSelectionAction(object):
         if len(grasp_config_list.grasps) == 0:
             rospy.loginfo("No grasps detected")
             self._as.set_aborted(SelectGraspResult())
+            return
 
         grasp_candidates = grasp_config_list_to_pose_array(grasp_config_list)
 

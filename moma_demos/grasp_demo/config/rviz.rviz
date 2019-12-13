@@ -4,6 +4,7 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
+        - /VPP cloud1
         - /Grasp candidates1
         - /Selected grasp1
       Splitter Ratio: 0.5
@@ -160,6 +161,11 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
+          table_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
         Loop Animation: false
         Robot Alpha: 0.5
         Robot Color: 150; 50; 150
@@ -277,12 +283,17 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
+          table_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
         Robot Alpha: 1
         Show Robot Collision: false
         Show Robot Visual: true
       Value: true
       Velocity_Scaling_Factor: 1
-    - Alpha: 1
+    - Alpha: 0.4000000059604645
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
         Max Value: 10
@@ -294,7 +305,7 @@ Visualization Manager:
       Color: 255; 255; 255
       Color Transformer: RGB8
       Decay Time: 0
-      Enabled: true
+      Enabled: false
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Max Intensity: 4096
@@ -304,14 +315,14 @@ Visualization Manager:
       Position Transformer: XYZ
       Queue Size: 10
       Selectable: true
-      Size (Pixels): 1
+      Size (Pixels): 2
       Size (m): 0.009999999776482582
       Style: Points
       Topic: /camera/depth/color/points
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: true
+      Value: false
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -352,7 +363,7 @@ Visualization Manager:
       Channel Name: intensity
       Class: rviz/PointCloud2
       Color: 255; 255; 255
-      Color Transformer: ""
+      Color Transformer: RGB8
       Decay Time: 0
       Enabled: true
       Invert Rainbow: false
@@ -360,13 +371,13 @@ Visualization Manager:
       Max Intensity: 4096
       Min Color: 0; 0; 0
       Min Intensity: 0
-      Name: GSM cloud
-      Position Transformer: ""
+      Name: VPP cloud
+      Position Transformer: XYZ
       Queue Size: 10
       Selectable: true
-      Size (Pixels): 3
+      Size (Pixels): 5
       Size (m): 0.009999999776482582
-      Style: Flat Squares
+      Style: Points
       Topic: /gsm_node/cloud
       Unreliable: false
       Use Fixed Frame: true
@@ -431,25 +442,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 1.5717511177062988
+      Distance: 1.8023854494094849
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0.13965177536010742
-        Y: 0.37569403648376465
-        Z: 0.3515307307243347
+        X: 0.16419550776481628
+        Y: 0.18797487020492554
+        Z: 0.03483115881681442
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.17039835453033447
+      Pitch: 0.6053991913795471
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 5.368597984313965
+      Yaw: 5.938626766204834
     Saved: ~
 Window Geometry:
   Displays:

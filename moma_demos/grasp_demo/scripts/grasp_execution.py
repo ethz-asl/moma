@@ -48,13 +48,15 @@ class GraspExecutionAction(object):
         )
 
         rospy.loginfo("Moving to grasp pose")
-        self.panda_commander.follow_cartesian_waypoints([T_base_grasp])
+        self.panda_commander.goto_pose_target(T_base_grasp, max_velocity_scaling=0.2)
 
         rospy.loginfo("Grasping")
         self.panda_commander.grasp(0.05)
 
         rospy.loginfo("Retrieving object")
-        self.panda_commander.follow_cartesian_waypoints([T_base_pregrasp.tolist()])
+        self.panda_commander.goto_pose_target(
+            T_base_pregrasp.tolist(), max_velocity_scaling=0.2
+        )
 
         self._as.set_succeeded(GraspResult())
 
