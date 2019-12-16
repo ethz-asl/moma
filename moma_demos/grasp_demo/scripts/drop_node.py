@@ -24,6 +24,8 @@ class DropActionNode(object):
         )
         self._as.start()
 
+        self.home_joints = [0.0, -0.785, 0.0, -2.356, 0.0, 1.57, 0.785]
+
         rospy.loginfo("Drop action server ready")
 
     def execute_cb(self, goal):
@@ -31,9 +33,15 @@ class DropActionNode(object):
 
         self.panda_commander.goto_pose_target(self.drop_pose, max_velocity_scaling=0.4)
 
-        rospy.sleep(1.0)  # wait for the operator's hand to be placed under the EE
+        rospy.sleep(0.5)  # wait for the operator's hand to be placed under the EE
 
         self.panda_commander.move_gripper(width=0.07)
+
+        rospy.sleep(0.2)
+
+        self.panda_commander.goto_joint_target(
+            self.home_joints, max_velocity_scaling=0.4
+        )
 
         rospy.loginfo("Dropping action succeeded")
         self._as.set_succeeded(DropResult())

@@ -39,7 +39,7 @@ def grasp_config_list_to_pose_array(grasp_config_list):
 
         # GPD defines points at the hand palm, not the fingertip
         position = from_point_msg(grasp.position)
-        position += rot.apply([0.0, 0.0, 0.04])
+        position += rot.apply([0.0, 0.0, 0.03])
 
         pose_msg = to_pose_msg(Transform(rot, position))
         pose_array_msg.poses.append(pose_msg)
