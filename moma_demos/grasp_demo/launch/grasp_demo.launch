@@ -21,6 +21,11 @@
     <node pkg="grasp_demo" type="grasp_execution.py" name="grasp_execution_action_node" output="screen"/> 
     <node pkg="grasp_demo" type="drop_node.py" name="drop_action_node" output="screen"/>
 
+    <!-- Launch the BT node -->
+    <node pkg="grasp_demo" type="run_bt.py" name="behaviour_tree_node" output="screen"/>
+    <!-- Launch BT viewer -->
+    <node pkg="rqt_py_trees" type="rqt_py_trees" name="rqt_viewer"/>
+
     <!-- Launch RViz -->
     <node if="$(arg launch_rviz)" type="rviz" name="rviz" pkg="rviz" args="-d $(find grasp_demo)/config/rviz.rviz"/>
 

@@ -9,7 +9,7 @@ import rospy
 from grasp_demo.execution.behaviour_tree import PandaTree
 
 DEBUG = False
-PRINT_TREE = True
+PRINT_TREE = False
 
 
 def main():
