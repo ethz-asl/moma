@@ -44,7 +44,7 @@
   </include>
 
   <!-- spawn robot in gazebo -->
-  <node name="spawn_gazebo_model" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen" args="-urdf -param robot_description
+  <!-- <node name="spawn_gazebo_model" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen" args="-urdf -param robot_description
       -model mopa -z 0.03
       -J panda_joint1 0
       -J panda_joint2 -0.785
@@ -56,7 +56,23 @@
       -J world_base_x $(arg robot_x)
       -J world_base_y $(arg robot_y)
       -J world_base_th $(arg robot_theta)
+      -unpause" /> -->
+
+  <node name="spawn_gazebo_model" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen" args="-urdf -param robot_description
+      -model mopa -z 0.03
+      -J panda_joint1 -1.5708
+      -J panda_joint2 1.5708
+      -J panda_joint3 1.5708
+      -J panda_joint4 -1.75
+      -J panda_joint5 -1.5708
+      -J panda_joint6 3.14159
+      -J panda_joint7 0.7854
+      -J world_base_x $(arg robot_x)
+      -J world_base_y $(arg robot_y)
+      -J world_base_th $(arg robot_theta)
       -unpause" />
+
+
   <!-- Setting the start position of joint4 causes issues. The standard Panda home position of that
         joint would be -2.356. However, when choosing a value smaller than -2.1, the joint in the simulation
         goes to a value which is outside its range, which breaks the simulation. -->
