@@ -61,7 +61,9 @@ class VoxbloxPPScanAction(object):
         for i, joints in enumerate(self.scan_joints):
 
             if i == 1:
-                self.toggle_integration(EmptyRequest())
+                self.toggle_integration(
+                    EmptyRequest()
+                )  # TODO(mbreyer) toggle_integration should accept which state it wants to be set
 
             if self._as.is_preempt_requested():
                 rospy.loginfo("Got preempted")
