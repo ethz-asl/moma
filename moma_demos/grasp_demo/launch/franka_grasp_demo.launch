@@ -1,20 +1,19 @@
 <?xml version="1.0" ?>
 <launch>
-    <arg name="launch_rviz" default="true" />
+  <arg name="launch_rviz" default="true" />
 
-    <!-- Launch the Realsense camera -->
-    <include file="$(find realsense2_camera)/launch/rs_camera.launch">
-        <arg name="enable_pointcloud" value="true"/>
-    </include>
+  <rosparam command="load" file="$(find grasp_demo)/config/panda_grasp_demo.yaml" ns="grasp_demo"/>
 
-    <!-- Launch Panda controller and MoveIt -->
-    <include file="$(find moma_bringup)/launch/panda_control_moveit_rviz.launch">
-        <arg name="launch_rviz" value="false"/>
-    </include>
+  <include file="$(find realsense2_camera)/launch/rs_camera.launch">
+    <arg name="enable_pointcloud" value="true"/>
+  </include>
 
-    <!-- Launch grasp demo -->
-    <include file="$(find grasp_demo)/launch/grasp_demo.launch">
-        <arg name="launch_rviz" value="$(arg launch_rviz)"/>
-    </include>
+  <include file="$(find moma_bringup)/launch/panda_control_moveit_rviz.launch">
+    <arg name="launch_rviz" value="false"/>
+  </include>
+
+  <include file="$(find grasp_demo)/launch/grasp_demo.launch">
+    <arg name="launch_rviz" value="$(arg launch_rviz)"/>
+  </include>
 
 </launch>

@@ -27,56 +27,10 @@ class VoxbloxPPScanAction(object):
 
         self.panda_commander = PandaCommander("panda_arm")
 
-        # Scan joint configurations
-        self.scan_joints = [
-            [
-                -0.13044640511344546,
-                -1.3581389637834451,
-                -0.7902883262964496,
-                -2.2897565394284434,
-                0.04394716020347789,
-                1.2693998432689242,
-                1.0239726927690207,
-            ],
-            [
-                1.1617,
-                -0.5194,
-                -1.6787,
-                -1.345415587151993,
-                0.27857345296034125,
-                0.9858770641287168,
-                0.48917187201250106,
-            ],
-            [
-                0.03534398500304972,
-                0.0792812212202517,
-                0.00024001071061285442,
-                -1.2297476580268456,
-                0.07415731295971527,
-                0.9772190555466544,
-                0.8901656288974905,
-            ],
-            [
-                -1.0761406668405233,
-                -0.9812572320940955,
-                1.0510634288286071,
-                -1.4203576079753408,
-                0.2339650344716178,
-                0.9772807318199377,
-                0.6811464487329869,
-            ],
-            [
-                -0.3038625468067955,
-                -1.2148889997380417,
-                0.812242864175488,
-                -1.754142465942784,
-                0.16873402494854398,
-                1.1185604270829095,
-                0.9999408414952058,
-            ],
-        ]
-
-        self.home_joints = [0.0, -0.785, 0.0, -2.356, 0.0, 1.57, 0.785]
+        self.scan_joints = rospy.get_param("grasp_demo")["scan_joint_values"]
+        self.home_joints = self.panda_commander.move_group.get_named_target_values(
+            "home"
+        )
 
         # Create service to reset Voxblox++ map
         reset_srv_name = "/gsm_node/reset_map"
@@ -119,10 +73,8 @@ class VoxbloxPPScanAction(object):
         self.toggle_integration(EmptyRequest())
 
         # Wait for the scene point cloud
-        # TODO(mbreyer) trigger "/gsm_node/get_scene_pointcloud" here, currently this is a manual process
         msg = self.query_point_cloud(GetScenePointcloudRequest())
         cloud = msg.scene_cloud
-        # cloud = rospy.wait_for_message("/gsm_node/cloud", PointCloud2)
 
         self.panda_commander.goto_joint_target(
             self.home_joints, max_velocity_scaling=0.4

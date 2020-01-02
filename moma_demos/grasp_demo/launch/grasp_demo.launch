@@ -1,32 +1,26 @@
 <?xml version="1.0" ?>
 <launch>
-    <arg name="launch_rviz" default="true" />
+  <arg name="launch_rviz" default="true" />
 
-    <!-- Launch GPD -->
-    <node name="detect_grasps" pkg="gpd_ros" type="detect_grasps" output="screen">
-      <param name="cloud_type" value="0" />
-      <param name="cloud_topic" value="/cloud_stitched" />
-      <param name="samples_topic" value="" />
-      <param name="config_file" value="$(find grasp_demo)/config/gpd.cfg" />
-      <param name="rviz_topic" value="plot_grasps" /> 
-    </node>
+  <node name="detect_grasps" pkg="gpd_ros" type="detect_grasps" output="screen">
+    <param name="cloud_type" value="0" />
+    <param name="cloud_topic" value="/cloud_stitched" />
+    <param name="samples_topic" value="" />
+    <param name="config_file" value="$(find grasp_demo)/config/gpd.cfg" />
+    <param name="rviz_topic" value="plot_grasps" />
+  </node>
 
-    <!-- Launch Voxblox++ -->
-    <!-- <include file="$(find grasp_demo)/launch/voxbloxpp.launch"/> -->
+  <!-- <include file="$(find grasp_demo)/launch/voxbloxpp.launch"/> -->
 
-    <!-- Launch the action nodes -->
-    <!-- <node pkg="grasp_demo" type="simple_scan.py" name="scan_action_node" output="screen"/> -->
-    <node pkg="grasp_demo" type="voxbloxpp_scan.py" name="scan_action_node" output="screen"/>
-    <node pkg="grasp_demo" type="grasp_selection.py" name="grasp_selection_action_node" output="screen"/> 
-    <node pkg="grasp_demo" type="grasp_execution.py" name="grasp_execution_action_node" output="screen"/> 
-    <node pkg="grasp_demo" type="drop_node.py" name="drop_action_node" output="screen"/>
+  <!-- <node pkg="grasp_demo" type="simple_scan.py" name="scan_action_node" output="screen"/> -->
+  <node pkg="grasp_demo" type="voxbloxpp_scan.py" name="scan_action_node" output="screen"/>
+  <node pkg="grasp_demo" type="grasp_selection.py" name="grasp_selection_action_node" output="screen"/>
+  <node pkg="grasp_demo" type="grasp_execution.py" name="grasp_execution_action_node" output="screen"/>
+  <node pkg="grasp_demo" type="drop_node.py" name="drop_action_node" output="screen"/>
 
-    <!-- Launch the BT node -->
-    <node pkg="grasp_demo" type="run_bt.py" name="behaviour_tree_node" output="screen"/>
-    <!-- Launch BT viewer -->
-    <node pkg="rqt_py_trees" type="rqt_py_trees" name="rqt_viewer"/>
+  <node pkg="grasp_demo" type="run_bt.py" name="behaviour_tree_node" output="screen"/>
+  <node pkg="rqt_py_trees" type="rqt_py_trees" name="rqt_viewer"/>
 
-    <!-- Launch RViz -->
-    <node if="$(arg launch_rviz)" type="rviz" name="rviz" pkg="rviz" args="-d $(find grasp_demo)/config/rviz.rviz"/>
+  <node if="$(arg launch_rviz)" type="rviz" name="rviz" pkg="rviz" args="-d $(find grasp_demo)/config/rviz.rviz"/>
 
 </launch>
