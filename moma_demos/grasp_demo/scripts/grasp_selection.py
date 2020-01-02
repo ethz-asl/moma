@@ -56,17 +56,14 @@ class GraspSelectionAction(object):
             auto_start=False,
         )
 
-        # Publishing a cloud to this topic triggers GPD
         self.gpd_cloud_pub = rospy.Publisher(
             "/cloud_stitched", PointCloud2, queue_size=10
-        )
+        )  # publishing a cloud to this topic triggers GPD
 
-        # For visualizing the detected grasps
         self.detected_grasps_pub = rospy.Publisher(
             "/grasp_candidates", PoseArray, queue_size=10
         )
 
-        # For visualizing the selected grasp
         self.selected_grasp_pub = rospy.Publisher(
             "/grasp_pose", PoseStamped, queue_size=10
         )
@@ -75,10 +72,26 @@ class GraspSelectionAction(object):
         rospy.loginfo("Grasp selection action server ready")
 
     def execute_cb(self, goal_msg):
-        cloud = goal_msg.pointcloud_scene
+        grasp_candidates = self.detect_grasps(goal_msg.pointcloud_scene)
 
-        # Trigger GPD and wait for detected grasps
-        rospy.loginfo("Sending point cloud to GPD")
+        if not grasp_candidates:
+            self._as.set_aborted(SelectGraspResult())
+            rospy.loginfo("No grasps detected, aborting")
+            return
+        else:
+            rospy.loginfo("{} grasps detected".format(len(grasp_candidates)))
+
+        self.visualize_detected_grasps(grasp_candidates)
+
+        selected_grasp = self.wait_for_user_selection(grasp_candidates)
+        rospy.loginfo("Grasp selected")
+
+        self.visualize_selected_grasp(selected_grasp)
+
+        result = SelectGraspResult(target_grasp_pose=selected_grasp)
+        self._as.set_succeeded(result)
+
+    def detect_grasps(self, cloud):
         self.gpd_cloud_pub.publish(cloud)
 
         try:
@@ -86,27 +99,17 @@ class GraspSelectionAction(object):
                 "/detect_grasps/clustered_grasps", GraspConfigList, timeout=30
             )
         except rospy.ROSException:
-            rospy.loginfo("GPD server timed out")
-            self._as.set_aborted(SelectGraspResult())
-            return
+            return []
 
-        if len(grasp_config_list.grasps) == 0:
-            rospy.loginfo("No grasps detected")
-            self._as.set_aborted(SelectGraspResult())
-            return
+        return grasp_config_list_to_pose_array(grasp_config_list)
 
-        grasp_candidates = grasp_config_list_to_pose_array(grasp_config_list)
-
-        # Visualize detected grasps
+    def visualize_detected_grasps(self, grasp_candidates):
         self.detected_grasps_pub.publish(grasp_candidates)
-        rospy.loginfo("Received grasp candidates")
 
-        # Wait for the user to select a grasp
+    def wait_for_user_selection(self, grasp_candidates):
         clicked_point_msg = rospy.wait_for_message("/clicked_point", PointStamped)
         clicked_point = from_point_msg(clicked_point_msg.point)
-        rospy.loginfo("User clicked")
 
-        # Select the closest grasp candidate
         distances = []
         for pose in grasp_candidates.poses:
             grasp_point = from_pose_msg(pose).translation
@@ -117,14 +120,10 @@ class GraspSelectionAction(object):
         selected_grasp_msg.header.frame_id = "panda_link0"
         selected_grasp_msg.pose = grasp_candidates.poses[np.argmin(distances)]
 
-        # Visualize selected grasp
-        self.selected_grasp_pub.publish(selected_grasp_msg)
-        rospy.loginfo("Grasp selected")
+        return selected_grasp_msg
 
-        result = SelectGraspResult(target_grasp_pose=selected_grasp_msg)
-        self._as.set_succeeded(result)
-
-        rospy.loginfo("Grasp selection action succeeded")
+    def visualize_selected_grasp(self, selected_grasp):
+        self.selected_grasp_pub.publish(selected_grasp)
 
 
 if __name__ == "__main__":
