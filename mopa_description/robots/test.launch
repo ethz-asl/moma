@@ -1,0 +1,5 @@
+<launch>
+
+   <param name="robot_description" command="$(find xacro)/xacro '$(find mopa_description)/robots/ridgeback_panda_hand.urdf.xacro'" />
+
+ </launch>
