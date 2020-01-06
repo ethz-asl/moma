@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="main_mount">
+  <xacro:macro name="main_mount" params="id:='main_mount' connected_to:='' xyz:='0.01 0 0' rpy:='0 0 0'">
+    <xacro:unless value="${not connected_to}">
+      <joint name="${id}_joint_${connected_to}" type="fixed">
+        <parent link="${connected_to}"/>
+        <child link="${id}_base_link"/>
+        <origin rpy="${rpy}" xyz="${xyz}"/>
+      </joint>
+    </xacro:unless>
+    <material name="black_alu"><color rgba="0.15 0.15 0.15 1.0" /></material>
+
+
+    <link name="${id}_base_link">
+      <visual>
+        <origin xyz="0.02 0 0.074" />
+        <geometry>
+          <box size="0.04 0.405 0.148"/>
+        </geometry>
+        <material name="black_alu"/>
+      </visual>
+      <collision>
+        <origin xyz="0.02 0 0.074" />
+        <geometry>
+          <box size="0.04 0.405 0.148"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <joint name="${id}_front_bottom_joint" type="fixed">
+      <origin xyz="0.415 0 0" />
+      <parent link="${id}_base_link"/>
+      <child link="${id}_front_bottom_link"/>
+    </joint>
+
+    <link name="${id}_front_bottom_link">
+      <visual>
+        <origin xyz="-0.05 0 0.197" />
+        <geometry>
+          <box size="0.1 0.1 0.416"/>
+        </geometry>
+        <material name="black_alu"/>
+      </visual>
+      <collision>
+        <origin xyz="-0.05 0 0.197" />
+        <geometry>
+          <box size="0.1 0.1 0.416"/>
+        </geometry>
+      </collision>
+
+      <visual>
+        <origin xyz="-0.05 0.211 0.197" />
+        <geometry>
+          <box size="0.1 0.006 0.416"/>
+        </geometry>
+        <material name="black_alu"/>
+      </visual>
+      <collision>
+        <origin xyz="-0.05 0.211 0.197" />
+        <geometry>
+          <box size="0.1 0.006 0.416"/>
+        </geometry>
+      </collision>
+      <visual>
+        <origin xyz="-0.05 -0.211 0.197" />
+        <geometry>
+          <box size="0.1 0.006 0.416"/>
+        </geometry>
+        <material name="black_alu"/>
+      </visual>
+      <collision>
+        <origin xyz="-0.05 -0.211 0.197" />
+        <geometry>
+          <box size="0.1 0.006 0.416"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <joint name="${id}_mount_joint" type="fixed">
+      <origin xyz="-0.05 0 0.247" />
+      <parent link="${id}_front_bottom_link"/>
+      <child link="${id}_mount_link"/>
+    </joint>
+    <link name="${id}_mount_link"/>
+  </xacro:macro>
+
+</robot>

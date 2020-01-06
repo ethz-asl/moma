@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="utf-8"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="panda_mount">
+  <xacro:macro name="panda_mount" params="id:='panda_mount' use_top_plate='true' connected_to:='' xyz:='0.009 0 0' rpy:='0 0 0'">
+    <xacro:unless value="${not connected_to}">
+      <joint name="${id}_joint_${connected_to}" type="fixed">
+        <parent link="${connected_to}"/>
+        <child link="${id}_base_link"/>
+        <origin rpy="${rpy}" xyz="${xyz}"/>
+      </joint>
+    </xacro:unless>
+    <material name="silver_alu"><color rgba="0.75 0.75 0.75 1.0" /></material>
+
+
+    <link name="${id}_base_link">
+      <visual>
+        <origin xyz="0.02 0.1195 0.123" />
+        <geometry>
+          <box size="0.04 0.04 0.246"/>
+        </geometry>
+        <material name="silver_alu"/>
+      </visual>
+      <collision>
+        <origin xyz="0.02 0.1195 0.123" />
+        <geometry>
+          <box size="0.04 0.04 0.246"/>
+        </geometry>
+      </collision>
+      <visual>
+        <origin xyz="0.02 -0.1195 0.123" />
+        <geometry>
+          <box size="0.04 0.04 0.246"/>
+        </geometry>
+        <material name="silver_alu"/>
+      </visual>
+      <collision>
+        <origin xyz="0.02 -0.1195 0.123" />
+        <geometry>
+          <box size="0.04 0.04 0.246"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <joint name="${id}_top_frame_joint" type="fixed">
+      <origin xyz="0.2095 0 0.246" />
+      <parent link="${id}_base_link"/>
+      <child link="${id}_top_frame_link"/>
+    </joint>
+
+    <link name="${id}_top_frame_link">
+      <visual>
+        <origin xyz="0 11.95 0.02" />
+        <geometry>
+          <box size="0.419 0.04 0.04"/>
+        </geometry>
+        <material name="silver_alu"/>
+      </visual>
+      <collision>
+        <origin xyz="0 11.95 0.02" />
+        <geometry>
+          <box size="0.419 0.04 0.04"/>
+        </geometry>
+      </collision>
+      <visual>
+        <origin xyz="0 -11.95 0.02" />
+        <geometry>
+          <box size="0.419 0.04 0.04"/>
+        </geometry>
+        <material name="silver_alu"/>
+      </visual>
+      <collision>
+        <origin xyz="0 -11.95 0.02" />
+        <geometry>
+          <box size="0.419 0.04 0.04"/>
+        </geometry>
+      </collision>
+
+      <visual>
+        <origin xyz="18.95 0 0.02" />
+        <geometry>
+          <box size="0.04 0.199 0.04"/>
+        </geometry>
+        <material name="silver_alu"/>
+      </visual>
+      <collision>
+        <origin xyz="18.95 0 0.02" />
+        <geometry>
+          <box size="0.04 0.199 0.04"/>
+        </geometry>
+      </collision>
+      <visual>
+        <origin xyz="-18.95 0 0.02" />
+        <geometry>
+          <box size="0.04 0.199 0.04"/>
+        </geometry>
+        <material name="silver_alu"/>
+      </visual>
+      <collision>
+        <origin xyz="-18.95 0 0.02" />
+        <geometry>
+          <box size="0.04 0.199 0.04"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <joint name="${id}_mount_center_joint" type="fixed">
+      <origin xyz="0 0 0.04" />
+      <parent link="${id}_top_frame_link"/>
+      <child link="${id}_mount_center"/>
+    </joint>
+    <link name="${id}_mount_center"/>
+
+
+    <xacro:if value="${use_top_plate}">
+
+
+      <joint name="${id}_top_plate_joint" type="fixed">
+        <origin xyz="0.1895 0 0" />
+        <parent link="${id}_mount_center"/>
+        <child link="${id}_top_plate"/>
+      </joint>
+
+      <link name="${id}_top_plate">
+        <visual>
+          <origin xyz="0 0 0.005" />
+          <geometry>
+            <box size="0.34 0.28 0.01"/>
+          </geometry>
+          <material name="silver_alu"/>
+        </visual>
+        <collision>
+          <origin xyz="0 0 0.005" />
+          <geometry>
+            <box size="0.34 0.28 0.01"/>
+          </geometry>
+        </collision>
+      </link>
+
+      <joint name="${id}_panda_joint" type="fixed">
+        <origin xyz="0.058 0 0" />
+        <parent link="${id}_top_plate"/>
+        <child link="${id}_panda_mount"/>
+      </joint>
+      <link name="${id}_panda_mount"/>
+    </xacro:if>
+
+
+  </xacro:macro>
+
+</robot>
