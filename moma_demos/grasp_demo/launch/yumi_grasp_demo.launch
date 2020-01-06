@@ -1,0 +1,13 @@
+<?xml version="1.0" ?>
+<launch>
+  <arg name="launch_rviz" default="true" />
+
+  <!-- TODO(mbreyer) launch cameras -->
+
+  <!-- TODO(mbreyer) launch YuMi controller and MoveIt -->
+
+  <include file="$(find grasp_demo)/launch/grasp_demo.launch">
+    <arg name="launch_rviz" value="$(arg launch_rviz)"/>
+  </include>
+
+</launch>

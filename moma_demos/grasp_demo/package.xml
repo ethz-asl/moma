@@ -15,6 +15,7 @@
   <depend>actionlib_msgs</depend>
   <depend>roscpp</depend>
   <depend>geometry_msgs</depend>
+  <depend>sensor_msgs</depend>
 
   <depend>qtbase5-dev</depend>
   <exec_depend>rviz</exec_depend>
