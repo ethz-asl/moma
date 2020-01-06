@@ -62,8 +62,6 @@ class SequentialRunner:
         print("Started demo sequence")
 
         # Search object (input: none; result: target object position known in global map):
-        # Move via pre-specified waypoints and orientations. Simultaneously check the object
-        # detection if the object was found.
         self.client_search.send_goal(Empty())
         self.client_search.wait_for_result()
         result_state = self.client_search.get_state()
@@ -76,8 +74,6 @@ class SequentialRunner:
         wait_for_enter()
 
         # Approach object (input: target object position; output: none):
-        # Search in map the point closest to target object position, facing it, where the robot is
-        # not in collision with its environment. Move there.
         goal = ApproachGoal(target_object_pose=result_search.target_object_pose)
         self.client_approach.send_goal(goal)
         self.client_approach.wait_for_result()
@@ -89,7 +85,6 @@ class SequentialRunner:
         wait_for_enter()
 
         # Scan scene (input: none; output: pointcloud of table top scene in front of robot):
-        # Move arm with camera along pre-specified waypoints and integrate images using voxblox++.
         self.client_scan.send_goal(Empty())
         self.client_scan.wait_for_result()
         result_state = self.client_scan.get_state()
@@ -102,8 +97,6 @@ class SequentialRunner:
         wait_for_enter()
 
         # Plan grasp (input: pointcloud; output: grasp pose):
-        # Pass pointcloud to GPD, let it plan grasps, select one (e.g. highest scoring or based on
-        # semantic class).
         goal = SelectGraspGoal(pointcloud_scene=result_scan.pointcloud_scene)
         self.client_plan_grasp.send_goal(goal)
         self.client_plan_grasp.wait_for_result()
@@ -117,7 +110,6 @@ class SequentialRunner:
         wait_for_enter()
 
         # Execute grasp (input: grasp pose; output: none):
-        # Execute it using MoveIt.
         goal = GraspGoal(target_grasp_pose=result_plan_grasp.target_grasp_pose)
         self.client_execute_grasp.send_goal(goal)
         self.client_execute_grasp.wait_for_result()
@@ -129,8 +121,6 @@ class SequentialRunner:
         wait_for_enter()
 
         # Drop object (input: none; output: none):
-        # Navigate to drop location, position the arm according to pre-specification, open the
-        # gripper.
         self.client_drop_move.send_goal(Empty())
         self.client_drop_move.wait_for_result()
         result_state = self.client_drop_move.get_state()

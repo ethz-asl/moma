@@ -8,8 +8,10 @@ import rospy
 class SearchActionServer:
     """
         When called, this action should in turn call the navigation action to follow a
-        number of pre-defined waypoints.
+        number of pre-defined waypoints. Simultaneously check the object detection if
+        the object was found.
     """
+
     def __init__(self):
         action_name = "search_action"
         self.action_server = actionlib.SimpleActionServer(
@@ -27,17 +29,19 @@ class SearchActionServer:
                 rospy.loginfo("Got preempted")
                 self.action_server.set_preempted()
                 return
-            
+
             # Go to waypoint i using the navigation action
             rospy.sleep(1.0)
 
         rospy.loginfo("Reached last waypoint")
         self.action_server.set_succeeded(result)
 
+
 def main():
     rospy.init_node("search_action_node")
     action = SearchActionServer()
     rospy.spin()
+
 
 if __name__ == "__main__":
     main()

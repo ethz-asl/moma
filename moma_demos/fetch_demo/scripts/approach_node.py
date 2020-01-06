@@ -8,9 +8,10 @@ import rospy
 class ApproachActionServer:
     """
         When called, this action should find a collision free position for the robot,
-        as close as possible to the target location (target object) and navigate
+        as close as possible to the target location (target object), facing it, and navigate
         the robot there using the navigation action.
     """
+
     def __init__(self):
         action_name = "approach_action"
         self.action_server = actionlib.SimpleActionServer(
@@ -27,16 +28,17 @@ class ApproachActionServer:
 
         # Move there using the navigation action
 
-        
         rospy.sleep(2.0)
 
         rospy.loginfo("Finished approach")
         self.action_server.set_succeeded(result)
 
+
 def main():
     rospy.init_node("approach_action_node")
     action = ApproachActionServer()
     rospy.spin()
+
 
 if __name__ == "__main__":
     main()

@@ -20,6 +20,12 @@ from panda_control.panda_commander import PandaCommander
 
 
 class VoxbloxPPScanAction(object):
+    """
+        Move arm along prespecified joint configurations (scanning motion). While doing so,
+        let Voxblox++ integrate sensor readings. Finally, obtain a pointcloud of the reconstructed
+        scene from Voxblox++ and return it.
+    """
+
     def __init__(self):
         self._as = SimpleActionServer(
             "scan_action", ScanSceneAction, execute_cb=self.execute_cb, auto_start=False
