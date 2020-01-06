@@ -1,0 +1,9 @@
+<?xml version="1.0" ?>
+<launch>
+    <!-- Launch BT viewer -->
+    <node pkg="rqt_py_trees" type="rqt_py_trees" name="rqt_viewer"/>
+
+    <!-- Launch the BT node -->
+    <node pkg="fetch_demo" type="run_bt.py" name="behaviour_tree_node" output="screen"/>
+
+</launch>

@@ -15,7 +15,7 @@ from sensor_msgs.msg import PointCloud2
 from std_srvs.srv import Empty, EmptyRequest
 from vpp_msgs.srv import GetScenePointcloud, GetScenePointcloudRequest
 
-from grasp_demo.msg import ScanSceneAction, ScanSceneFeedback, ScanSceneResult
+from grasp_demo.msg import ScanSceneAction, ScanSceneResult
 from panda_control.panda_commander import PandaCommander
 
 
