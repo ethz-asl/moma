@@ -1,0 +1,91 @@
+---
+- hosts: asl-ridgeback
+  remote_user: asl-admin
+  tasks:
+    # Commented this for because I don't know of a way to import the docker image.
+    # - name: Copy docker image
+    #   copy:
+    #     src: image.zip
+    #     dest: /home/asl-admin/images/image.zip
+    #     owner: asl-admin
+    #     group: asl-admin
+    #     mode: '0640'
+    - name: Update package lists
+      become: yes
+      apt:
+        update_cache: true
+    - name: Install packages required for CAN bus communication
+      become: yes
+      apt:
+        name: "{{ packages }}"
+        state: present
+      vars:
+        packages:
+        - socat
+        - can-utils
+    - name: Creates directory
+      file:
+        path: /home/asl-admin/scripts
+        state: directory
+    - name: Copy CAN launch script
+      copy:
+        src: ../../srv/can_start.bash
+        dest: /home/asl-admin/scripts/can_start.bash
+        owner: asl-admin
+        group: asl-admin
+        mode: '0644'
+    - name: Copy ROS core launch script
+      copy:
+        src: ../../srv/launch_roscore.bash
+        dest: /home/asl-admin/scripts/launch_roscore.bash
+        owner: asl-admin
+        group: asl-admin
+        mode: '0644'
+    - name: Copy CAN service unit file
+      become: yes
+      copy:
+        src: ../../srv/asl-can-bus.service
+        dest: /etc/systemd/system/asl-can-bus.service
+        owner: root
+        group: root
+        mode: '0644'
+    - name: Copy ridgeback node service unit file
+      become: yes
+      copy:
+        src: ../../srv/asl-base-container.service
+        dest: /etc/systemd/system/asl-base-container.service
+        owner: root
+        group: root
+        mode: '0644'
+    - name: Copy ROS core service unit file
+      become: yes
+      copy:
+        src: ../../srv/asl-ros-core.service
+        dest: /etc/systemd/system/asl-ros-core.service
+        owner: root
+        group: root
+        mode: '0644'
+    - name: Force systemd to reread configs
+      become: yes
+      systemd:
+        daemon_reload: yes
+    - name: Enable ROS core service
+      become: yes
+      systemd:
+        name: asl-ros-core
+        enabled: yes
+        masked: no
+        state: started
+    - name: Enable CAN service
+      become: yes
+      systemd:
+        name: asl-base-container
+        enabled: yes
+        masked: no
+        state: started
+    - name: Enable ridgeback node service
+      systemd:
+        name: asl-base-container
+        enabled: yes
+        masked: no
+        state: started

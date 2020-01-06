@@ -1,0 +1,13 @@
+[Unit]
+Description=CAN bus to communicate with MobMis MCU
+After=network.target asl-ros-core.service
+Requires=asl-ros-core.service
+
+[Service]
+Type = forking
+User = root
+Restart = on-failure
+ExecStart = /usr/bin/env bash /home/asl-admin/scripts/can_start.bash
+
+[Install]
+WantedBy = multi-user.target asl-base-container.service

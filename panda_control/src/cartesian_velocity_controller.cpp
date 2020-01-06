@@ -135,7 +135,7 @@ void CartesianVelocityController::update(const ros::Time & /* time */,
   time_since_last_command_ += period;
   if (time_since_last_command_.toSec() > max_duration_between_commands_)
   {
-    desired_velocity_command_ = {{0.0, 0.0, 0.0, 0.0, 0.0, 0.0}};
+    desired_velocity_command_ = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
   }
 
   auto state = state_handle_->getRobotState();

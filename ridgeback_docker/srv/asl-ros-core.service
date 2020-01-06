@@ -1,0 +1,12 @@
+[Unit]
+Description=ROS core
+After= network.target
+
+[Service]
+Type = simple
+User = asl-admin
+Restart = always
+ExecStart = /usr/bin/env bash /home/asl-admin/scripts/launch_roscore.bash
+
+[Install]
+WantedBy = multi-user.target
