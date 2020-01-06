@@ -6,27 +6,15 @@
   <xacro:ridgeback/>
 
   <!-- YuMi mount -->
-  <link name="ridgeback_yumi_mount_link">
-    <visual>
-      <geometry>
-        <mesh filename="package://moma_description/meshes/ridgeback_yumi_mount.dae"/>
-      </geometry>
-    </visual>
-    <collision>
-      <geometry>
-        <mesh filename="package://moma_description/meshes/ridgeback_yumi_mount.dae"/> 
-      </geometry>
-    </collision>
-  </link>
-
-  <joint name="ridgeback_yumi_mount_joint" type="fixed">
-    <origin xyz="0 0 0" rpy="0 0 1.571" />
-    <parent link="mid_mount" />
-    <child link="ridgeback_yumi_mount_link" />
-  </joint>
+  <xacro:include
+    filename="$(find moma_description)/urdf/mounts/yumi_mount.urdf.xacro"/>
+  <xacro:yumi_mount connected_to="mid_mount" />
 
   <!-- YuMi -->
+  <xacro:property name="mid_mount_to_yumi_xyz" value="0.285 0 0.248" />
+  <xacro:property name="mid_mount_to_yumi_rpy" value="0 0 0" />
   <xacro:include filename="$(find moma_description)/urdf/yumi.xacro"/>
-  <xacro:yumi connected_to="ridgeback_yumi_mount_link" rpy="0 0 -${pi/2}"  xyz="0 -0.285 0.248"/>
+  <xacro:yumi connected_to="mid_mount"
+    rpy="${mid_mount_to_yumi_rpy}" xyz="${mid_mount_to_yumi_xyz}"/>
 
 </robot>

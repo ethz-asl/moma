@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="yumi_mount">
+  <xacro:macro name="yumi_mount" params="ns:='yumi_mount' description_package:='moma_description' connected_to:='' rpy:='0 0 0' xyz:='0 0 0' ">
+    <xacro:unless value="${connected_to == ''}">
+      <joint name="${ns}_joint" type="fixed">
+        <parent link="${connected_to}"/>
+        <child link="${ns}_base_link"/>
+        <origin xyz="${xyz}" rpy="${rpy}"/>
+      </joint>
+    </xacro:unless>
+
+    <link name="${ns}_base_link"/>
+      <joint name="${ns}_base_joint" type="fixed">
+        <parent link="${ns}_base_link" />
+        <child link="${ns}_link" />
+        <origin rpy="0 0 ${pi/2}"/>
+      </joint>
+
+    <link name="${ns}_link">
+      <visual>
+        <geometry>
+          <mesh filename="package://${description_package}/meshes/ridgeback_yumi_mount.dae"/>
+        </geometry>
+      </visual>
+      <collision>
+        <geometry>
+          <mesh filename="package://${description_package}/meshes/ridgeback_yumi_mount.dae"/>
+        </geometry>
+      </collision>
+    </link>
+
+  </xacro:macro>
+</robot>

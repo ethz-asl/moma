@@ -1,7 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="mopa">
+
+  <!-- Ridgeback -->
   <xacro:include filename="$(find moma_description)/urdf/ridgeback.xacro"/>
-  <xacro:include filename="$(find moma_description)/urdf/panda.xacro"/>
   <xacro:ridgeback/>
-  <xacro:panda connected_to="top_link" xyz="0.2 0 0.3" />
+
+  <!-- Panda mount -->
+  <xacro:include
+    filename="$(find moma_description)/urdf/mounts/panda_mount.urdf.xacro"/>
+  <xacro:panda_mount connected_to="mid_mount" />
+
+  <!-- Panda -->
+  <xacro:property name="mid_mount_to_panda_xyz" value="0.317 0 0.44" />
+  <xacro:property name="mid_mount_to_panda_rpy" value="0 0 0" />
+  <xacro:include filename="$(find moma_description)/urdf/panda.xacro"/>
+  <xacro:panda connected_to="mid_mount"
+    rpy="${mid_mount_to_panda_rpy}" xyz="${mid_mount_to_panda_xyz}"/>
+
 </robot>

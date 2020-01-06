@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="utf-8"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="panda_mount">
+  <xacro:macro name="panda_mount" params="ns:='panda_mount' use_top_plate='true' connected_to:='' xyz:='0.009 0 0' rpy:='0 0 0'">
+
+    <!-- Define colors -->
+    <material name="silver_alu"><color rgba="0.75 0.75 0.75 1.0" /></material>
+
+    <!-- YuMi mount -->
+    <xacro:include
+      filename="$(find moma_description)/urdf/mounts/yumi_mount.urdf.xacro"/>
+    <xacro:yumi_mount connected_to="${connected_to}"
+      xyz="${xyz}" rpy="${rpy}" ns="yumi_mount" />
+
+      <joint name="${ns}_base_link_joint" type="fixed">
+        <parent link="yumi_mount_base_link"/>
+        <child link="${ns}_base_link"/>
+        <origin xyz="-0.019 0 0.148" />
+      </joint>
+
+    <link name="${ns}_base_link">
+      <visual>
+        <origin xyz="0.02 0.1195 0.123" />
+        <geometry>
+          <box size="0.04 0.04 0.246"/>
+        </geometry>
+        <material name="silver_alu"/>
+      </visual>
+      <collision>
+        <origin xyz="0.02 0.1195 0.123" />
+        <geometry>
+          <box size="0.04 0.04 0.246"/>
+        </geometry>
+      </collision>
+      <visual>
+        <origin xyz="0.02 -0.1195 0.123" />
+        <geometry>
+          <box size="0.04 0.04 0.246"/>
+        </geometry>
+        <material name="silver_alu"/>
+      </visual>
+      <collision>
+        <origin xyz="0.02 -0.1195 0.123" />
+        <geometry>
+          <box size="0.04 0.04 0.246"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <joint name="${ns}_top_frame_joint" type="fixed">
+      <origin xyz="0.2095 0 0.246" />
+      <parent link="${ns}_base_link"/>
+      <child link="${ns}_top_frame_link"/>
+    </joint>
+
+    <link name="${ns}_top_frame_link">
+      <visual>
+        <origin xyz="0 0.1195 0.02" />
+        <geometry>
+          <box size="0.419 0.04 0.04"/>
+        </geometry>
+        <material name="silver_alu"/>
+      </visual>
+      <collision>
+        <origin xyz="0 0.1195 0.02" />
+        <geometry>
+          <box size="0.419 0.04 0.04"/>
+        </geometry>
+      </collision>
+      <visual>
+        <origin xyz="0 -0.1195 0.02" />
+        <geometry>
+          <box size="0.419 0.04 0.04"/>
+        </geometry>
+        <material name="silver_alu"/>
+      </visual>
+      <collision>
+        <origin xyz="0 -0.1195 0.02" />
+        <geometry>
+          <box size="0.419 0.04 0.04"/>
+        </geometry>
+      </collision>
+
+      <visual>
+        <origin xyz="0.1895 0 0.02" />
+        <geometry>
+          <box size="0.04 0.199 0.04"/>
+        </geometry>
+        <material name="silver_alu"/>
+      </visual>
+      <collision>
+        <origin xyz="0.1895 0 0.02" />
+        <geometry>
+          <box size="0.04 0.199 0.04"/>
+        </geometry>
+      </collision>
+      <visual>
+        <origin xyz="-0.1895 0 0.02" />
+        <geometry>
+          <box size="0.04 0.199 0.04"/>
+        </geometry>
+        <material name="silver_alu"/>
+      </visual>
+      <collision>
+        <origin xyz="-0.1895 0 0.02" />
+        <geometry>
+          <box size="0.04 0.199 0.04"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <joint name="${ns}_front_joint" type="fixed">
+      <origin xyz="0.2095 0 0" />
+      <parent link="${ns}_top_frame_link"/>
+      <child link="${ns}_front_link"/>
+    </joint>
+    <link name="${ns}_front_link">
+      <visual>
+        <origin xyz="-0.02 0.1195 -0.0735" />
+        <geometry>
+          <box size="0.04 0.04 0.147"/>
+        </geometry>
+        <material name="silver_alu"/>
+      </visual>
+      <collision>
+        <origin xyz="-0.02 0.1195 -0.0735" />
+        <geometry>
+          <box size="0.04 0.04 0.147"/>
+        </geometry>
+      </collision>
+      <visual>
+        <origin xyz="-0.02 -0.1195 -0.0735" />
+        <geometry>
+          <box size="0.04 0.04 0.147"/>
+        </geometry>
+        <material name="silver_alu"/>
+      </visual>
+      <collision>
+        <origin xyz="-0.02 -0.1195 -0.0735" />
+        <geometry>
+          <box size="0.04 0.04 0.147"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <joint name="${ns}_mount_center_joint" type="fixed">
+      <origin xyz="0 0 0.04" />
+      <parent link="${ns}_top_frame_link"/>
+      <child link="${ns}_mount_center"/>
+    </joint>
+    <link name="${ns}_mount_center"/>
+
+
+    <xacro:if value="${use_top_plate}">
+
+
+      <joint name="${ns}_top_plate_joint" type="fixed">
+        <origin xyz="0.04 0 0" />
+        <parent link="${ns}_mount_center"/>
+        <child link="${ns}_top_plate"/>
+      </joint>
+
+      <link name="${ns}_top_plate">
+        <visual>
+          <origin xyz="0 0 0.005" />
+          <geometry>
+            <box size="0.34 0.28 0.01"/>
+          </geometry>
+          <material name="silver_alu"/>
+        </visual>
+        <collision>
+          <origin xyz="0 0 0.005" />
+          <geometry>
+            <box size="0.34 0.28 0.01"/>
+          </geometry>
+        </collision>
+      </link>
+
+      <joint name="${ns}_panda_joint" type="fixed">
+        <origin xyz="0.058 0 0" />
+        <parent link="${ns}_top_plate"/>
+        <child link="${ns}_panda_mount"/>
+      </joint>
+      <link name="${ns}_panda_mount"/>
+    </xacro:if>
+
+
+  </xacro:macro>
+
+</robot>
