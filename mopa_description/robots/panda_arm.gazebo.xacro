@@ -27,25 +27,6 @@
     </actuator>
   </transmission>
 
-  <transmission name="${arm_id}_joint2_trans">
-    <type>transmission_interface/SimpleTransmission</type>
-    <joint name="${arm_id}_joint2">
-      <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
-    </joint>
-    <actuator name="${arm_id}_joint2_motor">
-      <mechanicalReduction>1</mechanicalReduction>
-    </actuator>
-  </transmission>
-
-  <transmission name="${arm_id}_joint3_trans">
-    <type>transmission_interface/SimpleTransmission</type>
-    <joint name="${arm_id}_joint3">
-      <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
-    </joint>
-    <actuator name="${arm_id}_joint3_motor">
-      <mechanicalReduction>1</mechanicalReduction>
-    </actuator>
-  </transmission>
 
   <transmission name="${arm_id}_joint4_trans">
     <type>transmission_interface/SimpleTransmission</type>
@@ -57,33 +38,4 @@
     </actuator>
   </transmission>
 
-  <transmission name="${arm_id}_joint5_trans">
-    <type>transmission_interface/SimpleTransmission</type>
-    <joint name="${arm_id}_joint5">
-      <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
-    </joint>
-    <actuator name="${arm_id}_joint5_motor">
-      <mechanicalReduction>1</mechanicalReduction>
-    </actuator>
-  </transmission>
-
-  <transmission name="${arm_id}_joint6_trans">
-    <type>transmission_interface/SimpleTransmission</type>
-    <joint name="${arm_id}_joint6">
-      <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
-    </joint>
-    <actuator name="${arm_id}_joint6_motor">
-      <mechanicalReduction>1</mechanicalReduction>
-    </actuator>
-  </transmission>
-
-  <transmission name="${arm_id}_joint7_trans">
-    <type>transmission_interface/SimpleTransmission</type>
-    <joint name="${arm_id}_joint7">
-      <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
-    </joint>
-    <actuator name="${arm_id}_joint7_motor">
-      <mechanicalReduction>1</mechanicalReduction>
-    </actuator>
-  </transmission>
 </robot>

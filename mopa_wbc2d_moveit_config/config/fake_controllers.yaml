@@ -1,0 +1,11 @@
+controller_list:
+  - name: fake_wbc_controller
+    joints:
+      - world_base_x
+      - world_base_y
+      - world_base_th
+      - panda_joint1
+      - panda_joint4
+  - name: fake_hand_controller
+    joints:
+      - panda_finger_joint1
