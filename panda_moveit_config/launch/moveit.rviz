@@ -4,6 +4,9 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
+        - /Global Options1
+        - /Status1
+        - /MotionPlanning1
         - /MotionPlanning1/Planned Path1
       Splitter Ratio: 0.7425600290298462
     Tree Height: 331
@@ -298,10 +301,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.43479710817337036
+      Pitch: 0.2347971349954605
       Target Frame: panda_base
       Value: XYOrbit (rviz)
-      Yaw: 5.429949760437012
+      Yaw: 6.234951972961426
     Saved: ~
 Window Geometry:
   Displays:

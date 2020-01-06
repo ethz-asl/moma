@@ -7,7 +7,7 @@ import rospy
 from scipy.spatial.transform import Rotation
 
 from grasp_demo.msg import GraspAction, GraspResult
-from panda_control.panda_commander import PandaCommander
+from grasp_demo.panda_commander import PandaCommander
 
 
 def multiply_transforms(A, B):
@@ -16,16 +16,18 @@ def multiply_transforms(A, B):
     return np.r_[rot1.apply(trans2) + trans1, (rot1 * rot2).as_quat()]
 
 
-class GraspActionNode(object):
+class GraspExecutionAction(object):
     def __init__(self):
         self.panda_commander = PandaCommander("panda_arm")
 
-        # Setup action server
         self._as = SimpleActionServer(
-            "grasp_action", GraspAction, execute_cb=self.execute_cb, auto_start=False
+            "grasp_execution_action",
+            GraspAction,
+            execute_cb=self.execute_cb,
+            auto_start=False,
         )
-        self._as.start()
 
+        self._as.start()
         rospy.loginfo("Grasp action server ready")
 
     def execute_cb(self, goal_msg):
@@ -46,21 +48,23 @@ class GraspActionNode(object):
         )
 
         rospy.loginfo("Moving to grasp pose")
-        self.panda_commander.follow_cartesian_waypoints([T_base_grasp])
+        self.panda_commander.goto_pose_target(T_base_grasp, max_velocity_scaling=0.2)
 
         rospy.loginfo("Grasping")
         self.panda_commander.grasp(0.05)
 
         rospy.loginfo("Retrieving object")
-        self.panda_commander.follow_cartesian_waypoints([T_base_pregrasp.tolist()])
+        self.panda_commander.goto_pose_target(
+            T_base_pregrasp.tolist(), max_velocity_scaling=0.2
+        )
 
         self._as.set_succeeded(GraspResult())
 
 
 if __name__ == "__main__":
     try:
-        rospy.init_node("grasp_action_node")
-        GraspActionNode()
+        rospy.init_node("grasp_execution_node")
+        GraspExecutionAction()
         rospy.spin()
     except rospy.ROSInterruptException:
         pass
