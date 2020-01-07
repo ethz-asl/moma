@@ -20,6 +20,7 @@
   <depend>std_srvs</depend>
   <depend>tf2_ros</depend>
   <depend>qtbase5-dev</depend>
+  <depend>gsm_node</depend>
   <build_depend>message_generation</build_depend>
 
   <exec_depend>message_runtime</exec_depend>
