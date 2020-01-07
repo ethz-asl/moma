@@ -48,6 +48,11 @@ def grasp_config_list_to_pose_array(grasp_config_list):
 
 
 class GraspSelectionAction(object):
+    """
+        Send point cloud to GPD, then let the user select one (using rviz) and return the
+        selected grasp pose.
+    """
+
     def __init__(self):
         self._as = SimpleActionServer(
             "grasp_selection_action",

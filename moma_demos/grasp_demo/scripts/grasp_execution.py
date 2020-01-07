@@ -17,6 +17,10 @@ def multiply_transforms(A, B):
 
 
 class GraspExecutionAction(object):
+    """
+        Execute a grasp specified by the action goal using MoveIt.
+    """
+
     def __init__(self):
         self.panda_commander = PandaCommander("panda_arm")
 
