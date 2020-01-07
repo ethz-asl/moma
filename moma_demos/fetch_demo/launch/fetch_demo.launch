@@ -1,6 +1,7 @@
 <?xml version="1.0" ?>
 <launch>
     <arg name="launch_rviz" default="true" />
+    <arg name="semantic_grasping" default="false" />
 
     <!-- Launch GPD -->
     <node name="detect_grasps" pkg="gpd_ros" type="detect_grasps" output="screen">
@@ -13,18 +14,26 @@
 
     <!-- Launch the action nodes -->
     <node pkg="grasp_demo" type="voxbloxpp_scan.py" name="scan_action_node" output="screen"/>
-    <node pkg="grasp_demo" type="grasp_selection.py" name="grasp_selection_action_node" output="screen"/>
     <node pkg="grasp_demo" type="grasp_execution.py" name="grasp_execution_action_node" output="screen"/>
     <node pkg="fetch_demo" type="search_node.py" name="search_action_node" output="screen"/>
     <node pkg="fetch_demo" type="approach_node.py" name="approach_action_node" output="screen"/>
     <node pkg="fetch_demo" type="drop_move_node.py" name="drop_action_node" output="screen"/>
+    <group if="semantic_grasping">
+        <node pkg="grasp_demo" type="semantic_grasp_selection.py" name="semantic_grasp_selection_action_node"
+            output="screen" />
+    </group>
+    <group unless="semantic_grasping">
+        <node pkg="grasp_demo" type="grasp_selection.py" name="grasp_selection_action_node" output="screen"/>
+    </group>
 
     <!-- Launch support nodes -->
     <node pkg="fetch_demo" type="navigation_node.py" name="navigation_action_node" output="screen"/>
     <node pkg="fetch_demo" type="object_detection_node.py" name="object_detection_node" output="screen"/>
 
     <!-- Launch the execution system -->
-    <node pkg="fetch_demo" type="run_sequentially.py" name="commander_node" output="screen"/>
+    <node pkg="fetch_demo" type="run_sequentially.py" name="commander_node" output="screen">
+        <param name="semantic_grasping" value="$(semantic_grasping)" type="bool" />
+    </node>
 
     <!-- Launch RViz -->
     <node if="$(arg launch_rviz)" type="rviz" name="rviz" pkg="rviz" args="-d $(find grasp_demo)/config/rviz.rviz"/>

@@ -25,9 +25,9 @@ SemanticButtonPanel::SemanticButtonPanel(QWidget *parent) : rviz::Panel(parent),
     scan_publisher = node_handle.advertise<std_msgs::Empty>("scan", 1);
     stow_publisher = node_handle.advertise<std_msgs::Empty>("stow", 1);
     reset_publisher = node_handle.advertise<std_msgs::Empty>("reset", 1);
-    instance_subscriber = node_handle.subscribe("/grasp_selection/instances", 1, &SemanticButtonPanel::instancesCallback, this);
+    instance_subscriber = node_handle.subscribe("/commander_node/instances", 1, &SemanticButtonPanel::instancesCallback, this);
 
-    instance_publisher = node_handle.advertise<grasp_demo::Instance>("instance_selected", 1);
+    instance_publisher = node_handle.advertise<grasp_demo::Instance>("selected_instance", 1);
 
     // Setup Panel.
     layout = new QVBoxLayout;
