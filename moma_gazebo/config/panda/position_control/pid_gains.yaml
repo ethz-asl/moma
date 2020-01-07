@@ -7,10 +7,3 @@ gazebo_ros_control:
     panda_joint5: {p: 100, i: 0, d: 10}
     panda_joint6: {p: 100, i: 0, d: 10}
     panda_joint7: {p: 10, i: 0.5, d: 0.1}
-    panda_finger_joint1: {p: 100, i: 0, d: 50}
-    panda_finger_joint2: {p: 100, i: 0, d: 50}
-    front_left_wheel: {p: 1, i: 0.1, d: 0}
-    front_right_wheel: {p: 1, i: 0.1, d: 0}
-    rear_left_wheel: {p: 1, i: 0.1, d: 0}
-    rear_right_wheel: {p: 1, i: 0.1, d: 0}
-    front_rocker: {p: 0, i: 0, d: 0}

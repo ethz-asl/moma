@@ -1,5 +1,3 @@
-# Joint trajectory controller
-gazebo_panda_hardware_interface: PositionJointInterface
 
 franka/controller:
   type: position_controllers/JointTrajectoryController

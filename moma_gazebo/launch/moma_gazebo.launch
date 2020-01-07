@@ -10,27 +10,47 @@ Mobmi and yumi support need to be added by specifying the initial config of yumi
   <arg name="gui" default="true" doc="Starts gazebo gui" />
   <arg name="robot_init_x" default="0" />
   <arg name="robot_init_y" default="0" />
-  <arg name="arm_controllers" default="position_joint_trajectory_controller" />
-  <arg name="hardware_interface" default="PositionJointInterface" />
+  <arg name="arm_controller" default="position" doc="position or velocity"/>
+
   <param name="/use_sim_time" value="true" />
 
   <!-- Panda controller setup -->
   <group if="$(eval arg('robot')=='mopa' or arg('robot')=='panda')">
-    <!-- Load franka PIDs and controllers -->
+    <!-- Load franka PIDs and controllers and launch them -->
     <rosparam command="load" file="$(find moma_gazebo)/config/panda/controllers_common.yaml"/>
+    <rosparam command="load" file="$(find moma_gazebo)/config/panda/pid_gains_common.yaml"/>
 
-    <rosparam command="load" file="$(find moma_gazebo)/config/panda/$(arg arm_controllers)/pid_gains.yaml"/>
-    <rosparam command="load" file="$(find moma_gazebo)/config/panda/$(arg arm_controllers)/controllers.yaml"/>
+    <group if="$(eval arg('arm_controller') == 'position')">
+      <rosparam command="load" file="$(find moma_gazebo)/config/panda/position_control/pid_gains.yaml"/>
+      <rosparam command="load" file="$(find moma_gazebo)/config/panda/position_control/controllers.yaml"/>
+      <node name="franka_controller_spawner" pkg="controller_manager" type="spawner"
+        args="franka/controller
+    		      franka/gripper_action_controller
+              joint_state_controller" />
+    </group>
 
-    <!-- Launch franka controllers -->
-    <node name="franka_controller_spawner" pkg="controller_manager" type="spawner"
-      args="franka/controller
-  		      franka/gripper_action_controller
-            joint_state_controller" />
+    <group if="$(eval arg('arm_controller') == 'velocity')">
+      <rosparam command="load" file="$(find moma_gazebo)/config/panda/velocity_control/pid_gains.yaml"/>
+      <rosparam command="load" file="$(find moma_gazebo)/config/panda/velocity_control/controllers.yaml"/>
+      <node name="franka_controller_spawner" pkg="controller_manager" type="spawner"
+        args="panda/panda_joint1 panda/panda_joint2 panda/panda_joint3
+              panda/panda_joint4 panda/panda_joint5 panda/panda_joint6
+              panda/panda_joint7
+    		      franka/gripper_action_controller
+              joint_state_controller" />
+    </group>
+
 
   </group>
 
   <!-- Load robot description -->
+  <arg name="hardware_interface"
+    if="$(eval arg('arm_controller') == 'position')"
+    value="PositionJointInterface" />
+    <arg name="hardware_interface"
+      if="$(eval arg('arm_controller') == 'velocity')"
+      value="EffortJointInterface" />
+
   <param name="robot_description" command="$(find xacro)/xacro $(find moma_description)/urdf/$(arg robot).urdf.xacro
     gazebo_panda_hardware_interface:=$(arg hardware_interface)" />
 
@@ -62,6 +82,8 @@ Mobmi and yumi support need to be added by specifying the initial config of yumi
 
   <!-- Launch ridgeback control for mopa and mobmi -->
   <group if="$(eval arg('robot')=='mopa' or arg('robot')=='mobmi')">
+    <rosparam command="load" file="$(find moma_gazebo)/config/ridgeback/pid_gains.yaml"/>
+
     <!-- launch ridgeback control and teleop nodes -->
     <include file="$(find ridgeback_control)/launch/teleop.launch">
       <arg name="joystick" value="false"/>
