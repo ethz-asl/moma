@@ -11,6 +11,7 @@
   <xacro:yumi_mount connected_to="mid_mount" />
 
   <!-- YuMi -->
+  <!-- State of calibration: Never (insert dd.mm.yyyy as soon as calibrated) -->
   <xacro:property name="mid_mount_to_yumi_xyz" value="0.285 0 0.248" />
   <xacro:property name="mid_mount_to_yumi_rpy" value="0 0 0" />
   <xacro:include filename="$(find moma_description)/urdf/yumi.xacro"/>

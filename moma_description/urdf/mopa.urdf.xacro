@@ -11,7 +11,8 @@
   <xacro:panda_mount connected_to="mid_mount" />
 
   <!-- Panda -->
-  <xacro:property name="mid_mount_to_panda_xyz" value="0.317 0 0.44" />
+  <!-- State of calibration: Never (insert dd.mm.yyyy as soon as calibrated) -->
+  <xacro:property name="mid_mount_to_panda_xyz" value="0.317 0 0.443" />
   <xacro:property name="mid_mount_to_panda_rpy" value="0 0 0" />
   <xacro:include filename="$(find moma_description)/urdf/panda.xacro"/>
   <xacro:panda connected_to="mid_mount"
