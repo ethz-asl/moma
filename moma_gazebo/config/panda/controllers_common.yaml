@@ -1,0 +1,8 @@
+# Publish transforms for any moving joints
+joint_state_controller:
+  type: "joint_state_controller/JointStateController"
+  publish_rate: 50
+
+franka/gripper_action_controller:
+  type: "position_controllers/GripperActionController"
+  joint: panda_finger_joint1

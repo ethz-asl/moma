@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="panda">
   <link name="world" />
+  <xacro:arg name="gazebo_panda_hardware_interface"
+    default="PositionJointInterface"/>
   <xacro:include filename="$(find moma_description)/urdf/panda.xacro"/>
-  <xacro:panda connected_to="world"/>
+  <xacro:panda connected_to="world" hardware_interface="$(arg gazebo_panda_hardware_interface)"/>
 
   <gazebo>
     <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
