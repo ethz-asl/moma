@@ -2,19 +2,15 @@
 
 Work in progress.
 
-To launch a simulation and some standard trajectory following controllers, run
+To launch a gazebo simulation and some standard trajectory following controllers, run
 
 ```
-roslaunch mopa_control gazebo.launch
+roslaunch moma_gazebo moma_gazebo.launch robot:=<robot_name>
 ```
+where <robot_name> in {panda, mopa, yumi (TODO), mobmi (TODO)}.
 
-To launch a simulation together with MoveIt for motion planning, run
 
-```
-roslaunch moma_bringup gazebo_moveit.launch
-```
-
-## TODO
+## OLD TODOs (might be outdated)
 
 - [x] Check if we can move gripper
 - [ ] Make second gripper to move the actuated one in gazebo.
