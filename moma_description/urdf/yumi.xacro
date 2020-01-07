@@ -7,7 +7,7 @@
     <xacro:include filename="$(find yumi_description)/urdf/Util/utilities.xacro"/>
     <xacro:include filename="$(find yumi_description)/urdf/yumi.xacro"/>
     <xacro:yumi name="yumi" hardware_interface="PositionJointInterface" parent="yumi_mount_link">
-      <origin/>  <!-- this has no effect -->
+      <origin/>
     </xacro:yumi>
 
     <xacro:unless value="${not connected_to}">
@@ -27,7 +27,13 @@
       <origin xyz="0 0 0.007" rpy="0 0 ${pi}"/>
     </xacro:yumi_servo_gripper>
 
-    <!-- TODO(mbreyer) mount pico flexx and chameleon -->
+    <!-- Mount pico flexx -->
+    <xacro:include filename="$(find moma_description)/urdf/pico_flexx.xacro"/>
+    <xacro:pico_flexx ns="yumi_r" connected_to="yumi_link_7_r" rpy="-0.22930307 -0.01920052 -0.00072021" xyz="-0.00152 -0.0601 0.0475"/>
+
+    <!-- Mount chameleon -->
+    <xacro:include filename="$(find moma_description)/urdf/chameleon.xacro"/>
+    <xacro:chameleon ns="yumi_r" connected_to="yumi_link_7_r" rpy="0.2542769 -0.00998312 -3.13862441" xyz="0.00114 -0.0911 0.0690"/>
 
   </xacro:macro>
 </robot>
