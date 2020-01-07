@@ -4,5 +4,37 @@
   <xacro:include filename="$(find moma_description)/urdf/panda.xacro"/>
   <xacro:panda connected_to="world"/>
 
-  
+  <gazebo>
+    <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
+      <robotNamespace>/</robotNamespace>
+    </plugin>
+  </gazebo>
+
+  <!-- NOTE from Julien: Recommending to spawn a table separately, not here -->
+  <!-- Add a table to avoid collisions with it -->
+  <!-- <link name="table_link">
+    <inertial>
+      <origin xyz="0 0 0.5" rpy="0 0 0"/>
+      <mass value="1"/>
+      <inertia ixx="100"  ixy="0"  ixz="0" iyy="100" iyz="0" izz="100" />
+    </inertial>
+    <visual>
+      <geometry>
+        <box size="1.0 0.8 0.3" />
+      </geometry>
+      <material name="magic">
+        <color rgba="0 0.625 0.625 0.625"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="1.0 0.8 0.3" />
+      </geometry>
+    </collision>
+ </link>
+ <joint name="table_joint" type="fixed">
+    <parent link="world"/>
+    <child link="table_link"/>
+    <origin rpy="0.0 0.0 0.0" xyz="0.65 0.0 0.0"/>
+  </joint> -->
 </robot>

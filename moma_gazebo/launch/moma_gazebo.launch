@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 
-<!-- NOTE: Mopa works fine. Panda in standalone mode collapses for some reason, no controllers spawned?
+<!-- NOTE: Mopa and panda work fine.
 Mobmi and yumi support need to be added by specifying the initial config of yumi and loading the controllers. -->
 
 <launch>

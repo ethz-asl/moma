@@ -3,4 +3,13 @@
   <link name="base_link"/>
   <xacro:include filename="$(find moma_description)/urdf/yumi.xacro"/>
   <xacro:yumi connected_to="base_link"/>
+
+  <!-- NOTE: franka_ros did not include gazebo tag for roscontrol plugin, it might be that
+  including this tag is necessary for yumi as well (in case that the arm just drop
+  even if the controllers were spawned with the controller manager).
+  <gazebo>
+    <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
+      <robotNamespace>/</robotNamespace>
+    </plugin>
+  </gazebo> -->
 </robot>
