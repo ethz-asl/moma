@@ -5,7 +5,7 @@
 [submodule "ridgeback"]
 	path = submodules/ridgeback
 	url = git@github.com:ethz-asl/ridgeback.git
-	branch = asl-devel
+	branch = kinetic-devel
 [submodule "realsense-ros"]
 	path = submodules/realsense-ros
 	url = git@github.com:IntelRealSense/realsense-ros.git
