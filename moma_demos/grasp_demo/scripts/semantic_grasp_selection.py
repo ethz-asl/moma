@@ -13,7 +13,7 @@ from grasp_demo.msg import SemanticSelectGraspAction, SemanticSelectGraspResult
 from moma_utils.transform import Transform, Rotation
 from moma_utils.ros_conversions import from_point_msg, from_pose_msg, to_pose_msg
 from grasp_selection import grasp_config_list_to_pose_array, SelectGraspAction
-from gsm_node.msg import GetAlignedInstanceBoundingBox
+from vpp_msgs.srv import GetAlignedInstanceBoundingBox
 
 
 class SemanticGraspSelectionAction(object):
@@ -43,7 +43,6 @@ class SemanticGraspSelectionAction(object):
         )
 
         bbox_service_name = "gsm_node/get_aligned_instance_bbox"
-        rospy.wait_for_service(bbox_service_name)
         self.instance_bounding_box_service = rospy.ServiceProxy(
             bbox_service_name, GetAlignedInstanceBoundingBox
         )
@@ -89,7 +88,7 @@ class SemanticGraspSelectionAction(object):
 if __name__ == "__main__":
     try:
         rospy.init_node("semantic_grasp_selection_action_node")
-        SemanticGraspSelectionAction()
+        action = SemanticGraspSelectionAction()
         rospy.spin()
     except rospy.ROSInterruptException:
         pass

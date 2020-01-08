@@ -24,7 +24,7 @@ from grasp_demo.msg import (
     GraspGoal,
 )
 from std_msgs.msg import Empty
-from gsm_node.srv import GetListSemanticInstances
+from vpp_msgs.srv import GetListSemanticInstances
 
 WAIT_FOR_ENTER = True
 
