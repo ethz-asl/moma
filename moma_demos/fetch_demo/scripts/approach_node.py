@@ -11,6 +11,8 @@ import cv2
 from fetch_demo.msg import ApproachAction, ApproachResult
 from nav_msgs.msg import OccupancyGrid
 
+DEBUG = False
+
 
 class ApproachActionServer:
     """
@@ -41,32 +43,8 @@ class ApproachActionServer:
 
         target_pos = np.array([1276, 2573])
 
-        # Display map
-        plt.imshow(self.map_data, interpolation="nearest")
-        plt.show()
-
         # Find closest free point on map
         assert self.map_data[target_pos[0], target_pos[1]] == 100
-
-        # robot_width_px = int(self.robot_width_m / self.map_resolution)
-
-        # robot_mask = np.zeros((self.map_width, self.map_width))
-        # lower_bound = (self.map_width - robot_width_px) / 2
-        # upper_bound = (self.map_width + robot_width_px) / 2
-        # robot_mask[lower_bound:upper_bound, lower_bound:upper_bound] = 100
-
-        # Shift and rotate robot
-        # angle = np.deg2rad(10.0)
-        # rotation_matrix = np.array(
-        #     [[np.cos(angle), np.sin(angle)], [-np.sin(angle), np.cos(angle)]]
-        # )
-        # robot_mask_transformed = scipy.ndimage.affine_transform(
-        #     robot_mask, rotation_matrix, offset=self.map_width / 2
-        # )
-        # plt.imshow(robot_mask)
-        # plt.show()
-        # plt.imshow(robot_mask_transformed)
-        # plt.show()
 
         first_empty_pos = []
         first_empty_distance = 1000
@@ -109,11 +87,20 @@ class ApproachActionServer:
         direction_vector /= np.linalg.norm(direction_vector)
 
         # Move the found position further away, to account for the robot size
-        robot_goal_pos = first_empty_pos_m + direction_vector * self.robot_width_m * 0.7
+        robot_goal_pos_m = (
+            first_empty_pos_m + direction_vector * self.robot_width_m * 0.7
+        )
+        robot_goal_pos_px = (robot_goal_pos_m - self.map_origin) / self.map_resolution
+
+        if DEBUG:
+            # Display map and the locations we found
+            plt.matshow(self.map_data, interpolation=None)
+            plt.scatter(target_pos[1], target_pos[0], s=50, c="red")
+            plt.scatter(first_empty_pos[1], first_empty_pos[0], s=50, c="cyan")
+            plt.scatter(robot_goal_pos_px[1], robot_goal_pos_px[0], s=50, c="lime")
+            plt.show()
 
         # Move there using the navigation action
-
-        rospy.sleep(2.0)
 
         rospy.loginfo("Finished approach")
         self.action_server.set_succeeded(result)
@@ -134,6 +121,32 @@ class ApproachActionServer:
 
         self.map_data = np.array(msg.data)
         self.map_data = np.reshape(self.map_data, (self.map_width, self.map_width))
+
+    def construct_robot_mask(self):
+        """
+            This function is currently not in use. Would be useful if we want to check in the
+            future whether the robot actually can be positioned there collision free. 
+        """
+
+        robot_width_px = int(self.robot_width_m / self.map_resolution)
+
+        robot_mask = np.zeros((self.map_width, self.map_width))
+        lower_bound = (self.map_width - robot_width_px) / 2
+        upper_bound = (self.map_width + robot_width_px) / 2
+        robot_mask[lower_bound:upper_bound, lower_bound:upper_bound] = 100
+
+        # Shift and rotate robot
+        angle = np.deg2rad(10.0)
+        rotation_matrix = np.array(
+            [[np.cos(angle), np.sin(angle)], [-np.sin(angle), np.cos(angle)]]
+        )
+        robot_mask_transformed = scipy.ndimage.affine_transform(
+            robot_mask, rotation_matrix, offset=self.map_width / 2
+        )
+        plt.imshow(robot_mask)
+        plt.show()
+        plt.imshow(robot_mask_transformed)
+        plt.show()
 
 
 def main():
