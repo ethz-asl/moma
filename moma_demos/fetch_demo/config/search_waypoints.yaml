@@ -4,5 +4,6 @@ search_waypoints:
     - [0, 0, 0]
   loop:
     - [0, 0, 0]
+    - [0, 0, 0]
 
 

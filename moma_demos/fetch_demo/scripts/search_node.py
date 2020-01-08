@@ -42,6 +42,7 @@ class SearchActionServer:
                 return
 
         while True:
+            # TODO: Stop iterating the waypoints when the object is detected.
             for waypoint in self._loop_waypoints:
                 if not self._visit_waypoint(waypoint):
                     return
@@ -50,7 +51,7 @@ class SearchActionServer:
 
     def _visit_waypoint(self, waypoint):
         """ Calls move_base to visit the given waypoint.
-            returns bool if the moving succeeded, false otherwise. """
+            returns true if the moving succeeded, false otherwise. """
         if self.action_server.is_preempt_requested():
             rospy.loginfo("Search action got pre-empted")
             self.action_server.set_preempted()
