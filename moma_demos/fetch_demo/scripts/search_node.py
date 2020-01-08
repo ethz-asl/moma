@@ -75,7 +75,7 @@ class SearchActionServer:
         if state is not GoalStatus.SUCCEEDED:
             return False
 
-        rospy.info("Reached waypoint {}".format(waypoint))
+        rospy.loginfo("Reached waypoint {}".format(waypoint))
         rospy.sleep(0.5)
         return True
 
