@@ -38,13 +38,27 @@ class SearchActionServer:
         result = SearchResult()
 
         for waypoint in self._initial_waypoints:
+            if self.action_server.is_preempt_requested():
+                rospy.loginfo("Search action got pre-empted")
+                self.action_server.set_preempted()
+                return
+
             if not self._visit_waypoint(waypoint):
+                self.action_server.set_aborted()
+                rospy.error("Failed to reach waypoint {}".format(waypoint))
                 return
 
         while True:
             # TODO: Stop iterating the waypoints when the object is detected.
             for waypoint in self._loop_waypoints:
+                if self.action_server.is_preempt_requested():
+                    rospy.loginfo("Search action got pre-empted")
+                    self.action_server.set_preempted()
+                    return
+
                 if not self._visit_waypoint(waypoint):
+                    self.action_server.set_aborted()
+                    rospy.error("Failed to reach waypoint {}".format(waypoint))
                     return
 
         self.action_server.set_succeeded(result)
@@ -52,10 +66,6 @@ class SearchActionServer:
     def _visit_waypoint(self, waypoint):
         """ Calls move_base to visit the given waypoint.
             returns true if the moving succeeded, false otherwise. """
-        if self.action_server.is_preempt_requested():
-            rospy.loginfo("Search action got pre-empted")
-            self.action_server.set_preempted()
-            return False
         pose = self._waypoint_to_pose_msg(waypoint)
         navigation_goal = MoveBaseGoal(target_pose=pose)
         self.move_base_client.send_goal(navigation_goal)
@@ -63,8 +73,6 @@ class SearchActionServer:
 
         state = self.move_base_client.get_state()
         if state is not GoalStatus.SUCCEEDED:
-            rospy.error("Failed to reached waypoint {}".format(waypoint))
-            self.action_server.set_aborted()
             return False
 
         rospy.info("Reached waypoint {}".format(waypoint))
