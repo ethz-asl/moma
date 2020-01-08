@@ -57,7 +57,7 @@ class SemanticGraspSelectionAction(object):
     def _set_grasping_workspace(self, instance_id):
         response = self.instance_bounding_box_service(instance_id)
         pose = response.bbox.pose
-        dimensions = reponse.bbox.dimensions
+        dimensions = response.bbox.dimensions
 
         vertices = np.zeros((8, 3))
         x = np.array([1.0, 0.0, 0.0]) * dimensions[0]
