@@ -3,7 +3,7 @@ import actionlib
 from fetch_demo.msg import SearchAction, SearchResult
 import rospy
 import numpy as np
-import quaternion
+from scipy.spatial.transform import Rotation
 from std_msgs.msg import Header
 from geometry_msgs.msg import PoseStamped
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
@@ -72,16 +72,16 @@ class SearchActionServer:
         return True
 
     def _waypoint_to_pose_msg(self, waypoint):
-        orn = quaternion.from_euler_angles([0.0, 0.0, np.deg2rad(waypoint[2])])
+        orn = Rotation.from_euler("z", np.deg2rad(waypoints[2])).as_quat()
         msg = PoseStamped()
         msg.header.stamp = rospy.Time.now()
         msg.pose.x = waypoint[0]
         msg.pose.y = waypoint[1]
         msg.pose.z = 0.0
-        msg.orientation.x = orn.x
-        msg.orientation.y = orn.y
-        msg.orientation.z = orn.z
-        msg.orientation.w = orn.w
+        msg.orientation.x = orn[0]
+        msg.orientation.y = orn[1]
+        msg.orientation.z = orn[2]
+        msg.orientation.w = orn[3]
         return msg
 
 
