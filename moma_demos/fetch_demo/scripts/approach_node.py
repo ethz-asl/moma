@@ -10,6 +10,10 @@ import cv2
 
 from fetch_demo.msg import ApproachAction, ApproachResult
 from nav_msgs.msg import OccupancyGrid
+from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
+from actionlib_msgs.msg import GoalStatus
+
+from moma_utils.ros_conversions import waypoint_to_pose_msg
 
 DEBUG = False
 
@@ -26,6 +30,12 @@ class ApproachActionServer:
         rospy.Subscriber("/map", OccupancyGrid, self.map_cb)
         self.map = None
 
+        # Connection to navigation stack
+        self.move_base_client = actionlib.SimpleActionClient(
+            "move_base", MoveBaseAction
+        )
+        self.move_base_client.wait_for_server()
+
         # Launch action server
         action_name = "approach_action"
         self.action_server = actionlib.SimpleActionServer(
@@ -41,48 +51,51 @@ class ApproachActionServer:
         rospy.loginfo("Start approaching object")
         result = ApproachResult()
 
-        target_pos = np.array([1276, 2573])
+        target_pos_px = np.array([1276, 2573])
 
         # Find closest free point on map
-        assert self.map_data[target_pos[0], target_pos[1]] == 100
+        assert self.map_data[target_pos_px[0], target_pos_px[1]] == 100
 
-        first_empty_pos = []
+        first_empty_pos_px = []
         first_empty_distance = 1000
         found_first_empty_pos = False
         for radius in range(1, 100):
-            for x_idx in range(target_pos[0] - radius, target_pos[0] + radius + 1):
-                if x_idx == target_pos[0] - radius or x_idx == target_pos[0] + radius:
+            for x_idx in range(
+                target_pos_px[0] - radius, target_pos_px[0] + radius + 1
+            ):
+                if (
+                    x_idx == target_pos_px[0] - radius
+                    or x_idx == target_pos_px[0] + radius
+                ):
                     # In the first and last column, iterate through everything
                     y_idx_range = range(
-                        target_pos[1] - radius, target_pos[1] + radius + 1
+                        target_pos_px[1] - radius, target_pos_px[1] + radius + 1
                     )
                 else:
                     # Only check first and last value
-                    y_idx_range = [target_pos[1] - radius, target_pos[1] + radius]
+                    y_idx_range = [target_pos_px[1] - radius, target_pos_px[1] + radius]
 
                 for y_idx in y_idx_range:
                     if self.map_data[x_idx, y_idx] == 0:
                         # We found an empty pixel, save its target distance
                         distance_to_target = np.linalg.norm(
-                            np.array([x_idx, y_idx]) - np.array(target_pos)
+                            np.array([x_idx, y_idx]) - np.array(target_pos_px)
                         )
                         if distance_to_target < first_empty_distance:
                             found_first_empty_pos = True
                             first_empty_distance = distance_to_target
-                            first_empty_pos = [x_idx, y_idx]
+                            first_empty_pos_px = [x_idx, y_idx]
 
-                        # Now check if the robot can be placed here
-                        # for distance in range(robot_width_px / 2, robot_width_px):
-                        #     pass
+                        # TODO Now check if the robot can be placed here
             if found_first_empty_pos:
                 break
-        assert len(first_empty_pos) == 2
+        assert len(first_empty_pos_px) == 2
 
         # Convert the found location from image coordinates to map frame
         first_empty_pos_m = (
-            np.array(first_empty_pos) * self.map_resolution + self.map_origin
+            np.array(first_empty_pos_px) * self.map_resolution + self.map_origin
         )
-        target_pos_m = np.array(target_pos) * self.map_resolution + self.map_origin
+        target_pos_m = np.array(target_pos_px) * self.map_resolution + self.map_origin
         direction_vector = first_empty_pos_m - target_pos_m
         direction_vector /= np.linalg.norm(direction_vector)
 
@@ -95,12 +108,19 @@ class ApproachActionServer:
         if DEBUG:
             # Display map and the locations we found
             plt.matshow(self.map_data, interpolation=None)
-            plt.scatter(target_pos[1], target_pos[0], s=50, c="red")
-            plt.scatter(first_empty_pos[1], first_empty_pos[0], s=50, c="cyan")
+            plt.scatter(target_pos_px[1], target_pos_px[0], s=50, c="red")
+            plt.scatter(first_empty_pos_px[1], first_empty_pos_px[0], s=50, c="cyan")
             plt.scatter(robot_goal_pos_px[1], robot_goal_pos_px[0], s=50, c="lime")
             plt.show()
 
         # Move there using the navigation action
+        # TODO verify that this yaw angle is correct.
+        yaw = np.arctan2(-direction_vector[1], -direction_vector[0])
+        # Negative sign for direction_vector because we want vector from robot position to object position
+        waypoint = np.hstack((robot_goal_pos_m, np.rad2deg(yaw)))
+        # TODO verify whether waypoint is in the correct frame.
+        if not self._visit_waypoint(waypoint):
+            return
 
         rospy.loginfo("Finished approach")
         self.action_server.set_succeeded(result)
@@ -122,7 +142,28 @@ class ApproachActionServer:
         self.map_data = np.array(msg.data)
         self.map_data = np.reshape(self.map_data, (self.map_width, self.map_width))
 
-    def construct_robot_mask(self):
+    def _visit_waypoint(self, waypoint):
+        pose = waypoint_to_pose_msg(waypoint)
+        navigation_goal = MoveBaseGoal(target_pose=pose)
+        self.move_base_client.send_goal(navigation_goal)
+        state = GoalStatus.PENDING
+        while state == GoalStatus.PENDING or state == GoalStatus.ACTIVE:
+            if self.action_server.is_preempt_requested():
+                self.move_base_client.cancel_all_goals()
+                self.action_server.set_preempted()
+                return False
+            rospy.sleep(0.5)
+            state = self.move_base_client.get_state()
+
+        if state is not GoalStatus.SUCCEEDED:
+            rospy.logerr("Failed to navigate to approach waypoint.")
+            self.action_server.set_aborted()
+            return False
+
+        rospy.loginfo("Reached approach waypoint.")
+        return True
+
+    def _construct_robot_mask(self):
         """
             This function is currently not in use. Would be useful if we want to check in the
             future whether the robot actually can be positioned there collision free. 
