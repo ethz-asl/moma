@@ -2,7 +2,7 @@
 
 from actionlib import SimpleActionServer
 import numpy as np
-import quaternion
+from scipy.spatial.transform import Rotation
 from geometry_msgs.msg import PointStamped, Pose, PoseArray, PoseStamped
 from gpd_ros.msg import GraspConfigList
 import rospy
@@ -70,13 +70,15 @@ class SemanticGraspSelectionAction(object):
                 for k in range(0, 2):
                     v_index = i * 4 + j * 2 + k
                     vertices[v_index] += base_position + i * x + j * y + k * z
-        rotation = np.quaternion(
-            pose.orientation.w,
-            pose.orientation.x,
-            pose.orientation.y,
-            pose.orientation.z,
+        rotation = Rotation(
+            [
+                pose.orientation.x,
+                pose.orientation.y,
+                pose.orientation.z,
+                pose.orientation.w,
+            ]
         )
-        rotated_vertices = quaternion.rotate_vectors(rotation, vertices)
+        rotated_vertices = rotation.apply(vertices)
 
         lows = np.min(rotated_vertices, axis=0)
         highs = np.max(rotated_vertices, axis=0)
