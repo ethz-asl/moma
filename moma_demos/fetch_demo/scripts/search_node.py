@@ -45,7 +45,7 @@ class SearchActionServer:
 
             if not self._visit_waypoint(waypoint):
                 self.action_server.set_aborted()
-                rospy.error("Failed to reach waypoint {}".format(waypoint))
+                rospy.logerr("Failed to reach waypoint {}".format(waypoint))
                 return
 
         while True:
@@ -58,7 +58,7 @@ class SearchActionServer:
 
                 if not self._visit_waypoint(waypoint):
                     self.action_server.set_aborted()
-                    rospy.error("Failed to reach waypoint {}".format(waypoint))
+                    rospy.logerr("Failed to reach waypoint {}".format(waypoint))
                     return
 
         self.action_server.set_succeeded(result)
@@ -83,13 +83,13 @@ class SearchActionServer:
         orn = Rotation.from_euler("z", np.deg2rad(waypoints[2])).as_quat()
         msg = PoseStamped()
         msg.header.stamp = rospy.Time.now()
-        msg.pose.x = waypoint[0]
-        msg.pose.y = waypoint[1]
-        msg.pose.z = 0.0
-        msg.orientation.x = orn[0]
-        msg.orientation.y = orn[1]
-        msg.orientation.z = orn[2]
-        msg.orientation.w = orn[3]
+        msg.pose.position.x = waypoint[0]
+        msg.pose.position.y = waypoint[1]
+        msg.pose.position.z = 0.0
+        msg.pose.orientation.x = orn[0]
+        msg.pose.orientation.y = orn[1]
+        msg.pose.orientation.z = orn[2]
+        msg.pose.orientation.w = orn[3]
         return msg
 
 
