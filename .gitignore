@@ -10,3 +10,6 @@ venv
 
 # Vim stuff
 *.swp
+
+# Ansible stuff
+*.retry
