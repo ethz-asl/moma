@@ -28,8 +28,7 @@
     </xacro:yumi_servo_gripper>
 
 
-    <!-- Mount pico flexx -->
-        
+    <!-- Mount realsense -->
     <xacro:property name="xyz_yumi_link7_camera_link" value="-0.021534365646869183 -0.098057755914108952 0.069194569224013028"/>
     <xacro:property name="rpy_yumi_link7_camera_link" value="-2.97446 -1.46168 -1.7345"/>
     <xacro:include filename="$(find moma_description)/urdf/realsense.xacro"/>
