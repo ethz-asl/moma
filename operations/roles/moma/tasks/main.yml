@@ -1,0 +1,20 @@
+---
+- name: Update package lists
+  become: yes
+  apt:
+    update_cache: true
+- name: Create workspace src directory
+  file:
+    path: "{{ home_dir }}/catkin_ws/src/"
+    state: directory
+- name: Initialize workspace
+  shell: catkin init
+  args:
+    chdir: "{{ home_dir }}/catkin_ws"
+- name: Copy repository over.
+  git:
+    repo: git@github.com:ethz-asl/moma
+    dest: "{{ home_dir }}/catkin_ws/src/moma"
+    version: master
+    recursive: true
+

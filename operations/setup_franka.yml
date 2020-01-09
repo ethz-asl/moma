@@ -1,0 +1,12 @@
+---
+- hosts: franka-box
+  remote_user: franka
+  vars:
+    - user: franka
+    - home_dir: /home/franka
+  roles:
+    - realsense
+    - ros
+    - franka
+    - moma
+
