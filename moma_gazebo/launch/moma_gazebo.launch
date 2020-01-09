@@ -46,13 +46,7 @@ Mobmi and yumi support need to be added by specifying the initial config of yumi
     <!-- TODO -->
   </group>
 
-  <!-- Launch velocity-to-position controller adapter -->
-  <node if="$(eval arg('arm_controller') == 'velocity')"
-    name="vel_to_pos_controller" pkg="moma_gazebo"
-    type="vel_to_pos_controller_node.py" respawn="false" output="screen">
-    <remap from="vel_to_pos_controller/command_pos_out" to="/franka/controller/command"/>
-  </node>
-  
+
   <!-- Load robot description -->
   <param name="robot_description" command="$(find xacro)/xacro $(find moma_description)/urdf/$(arg robot).urdf.xacro" />
 
@@ -75,6 +69,15 @@ Mobmi and yumi support need to be added by specifying the initial config of yumi
     <!-- TODO -->
   <arg unless="$(eval arg('arm_init_config')=='')"
     name="arm_init_config_gazebo" value="$(arg arm_init_config)"/>
+
+
+  <!-- Launch velocity-to-position controller adapter -->
+  <node if="$(eval arg('arm_controller') == 'velocity')"
+    name="vel_to_pos_controller" pkg="moma_gazebo"
+    type="vel_to_pos_controller_node.py" respawn="false" output="screen">
+    <remap from="vel_to_pos_controller/command_pos_out" to="/franka/controller/command"/>
+    <param name="init_joint_config" value="$(arg arm_init_config_gazebo)"/>
+  </node>
 
   <!-- Spawn robot in gazebo -->
   <node name="spawn_gazebo_model" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen" args="-urdf -param robot_description
