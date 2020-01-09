@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="pico_flexx">
+  <xacro:macro name="pico_flexx" params="ns:='' connected_to:='' rpy:='0 0 0' xyz:='0 0 0'">
+
+    <xacro:unless value="${connected_to == ''}">
+      <joint name="${ns}_pico_flexx_joint" type="fixed">
+        <parent link="${connected_to}"/>
+        <child link="pico_flexx_optical_frame"/>
+        <origin rpy="${rpy}" xyz="${xyz}"/>
+      </joint>
+    </xacro:unless>
+
+    <link name="pico_flexx_optical_frame">
+      <visual>
+        <geometry>
+          <!-- TODO(mbreyer) use CAD model for nicer looks -->
+          <box size="0.14 0.03 0.02"/>
+        </geometry>
+      </visual>
+      <collision>
+        <geometry>
+          <box size="0.14 0.03 0.02"/>
+        </geometry>
+      </collision>
+    </link>
+
+  </xacro:macro>
+</robot> 

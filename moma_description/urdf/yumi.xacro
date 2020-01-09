@@ -7,7 +7,7 @@
     <xacro:include filename="$(find yumi_description)/urdf/Util/utilities.xacro"/>
     <xacro:include filename="$(find yumi_description)/urdf/yumi.xacro"/>
     <xacro:yumi name="yumi" hardware_interface="PositionJointInterface" parent="yumi_mount_link">
-      <origin/>  <!-- this has no effect -->
+      <origin/>
     </xacro:yumi>
 
     <xacro:unless value="${not connected_to}">
@@ -27,7 +27,33 @@
       <origin xyz="0 0 0.007" rpy="0 0 ${pi}"/>
     </xacro:yumi_servo_gripper>
 
-    <!-- TODO(mbreyer) mount pico flexx and chameleon -->
 
+    <!-- Mount realsense -->
+
+    <joint name="realsense_mount_joint" type="fixed">
+        <parent link="yumi_link_7_r"/>
+        <child link="realsense_mount"/>
+        <origin rpy="0 0 0" xyz="0 -0.06 0.05"/>
+    </joint>
+
+    <link name="realsense_mount">
+      <visual>
+        <geometry>
+          <!-- TODO(mbreyer) use CAD model for nicer looks -->
+          <box size="0.14 0.05 0.04"/>
+        </geometry>
+      </visual>
+      <collision>
+        <geometry>
+          <box size="0.14 0.05 0.04"/>
+        </geometry>
+      </collision>
+    </link>
+
+
+    <xacro:property name="xyz_yumi_link7_camera_link" value="-0.021534365646869183 -0.098057755914108952 0.069194569224013028"/>
+    <xacro:property name="rpy_yumi_link7_camera_link" value="-2.97446 -1.46168 -1.7345"/>
+    <xacro:include filename="$(find moma_description)/urdf/realsense.xacro"/>
+    <xacro:realsense ns="yumi" connected_to="yumi_link_7_r" rpy="${rpy_yumi_link7_camera_link}" xyz="${xyz_yumi_link7_camera_link}"/>
   </xacro:macro>
 </robot>

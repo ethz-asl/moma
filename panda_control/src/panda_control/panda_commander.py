@@ -34,17 +34,23 @@ class PandaCommander(object):
         self.grasp_client.wait_for_server()
         rospy.loginfo("Connected to franka_gripper action servers")
 
-    def goto_joint_target(self, joints, max_velocity_scaling=1.0):
+    def goto_joint_target(
+        self, joints, max_velocity_scaling=1.0, max_acceleration_scaling=1.0
+    ):
         self.move_group.set_max_velocity_scaling_factor(max_velocity_scaling)
+        self.move_group.set_max_acceleration_scaling_factor(max_acceleration_scaling)
         self.move_group.set_joint_value_target(joints)
         plan = self.move_group.plan()
         success = self.move_group.execute(plan, wait=True)
         self.move_group.stop()
         return success
 
-    def goto_pose_target(self, pose, max_velocity_scaling=1.0):
+    def goto_pose_target(
+        self, pose, max_velocity_scaling=1.0, max_acceleration_scaling=1.0
+    ):
         pose_msg = list_to_pose(pose) if type(pose) is list else pose
         self.move_group.set_max_velocity_scaling_factor(max_velocity_scaling)
+        self.move_group.set_max_acceleration_scaling_factor(max_acceleration_scaling)
         self.move_group.set_pose_target(pose_msg)
         plan = self.move_group.plan()
         success = self.move_group.execute(plan, wait=True)
