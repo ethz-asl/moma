@@ -117,6 +117,11 @@ class SequentialRunner:
             result_plan_grasp = self._semantic_grasp(result_scan)
         else:
             result_plan_grasp = self._plain_grasp(result_scan)
+
+        if result_plan_grasp is None:
+            print("Failed to plan a grasp")
+            return
+
         wait_for_enter()
 
         # Execute grasp (input: grasp pose; output: none):
