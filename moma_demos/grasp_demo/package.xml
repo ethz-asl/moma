@@ -13,13 +13,19 @@
   <depend>std_msgs</depend>
   <depend>actionlib</depend>
   <depend>actionlib_msgs</depend>
-  <depend>roscpp</depend>
   <depend>geometry_msgs</depend>
-  <depend>sensor_msgs</depend>
-
+  <depend>gpd_ros</depend>
+  <depend>moma_bringup</depend>
   <depend>qtbase5-dev</depend>
+  <depend>roscpp</depend>
+  <depend>sensor_msgs</depend>
+  <depend>vpp_msgs</depend>
+
+  <exec_depend>realsense2_camera</exec_depend>
   <exec_depend>rviz</exec_depend>
+  
   <export>
     <rviz plugin="${prefix}/plugin_description.xml" />
   </export>
+
 </package>
