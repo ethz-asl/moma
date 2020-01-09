@@ -42,14 +42,7 @@
     <passive_joint name="gripper_r_joint" />
     <passive_joint name="gripper_r_joint_m" />
     <!--DISABLE COLLISIONS: By default it is assumed that any link of the robot could potentially come into collision with any other link in the robot. This tag disables collision checking between a specified pair of links. -->
-    <disable_collisions link1="chameleon_optical_frame" link2="gripper_r_base" reason="Never" />
-    <disable_collisions link1="chameleon_optical_frame" link2="gripper_r_finger_l" reason="Never" />
-    <disable_collisions link1="chameleon_optical_frame" link2="gripper_r_finger_r" reason="Never" />
-    <disable_collisions link1="chameleon_optical_frame" link2="pico_flexx_optical_frame" reason="Default" />
-    <disable_collisions link1="chameleon_optical_frame" link2="yumi_link_3_r" reason="Never" />
-    <disable_collisions link1="chameleon_optical_frame" link2="yumi_link_6_r" reason="Never" />
-    <disable_collisions link1="chameleon_optical_frame" link2="yumi_link_7_l" reason="User" />
-    <disable_collisions link1="chameleon_optical_frame" link2="yumi_link_7_r" reason="Adjacent" />
+    <disable_collisions link1="camera_link" link2="realsense_mount" reason="User" />
     <disable_collisions link1="gripper_l_base" link2="gripper_l_finger_l" reason="Adjacent" />
     <disable_collisions link1="gripper_l_base" link2="gripper_l_finger_r" reason="Adjacent" />
     <disable_collisions link1="gripper_l_base" link2="yumi_link_3_l" reason="Never" />
@@ -72,31 +65,29 @@
     <disable_collisions link1="gripper_l_finger_r" link2="yumi_link_7_r" reason="User" />
     <disable_collisions link1="gripper_r_base" link2="gripper_r_finger_l" reason="Adjacent" />
     <disable_collisions link1="gripper_r_base" link2="gripper_r_finger_r" reason="Adjacent" />
-    <disable_collisions link1="gripper_r_base" link2="pico_flexx_optical_frame" reason="Never" />
+    <disable_collisions link1="gripper_r_base" link2="realsense_mount" reason="User" />
     <disable_collisions link1="gripper_r_base" link2="yumi_link_3_r" reason="Never" />
     <disable_collisions link1="gripper_r_base" link2="yumi_link_4_r" reason="Never" />
     <disable_collisions link1="gripper_r_base" link2="yumi_link_6_r" reason="Never" />
     <disable_collisions link1="gripper_r_base" link2="yumi_link_7_l" reason="Default" />
     <disable_collisions link1="gripper_r_base" link2="yumi_link_7_r" reason="Adjacent" />
     <disable_collisions link1="gripper_r_finger_l" link2="gripper_r_finger_r" reason="Default" />
-    <disable_collisions link1="gripper_r_finger_l" link2="pico_flexx_optical_frame" reason="Never" />
+    <disable_collisions link1="gripper_r_finger_l" link2="realsense_mount" reason="User" />
     <disable_collisions link1="gripper_r_finger_l" link2="yumi_link_3_r" reason="Never" />
     <disable_collisions link1="gripper_r_finger_l" link2="yumi_link_4_r" reason="Never" />
     <disable_collisions link1="gripper_r_finger_l" link2="yumi_link_5_r" reason="Never" />
     <disable_collisions link1="gripper_r_finger_l" link2="yumi_link_6_r" reason="Never" />
     <disable_collisions link1="gripper_r_finger_l" link2="yumi_link_7_l" reason="User" />
     <disable_collisions link1="gripper_r_finger_l" link2="yumi_link_7_r" reason="Never" />
-    <disable_collisions link1="gripper_r_finger_r" link2="pico_flexx_optical_frame" reason="Never" />
+    <disable_collisions link1="gripper_r_finger_r" link2="realsense_mount" reason="User" />
     <disable_collisions link1="gripper_r_finger_r" link2="yumi_link_3_r" reason="Never" />
     <disable_collisions link1="gripper_r_finger_r" link2="yumi_link_4_r" reason="Never" />
     <disable_collisions link1="gripper_r_finger_r" link2="yumi_link_5_r" reason="Never" />
     <disable_collisions link1="gripper_r_finger_r" link2="yumi_link_6_r" reason="Never" />
     <disable_collisions link1="gripper_r_finger_r" link2="yumi_link_7_l" reason="User" />
     <disable_collisions link1="gripper_r_finger_r" link2="yumi_link_7_r" reason="Never" />
-    <disable_collisions link1="pico_flexx_optical_frame" link2="yumi_link_3_r" reason="Never" />
-    <disable_collisions link1="pico_flexx_optical_frame" link2="yumi_link_6_r" reason="Never" />
-    <disable_collisions link1="pico_flexx_optical_frame" link2="yumi_link_7_l" reason="User" />
-    <disable_collisions link1="pico_flexx_optical_frame" link2="yumi_link_7_r" reason="Adjacent" />
+    <disable_collisions link1="realsense_mount" link2="yumi_link_6_r" reason="User" />
+    <disable_collisions link1="realsense_mount" link2="yumi_link_7_r" reason="User" />
     <disable_collisions link1="yumi_body" link2="yumi_link_1_l" reason="Adjacent" />
     <disable_collisions link1="yumi_body" link2="yumi_link_1_r" reason="Adjacent" />
     <disable_collisions link1="yumi_body" link2="yumi_link_7_l" reason="User" />
