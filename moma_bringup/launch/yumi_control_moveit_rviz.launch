@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <launch>
 
-  <arg name="rviz" default="true"/>
+  <arg name="launch_rviz" default="true"/>
 
   <!-- Launch Yumi drivers -->
   <include file="$(find yumi_support)/launch/robot_interface.launch"/>
@@ -17,7 +17,7 @@
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="true" output="screen"/>
 
   <!-- Launch rviz if requested -->
-  <include if="$(arg rviz)" file="$(find yumi_moveit_config)/launch/moveit_rviz.launch">
+  <include if="$(arg launch_rviz)" file="$(find yumi_moveit_config)/launch/moveit_rviz.launch">
     <arg name="rviz_config" value="$(find yumi_moveit_config)/launch/moveit.rviz" />
   </include>
 
