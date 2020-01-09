@@ -48,7 +48,10 @@ Mobmi and yumi support need to be added by specifying the initial config of yumi
 
 
   <!-- Load robot description -->
-  <param name="robot_description" command="$(find xacro)/xacro $(find moma_description)/urdf/$(arg robot).urdf.xacro" />
+  <param name="robot_description" command="
+    $(find ridgeback_description)/scripts/env_run
+    $(find ridgeback_description)/urdf/configs/dual_hokuyo_lasers
+    $(find xacro)/xacro $(find moma_description)/urdf/$(arg robot).urdf.xacro" />
 
   <!-- Launch gazebo world -->
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
@@ -87,9 +90,8 @@ Mobmi and yumi support need to be added by specifying the initial config of yumi
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher" />
 
   <!-- Launch ridgeback control for mopa and mobmi -->
-  <group if="$(eval arg('robot')=='mopa' or arg('robot')=='mobmi')">
+  <group if="$(eval arg('robot')=='mopa' or arg('robot')=='mobmi' or arg('robot')=='ridgeback')">
     <rosparam command="load" file="$(find moma_gazebo)/config/ridgeback/pid_gains.yaml"/>
-
     <!-- launch ridgeback control and teleop nodes -->
     <include file="$(find ridgeback_control)/launch/teleop.launch">
       <arg name="joystick" value="false"/>
