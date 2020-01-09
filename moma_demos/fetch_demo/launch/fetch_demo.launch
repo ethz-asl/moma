@@ -1,6 +1,15 @@
 <?xml version="1.0" ?>
 <launch>
     <arg name="launch_rviz" default="true" />
+    <arg name="map_file" default="TODO"/>
+
+    <!-- Rigeback navigation -->
+    <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)" />
+    <include file="$(find ridgeback_navigation)/launch/include/amcl.launch" />
+    <include file="$(find ridgeback_navigation)/launch/include/move_base.launch" />
+
+    <!-- Read waypoints for approach action -->
+    <rosparam command="load" file="$(find fetch_demo)/config/search_waypoints.yaml" />
 
     <!-- Launch GPD -->
     <node name="detect_grasps" pkg="gpd_ros" type="detect_grasps" output="screen">

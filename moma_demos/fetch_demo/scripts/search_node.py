@@ -1,8 +1,12 @@
 #!/usr/bin/env python
-
 import actionlib
 from fetch_demo.msg import SearchAction, SearchResult
 import rospy
+import numpy as np
+from scipy.spatial.transform import Rotation
+from std_msgs.msg import Header
+from geometry_msgs.msg import PoseStamped
+from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 
 
 class SearchActionServer:
@@ -14,27 +18,79 @@ class SearchActionServer:
 
     def __init__(self):
         action_name = "search_action"
+        self._read_waypoints()
         self.action_server = actionlib.SimpleActionServer(
             action_name, SearchAction, execute_cb=self.search_cb, auto_start=False
         )
         self.action_server.start()
         rospy.loginfo("Search action server started.")
+        self.move_base_client = actionlib.SimpleActionClient(
+            "move_base", MoveBaseAction
+        )
+
+    def _read_waypoints(self):
+        waypoints = rospy.get_param("search_waypoints")
+        self._initial_waypoints = waypoints["initial"]
+        self._loop_waypoints = waypoints["loop"]
 
     def search_cb(self, msg):
         rospy.loginfo("Start following search waypoints")
         result = SearchResult()
 
-        for i in range(3):
+        for waypoint in self._initial_waypoints:
             if self.action_server.is_preempt_requested():
-                rospy.loginfo("Got preempted")
+                rospy.loginfo("Search action got pre-empted")
                 self.action_server.set_preempted()
                 return
 
-            # Go to waypoint i using the navigation action
-            rospy.sleep(1.0)
+            if not self._visit_waypoint(waypoint):
+                self.action_server.set_aborted()
+                rospy.logerr("Failed to reach waypoint {}".format(waypoint))
+                return
 
-        rospy.loginfo("Reached last waypoint")
+        while True:
+            # TODO: Stop iterating the waypoints when the object is detected.
+            for waypoint in self._loop_waypoints:
+                if self.action_server.is_preempt_requested():
+                    rospy.loginfo("Search action got pre-empted")
+                    self.action_server.set_preempted()
+                    return
+
+                if not self._visit_waypoint(waypoint):
+                    self.action_server.set_aborted()
+                    rospy.logerr("Failed to reach waypoint {}".format(waypoint))
+                    return
+
         self.action_server.set_succeeded(result)
+
+    def _visit_waypoint(self, waypoint):
+        """ Calls move_base to visit the given waypoint.
+            returns true if the moving succeeded, false otherwise. """
+        pose = self._waypoint_to_pose_msg(waypoint)
+        navigation_goal = MoveBaseGoal(target_pose=pose)
+        self.move_base_client.send_goal(navigation_goal)
+        self.move_base_client.wait_for_result()
+
+        state = self.move_base_client.get_state()
+        if state is not GoalStatus.SUCCEEDED:
+            return False
+
+        rospy.loginfo("Reached waypoint {}".format(waypoint))
+        rospy.sleep(0.5)
+        return True
+
+    def _waypoint_to_pose_msg(self, waypoint):
+        orn = Rotation.from_euler("z", np.deg2rad(waypoints[2])).as_quat()
+        msg = PoseStamped()
+        msg.header.stamp = rospy.Time.now()
+        msg.pose.position.x = waypoint[0]
+        msg.pose.position.y = waypoint[1]
+        msg.pose.position.z = 0.0
+        msg.pose.orientation.x = orn[0]
+        msg.pose.orientation.y = orn[1]
+        msg.pose.orientation.z = orn[2]
+        msg.pose.orientation.w = orn[3]
+        return msg
 
 
 def main():
