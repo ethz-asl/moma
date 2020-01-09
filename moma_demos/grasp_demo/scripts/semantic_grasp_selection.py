@@ -16,7 +16,7 @@ from grasp_selection import grasp_config_list_to_pose_array, SelectGraspAction
 from vpp_msgs.srv import GetAlignedInstanceBoundingBox
 
 
-class SemanticGraspSelectionAction(object):
+class SemanticGraspSelectionAction(GraspSelectionAction):
     """
         Sets the GPD workspace based on the object instances location. Queries GPD for
         grasp candidates and let's the user select on from rviz.
