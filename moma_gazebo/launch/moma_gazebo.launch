@@ -62,7 +62,7 @@ Mobmi and yumi support need to be added by specifying the initial config of yumi
     value=" -J panda_joint1 0   -J panda_joint2 -0.785
             -J panda_joint3 0   -J panda_joint4 -2.1
             -J panda_joint5 0   -J panda_joint6 1.571
-            -J panda_joint7 0.785 -unpause"/>
+            -J panda_joint7 0.785"/>
 
     <!-- Define initial configuration for yumi arm -->
     <!-- TODO -->
@@ -72,7 +72,7 @@ Mobmi and yumi support need to be added by specifying the initial config of yumi
   <!-- Spawn robot in gazebo -->
   <node name="spawn_gazebo_model" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen" args="-urdf -param robot_description
       -model $(arg robot) -z 0.03 -x $(arg robot_init_x) -y $(arg robot_init_y)
-      $(arg arm_init_config_gazebo)" />
+      $(arg arm_init_config_gazebo) -unpause" />
 
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher" />
 
