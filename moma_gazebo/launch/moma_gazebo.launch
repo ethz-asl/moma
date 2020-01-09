@@ -39,13 +39,20 @@ Mobmi and yumi support need to be added by specifying the initial config of yumi
 
   </group>
 
+
   <!-- Yumi controller setup -->
   <group if="$(eval arg('robot')=='mobmi' or arg('robot')=='yumi')">
     <!-- Load franka PIDs and controllers and launch them -->
     <!-- TODO -->
   </group>
 
-
+  <!-- Launch velocity-to-position controller adapter -->
+  <node if="$(eval arg('arm_controller') == 'velocity')"
+    name="vel_to_pos_controller" pkg="moma_gazebo"
+    type="vel_to_pos_controller_node.py" respawn="false" output="screen">
+    <remap from="vel_to_pos_controller/command_pos_out" to="/franka/controller/command"/>
+  </node>
+  
   <!-- Load robot description -->
   <param name="robot_description" command="$(find xacro)/xacro $(find moma_description)/urdf/$(arg robot).urdf.xacro" />
 
@@ -98,10 +105,5 @@ Mobmi and yumi support need to be added by specifying the initial config of yumi
   </group>
 
 
-  <!-- Launch velocity-to-position controller adapter -->
-  <node if="$(eval arg('arm_controller') == 'velocity')"
-    name="vel_to_pos_controller" pkg="moma_gazebo"
-    type="vel_to_pos_controller_node.py" respawn="false" output="screen">
-    <remap from="vel_to_pos_controller/command_pos_out" to="/franka/controller/command"/>
-  </node>
+
 </launch>
