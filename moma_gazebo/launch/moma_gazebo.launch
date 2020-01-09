@@ -61,7 +61,7 @@ Mobmi and yumi support need to be added by specifying the initial config of yumi
     value=" -J panda_joint1 0   -J panda_joint2 -0.785
             -J panda_joint3 0   -J panda_joint4 -2.1
             -J panda_joint5 0   -J panda_joint6 1.571
-            -J panda_joint7 0.785"/>
+            -J panda_joint7 0.785 -unpause"/>
 
   <!-- Define initial configuration for yumi arm -->
   <!-- TODO -->
