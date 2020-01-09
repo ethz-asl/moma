@@ -1,6 +1,6 @@
 
 franka/controller:
-  type: position_controllers/JointGroupPositionController
+  type: position_controllers/JointTrajectoryController
   joints:
     - panda_joint1
     - panda_joint2
