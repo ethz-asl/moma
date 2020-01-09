@@ -24,13 +24,13 @@ class VelToPosControllerNode:
                 if joint in msg.name:
                     idx_msg = msg.name.index(joint)
                     self.positions[idx] = msg.position[idx_msg]
-            rospy.sleep(1.0)
+            rospy.sleep(2.0)
+            rospy.loginfo("Waiting for joint states to be published.")
         if self.init_config is not None:
             matches = re.findall(r"-J .*?(\w.*?)\s.*?([-+]?\d*\.\d+|\d+)",
                                  self.init_config)
             for name, value in matches:
                 if name in self.joints:
-                    print(name)
                     idx = self.joints.index(name)
                     self.positions[idx] = float(value)
 
