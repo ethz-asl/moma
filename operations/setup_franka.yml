@@ -4,6 +4,7 @@
   vars:
     - user: franka
     - home_dir: /home/franka
+    - catkin_ws: /home/franka/catkin_ws
   roles:
     - realsense
     - ros

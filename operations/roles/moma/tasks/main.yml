@@ -11,10 +11,24 @@
   shell: catkin init
   args:
     chdir: "{{ home_dir }}/catkin_ws"
-- name: Copy repository over.
+- name: Clone repository
   git:
     repo: git@github.com:ethz-asl/moma
     dest: "{{ home_dir }}/catkin_ws/src/moma"
     version: master
     recursive: true
-
+- name: GPD
+  block:
+    - name: Create gpd build folder
+      file:
+        path: "{{ catkin_ws }}/src/moma/submodules/gpd/build"
+        state: directory
+    - name: Run gpd cmake config and compile
+      shell:
+        cmd: "cmake .. -DCMAKE_BUILD_TYPE=Release && make -j4"
+        chdir: "{{ catkin_ws }}/src/moma/submodules/gpd/build"
+    - name: Install gpd
+      become: true
+      shell:
+        cmd: make install
+        chdir: "{{ catkin_ws }}/src/moma/submodules/gpd/build"
