@@ -1,0 +1,14 @@
+<?xml version="1.0" ?>
+<launch>
+  <arg name="map_file" default="TODO"/>
+
+  <!-- Rigeback navigation -->
+  <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)" />
+  
+  <include file="$(find ridgeback_navigation)/launch/include/amcl.launch" />
+  <!-- TODO: AMCL is a localization system. Check if we still need this when using Maplab. -->
+
+  <include file="$(find ridgeback_navigation)/launch/include/move_base.launch" />
+  <!-- TODO The parameters loaded in these launch files do not necessarily fit our map and setup in general.
+        Might need to define our own parameter files. -->
+</launch>
