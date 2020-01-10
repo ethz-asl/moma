@@ -2,9 +2,12 @@
 <launch>
   <arg name="map_file" default="TODO"/>
 
+  <!-- VI sensor node -->
+  <node name="visensor_node" pkg="visensor_node" type="visensor_node" />
+
   <!-- Rigeback navigation -->
   <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)" />
-  
+
   <include file="$(find ridgeback_navigation)/launch/include/amcl.launch" />
   <!-- TODO: AMCL is a localization system. Check if we still need this when using Maplab. -->
 
