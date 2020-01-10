@@ -4,8 +4,9 @@
   <arg name="sensor" default="realsense"/>
 
   <!-- Object detection -->
-  <node pkg="fetch_demo" type="object_detection_node.py" name="object_detection_node" output="screen"/>
+  <!-- TODO: add object detection node -->
 
+  <!-- Voxblox++ -->
   <node name="mask_rcnn" pkg="mask_rcnn_ros" type="mask_rcnn_node.py" output="log">
     <remap from="~input" to="/camera/color/image_raw" />
     <param name="~visualization" value="$(arg visualize)" />
