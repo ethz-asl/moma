@@ -26,8 +26,4 @@
     - librealsense2-dev
     - librealsense2-dbg
     - ros-melodic-ddynamic-reconfigure
-- name: Clone intelrealsense repo
-  git:
-    repo: https://github.com/IntelRealSense/realsense-ros.git
-    dest: "{{ home_dir }}/catkin_ws/src/realsense-ros.git"
 
