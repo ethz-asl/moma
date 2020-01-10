@@ -83,7 +83,6 @@ class ApproachActionServer:
         yaw = np.arctan2(-direction_vector[1], -direction_vector[0])
         # Negative sign for direction_vector because we want vector from robot position to object position
         waypoint = np.hstack((robot_goal_pos_m, np.rad2deg(yaw)))
-        # TODO verify whether waypoint is in the correct frame.
         if not self._visit_waypoint(waypoint):
             return
 
@@ -98,6 +97,9 @@ class ApproachActionServer:
         self.map_origin = np.array(
             [msg.info.origin.position.x, msg.info.origin.position.y]
         )
+        assert (
+            self.map_origin[0] == self.map_origin[1]
+        ), "If this is not the case, conversion between pixels and m might be wrong."
         assert msg.info.origin.position.z == 0.0
         assert msg.info.origin.orientation.x == 0.0
         assert msg.info.origin.orientation.y == 0.0
@@ -195,10 +197,16 @@ class ApproachActionServer:
         return True
 
     def _convert_m_to_px(self, position_m):
-        return (position_m - self.map_origin) / self.map_resolution
+        position_m_flipped = np.array([position_m[1], position_m[0]])
+        position_px_unrounded = (
+            position_m_flipped - self.map_origin
+        ) / self.map_resolution
+        position_px_rounded = position_px_unrounded.astype(np.int32)
+        return position_px_rounded
 
     def _convert_px_to_m(self, position_px):
-        return position_px * self.map_resolution + self.map_origin
+        position_px_flipped = np.array([position_px[1], position_px[0]])
+        return position_px_flipped * self.map_resolution + self.map_origin
 
     def _construct_robot_mask(self):
         """
