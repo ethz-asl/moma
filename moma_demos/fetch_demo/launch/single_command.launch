@@ -1,0 +1,20 @@
+<?xml version="1.0" ?>
+<launch>
+
+  <include file="$(find fetch_demo)/launch/user_interface.launch"/>
+
+  <group>
+    <machine name="maniplation_machine" address="asl-yumi" default="true"/>
+    <include file="$(find fetch_demo)/launch/manipulation.launch"/>
+  </group>
+
+  <group>
+    <machine name="perception_machine" address="moma-laptop" default="true"/>
+    <include file="$(find fetch_demo)/launch/perception.launch"/>
+  </group>
+
+  <group>
+    <machine name="navigation_machine" address="asl-ridgeback" default="true"/>
+    <include file="$(find fetch_demo)/launch/navigation.launch"/>
+  </group>
+</launch>

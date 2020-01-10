@@ -4,6 +4,8 @@ import rospy
 import std_msgs.msg
 from sensor_msgs.msg import PointCloud2, PointField
 
+from scipy.spatial.transform import Rotation
+
 from moma_utils.transform import Rotation, Transform
 
 
@@ -99,4 +101,23 @@ def to_point_cloud_msg(points, frame_id=None, stamp=None):
     msg.row_step = msg.point_step * points.shape[0]
     msg.data = data.astype(np.float32).tostring()
 
+    return msg
+
+
+def waypoint_to_pose_msg(waypoint):
+    """Converts 2D waypoint to a PoseStamped message.
+    
+    Arguments:
+        waypoint {list} -- Format: [position_x, position_y, yaw], where yaw is in deg.
+    """
+    orn = Rotation.from_euler("z", waypoint[2], degrees=True).as_quat()
+    msg = geometry_msgs.msg.PoseStamped()
+    msg.header.stamp = rospy.Time.now()
+    msg.pose.position.x = waypoint[0]
+    msg.pose.position.y = waypoint[1]
+    msg.pose.position.z = 0.0
+    msg.pose.orientation.x = orn[0]
+    msg.pose.orientation.y = orn[1]
+    msg.pose.orientation.z = orn[2]
+    msg.pose.orientation.w = orn[3]
     return msg

@@ -1,0 +1,7 @@
+<?xml version="1.0" ?>
+<launch>
+  <!-- Object detection -->
+  <node pkg="fetch_demo" type="object_detection_node.py" name="object_detection_node" output="screen"/>
+
+  <!-- TODO: launch Voxblox++ here -->
+</launch>
