@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <launch>
-  <arg name="visualize" default="true" />
+  <arg name="visualize" default="false" />
   <arg name="sensor" default="realsense"/>
 
   <!-- Object detection -->
