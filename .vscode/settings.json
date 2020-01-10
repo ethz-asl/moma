@@ -5,5 +5,5 @@
     "python.formatting.blackPath": "/usr/local/bin/black",
     "python.linting.pylintEnabled": true,
     "python.linting.enabled": true,
-    "python.pythonPath": ".venv/bin/python",
+    "python.pythonPath": ".venv/bin/python2.7",
 }
