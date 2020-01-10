@@ -3,6 +3,16 @@
 
 ## Launching the demo on the multi-machine setup
 
+### As a single launch file
+
+On the machine used for the user interface, run the following command to distribute the nodes.
+
+```bash
+roslaunch fetch_demo single_command.launch
+```
+
+### Via SSH
+
 There is one launch file for each machine in the setup. They can all be launch from the user interface laptop via SSH as follows.
 
 Navigation nodes on ridgeback machine:

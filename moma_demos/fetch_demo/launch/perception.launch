@@ -1,7 +1,5 @@
 <?xml version="1.0" ?>
 <launch>
-  <arg name="launch_rviz" default="true" />
-
   <!-- Object detection -->
   <node pkg="fetch_demo" type="object_detection_node.py" name="object_detection_node" output="screen"/>
 
