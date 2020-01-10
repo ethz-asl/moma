@@ -1,14 +1,8 @@
 <?xml version="1.0" ?>
 <launch>
     <arg name="launch_rviz" default="true" />
-    <arg name="map_file" default="TODO"/>
 
-    <!-- Rigeback navigation -->
-    <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)" />
-    <include file="$(find ridgeback_navigation)/launch/include/amcl.launch" />
-    <include file="$(find ridgeback_navigation)/launch/include/move_base.launch" />
-
-    <!-- Read waypoints for approach action -->
+    <!-- Read waypoints for search action -->
     <rosparam command="load" file="$(find fetch_demo)/config/search_waypoints.yaml" />
 
     <!-- Launch GPD -->
@@ -28,14 +22,6 @@
     <node pkg="fetch_demo" type="approach_node.py" name="approach_action_node" output="screen"/>
     <node pkg="fetch_demo" type="drop_move_node.py" name="drop_action_node" output="screen"/>
 
-    <!-- Launch support nodes -->
-    <node pkg="fetch_demo" type="navigation_node.py" name="navigation_action_node" output="screen"/>
-    <node pkg="fetch_demo" type="object_detection_node.py" name="object_detection_node" output="screen"/>
-
-    <!-- Launch the execution system -->
-    <node pkg="fetch_demo" type="run_sequentially.py" name="commander_node" output="screen"/>
-
     <!-- Launch RViz -->
     <node if="$(arg launch_rviz)" type="rviz" name="rviz" pkg="rviz" args="-d $(find grasp_demo)/config/rviz.rviz"/>
-
 </launch>
