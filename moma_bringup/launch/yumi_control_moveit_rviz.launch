@@ -2,13 +2,19 @@
 <launch>
 
   <arg name="launch_rviz" default="true"/>
+  <arg name="load_base" default="false" />
+
+  <!-- Load robot description -->
+  <param name="robot_description" command="$(find xacro)/xacro '$(find moma_description)/urdf/yumi.urdf.xacro'" unless="$(arg load_base)" />
+  <param name="robot_description" command="$(find xacro)/xacro '$(find moma_description)/urdf/mobmi.urdf.xacro'" if="$(arg load_base)" />
 
   <!-- Launch Yumi drivers -->
   <include file="$(find yumi_support)/launch/robot_interface.launch"/>
 
   <!-- Launch MoveIt -->
   <include file="$(find yumi_moveit_config)/launch/move_group.launch">
-    <arg name="allow_trajectory_execution" value="true"/>
+    <arg name="load_robot_description" value="false" />
+    <arg name="allow_trajectory_execution" value="true" />
     <arg name="fake_execution" value="false"/>
     <arg name="info" value="true"/>
   </include>
