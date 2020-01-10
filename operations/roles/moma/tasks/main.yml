@@ -17,6 +17,20 @@
     dest: "{{ home_dir }}/catkin_ws/src/moma"
     version: master
     recursive: true
+  ignore_errors: true
+- name: Install system dependencies
+  become: true
+  apt:
+    name: "{{ packages }}"
+  vars:
+    packages:
+      - ros-melodic-rqt-py-trees
+      - ros-melodic-py-trees-ros
+- name: Install python dependencies for grasp_demo
+  become: no
+  pip:
+    requirements: "{{ catkin_ws }}/src/moma/moma_demos/grasp_demo/requirements.txt"
+    extra_args: --user
 - name: GPD
   block:
     - name: Create gpd build folder
@@ -32,3 +46,4 @@
       shell:
         cmd: make install
         chdir: "{{ catkin_ws }}/src/moma/submodules/gpd/build"
+
