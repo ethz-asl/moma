@@ -9,3 +9,6 @@
 [submodule "realsense-ros"]
 	path = submodules/realsense-ros
 	url = git@github.com:IntelRealSense/realsense-ros.git
+[submodule "submodules/yumi"]
+	path = submodules/yumi
+	url = git@github.com:kth-ros-pkg/yumi.git
