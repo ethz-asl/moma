@@ -35,10 +35,11 @@ class ArmCommander(object):
     def goto_joint_target(
         self, joints, max_velocity_scaling=1.0, max_acceleration_scaling=1.0
     ):
-        joints = {
-            "yumi_joint_{}_{}".format(i + 1, self.group_name[0]): joints[i]
-            for i in range(7)
-        }
+        if type(joints) == list:
+            joints = {
+                "yumi_joint_{}_{}".format(i + 1, self.group_name[0]): joints[i]
+                for i in range(7)
+            }
 
         self.move_group.set_max_velocity_scaling_factor(max_velocity_scaling)
         self.move_group.set_max_acceleration_scaling_factor(max_acceleration_scaling)
