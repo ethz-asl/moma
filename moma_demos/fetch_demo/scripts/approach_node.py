@@ -61,7 +61,6 @@ class ApproachActionServer:
         target_pos_m = np.array(
             [msg.target_object_pose.position.x, msg.target_object_pose.position.y]
         )
-        # TODO make sure x and y are the correct order.
         target_pos_px = self._convert_m_to_px(target_pos_m)
 
         # Find closest free point on map
@@ -79,7 +78,6 @@ class ApproachActionServer:
             self._plot_map(target_pos_px, first_empty_pos_px, robot_goal_pos_px)
 
         # Move there using the navigation action
-        # TODO verify that this yaw angle is correct.
         yaw = np.arctan2(-direction_vector[1], -direction_vector[0])
         # Negative sign for direction_vector because we want vector from robot position to object position
         waypoint = np.hstack((robot_goal_pos_m, np.rad2deg(yaw)))
