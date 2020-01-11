@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <launch>
-  <arg name="map_file" default="$(find fetch_demo)/maps/asl_map_bag_modified.yaml"/>
+  <arg name="map_file" default="$(find fetch_demo)/maps/asl_map_bag_table_cleaned.yaml"/>
 
   <!-- VI sensor node -->
   <node name="visensor_node" pkg="visensor_node" type="visensor_node" />
