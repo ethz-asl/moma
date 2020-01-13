@@ -4,6 +4,8 @@ import actionlib
 from fetch_demo.msg import DropMoveAction, DropMoveResult
 import rospy
 
+from grasp_demo.utils import create_robot_connection
+
 
 class DropActionServer:
     """
@@ -16,8 +18,19 @@ class DropActionServer:
         self.action_server = actionlib.SimpleActionServer(
             action_name, DropMoveAction, execute_cb=self.drop_cb, auto_start=False
         )
+
+        self._read_joint_configurations()
+        self._connect_yumi()
+
         self.action_server.start()
         rospy.loginfo("Drop move action server started.")
+
+    def _read_joint_configurations(self):
+        # self._search_joints_r = rospy.get_param("search_joints_r")
+        self._ready_joints_l = rospy.get_param("ready_joints_l")
+
+    def _connect_yumi(self):
+        self._left_arm = create_robot_connection("yumi_left_arm")
 
     def drop_cb(self, msg):
         rospy.loginfo("Start approaching object")
@@ -27,7 +40,7 @@ class DropActionServer:
 
         # Move there using the navigation action
 
-        rospy.sleep(2.0)
+        self._left_arm.release()
 
         rospy.loginfo("Finished dropping")
         self.action_server.set_succeeded(result)
@@ -35,7 +48,7 @@ class DropActionServer:
 
 def main():
     rospy.init_node("drop_move_action_node")
-    action = DropActionServer()
+    DropActionServer()
     rospy.spin()
 
 

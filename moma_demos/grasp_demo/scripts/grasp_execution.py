@@ -26,6 +26,8 @@ class GraspExecutionAction(object):
     def __init__(self):
         self.robot_commander = create_robot_connection(sys.argv[1])
 
+        self._read_joint_configurations()
+
         self._as = SimpleActionServer(
             "grasp_execution_action",
             GraspAction,
@@ -39,6 +41,9 @@ class GraspExecutionAction(object):
 
         self._as.start()
         rospy.loginfo("Grasp action server ready")
+
+    def _read_joint_configurations(self):
+        self._ready_joints_l = rospy.get_param("ready_joints_l")
 
     def execute_cb(self, goal_msg):
         rospy.loginfo("Received grasp pose")
@@ -71,6 +76,10 @@ class GraspExecutionAction(object):
         rospy.loginfo("Retrieving object")
         self.robot_commander.goto_pose_target(
             T_base_pregrasp.tolist(), max_velocity_scaling=0.2
+        )
+
+        self.robot_commander.goto_joint_target(
+            self._ready_joints_l, max_velocity_scaling=0.2
         )
 
         self._as.set_succeeded(GraspResult())

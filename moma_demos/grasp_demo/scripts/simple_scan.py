@@ -26,13 +26,16 @@ class SimpleScanAction(object):
             "scan_action", ScanSceneAction, execute_cb=self.execute_cb, auto_start=False
         )
         self.commander = create_robot_connection(sys.argv[1])
+        self.left_arm = create_robot_connection("yumi_left_arm")
         self.base_frame_id = "yumi_body"
 
         self.listener = tf.TransformListener()
         self.latest_cloud_data = None
 
-        self.scan_joints = rospy.get_param("grasp_demo")["scan_joint_values"]
-        self.home_joints = self.commander.move_group.get_named_target_values("home")
+        self.scan_joints = rospy.get_param("scan_joint_values")
+        self.search_joints_r = rospy.get_param("search_joints_r")
+        self.ready_joints_l = rospy.get_param("ready_joints_l")
+        # self.home_joints = self.commander.move_group.get_named_target_values("home")
 
         rospy.Subscriber("/camera/depth/color/points", PointCloud2, self.point_cloud_cb)
         self.cloud_pub = rospy.Publisher("~cloud", PointCloud2, queue_size=1)
@@ -46,6 +49,8 @@ class SimpleScanAction(object):
     def execute_cb(self, goal):
         """Move to each scan pose, capture a point cloud and stitch them together."""
         rospy.loginfo("Scanning action was triggered")
+
+        self.left_arm.goto_joint_target(self.ready_joints_l, max_velocity_scaling=0.4)
 
         captured_clouds = []
 
@@ -68,7 +73,7 @@ class SimpleScanAction(object):
         self.cloud_pub.publish(cloud)
 
         # Move home
-        self.commander.goto_joint_target(self.home_joints, max_velocity_scaling=0.4)
+        self.commander.goto_joint_target(self.scan_joints[0], max_velocity_scaling=0.4)
 
         result = ScanSceneResult(pointcloud_scene=cloud)
         self._as.set_succeeded(result)

@@ -7,6 +7,7 @@ from gpd_ros.msg import GraspConfigList
 import rospy
 from sensor_msgs.msg import PointCloud2
 from scipy.spatial.transform import Rotation
+import tf
 
 from grasp_demo.msg import SelectGraspAction, SelectGraspResult
 from moma_utils.transform import Transform, Rotation
@@ -37,7 +38,7 @@ def grasp_config_list_to_pose_array(grasp_config_list):
             rot = rot * Rotation.from_euler("z", 180, degrees=True)
 
         # GPD defines points at the hand palm, not the fingertip
-        hand_depth = 0.05
+        hand_depth = 0.06
         position = from_point_msg(grasp.position)
         position += rot.apply([0.0, 0.0, hand_depth])
 
@@ -74,6 +75,8 @@ class GraspSelectionAction(object):
         self.selected_grasp_pub = rospy.Publisher(
             "/grasp_pose", PoseStamped, queue_size=10
         )
+
+        self.listener = tf.TransformListener()
 
         self._as.start()
         rospy.loginfo("Grasp selection action server ready")
@@ -118,6 +121,11 @@ class GraspSelectionAction(object):
     def wait_for_user_selection(self, grasp_candidates):
         clicked_point_msg = rospy.wait_for_message("/clicked_point", PointStamped)
         clicked_point = from_point_msg(clicked_point_msg.point)
+
+        translation, _ = self.listener.lookupTransform(
+            "base_link", self.base_frame_id, rospy.Time()
+        )
+        clicked_point += np.asarray(translation)
 
         distances = []
         for pose in grasp_candidates.poses:
