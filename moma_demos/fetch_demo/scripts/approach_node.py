@@ -82,11 +82,11 @@ class ApproachActionServer(MovingActionServer):
         yaw = np.arctan2(-direction_vector[1], -direction_vector[0])
         # Negative sign for direction_vector because we want vector from robot position to object position
         waypoint = np.hstack((robot_goal_pos_m, np.rad2deg(yaw)))
-        result = self._visit_waypoint(waypoint)
-        if result == GoalStatus.PREEMPTED:
+        state = self._visit_waypoint(waypoint)
+        if state == GoalStatus.PREEMPTED:
             rospy.loginfo("Got preemption request")
             self.action_server.set_preempted()
-        elif result == GoalStatus.ABORTED:
+        elif state == GoalStatus.ABORTED:
             rospy.logerr("Failed to navigate to approach waypoint " + waypoint)
             self.action_server.set_aborted()
         else:
