@@ -42,3 +42,20 @@ roslaunch fetch_demo single_command.launch
 ```
 
 This only works if all nodes in this launch file are also installed on the local machine.
+
+
+## Useful commands
+
+### Test the approach node
+
+Send goals directly to move_base:
+
+``bash
+rosrun actionlib axclient.py move_base move_base_msgs/MoveBaseAction
+```
+
+Send goals to the approach action:
+
+```bash
+rosrun actionlib axclient.py approach_action fetch_demo/ApproachAction
+```
