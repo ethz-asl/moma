@@ -1,9 +1,10 @@
 <?xml version="1.0" ?>
 <launch>
-  <arg name="map_file" default="$(find fetch_demo)/maps/asl_map_bag_table_cleaned.yaml"/>
+  <!-- <arg name="map_file" default="$(find fetch_demo)/maps/asl_map_bag_table_cleaned.yaml"/> -->
+  <arg name="map_file" default="$(find fetch_demo)/maps/asl_map_bag_no_table.yaml"/>
 
   <!-- VI sensor node -->
-  <node name="visensor_node" pkg="visensor_node" type="visensor_node" />
+  <!-- <node name="visensor_node" pkg="visensor_node" type="visensor_node" /> -->
 
   <!-- Rigeback navigation -->
   <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)" />

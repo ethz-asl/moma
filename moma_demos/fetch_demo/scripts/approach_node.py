@@ -24,8 +24,11 @@ class ApproachActionServer:
     """
 
     def __init__(self):
+        if DEBUG:
+            rospy.loginfo("Debug logging is active.")
+
         # Obtain map from map server
-        rospy.Subscriber("/map", OccupancyGrid, self.map_cb)
+        rospy.Subscriber("/approach_module/map", OccupancyGrid, self.map_cb)
         self.map = None
 
         # Connection to navigation stack
@@ -71,6 +74,12 @@ class ApproachActionServer:
             first_empty_pos_m, target_pos_m
         )
 
+        rospy.loginfo(
+            "Found robot target location: x={}, y={}".format(
+                robot_goal_pos_m[0], robot_goal_pos_m[1]
+            )
+        )
+
         # Visualize map and locations we found if desired
         if DEBUG:
             first_empty_pos_px = self._convert_m_to_px(first_empty_pos_m)
@@ -108,11 +117,6 @@ class ApproachActionServer:
         self.map_data = np.reshape(self.map_data, (self.map_width, self.map_width))
 
     def _find_closest_free_space(self, target_pos_px):
-
-        assert (
-            self.map_data[target_pos_px[0], target_pos_px[1]] == 100
-        )  # 100 means occupied
-
         first_empty_pos_px = []
         first_empty_distance = 1000
         found_first_empty_pos = False
@@ -158,7 +162,9 @@ class ApproachActionServer:
         direction_vector /= np.linalg.norm(direction_vector)
 
         robot_goal_pos_m = (
-            first_empty_pos_m + direction_vector * self.robot_width_m * 0.7
+            first_empty_pos_m
+            + direction_vector * self.robot_width_m * 0.5
+            - 0.4 * direction_vector
         )
         return robot_goal_pos_m, direction_vector
 
@@ -176,6 +182,7 @@ class ApproachActionServer:
         """
         pose = waypoint_to_pose_msg(waypoint)
         navigation_goal = MoveBaseGoal(target_pose=pose)
+        navigation_goal.target_pose.header.frame_id = "map"
         self.move_base_client.send_goal(navigation_goal)
         state = GoalStatus.PENDING
         while state == GoalStatus.PENDING or state == GoalStatus.ACTIVE:
