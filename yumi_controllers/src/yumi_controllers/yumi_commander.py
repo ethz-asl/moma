@@ -23,6 +23,7 @@ class ArmCommander(object):
     def __init__(self, group_name):
         self.group_name = group_name
         self.move_group = moveit_commander.MoveGroupCommander(group_name)
+        self.move_group.set_pose_reference_frame("yumi_body")
 
         grasp_service_name = "/yumi/yumi_gripper/do_grasp"
         rospy.wait_for_service(grasp_service_name)
@@ -65,7 +66,9 @@ class ArmCommander(object):
     def grasp(self):
         req = YumiGraspRequest(gripper_id=1 if self.group_name == "left_arm" else 2)
         self.grasp_client.call(req)
+        rospy.sleep(2.0)
 
     def release(self):
         req = YumiGraspRequest(gripper_id=1 if self.group_name == "left_arm" else 2)
         self.release_client.call(req)
+        rospy.sleep(2.0)
