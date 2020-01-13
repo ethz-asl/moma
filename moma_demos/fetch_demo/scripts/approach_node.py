@@ -17,7 +17,6 @@ from fetch_demo.common import MovingActionServer
 
 DEBUG = False
 
-
 class ApproachActionServer(MovingActionServer):
     """
         When called, this action should find a collision free position for the robot,
@@ -84,6 +83,7 @@ class ApproachActionServer(MovingActionServer):
         waypoint = np.hstack((robot_goal_pos_m, np.rad2deg(yaw)))
         if not self._visit_waypoint(waypoint):
             rospy.logerr("Failed to navigate to approach waypoint " + waypoint)
+            self.action_server.set_aborted()
             return
 
         rospy.loginfo("Finished approach")
@@ -211,3 +211,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

@@ -38,11 +38,12 @@ class MovingActionServer(object):
                 self.move_base_client.cancel_all_goals()
                 self.action_server.set_preempted()
                 return False
-            rospy.sleep(0.5)
+            rospy.sleep(0.25)
             state = self.move_base_client.get_state()
 
         if state is not GoalStatus.SUCCEEDED:
-            self.action_server.set_aborted()
             return False
 
+        rospy.loginfo("Reached approach waypoint.")
         return True
+
