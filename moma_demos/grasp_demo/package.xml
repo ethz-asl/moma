@@ -14,18 +14,17 @@
   <depend>actionlib_msgs</depend>
   <depend>geometry_msgs</depend>
   <depend>gpd_ros</depend>
-  <depend>moma_bringup</depend>
-  <depend>qtbase5-dev</depend>
   <depend>roscpp</depend>
+  <depend>rospy</depend>
   <depend>sensor_msgs</depend>
   <depend>vpp_msgs</depend>
-
-  <depend>rospy</depend>
   <depend>std_srvs</depend>
   <depend>tf2_ros</depend>
-  <depend>qtbase5-dev</depend>
-  <depend>vpp_msgs</depend>
+
   <build_depend>message_generation</build_depend>
+
+  <depend>moma_bringup</depend>
+  <depend>moma_description</depend>
 
   <exec_depend>message_runtime</exec_depend>
   <exec_depend>rviz</exec_depend>
