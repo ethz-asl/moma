@@ -83,6 +83,7 @@ class ApproachActionServer(MovingActionServer):
         # Negative sign for direction_vector because we want vector from robot position to object position
         waypoint = np.hstack((robot_goal_pos_m, np.rad2deg(yaw)))
         if not self._visit_waypoint(waypoint):
+            rospy.logerr("Failed to navigate to approach waypoint " + waypoint)
             return
 
         rospy.loginfo("Finished approach")

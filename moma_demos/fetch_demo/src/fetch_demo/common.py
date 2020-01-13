@@ -42,9 +42,7 @@ class MovingActionServer(object):
             state = self.move_base_client.get_state()
 
         if state is not GoalStatus.SUCCEEDED:
-            rospy.logerr("Failed to navigate to approach waypoint.")
             self.action_server.set_aborted()
             return False
 
-        rospy.loginfo("Reached approach waypoint.")
         return True
