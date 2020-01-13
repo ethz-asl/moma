@@ -6,6 +6,6 @@
     <node pkg="fetch_demo" type="run_sequentially.py" name="commander_node" output="screen"/>
 
     <!-- Launch RViz -->
-    <node if="$(arg launch_rviz)" type="rviz" name="rviz_manipulation" pkg="rviz" args="-d $(find grasp_demo)/config/rviz.rviz"/>
-    <node if="$(arg launch_rviz)" type="rviz" name="rviz_navigation" pkg="rviz" args="-d $(find ridgeback_viz)/rviz/localization.rviz"/>
+    <node if="$(arg launch_rviz)" type="rviz" name="rviz_manipulation" pkg="rviz" args="-d $(find fetch_demo)/config/manipulation.rviz"/>
+    <node if="$(arg launch_rviz)" type="rviz" name="rviz_navigation" pkg="rviz" args="-d $(find fetch_demo)/config/localization.rviz"/>
 </launch>
