@@ -7,6 +7,7 @@ from moveit_commander.conversions import pose_to_list, list_to_pose_stamped
 import numpy as np
 import rospy
 from scipy.spatial.transform import Rotation
+from sensor_msgs.msg import JointState
 
 from grasp_demo.msg import GraspAction, GraspResult
 from grasp_demo.utils import create_robot_connection
@@ -82,7 +83,13 @@ class GraspExecutionAction(object):
             self._ready_joints_l, max_velocity_scaling=0.2
         )
 
-        self._as.set_succeeded(GraspResult())
+        gripper_state = rospy.wait_for_message("/yumi/gripper_states", JointState)
+        gripper_width_l = gripper_state.position[0]
+
+        if gripper_width_l < 0.005:
+            self._as.set_aborted()
+        else:
+            self._as.set_succeeded(GraspResult())
 
 
 if __name__ == "__main__":
