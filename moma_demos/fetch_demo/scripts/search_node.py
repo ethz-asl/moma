@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import actionlib
+from actionlib_msgs.msg import GoalStatus
 from fetch_demo.msg import SearchAction, SearchResult
 import rospy
 import numpy as np
@@ -45,22 +46,34 @@ class SearchActionServer(MovingActionServer):
         result = SearchResult()
 
         for waypoint in self._initial_waypoints:
-            if not self._visit_waypoint(waypoint) and not self._object_detected:
-                rospy.logerr("Failed to reach waypoint {}".format(waypoint))
-                return
-
+            state = self._visit_waypoint(waypoint)
             if self._object_detected:
+                rospy.loginfo("Search completed")
                 self.action_server.set_succeeded(result)
+                return
+            elif state == GoalStatus.PREEMPTED:
+                rospy.loginfo("Got preemption request")
+                self.action_server.set_preempted()
+                return
+            elif state == GoalStatus.ABORTED:
+                rospy.logerr("Failed to navigate to approach waypoint " + waypoint)
+                self.action_server.set_aborted()
                 return
 
         while True:
             for waypoint in self._loop_waypoints:
-                if not self._visit_waypoint(waypoint) and not self._object_detected:
-                    rospy.logerr("Failed to reach waypoint {}".format(waypoint))
-                    return
-
+                state = self._visit_waypoint(waypoint)
                 if self._object_detected:
+                    rospy.loginfo("Search completed")
                     self.action_server.set_succeeded(result)
+                    return
+                elif state == GoalStatus.PREEMPTED:
+                    rospy.loginfo("Got preemption request")
+                    self.action_server.set_preempted()
+                    return
+                elif state == GoalStatus.ABORTED:
+                    rospy.logerr("Failed to navigate to approach waypoint " + waypoint)
+                    self.action_server.set_aborted()
                     return
 
 
