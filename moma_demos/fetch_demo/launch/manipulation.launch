@@ -4,15 +4,19 @@
 
     <!-- Read waypoints for search action -->
     <rosparam command="load" file="$(find fetch_demo)/config/search_waypoints.yaml" />
-    <rosparam command="load" file="$(find fetch_demo)/config/grasp_waypoints.yaml" />
+    <rosparam command="load" file="$(find fetch_demo)/config/joint_configurations.yaml" />
 
     <!-- Load map onto map server -->
     <node pkg="map_server" name="asl_map_server_node" type="map_server" ns="approach_module" args="$(find fetch_demo)/maps/lasermap_table.yaml" output="screen"/>
 
+    <!-- Launch camera -->
+    <!-- <include file="$(find realsense2_camera)/launch/rs_camera.launch">
+        <arg name="enable_pointcloud" value="true"/>
+    </include> -->
+
     <!-- Bringup robot -->
     <include file="$(find moma_bringup)/launch/mobmi_control_moveit_rviz.launch">
         <arg name="launch_rviz" value="false"/>
-        <arg name="load_base" value="true" />
     </include>
 
     <!-- Launch GPD -->
