@@ -1,11 +1,5 @@
 <?xml version="1.0" ?>
 <launch>
-    <arg name="launch_rviz" default="true" />
-
-    <!-- Launch the execution system -->
-    <node pkg="fetch_demo" type="run_sequentially.py" name="commander_node" output="screen"/>
-
-    <!-- Launch RViz -->
     <node if="$(arg launch_rviz)" type="rviz" name="rviz_manipulation" pkg="rviz" args="-d $(find fetch_demo)/config/manipulation.rviz"/>
     <node if="$(arg launch_rviz)" type="rviz" name="rviz_navigation" pkg="rviz" args="-d $(find fetch_demo)/config/localization.rviz"/>
 </launch>
