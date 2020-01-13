@@ -21,6 +21,8 @@ class ApproachActionServer:
         When called, this action should find a collision free position for the robot,
         as close as possible to the target location (target object), facing it, and navigate
         the robot there using the navigation action.
+
+        Useful for testing in map frame [m]: x=26.7705631256 y=-0.539741873741
     """
 
     def __init__(self):
@@ -100,13 +102,11 @@ class ApproachActionServer:
         rospy.loginfo("Received map")
         self.map = msg
         self.map_width = self.map.info.width
+        self.map_height = self.map.info.height
         self.map_resolution = self.map.info.resolution
         self.map_origin = np.array(
             [msg.info.origin.position.x, msg.info.origin.position.y]
         )
-        assert (
-            self.map_origin[0] == self.map_origin[1]
-        ), "If this is not the case, conversion between pixels and m might be wrong."
         assert msg.info.origin.position.z == 0.0
         assert msg.info.origin.orientation.x == 0.0
         assert msg.info.origin.orientation.y == 0.0
@@ -114,7 +114,7 @@ class ApproachActionServer:
         assert msg.info.origin.orientation.w == 1.0
 
         self.map_data = np.array(msg.data)
-        self.map_data = np.reshape(self.map_data, (self.map_width, self.map_width))
+        self.map_data = np.reshape(self.map_data, (self.map_height, self.map_width))
 
     def _find_closest_free_space(self, target_pos_px):
         first_empty_pos_px = []
@@ -164,7 +164,7 @@ class ApproachActionServer:
         robot_goal_pos_m = (
             first_empty_pos_m
             + direction_vector * self.robot_width_m * 0.5
-            - 0.4 * direction_vector
+            - 0.3 * direction_vector
         )
         return robot_goal_pos_m, direction_vector
 
@@ -202,16 +202,14 @@ class ApproachActionServer:
         return True
 
     def _convert_m_to_px(self, position_m):
-        position_m_flipped = np.array([position_m[1], position_m[0]])
-        position_px_unrounded = (
-            position_m_flipped - self.map_origin
-        ) / self.map_resolution
+        position_px_unrounded = (position_m - self.map_origin) / self.map_resolution
         position_px_rounded = position_px_unrounded.astype(np.int32)
-        return position_px_rounded
+        position_px_rounded_flipped = np.flip(position_px_rounded, axis=0)
+        return position_px_rounded_flipped
 
-    def _convert_px_to_m(self, position_px):
-        position_px_flipped = np.array([position_px[1], position_px[0]])
-        return position_px_flipped * self.map_resolution + self.map_origin
+    def _convert_px_to_m(self, position_px_flipped):
+        position_px = np.flip(position_px_flipped, axis=0)
+        return position_px * self.map_resolution + self.map_origin
 
     def _construct_robot_mask(self):
         """
