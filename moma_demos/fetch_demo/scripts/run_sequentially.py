@@ -24,14 +24,15 @@ from grasp_demo.msg import (
     GraspGoal,
 )
 from std_msgs.msg import Empty
-from vpp_msgs.srv import GetListSemanticInstances
+
+# from vpp_msgs.srv import GetListSemanticInstances
 
 WAIT_FOR_ENTER = True
 
 
-def wait_for_enter():
+def wait_for_enter(action_str="next"):
     if WAIT_FOR_ENTER:
-        raw_input("Press enter to move to next action...")
+        raw_input("Press enter to move to {} action...".format(action_str))
 
 
 class SequentialRunner:
@@ -77,74 +78,99 @@ class SequentialRunner:
     def run(self):
         print("Started demo sequence")
 
-        # Search object (input: none; result: target object position known in global map):
-        self.client_search.send_goal(Empty())
-        self.client_search.wait_for_result()
-        result_state = self.client_search.get_state()
-        if result_state is not GoalStatus.SUCCEEDED:
-            print("Failure during the search action. Aborting.")
-            return
-        else:
-            result_search = self.client_search.get_result()
+        current_action = "search"
+        wait_for_enter("search")
 
-        wait_for_enter()
+        while True:
+            if current_action == "search":
 
-        # Approach object (input: target object position; output: none):
-        goal = ApproachGoal(target_object_pose=result_search.target_object_pose)
-        self.client_approach.send_goal(goal)
-        self.client_approach.wait_for_result()
-        result_state = self.client_approach.get_state()
-        if result_state is not GoalStatus.SUCCEEDED:
-            print("Failure during the approach action. Aborting.")
-            return
+                # # Search object (input: none; result: target object position known in global map):
+                # self.client_search.send_goal(Empty())
+                # self.client_search.wait_for_result()
+                # result_state = self.client_search.get_state()
+                # if result_state is not GoalStatus.SUCCEEDED:
+                #     print("Failure during the search action. Aborting.")
+                #     return
+                # else:
+                #     result_search = self.client_search.get_result()
 
-        wait_for_enter()
+                current_action = "approach"
+                wait_for_enter("approach")
 
-        # Scan scene (input: none; output: pointcloud of table top scene in front of robot):
-        self.client_scan.send_goal(Empty())
-        self.client_scan.wait_for_result()
-        result_state = self.client_scan.get_state()
-        if result_state is not GoalStatus.SUCCEEDED:
-            print("Failure during the scan action. Aborting.")
-            return
-        else:
-            result_scan = self.client_scan.get_result()
+            elif current_action == "approach":
+                # # Approach object (input: target object position; output: none):
+                # goal = ApproachGoal(target_object_pose=result_search.target_object_pose)
+                # self.client_approach.send_goal(goal)
+                # self.client_approach.wait_for_result()
+                # result_state = self.client_approach.get_state()
+                # if result_state is not GoalStatus.SUCCEEDED:
+                #     print("Failure during the approach action. Aborting.")
+                #     return
 
-        wait_for_enter()
+                current_action = "scan"
+                wait_for_enter("scan")
 
-        # Plan grasp (input: pointcloud; output: grasp pose):
-        if self.semantic_grasping:
-            result_plan_grasp = self._semantic_grasp(result_scan)
-        else:
-            result_plan_grasp = self._plain_grasp(result_scan)
+            elif current_action == "scan":
 
-        if result_plan_grasp is None:
-            print("Failed to plan a grasp")
-            return
+                # Scan scene (input: none; output: pointcloud of table top scene in front of robot):
+                self.client_scan.send_goal(Empty())
+                self.client_scan.wait_for_result()
+                result_state = self.client_scan.get_state()
+                if result_state is not GoalStatus.SUCCEEDED:
+                    print("Failure during the scan action. Repeating.")
+                    current_action = "scan"
+                    wait_for_enter("scan")
+                else:
+                    result_scan = self.client_scan.get_result()
 
-        wait_for_enter()
+                    current_action = "grasp_planning"
+                    wait_for_enter("grasp planning")
 
-        # Execute grasp (input: grasp pose; output: none):
-        goal = GraspGoal(target_grasp_pose=result_plan_grasp.target_grasp_pose)
-        self.client_execute_grasp.send_goal(goal)
-        self.client_execute_grasp.wait_for_result()
-        result_state = self.client_execute_grasp.get_state()
-        if result_state is not GoalStatus.SUCCEEDED:
-            print("Failure during the grasp execution action. Aborting.")
-            return
+            elif current_action == "grasp_planning":
+                # Plan grasp (input: pointcloud; output: grasp pose):
+                if self.semantic_grasping:
+                    result_plan_grasp = self._semantic_grasp(result_scan)
+                else:
+                    result_plan_grasp = self._plain_grasp(result_scan)
 
-        wait_for_enter()
+                if result_plan_grasp is None:
+                    print("Failed to plan a grasp")
+                    current_action = "scan"
+                    wait_for_enter("scan")
+                else:
+                    current_action = "grasp_exec"
+                    wait_for_enter("grasp execution")
 
-        # Drop object (input: none; output: none):
-        self.client_drop_move.send_goal(Empty())
-        self.client_drop_move.wait_for_result()
-        result_state = self.client_drop_move.get_state()
-        if result_state is not GoalStatus.SUCCEEDED:
-            print("Failure during the dropping action. Aborting.")
-            return
+            elif current_action == "grasp_exec":
 
-        # Finished
-        print("Finished demo sequence.")
+                # Execute grasp (input: grasp pose; output: none):
+                goal = GraspGoal(target_grasp_pose=result_plan_grasp.target_grasp_pose)
+                self.client_execute_grasp.send_goal(goal)
+                self.client_execute_grasp.wait_for_result()
+                result_state = self.client_execute_grasp.get_state()
+                if result_state is not GoalStatus.SUCCEEDED:
+                    print("Failure during the grasp execution action.")
+                    current_action = "scan"
+                    wait_for_enter("scan")
+                else:
+                    current_action = "drop"
+                    wait_for_enter("drop")
+            elif current_action == "drop":
+                # Drop object (input: none; output: none):
+                self.client_drop_move.send_goal(Empty())
+                self.client_drop_move.wait_for_result()
+                result_state = self.client_drop_move.get_state()
+                if result_state is not GoalStatus.SUCCEEDED:
+                    print("Failure during the dropping action. Aborting.")
+                    return
+
+                # Finished
+                print("Finished demo sequence.")
+                break
+
+            else:
+                print("Invalid current_action token. Aborting.")
+                return
 
     def _semantic_grasp(self, result_scan):
         self._update_instance_labels()
@@ -184,10 +210,7 @@ class SequentialRunner:
 
 def main():
     rospy.init_node("commander_node")
-
     sr = SequentialRunner()
-
-    raw_input("Press enter to start the demo sequence...")
     sr.run()
 
 
