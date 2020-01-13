@@ -1,6 +1,7 @@
 <?xml version="1.0" ?>
 <launch>
   <arg name="launch_rviz" default="true" />
+  <arg name="semantic_grasping" default="false" />
 
   <node name="detect_grasps" pkg="gpd_ros" type="detect_grasps" output="screen">
     <param name="cloud_type" value="0" />
@@ -14,9 +15,15 @@
 
   <!-- <node pkg="grasp_demo" type="simple_scan.py" name="scan_action_node" output="screen"/> -->
   <node pkg="grasp_demo" type="voxbloxpp_scan.py" name="scan_action_node" output="screen"/>
-  <node pkg="grasp_demo" type="grasp_selection.py" name="grasp_selection_action_node" output="screen"/>
   <node pkg="grasp_demo" type="grasp_execution.py" name="grasp_execution_action_node" output="screen"/>
   <node pkg="grasp_demo" type="drop_node.py" name="drop_action_node" output="screen"/>
+
+  <group if="semantic_grasping">
+    <node pkg="grasp_demo" type="semantic_grasp_selection.py" name="semantic_grasp_selection_node" output="screen" />
+  </group>
+  <group unless="semantic_grasping">
+    <node pkg="grasp_demo" type="grasp_selection.py" name="grasp_selection_action_node" output="screen"/>
+  </group>
 
   <node pkg="grasp_demo" type="run_bt.py" name="behaviour_tree_node" output="screen"/>
   <node pkg="rqt_py_trees" type="rqt_py_trees" name="rqt_viewer"/>

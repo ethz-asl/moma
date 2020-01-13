@@ -1,0 +1,49 @@
+---
+- name: Update package lists
+  become: yes
+  apt:
+    update_cache: true
+- name: Create workspace src directory
+  file:
+    path: "{{ home_dir }}/catkin_ws/src/"
+    state: directory
+- name: Initialize workspace
+  shell: catkin init
+  args:
+    chdir: "{{ home_dir }}/catkin_ws"
+- name: Clone repository
+  git:
+    repo: git@github.com:ethz-asl/moma
+    dest: "{{ home_dir }}/catkin_ws/src/moma"
+    version: master
+    recursive: true
+  ignore_errors: true
+- name: Install system dependencies
+  become: true
+  apt:
+    name: "{{ packages }}"
+  vars:
+    packages:
+      - ros-melodic-rqt-py-trees
+      - ros-melodic-py-trees-ros
+- name: Install python dependencies for grasp_demo
+  become: no
+  pip:
+    requirements: "{{ catkin_ws }}/src/moma/moma_demos/grasp_demo/requirements.txt"
+    extra_args: --user
+- name: GPD
+  block:
+    - name: Create gpd build folder
+      file:
+        path: "{{ catkin_ws }}/src/moma/submodules/gpd/build"
+        state: directory
+    - name: Run gpd cmake config and compile
+      shell:
+        cmd: "cmake .. -DCMAKE_BUILD_TYPE=Release && make -j4"
+        chdir: "{{ catkin_ws }}/src/moma/submodules/gpd/build"
+    - name: Install gpd
+      become: true
+      shell:
+        cmd: make install
+        chdir: "{{ catkin_ws }}/src/moma/submodules/gpd/build"
+
