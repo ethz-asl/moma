@@ -18,6 +18,8 @@ def grasp_config_list_to_pose_array(grasp_config_list):
     pose_array_msg = PoseArray()
     pose_array_msg.header.stamp = rospy.Time.now()
 
+    scores = []
+
     for grasp in grasp_config_list.grasps:
 
         x_axis = np.r_[grasp.axis.x, grasp.axis.y, grasp.axis.z]
@@ -44,8 +46,9 @@ def grasp_config_list_to_pose_array(grasp_config_list):
 
         pose_msg = to_pose_msg(Transform(rot, position))
         pose_array_msg.poses.append(pose_msg)
+        scores.append(grasp.score)
 
-    return pose_array_msg
+    return pose_array_msg, scores
 
 
 class GraspSelectionAction(object):
@@ -82,7 +85,7 @@ class GraspSelectionAction(object):
         rospy.loginfo("Grasp selection action server ready")
 
     def execute_cb(self, goal_msg):
-        grasp_candidates = self.detect_grasps(goal_msg.pointcloud_scene)
+        grasp_candidates, scores = self.detect_grasps(goal_msg.pointcloud_scene)
 
         if not grasp_candidates:
             self._as.set_aborted(SelectGraspResult())
@@ -93,7 +96,8 @@ class GraspSelectionAction(object):
 
         self.visualize_detected_grasps(grasp_candidates)
 
-        selected_grasp = self.wait_for_user_selection(grasp_candidates)
+        # selected_grasp = self.wait_for_user_selection(grasp_candidates)
+        selected_grasp = self.select_highest_ranked_grasp(grasp_candidates, scores)
         rospy.loginfo("Grasp selected")
 
         self.visualize_selected_grasp(selected_grasp)
@@ -111,9 +115,9 @@ class GraspSelectionAction(object):
         except rospy.ROSException:
             return []
 
-        grasp_candidates = grasp_config_list_to_pose_array(grasp_config_list)
+        grasp_candidates, scores = grasp_config_list_to_pose_array(grasp_config_list)
         grasp_candidates.header.frame_id = self.base_frame_id
-        return grasp_candidates
+        return grasp_candidates, scores
 
     def visualize_detected_grasps(self, grasp_candidates):
         self.detected_grasps_pub.publish(grasp_candidates)
@@ -136,6 +140,16 @@ class GraspSelectionAction(object):
         selected_grasp_msg.header.stamp = rospy.Time.now()
         selected_grasp_msg.header.frame_id = self.base_frame_id
         selected_grasp_msg.pose = grasp_candidates.poses[np.argmin(distances)]
+
+        return selected_grasp_msg
+
+    def select_highest_ranked_grasp(self, grasp_candidates, scores):
+        index = np.argmax(scores)
+
+        selected_grasp_msg = PoseStamped()
+        selected_grasp_msg.header.stamp = rospy.Time.now()
+        selected_grasp_msg.header.frame_id = self.base_frame_id
+        selected_grasp_msg.pose = grasp_candidates.poses[index]
 
         return selected_grasp_msg
 
