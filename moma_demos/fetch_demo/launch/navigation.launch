@@ -1,0 +1,20 @@
+<?xml version="1.0" ?>
+<launch>
+  <arg name="map_file" default="$(find fetch_demo)/maps/lasermap_clear.yaml"/>
+
+  <!-- VI sensor node -->
+  <node name="visensor_node" pkg="visensor_node" type="visensor_node" />
+
+  <!-- Rigeback navigation -->
+  <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)" />
+
+  <!-- include file="$(find ridgeback_navigation)/launch/include/amcl.launch" /-->
+  <!-- TODO: AMCL is a localization system. Check if we still need this when using Maplab. -->
+
+  <include file="$(find rovioli)/launch/rovioli_mobmi.launch" />
+  <node pkg="tf" type="static_transform_publisher" name="maplab_base_link" args="-0.36715702 -0.02669315 -0.21538502 0.0388925, 0.0769053, 0.9955861, 0.0371646 /imu /base_link 10"/> 
+
+  <include file="$(find ridgeback_navigation)/launch/include/move_base.launch" />
+  <!-- TODO The parameters loaded in these launch files do not necessarily fit our map and setup in general.
+        Might need to define our own parameter files. -->
+</launch>

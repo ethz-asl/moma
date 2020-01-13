@@ -15,3 +15,6 @@
 [submodule "submodules/gpd_ros"]
 	path = submodules/gpd_ros
 	url = ssh://git@github.com/kekeblom/gpd_ros
+[submodule "submodules/yumi"]
+	path = submodules/yumi
+	url = git@github.com:kth-ros-pkg/yumi.git
