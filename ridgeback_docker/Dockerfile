@@ -50,6 +50,7 @@ RUN git clone https://github.com/iralabdisco/ira_laser_tools $ROS_WORKSPACE_SRC/
 
 # Overwrite some of the ridgeback configurations.
 COPY launch/accessories.launch $ROS_WORKSPACE_SRC/ridgeback_robot/ridgeback_bringup/launch/accessories.launch
+COPY launch/control.launch $ROS_WORKSPACE_SRC/ridgeback/ridgeback_control/launch/control.launch
 
 RUN cd $ROS_WORKSPACE && /bin/bash -c "$SOURCE_WS && catkin_make -DCMAKE_BUILD_TYPE=Release"
 
