@@ -7,7 +7,7 @@ from scipy.spatial.transform import Rotation
 from std_msgs.msg import Header
 from geometry_msgs.msg import PoseStamped
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
-from fetch_demo.approach_node import MovingAction
+from fetch_demo.common import MovingActionServer
 
 
 class SearchActionServer(MovingActionServer):
