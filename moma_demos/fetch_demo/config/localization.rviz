@@ -5,8 +5,6 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /TF1/Frames1
-        - /Maplab Global Pose1
-        - /Maplab Raw Localizations1
       Splitter Ratio: 0.5268459916114807
     Tree Height: 579
   - Class: rviz/Selection
@@ -160,26 +158,26 @@ Visualization Manager:
       Length: 0.25
       Name: Axes
       Radius: 0.05000000074505806
-      Reference Frame: odom
+      Reference Frame: base_link
       Value: true
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
-        Max Value: 10
-        Min Value: -10
+        Max Value: 0.8040584921836853
+        Min Value: -1.0094865560531616
         Value: true
       Axis: Z
       Channel Name: intensity
       Class: rviz/LaserScan
       Color: 255; 255; 255
-      Color Transformer: Intensity
+      Color Transformer: AxisColor
       Decay Time: 0
       Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
-      Max Intensity: 1209
+      Max Intensity: 1794
       Min Color: 0; 0; 0
-      Min Intensity: 391
+      Min Intensity: 390
       Name: LaserScan
       Position Transformer: XYZ
       Queue Size: 10
@@ -187,7 +185,7 @@ Visualization Manager:
       Size (Pixels): 3
       Size (m): 0.05000000074505806
       Style: Flat Squares
-      Topic: /front/scan
+      Topic: /merged_scan
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
@@ -321,12 +319,12 @@ Visualization Manager:
       Class: rviz/Map
       Color Scheme: costmap
       Draw Behind: false
-      Enabled: true
+      Enabled: false
       Name: Map
       Topic: /move_base/global_costmap/costmap
       Unreliable: false
       Use Timestamp: false
-      Value: true
+      Value: false
     - Class: rviz/Marker
       Enabled: true
       Marker Topic: /debug_T_G_I
@@ -438,26 +436,21 @@ Visualization Manager:
   Value: true
   Views:
     Current:
-      Class: rviz/XYOrbit
-      Distance: 8.022948265075684
+      Angle: -0.4600004553794861
+      Class: rviz/TopDownOrtho
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
-      Focal Point:
-        X: 2.268949270248413
-        Y: -5.778228282928467
-        Z: 4.76837158203125e-7
-      Focal Shape Fixed Size: true
-      Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.9747965931892395
+      Scale: 42.54310989379883
       Target Frame: <Fixed Frame>
-      Value: XYOrbit (rviz)
-      Yaw: 3.9685420989990234
+      Value: TopDownOrtho (rviz)
+      X: 13.556791305541992
+      Y: -2.1536672115325928
     Saved: ~
 Window Geometry:
   Displays:
@@ -475,5 +468,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1535
-  X: 168
-  Y: 78
+  X: 307
+  Y: 96
