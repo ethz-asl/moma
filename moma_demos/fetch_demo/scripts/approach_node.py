@@ -17,6 +17,7 @@ from fetch_demo.common import MovingActionServer
 
 DEBUG = False
 
+
 class ApproachActionServer(MovingActionServer):
     """
         When called, this action should find a collision free position for the robot,
@@ -81,13 +82,16 @@ class ApproachActionServer(MovingActionServer):
         yaw = np.arctan2(-direction_vector[1], -direction_vector[0])
         # Negative sign for direction_vector because we want vector from robot position to object position
         waypoint = np.hstack((robot_goal_pos_m, np.rad2deg(yaw)))
-        if not self._visit_waypoint(waypoint):
+        result = self._visit_waypoint(waypoint)
+        if result == GoalStatus.PREEMPTED:
+            rospy.loginfo("Got preemption request")
+            self.action_server.set_preempted()
+        elif result == GoalStatus.ABORTED:
             rospy.logerr("Failed to navigate to approach waypoint " + waypoint)
             self.action_server.set_aborted()
-            return
-
-        rospy.loginfo("Finished approach")
-        self.action_server.set_succeeded(result)
+        else:
+            rospy.loginfo("Finished approach")
+            self.action_server.set_succeeded(result)
 
     def map_cb(self, msg):
         rospy.loginfo("Received map")
