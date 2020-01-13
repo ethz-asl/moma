@@ -3,6 +3,7 @@
 from __future__ import print_function
 
 import copy
+import sys
 
 from actionlib import SimpleActionServer
 import numpy as np
@@ -14,7 +15,7 @@ import tf
 from tf2_sensor_msgs.tf2_sensor_msgs import do_transform_cloud
 
 from grasp_demo.msg import ScanSceneAction, ScanSceneResult
-from panda_control.panda_commander import PandaCommander
+from grasp_demo.utils import create_robot_connection
 
 
 class SimpleScanAction(object):
@@ -24,12 +25,14 @@ class SimpleScanAction(object):
         self._as = SimpleActionServer(
             "scan_action", ScanSceneAction, execute_cb=self.execute_cb, auto_start=False
         )
+        self.commander = create_robot_connection(sys.argv[1])
+        self.base_frame_id = "yumi_body"
 
-        self.panda_commander = PandaCommander("panda_arm")
         self.listener = tf.TransformListener()
         self.latest_cloud_data = None
 
         self.scan_joints = rospy.get_param("grasp_demo")["scan_joint_values"]
+        self.home_joints = self.commander.move_group.get_named_target_values("home")
 
         rospy.Subscriber("/camera/depth/color/points", PointCloud2, self.point_cloud_cb)
         self.cloud_pub = rospy.Publisher("~cloud", PointCloud2, queue_size=1)
@@ -53,7 +56,8 @@ class SimpleScanAction(object):
                 self._as.set_preempted()
                 return
 
-            self.panda_commander.goto_joint_target(joints, max_velocity_scaling=0.5)
+            self.commander.goto_joint_target(joints, max_velocity_scaling=0.4)
+            rospy.sleep(0.5)
             cloud = self.capture_point_cloud()
             captured_clouds.append(cloud)
 
@@ -62,6 +66,9 @@ class SimpleScanAction(object):
 
         # Publish stitched cloud for visualization only
         self.cloud_pub.publish(cloud)
+
+        # Move home
+        self.commander.goto_joint_target(self.home_joints, max_velocity_scaling=0.4)
 
         result = ScanSceneResult(pointcloud_scene=cloud)
         self._as.set_succeeded(result)
@@ -84,7 +91,7 @@ class SimpleScanAction(object):
     def transform_pointcloud(self, msg):
         frame = msg.header.frame_id
         translation, rotation = self.listener.lookupTransform(
-            "panda_link0", frame, rospy.Time()
+            self.base_frame_id, frame, rospy.Time()
         )
         transform_msg = TransformStamped()
         transform_msg.transform.translation.x = translation[0]
@@ -96,7 +103,7 @@ class SimpleScanAction(object):
         transform_msg.transform.rotation.w = rotation[3]
         transformed_msg = do_transform_cloud(msg, transform_msg)
         transformed_msg.header = msg.header
-        transformed_msg.header.frame_id = "panda_link0"
+        transformed_msg.header.frame_id = self.base_frame_id
         return transformed_msg
 
     def stitch_point_clouds(self, clouds):

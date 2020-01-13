@@ -16,7 +16,6 @@ from moma_utils.ros_conversions import from_point_msg, from_pose_msg, to_pose_ms
 def grasp_config_list_to_pose_array(grasp_config_list):
     pose_array_msg = PoseArray()
     pose_array_msg.header.stamp = rospy.Time.now()
-    pose_array_msg.header.frame_id = "panda_link0"
 
     for grasp in grasp_config_list.grasps:
 
@@ -38,8 +37,9 @@ def grasp_config_list_to_pose_array(grasp_config_list):
             rot = rot * Rotation.from_euler("z", 180, degrees=True)
 
         # GPD defines points at the hand palm, not the fingertip
+        hand_depth = 0.05
         position = from_point_msg(grasp.position)
-        position += rot.apply([0.0, 0.0, 0.03])
+        position += rot.apply([0.0, 0.0, hand_depth])
 
         pose_msg = to_pose_msg(Transform(rot, position))
         pose_array_msg.poses.append(pose_msg)
@@ -60,6 +60,8 @@ class GraspSelectionAction(object):
             execute_cb=self.execute_cb,
             auto_start=False,
         )
+
+        self.base_frame_id = "yumi_body"
 
         self.gpd_cloud_pub = rospy.Publisher(
             "/cloud_stitched", PointCloud2, queue_size=10
@@ -84,7 +86,7 @@ class GraspSelectionAction(object):
             rospy.loginfo("No grasps detected, aborting")
             return
         else:
-            rospy.loginfo("{} grasps detected".format(len(grasp_candidates)))
+            rospy.loginfo("{} grasps detected".format(len(grasp_candidates.poses)))
 
         self.visualize_detected_grasps(grasp_candidates)
 
@@ -101,12 +103,14 @@ class GraspSelectionAction(object):
 
         try:
             grasp_config_list = rospy.wait_for_message(
-                "/detect_grasps/clustered_grasps", GraspConfigList, timeout=30
+                "/detect_grasps/clustered_grasps", GraspConfigList, timeout=120
             )
         except rospy.ROSException:
             return []
 
-        return grasp_config_list_to_pose_array(grasp_config_list)
+        grasp_candidates = grasp_config_list_to_pose_array(grasp_config_list)
+        grasp_candidates.header.frame_id = self.base_frame_id
+        return grasp_candidates
 
     def visualize_detected_grasps(self, grasp_candidates):
         self.detected_grasps_pub.publish(grasp_candidates)
@@ -122,7 +126,7 @@ class GraspSelectionAction(object):
 
         selected_grasp_msg = PoseStamped()
         selected_grasp_msg.header.stamp = rospy.Time.now()
-        selected_grasp_msg.header.frame_id = "panda_link0"
+        selected_grasp_msg.header.frame_id = self.base_frame_id
         selected_grasp_msg.pose = grasp_candidates.poses[np.argmin(distances)]
 
         return selected_grasp_msg
