@@ -14,13 +14,17 @@ from fetch_demo.msg import (
     DropMoveAction,
 )
 from grasp_demo.msg import (
+    Instances,
     ScanSceneAction,
     SelectGraspAction,
     SelectGraspGoal,
+    SemanticSelectGraspAction,
+    SemanticSelectGraspGoal,
     GraspAction,
     GraspGoal,
 )
 from std_msgs.msg import Empty
+from vpp_msgs.srv import GetListSemanticInstances
 
 WAIT_FOR_ENTER = True
 
@@ -32,6 +36,8 @@ def wait_for_enter():
 
 class SequentialRunner:
     def __init__(self):
+        self.semantic_grasping = rospy.get_param("semantic_grasping", False)
+
         self.client_search = actionlib.SimpleActionClient("search_action", SearchAction)
         self.client_search.wait_for_server()
 
@@ -43,9 +49,19 @@ class SequentialRunner:
         self.client_scan = actionlib.SimpleActionClient("scan_action", ScanSceneAction)
         self.client_scan.wait_for_server()
 
-        self.client_plan_grasp = actionlib.SimpleActionClient(
-            "grasp_selection_action", SelectGraspAction
-        )
+        if self.semantic_grasping:
+            self.get_instances_service = rospy.ServiceProxy(
+                "gsm_node/get_list_semantic_instances", GetListSemanticInstances
+            )
+            self.instances_publisher = rospy.Publisher("instances", Instances)
+
+            self.client_plan_grasp = actionlib.SimpleActionClient(
+                "semantic_grasp_selection_action", SemanticSelectGraspAction
+            )
+        else:
+            self.client_plan_grasp = actionlib.SimpleActionClient(
+                "grasp_selection_action", SelectGraspAction
+            )
         self.client_plan_grasp.wait_for_server()
 
         self.client_execute_grasp = actionlib.SimpleActionClient(
@@ -97,15 +113,14 @@ class SequentialRunner:
         wait_for_enter()
 
         # Plan grasp (input: pointcloud; output: grasp pose):
-        goal = SelectGraspGoal(pointcloud_scene=result_scan.pointcloud_scene)
-        self.client_plan_grasp.send_goal(goal)
-        self.client_plan_grasp.wait_for_result()
-        result_state = self.client_plan_grasp.get_state()
-        if result_state is not GoalStatus.SUCCEEDED:
-            print("Failure during the grasp planning action. Aborting.")
-            return
+        if self.semantic_grasping:
+            result_plan_grasp = self._semantic_grasp(result_scan)
         else:
-            result_plan_grasp = self.client_plan_grasp.get_result()
+            result_plan_grasp = self._plain_grasp(result_scan)
+
+        if result_plan_grasp is None:
+            print("Failed to plan a grasp")
+            return
 
         wait_for_enter()
 
@@ -130,6 +145,41 @@ class SequentialRunner:
 
         # Finished
         print("Finished demo sequence.")
+
+    def _semantic_grasp(self, result_scan):
+        self._update_instance_labels()
+        selected_instance = rospy.client.wait_for_message("selected_instance")
+        goal = SemanticSelectGraspGoal(
+            pointcloud_scene=result_scan.pointcloud_scene,
+            instance_id=selected_instance.id,
+        )
+        self.client_plan_grasp.send_goal(goal)
+        self.client_plan_grasp.wait_for_result()
+        result_state = self.client_plan_grasp.get_state()
+        if result_state is not GoalStatus.SUCCEEDED:
+            print("Failure during the semantic grasp planning action. Aborting.")
+            return
+        return self.client_plan_grasp.get_result()
+
+    def _plain_grasp(self, result_scan):
+        goal = SelectGraspGoal(pointcloud_scene=result_scan.pointcloud_scene)
+        self.client_plan_grasp.send_goal(goal)
+        self.client_plan_grasp.wait_for_result()
+        result_state = self.client_plan_grasp.get_state()
+        if result_state is not GoalStatus.SUCCEEDED:
+            print("Failure during the grasp planning action. Aborting.")
+            return
+        return self.client_plan_grasp.get_result()
+
+    def _update_instance_labels(self):
+        response = self.get_instances_service()
+        if len(response.instance_ids) == 0:
+            print("No instances to grasp")
+            return
+        msg = Instances()
+        msg.instances_ids = response.instance_ids
+        msg.semantic_categories = response.semantic_categories
+        self.instances_publisher.publish(msg)
 
 
 def main():

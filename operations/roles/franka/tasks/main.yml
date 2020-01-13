@@ -1,0 +1,14 @@
+---
+- name: Install ros-franka
+  become: yes
+  apt:
+    name: "{{ packages }}"
+    state: present
+  vars:
+    packages:
+    - ros-melodic-franka-ros
+    - ros-melodic-py-trees
+    - ros-melodic-py-trees-ros
+    - ros-melodic-rqt-py-trees
+    - ros-melodic-pcl-conversions
+

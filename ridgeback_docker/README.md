@@ -28,19 +28,13 @@ TODO
 If the base image docker file `<repo-root>/ridgeback_docker/Dockerfile` was modified, the following steps need to be followed to build it and to install it on the platform.
 
 ```bash
-cd <repo-root>/mobmi-base-img
+cd <repo-root>/ridgeback_docker
 ```
 
 Build image:
 
 ```bash
-docker build -t mobmi .
-```
-
-Export image:
-
-```bash
-docker save -o ../image.zip mobmi
+./build_container.sh
 ```
 
 Copy to platform:
@@ -55,7 +49,7 @@ Log into the platform via SSH:
 ssh asl-admin@192.168.131.1
 ```
 
- Import image:
+Import image:
 
 ```bash
 docker load -i image.zip

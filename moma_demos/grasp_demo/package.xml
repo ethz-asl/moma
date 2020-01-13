@@ -9,7 +9,6 @@
   <license>TODO</license>
 
   <buildtool_depend>catkin</buildtool_depend>
-
   <depend>std_msgs</depend>
   <depend>actionlib</depend>
   <depend>actionlib_msgs</depend>
@@ -21,7 +20,14 @@
   <depend>sensor_msgs</depend>
   <depend>vpp_msgs</depend>
 
-  <exec_depend>realsense2_camera</exec_depend>
+  <depend>rospy</depend>
+  <depend>std_srvs</depend>
+  <depend>tf2_ros</depend>
+  <depend>qtbase5-dev</depend>
+  <depend>vpp_msgs</depend>
+  <build_depend>message_generation</build_depend>
+
+  <exec_depend>message_runtime</exec_depend>
   <exec_depend>rviz</exec_depend>
   
   <export>

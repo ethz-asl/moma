@@ -6,6 +6,7 @@
 #include <QVBoxLayout>
 #include <QPushButton>
 #include <QWidget>
+#include "grasp_demo/Instances.h"
 
 namespace control_gui
 {

@@ -13,41 +13,35 @@ from actionlib_msgs.msg import GoalStatus
 
 from moma_utils.ros_conversions import waypoint_to_pose_msg
 
+from fetch_demo.common import MovingActionServer
+
 DEBUG = False
 
-
-class ApproachActionServer:
+class ApproachActionServer(MovingActionServer):
     """
         When called, this action should find a collision free position for the robot,
         as close as possible to the target location (target object), facing it, and navigate
         the robot there using the navigation action.
+
+        Useful for testing in map frame [m]: x=26.7705631256 y=-0.539741873741
     """
 
     def __init__(self):
-        # Obtain map from map server
-        rospy.Subscriber("/map", OccupancyGrid, self.map_cb)
-        self.map = None
-
-        # Connection to navigation stack
-        self.move_base_client = actionlib.SimpleActionClient(
-            "move_base", MoveBaseAction
-        )
-        self.move_base_client.wait_for_server()
-
-        # Launch action server
         action_name = "approach_action"
-        self.action_server = actionlib.SimpleActionServer(
-            action_name, ApproachAction, execute_cb=self.approach_cb, auto_start=False
-        )
-        self.action_server.start()
-        rospy.loginfo("Approach action server started.")
+        super(ApproachActionServer, self).__init__(action_name, ApproachAction)
+        if DEBUG:
+            rospy.loginfo("Debug logging is active.")
+
+        # Obtain map from map server
+        rospy.Subscriber("/approach_module/map", OccupancyGrid, self.map_cb)
+        self.map = None
 
         # Set some parameters
         self.robot_width_m = 1.0
 
-    def approach_cb(self, msg):
+    def action_callback(self, msg):
         """Action server callback.
-        
+
         For debugging purposes, the target position [1276, 2573], given in pixels, is
         useful, i.e. on the table in KoZe.
 
@@ -61,7 +55,6 @@ class ApproachActionServer:
         target_pos_m = np.array(
             [msg.target_object_pose.position.x, msg.target_object_pose.position.y]
         )
-        # TODO make sure x and y are the correct order.
         target_pos_px = self._convert_m_to_px(target_pos_m)
 
         # Find closest free point on map
@@ -72,6 +65,12 @@ class ApproachActionServer:
             first_empty_pos_m, target_pos_m
         )
 
+        rospy.loginfo(
+            "Found robot target location: x={}, y={}".format(
+                robot_goal_pos_m[0], robot_goal_pos_m[1]
+            )
+        )
+
         # Visualize map and locations we found if desired
         if DEBUG:
             first_empty_pos_px = self._convert_m_to_px(first_empty_pos_m)
@@ -79,12 +78,12 @@ class ApproachActionServer:
             self._plot_map(target_pos_px, first_empty_pos_px, robot_goal_pos_px)
 
         # Move there using the navigation action
-        # TODO verify that this yaw angle is correct.
         yaw = np.arctan2(-direction_vector[1], -direction_vector[0])
         # Negative sign for direction_vector because we want vector from robot position to object position
         waypoint = np.hstack((robot_goal_pos_m, np.rad2deg(yaw)))
-        # TODO verify whether waypoint is in the correct frame.
         if not self._visit_waypoint(waypoint):
+            rospy.logerr("Failed to navigate to approach waypoint " + waypoint)
+            self.action_server.set_aborted()
             return
 
         rospy.loginfo("Finished approach")
@@ -94,6 +93,7 @@ class ApproachActionServer:
         rospy.loginfo("Received map")
         self.map = msg
         self.map_width = self.map.info.width
+        self.map_height = self.map.info.height
         self.map_resolution = self.map.info.resolution
         self.map_origin = np.array(
             [msg.info.origin.position.x, msg.info.origin.position.y]
@@ -105,14 +105,9 @@ class ApproachActionServer:
         assert msg.info.origin.orientation.w == 1.0
 
         self.map_data = np.array(msg.data)
-        self.map_data = np.reshape(self.map_data, (self.map_width, self.map_width))
+        self.map_data = np.reshape(self.map_data, (self.map_height, self.map_width))
 
     def _find_closest_free_space(self, target_pos_px):
-
-        assert (
-            self.map_data[target_pos_px[0], target_pos_px[1]] == 100
-        )  # 100 means occupied
-
         first_empty_pos_px = []
         first_empty_distance = 1000
         found_first_empty_pos = False
@@ -158,7 +153,9 @@ class ApproachActionServer:
         direction_vector /= np.linalg.norm(direction_vector)
 
         robot_goal_pos_m = (
-            first_empty_pos_m + direction_vector * self.robot_width_m * 0.7
+            first_empty_pos_m
+            + direction_vector * self.robot_width_m * 0.5
+            - 0.3 * direction_vector
         )
         return robot_goal_pos_m, direction_vector
 
@@ -169,41 +166,20 @@ class ApproachActionServer:
         plt.scatter(robot_goal_pos_px[1], robot_goal_pos_px[0], s=50, c="lime")
         plt.show()
 
-    def _visit_waypoint(self, waypoint):
-        """
-            Given a waypoint in the format [position x, position y, yaw], this function
-            invokes move_base to navigate the robot to the waypoint.
-        """
-        pose = waypoint_to_pose_msg(waypoint)
-        navigation_goal = MoveBaseGoal(target_pose=pose)
-        self.move_base_client.send_goal(navigation_goal)
-        state = GoalStatus.PENDING
-        while state == GoalStatus.PENDING or state == GoalStatus.ACTIVE:
-            if self.action_server.is_preempt_requested():
-                self.move_base_client.cancel_all_goals()
-                self.action_server.set_preempted()
-                return False
-            rospy.sleep(0.5)
-            state = self.move_base_client.get_state()
-
-        if state is not GoalStatus.SUCCEEDED:
-            rospy.logerr("Failed to navigate to approach waypoint.")
-            self.action_server.set_aborted()
-            return False
-
-        rospy.loginfo("Reached approach waypoint.")
-        return True
-
     def _convert_m_to_px(self, position_m):
-        return (position_m - self.map_origin) / self.map_resolution
+        position_px_unrounded = (position_m - self.map_origin) / self.map_resolution
+        position_px_rounded = position_px_unrounded.astype(np.int32)
+        position_px_rounded_flipped = np.flip(position_px_rounded, axis=0)
+        return position_px_rounded_flipped
 
-    def _convert_px_to_m(self, position_px):
+    def _convert_px_to_m(self, position_px_flipped):
+        position_px = np.flip(position_px_flipped, axis=0)
         return position_px * self.map_resolution + self.map_origin
 
     def _construct_robot_mask(self):
         """
             This function is currently not in use. Would be useful if we want to check in the
-            future whether the robot actually can be positioned there collision free. 
+            future whether the robot actually can be positioned there collision free.
         """
 
         robot_width_px = int(self.robot_width_m / self.map_resolution)
@@ -235,3 +211,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

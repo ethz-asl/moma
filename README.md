@@ -39,18 +39,15 @@ More detailed instructions on the setup and operation of our robotic platforms, 
 
 ## Ansible Playbooks
 
-This section needs to be updated.
+The `operations/` directory contains some Ansible playbooks which are there to automate and document how to set up a computer.
 
-The `playbooks/` directory contains some Ansible playbooks which are there to automate and document how to set up the machine. `playbooks/setup_ros.yaml` will install ROS. `playbooks/setup_repo.yaml` will create a catkin workspace and clone this repository on the machine. `playbooks/setup_realsense.yaml` will install realsense dependencies and clone the [realsense-ros](https://github.com/IntelRealSense/realsense-ros) repository.
+To run a playbook, first install Ansible (`pip install --user ansible`). Copy the hosts file `operations/hosts` to `/etc/ansible/hosts`.
 
-To run a playbook, first install Ansible (`pip install --user ansible`). Copy the file `playbooks/hosts` to `/opt/ansible/hosts` or specify the inventory file with the `-i` option every time you run `ansible-playbook` (e.g. `ansible-playbook playbooks/setup_ros.yaml -i playbooks/hosts --ask-pass --ask-become-pass`.
+The hosts file is an inventory file specifying groups of hosts. A playbook is always run against a group and all the commands will be run on all machines in that group.
 
-The hosts file is an inventory file specifying which machines the playbooks are run against. Currently it only contains one group `franka-box` which's ip should point to the ubuntu machine controlling the Franka arm.
-
-Setting up the machine is done by running the commands:
-
+To set up the franka control computer, run:
 ```
-ansible-playbook playbooks/setup_ros.yaml --ask-pass --ask-become-pass
-ansible-playbook playbooks/setup_repo.yaml --ask-pass --ask-become-pass
-ansible-playbook playbooks/setup_realsense.yaml --ask-pass --ask-become-pass
+ansible-playbook operations/setup_franka.yaml --ask-pass --ask-become-pass
 ```
+The `--ask-pass` flag is not needed if ssh authentication is being used.
+
