@@ -50,13 +50,16 @@ class ApproachActionServer(MovingActionServer):
             msg (ApproachGoal): Message specifying the target object location in the map frame.
         """
 
-        rospy.loginfo("Start approaching object")
         result = ApproachResult()
 
         target_pos_m = np.array(
             [msg.target_object_pose.position.x, msg.target_object_pose.position.y]
         )
         target_pos_px = self._convert_m_to_px(target_pos_m)
+
+        rospy.loginfo(
+            "Start approaching object at target position " + str(target_pos_m)
+        )
 
         # Find closest free point on map
         first_empty_pos_m = self._find_closest_free_space(target_pos_px)
