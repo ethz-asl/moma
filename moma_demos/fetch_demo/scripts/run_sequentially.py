@@ -84,28 +84,28 @@ class SequentialRunner:
         while True:
             if current_action == "search":
 
-                # # Search object (input: none; result: target object position known in global map):
-                # self.client_search.send_goal(Empty())
-                # self.client_search.wait_for_result()
-                # result_state = self.client_search.get_state()
-                # if result_state is not GoalStatus.SUCCEEDED:
-                #     print("Failure during the search action. Aborting.")
-                #     return
-                # else:
-                #     result_search = self.client_search.get_result()
+                # Search object (input: none; result: target object position known in global map):
+                self.client_search.send_goal(Empty())
+                self.client_search.wait_for_result()
+                result_state = self.client_search.get_state()
+                if result_state is not GoalStatus.SUCCEEDED:
+                    print("Failure during the search action. Aborting.")
+                    return
+                else:
+                    result_search = self.client_search.get_result()
 
                 current_action = "approach"
                 wait_for_enter("approach")
 
             elif current_action == "approach":
-                # # Approach object (input: target object position; output: none):
-                # goal = ApproachGoal(target_object_pose=result_search.target_object_pose)
-                # self.client_approach.send_goal(goal)
-                # self.client_approach.wait_for_result()
-                # result_state = self.client_approach.get_state()
-                # if result_state is not GoalStatus.SUCCEEDED:
-                #     print("Failure during the approach action. Aborting.")
-                #     return
+                # Approach object (input: target object position; output: none):
+                goal = ApproachGoal(target_object_pose=result_search.target_object_pose)
+                self.client_approach.send_goal(goal)
+                self.client_approach.wait_for_result()
+                result_state = self.client_approach.get_state()
+                if result_state is not GoalStatus.SUCCEEDED:
+                    print("Failure during the approach action. Aborting.")
+                    return
 
                 current_action = "scan"
                 wait_for_enter("scan")
