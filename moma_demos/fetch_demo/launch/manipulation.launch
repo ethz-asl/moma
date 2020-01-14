@@ -10,14 +10,14 @@
     <node pkg="map_server" name="asl_map_server_node" type="map_server" ns="approach_module" args="$(find fetch_demo)/maps/lasermap_new_table.yaml" output="screen"/>
 
     <!-- Launch camera -->
-    <!-- <include file="$(find realsense2_camera)/launch/rs_camera.launch">
+    <include file="$(find realsense2_camera)/launch/rs_camera.launch">
         <arg name="enable_pointcloud" value="true"/>
-    </include> -->
+    </include>
 
     <!-- Bringup robot -->
-    <include file="$(find moma_bringup)/launch/mobmi_control_moveit_rviz.launch">
+    <!-- <include file="$(find moma_bringup)/launch/mobmi_control_moveit_rviz.launch">
         <arg name="launch_rviz" value="false"/>
-    </include>
+    </include> -->
 
     <!-- Launch GPD -->
     <node name="detect_grasps" pkg="gpd_ros" type="detect_grasps" output="screen">
