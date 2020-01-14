@@ -39,6 +39,7 @@ class SearchActionServer(MovingActionServer):
         self._first_scan_joint_r = rospy.get_param("scan_joint_values")[0]
 
     def _subscribe_object_detection(self):
+        self._result = None
         self._object_detected = False
         self._subscriber = rospy.Subscriber(
             "/W_landmark", Vector3, callback=self._object_detection_cb
@@ -50,13 +51,16 @@ class SearchActionServer(MovingActionServer):
 
     def _object_detection_cb(self, msg):
         self._object_detected = True
+        self._result = SearchResult()
+        self._result.position.x = msg.x
+        self._result.position.y = msg.y
+        self._result.position.z = 0.0
         rospy.loginfo("Object detection message received. Stopping search.")
         self.move_base_client.cancel_all_goals()
 
     def action_callback(self, msg):
         self._object_detected = False
         rospy.loginfo("Start following search waypoints")
-        result = SearchResult()
 
         self.left_arm.goto_joint_target(self._home_joints_l, max_velocity_scaling=0.5)
         self.right_arm.goto_joint_target(
@@ -67,7 +71,7 @@ class SearchActionServer(MovingActionServer):
             state = self._visit_waypoint(waypoint)
             if self._object_detected:
                 rospy.loginfo("Search completed")
-                self.action_server.set_succeeded(result)
+                self.action_server.set_succeeded(self._result)
                 self.right_arm.goto_joint_target(
                     self._first_scan_joint_r, max_velocity_scaling=0.5
                 )
@@ -95,7 +99,7 @@ class SearchActionServer(MovingActionServer):
                     self.left_arm.goto_joint_target(
                         self._ready_joints_l, max_velocity_scaling=0.5
                     )
-                    self.action_server.set_succeeded(result)
+                    self.action_server.set_succeeded(self._result)
                     return
                 elif state == GoalStatus.PREEMPTED:
                     rospy.loginfo("Got preemption request")
