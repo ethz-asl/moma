@@ -90,7 +90,7 @@ class ApproachActionServer(MovingActionServer):
             rospy.loginfo("Got preemption request")
             self.action_server.set_preempted()
         elif state == GoalStatus.ABORTED:
-            rospy.logerr("Failed to navigate to approach waypoint " + waypoint)
+            rospy.logerr("Failed to navigate to approach waypoint ")
             self.action_server.set_aborted()
         else:
             rospy.loginfo("Finished approach")
@@ -162,7 +162,7 @@ class ApproachActionServer(MovingActionServer):
         robot_goal_pos_m = (
             first_empty_pos_m
             + direction_vector * self.robot_width_m * 0.5
-            - 0.2 * direction_vector
+            - 0.3 * direction_vector
         )
         return robot_goal_pos_m, direction_vector
 
