@@ -7,6 +7,7 @@ from gpd_ros.msg import GraspConfigList
 import rospy
 from sensor_msgs.msg import PointCloud2
 from scipy.spatial.transform import Rotation
+import tf
 
 from grasp_demo.msg import SelectGraspAction, SelectGraspResult
 from moma_utils.transform import Transform, Rotation
@@ -16,7 +17,8 @@ from moma_utils.ros_conversions import from_point_msg, from_pose_msg, to_pose_ms
 def grasp_config_list_to_pose_array(grasp_config_list):
     pose_array_msg = PoseArray()
     pose_array_msg.header.stamp = rospy.Time.now()
-    pose_array_msg.header.frame_id = "panda_link0"
+
+    scores = []
 
     for grasp in grasp_config_list.grasps:
 
@@ -38,13 +40,15 @@ def grasp_config_list_to_pose_array(grasp_config_list):
             rot = rot * Rotation.from_euler("z", 180, degrees=True)
 
         # GPD defines points at the hand palm, not the fingertip
+        hand_depth = 0.06
         position = from_point_msg(grasp.position)
-        position += rot.apply([0.0, 0.0, 0.03])
+        position += rot.apply([0.0, 0.0, hand_depth])
 
         pose_msg = to_pose_msg(Transform(rot, position))
         pose_array_msg.poses.append(pose_msg)
+        scores.append(grasp.score)
 
-    return pose_array_msg
+    return pose_array_msg, scores
 
 
 class GraspSelectionAction(object):
@@ -61,6 +65,8 @@ class GraspSelectionAction(object):
             auto_start=False,
         )
 
+        self.base_frame_id = "yumi_body"
+
         self.gpd_cloud_pub = rospy.Publisher(
             "/cloud_stitched", PointCloud2, queue_size=10
         )  # publishing a cloud to this topic triggers GPD
@@ -73,22 +79,25 @@ class GraspSelectionAction(object):
             "/grasp_pose", PoseStamped, queue_size=10
         )
 
+        self.listener = tf.TransformListener()
+
         self._as.start()
         rospy.loginfo("Grasp selection action server ready")
 
     def execute_cb(self, goal_msg):
-        grasp_candidates = self.detect_grasps(goal_msg.pointcloud_scene)
+        grasp_candidates, scores = self.detect_grasps(goal_msg.pointcloud_scene)
 
         if not grasp_candidates:
             self._as.set_aborted(SelectGraspResult())
             rospy.loginfo("No grasps detected, aborting")
             return
         else:
-            rospy.loginfo("{} grasps detected".format(len(grasp_candidates)))
+            rospy.loginfo("{} grasps detected".format(len(grasp_candidates.poses)))
 
         self.visualize_detected_grasps(grasp_candidates)
 
-        selected_grasp = self.wait_for_user_selection(grasp_candidates)
+        # selected_grasp = self.wait_for_user_selection(grasp_candidates)
+        selected_grasp = self.select_highest_ranked_grasp(grasp_candidates, scores)
         rospy.loginfo("Grasp selected")
 
         self.visualize_selected_grasp(selected_grasp)
@@ -101,12 +110,14 @@ class GraspSelectionAction(object):
 
         try:
             grasp_config_list = rospy.wait_for_message(
-                "/detect_grasps/clustered_grasps", GraspConfigList, timeout=30
+                "/detect_grasps/clustered_grasps", GraspConfigList, timeout=120
             )
         except rospy.ROSException:
             return []
 
-        return grasp_config_list_to_pose_array(grasp_config_list)
+        grasp_candidates, scores = grasp_config_list_to_pose_array(grasp_config_list)
+        grasp_candidates.header.frame_id = self.base_frame_id
+        return grasp_candidates, scores
 
     def visualize_detected_grasps(self, grasp_candidates):
         self.detected_grasps_pub.publish(grasp_candidates)
@@ -115,6 +126,11 @@ class GraspSelectionAction(object):
         clicked_point_msg = rospy.wait_for_message("/clicked_point", PointStamped)
         clicked_point = from_point_msg(clicked_point_msg.point)
 
+        translation, _ = self.listener.lookupTransform(
+            "base_link", self.base_frame_id, rospy.Time()
+        )
+        clicked_point += np.asarray(translation)
+
         distances = []
         for pose in grasp_candidates.poses:
             grasp_point = from_pose_msg(pose).translation
@@ -122,8 +138,18 @@ class GraspSelectionAction(object):
 
         selected_grasp_msg = PoseStamped()
         selected_grasp_msg.header.stamp = rospy.Time.now()
-        selected_grasp_msg.header.frame_id = "panda_link0"
+        selected_grasp_msg.header.frame_id = self.base_frame_id
         selected_grasp_msg.pose = grasp_candidates.poses[np.argmin(distances)]
+
+        return selected_grasp_msg
+
+    def select_highest_ranked_grasp(self, grasp_candidates, scores):
+        index = np.argmax(scores)
+
+        selected_grasp_msg = PoseStamped()
+        selected_grasp_msg.header.stamp = rospy.Time.now()
+        selected_grasp_msg.header.frame_id = self.base_frame_id
+        selected_grasp_msg.pose = grasp_candidates.poses[index]
 
         return selected_grasp_msg
 

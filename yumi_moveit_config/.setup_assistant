@@ -8,4 +8,4 @@ moveit_setup_assistant_config:
   CONFIG:
     author_name: Michel Breyer
     author_email: michel.breyer@mavt.ethz.ch
-    generated_timestamp: 1578572643
+    generated_timestamp: 1578754181

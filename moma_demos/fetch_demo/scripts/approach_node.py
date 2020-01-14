@@ -13,51 +13,9 @@ from actionlib_msgs.msg import GoalStatus
 
 from moma_utils.ros_conversions import waypoint_to_pose_msg
 
+from fetch_demo.common import MovingActionServer
+
 DEBUG = False
-
-
-class MovingActionServer(object):
-    def __init__(self, action_name, ActionType):
-        # Connection to navigation stack
-        self.move_base_client = actionlib.SimpleActionClient(
-            "move_base", MoveBaseAction
-        )
-        self.move_base_client.wait_for_server()
-
-        self.action_server = actionlib.SimpleActionServer(
-            action_name, ActionType, execute_cb=self.action_callback, auto_start=False
-        )
-        self.action_server.start()
-        rospy.loginfo("Approach action server started.")
-
-    def action_callback(self):
-        raise NotImplementedError("Should be implemented by subclass")
-
-    def _visit_waypoint(self, waypoint):
-        """
-            Given a waypoint in the format [position x (m), position y (m), yaw (degrees)], this function
-            invokes move_base to navigate the robot to the waypoint.
-        """
-        pose = waypoint_to_pose_msg(waypoint)
-        navigation_goal = MoveBaseGoal(target_pose=pose)
-        navigation_goal.target_pose.header.frame_id = "map"
-        self.move_base_client.send_goal(navigation_goal)
-        state = GoalStatus.PENDING
-        while state == GoalStatus.PENDING or state == GoalStatus.ACTIVE:
-            if self.action_server.is_preempt_requested():
-                self.move_base_client.cancel_all_goals()
-                self.action_server.set_preempted()
-                return False
-            rospy.sleep(0.5)
-            state = self.move_base_client.get_state()
-
-        if state is not GoalStatus.SUCCEEDED:
-            rospy.logerr("Failed to navigate to approach waypoint.")
-            self.action_server.set_aborted()
-            return False
-
-        rospy.loginfo("Reached approach waypoint.")
-        return True
 
 
 class ApproachActionServer(MovingActionServer):
@@ -124,11 +82,16 @@ class ApproachActionServer(MovingActionServer):
         yaw = np.arctan2(-direction_vector[1], -direction_vector[0])
         # Negative sign for direction_vector because we want vector from robot position to object position
         waypoint = np.hstack((robot_goal_pos_m, np.rad2deg(yaw)))
-        if not self._visit_waypoint(waypoint):
-            return
-
-        rospy.loginfo("Finished approach")
-        self.action_server.set_succeeded(result)
+        state = self._visit_waypoint(waypoint)
+        if state == GoalStatus.PREEMPTED:
+            rospy.loginfo("Got preemption request")
+            self.action_server.set_preempted()
+        elif state == GoalStatus.ABORTED:
+            rospy.logerr("Failed to navigate to approach waypoint " + waypoint)
+            self.action_server.set_aborted()
+        else:
+            rospy.loginfo("Finished approach")
+            self.action_server.set_succeeded(result)
 
     def map_cb(self, msg):
         rospy.loginfo("Received map")
@@ -252,3 +215,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

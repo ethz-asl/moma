@@ -27,9 +27,15 @@
       <origin xyz="0 0 0.007" rpy="0 0 ${pi}"/>
     </xacro:yumi_servo_gripper>
 
+    <!-- Add end effector frame for MoveIt -->
+    <link name="yumi_l_default_ee"/>
+    <joint name="joint_link_7_l_default_ee" type="fixed">
+      <parent link="yumi_link_7_l"/>
+      <child link="yumi_l_default_ee"/>
+      <origin rpy="0.0 0.0 1.571" xyz="0.0 0.0 0.1407"/>
+    </joint>
 
     <!-- Mount realsense -->
-
     <joint name="realsense_mount_joint" type="fixed">
         <parent link="yumi_link_7_r"/>
         <child link="realsense_mount"/>
@@ -39,7 +45,6 @@
     <link name="realsense_mount">
       <visual>
         <geometry>
-          <!-- TODO(mbreyer) use CAD model for nicer looks -->
           <box size="0.14 0.05 0.04"/>
         </geometry>
       </visual>
@@ -50,10 +55,42 @@
       </collision>
     </link>
 
-
     <xacro:property name="xyz_yumi_link7_camera_link" value="-0.021534365646869183 -0.098057755914108952 0.069194569224013028"/>
     <xacro:property name="rpy_yumi_link7_camera_link" value="-2.97446 -1.46168 -1.7345"/>
     <xacro:include filename="$(find moma_description)/urdf/realsense.xacro"/>
     <xacro:realsense ns="yumi" connected_to="yumi_link_7_r" rpy="${rpy_yumi_link7_camera_link}" xyz="${xyz_yumi_link7_camera_link}"/>
+
+    <!-- Add a table to avoid collisions with it -->
+    <link name="table_link">
+      <inertial>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <mass value="1"/>
+        <inertia ixx="100"  ixy="0"  ixz="0" iyy="100" iyz="0" izz="100" />
+      </inertial>
+      <visual>
+        <origin xyz="0 0 0.22" rpy="0 0 0" />
+        <geometry>
+          <box size="0.6 0.6 0.04" />
+        </geometry>
+        <material name="magic">
+          <color rgba="0 0.625 0.625 0.625"/>
+        </material>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0.22" rpy="0 0 0" />
+        <geometry>
+          <box size="0.6 0.6 0.04" />
+        </geometry>
+      </collision>
+  </link>
+
+  <joint name="table_joint" type="fixed">
+      <parent link="yumi_body"/>
+      <child link="table_link"/>
+      <origin rpy="0.0 0.0 0.0" xyz="0.5 0.0 0.0"/>
+    </joint>
+
+
+
   </xacro:macro>
 </robot>

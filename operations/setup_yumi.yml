@@ -1,0 +1,12 @@
+---
+- hosts: yumi-box
+  remote_user: asl-admin
+  vars:
+    - user: asl-admin
+    - home_dir: "/home/{{ user }}"
+    - catkin_ws: "{{ home_dir }}/catkin_ws"
+  roles:
+    - realsense
+    - ros
+    - moma
+
