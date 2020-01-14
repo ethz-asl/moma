@@ -4,7 +4,6 @@ def create_robot_connection(robot_name):
     Args:
         robot_name (str, ["panda", "yumi_left_arm", "yumi_right_arm"]): The name of the robot.
     """
-    print(robot_name)
     if robot_name == "panda":
         from panda_control.panda_commander import PandaCommander
 
