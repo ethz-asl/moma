@@ -57,7 +57,7 @@ class ApproachActionServer(MovingActionServer):
         )
 
         # HACKALARM: move target object over to compensate for wrong transform of object detection
-        target_pos_m += np.array([0.0, -0.9])
+        target_pos_m += np.array([0.0, 0.9])
 
         target_pos_px = self._convert_m_to_px(target_pos_m)
 
@@ -94,7 +94,7 @@ class ApproachActionServer(MovingActionServer):
             rospy.loginfo("Got preemption request")
             self.action_server.set_preempted()
         elif state == GoalStatus.ABORTED:
-            rospy.logerr("Failed to navigate to approach waypoint ")
+            rospy.logerr("Failed to navigate to approach waypoint")
             self.action_server.set_aborted()
         else:
             rospy.loginfo("Finished approach")
