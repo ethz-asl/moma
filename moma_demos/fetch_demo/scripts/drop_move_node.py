@@ -16,16 +16,10 @@ class DropActionServer(MovingActionServer):
 
     def __init__(self):
         action_name = "drop_move_action"
-        self.action_server = actionlib.SimpleActionServer(
-            action_name, DropMoveAction, execute_cb=self.drop_cb, auto_start=False
-        )
-
+        super(DropActionServer, self).__init__(action_name, DropMoveAction)
         self._read_joint_configurations()
         self._connect_yumi()
         self._read_waypoints()
-
-        self.action_server.start()
-        rospy.loginfo("Drop move action server started.")
 
     def _read_waypoints(self):
         waypoints = rospy.get_param("drop_waypoints")
@@ -41,7 +35,7 @@ class DropActionServer(MovingActionServer):
         self._left_arm = create_robot_connection("yumi_left_arm")
         self._right_arm = create_robot_connection("yumi_right_arm")
 
-    def drop_cb(self, msg):
+    def action_callback(self, msg):
         rospy.loginfo("Start approaching object")
         result = DropMoveResult()
 
@@ -75,6 +69,7 @@ class DropActionServer(MovingActionServer):
 
         self._left_arm.goto_joint_target(self._ready_joints_l, max_velocity_scaling=0.5)
         self._left_arm.release()
+        self._left_arm.goto_joint_target(self._home_joints_l, max_velocity_scaling=0.5)
 
         rospy.loginfo("Finished dropping")
         self.action_server.set_succeeded(result)
