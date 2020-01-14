@@ -3,6 +3,7 @@
 from __future__ import print_function
 
 import time
+import sys
 import rospy
 import actionlib
 from actionlib_msgs.msg import GoalStatus
@@ -78,8 +79,12 @@ class SequentialRunner:
     def run(self):
         print("Started demo sequence")
 
-        current_action = "search"
-        wait_for_enter("search")
+        # Set the initial action
+        if len(sys.argv) > 1:
+            current_action = sys.argv[1]
+        else:
+            current_action = "search"
+        wait_for_enter(current_action)
 
         while True:
             if current_action == "search":
@@ -167,10 +172,8 @@ class SequentialRunner:
                 # Finished
                 print("Finished demo sequence.")
                 break
-
             else:
-                print("Invalid current_action token. Aborting.")
-                return
+                raise ValueError("Invalid current_action token. Aborting.")
 
     def _semantic_grasp(self, result_scan):
         self._update_instance_labels()
