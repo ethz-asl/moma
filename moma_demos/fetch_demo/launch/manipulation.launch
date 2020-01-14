@@ -7,7 +7,7 @@
     <rosparam command="load" file="$(find fetch_demo)/config/joint_configurations.yaml" />
 
     <!-- Load map onto map server -->
-    <node pkg="map_server" name="asl_map_server_node" type="map_server" ns="approach_module" args="$(find fetch_demo)/maps/lasermap_table.yaml" output="screen"/>
+    <node pkg="map_server" name="asl_map_server_node" type="map_server" ns="approach_module" args="$(find fetch_demo)/maps/lasermap_new_table.yaml" output="screen"/>
 
     <!-- Launch camera -->
     <!-- <include file="$(find realsense2_camera)/launch/rs_camera.launch">

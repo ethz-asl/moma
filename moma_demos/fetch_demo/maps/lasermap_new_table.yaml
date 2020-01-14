@@ -1,4 +1,4 @@
-image: lasermap_new.png
+image: lasermap_new_table.png
 resolution: 0.050000
 origin: [-18.499554, -14.333729, 0.000000]
 occupied_thresh: 0.65
