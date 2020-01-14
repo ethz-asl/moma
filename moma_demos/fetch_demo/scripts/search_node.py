@@ -5,7 +5,7 @@ from fetch_demo.msg import SearchAction, SearchResult
 import rospy
 import numpy as np
 from scipy.spatial.transform import Rotation
-from geometry_msgs.msg import Vector3
+from geometry_msgs.msg import PointStamped
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 from fetch_demo.common import MovingActionServer
 
@@ -42,7 +42,7 @@ class SearchActionServer(MovingActionServer):
         self._result = None
         self._object_detected = False
         self._subscriber = rospy.Subscriber(
-            "/W_landmark", Vector3, callback=self._object_detection_cb
+            "/W_landmark", PointStamped, callback=self._object_detection_cb
         )
 
     def _connect_yumi(self):
@@ -52,8 +52,8 @@ class SearchActionServer(MovingActionServer):
     def _object_detection_cb(self, msg):
         self._object_detected = True
         self._result = SearchResult()
-        self._result.target_object_pose.position.x = msg.x
-        self._result.target_object_pose.position.y = msg.y
+        self._result.target_object_pose.position.x = msg.point.x
+        self._result.target_object_pose.position.y = msg.point.y
         self._result.target_object_pose.position.z = 0.0
         rospy.loginfo("Object detection message received. Stopping search.")
         self.move_base_client.cancel_all_goals()
