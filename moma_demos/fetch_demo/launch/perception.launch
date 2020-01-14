@@ -4,26 +4,26 @@
   <arg name="sensor" default="realsense"/>
 
   <!-- Object detection -->
-  <!-- TODO: add object detection node -->
+  <node name="object_detection" pkg="abb_odn" type="abb_odn" args="--sensor_calibration_file $(find abb_odn)/share/camchain.yaml --darknet_cfg_path $(find abb_odn)/share/yolo3.cfg --cfg_weights_path $(find abb_odn)/share/yolo3.weights" />
 
   <!-- Voxblox++ -->
-  <node name="mask_rcnn" pkg="mask_rcnn_ros" type="mask_rcnn_node.py" output="log">
+  <!-- <node name="mask_rcnn" pkg="mask_rcnn_ros" type="mask_rcnn_node.py" output="log">
     <remap from="~input" to="/camera/color/image_raw" />
     <param name="~visualization" value="$(arg visualize)" />
-  </node>
+  </node> -->
 
-  <include file="$(find depth_segmentation)/launch/depth_segmentation.launch">
+  <!-- <include file="$(find depth_segmentation)/launch/depth_segmentation.launch">
     <arg name="depth_segmentation_params_file" value="$(find depth_segmentation)/cfg/$(arg sensor)_config.yaml"/>
     <arg name="sensor_topics_file" value="$(find depth_segmentation)/cfg/$(arg sensor)_topics.yaml"/>
     <param name="semantic_instance_segmentation/enable" value="true"/>
     <param name="label_display" value="$(arg visualize)"/>
-  </include>
+  </include> -->
 
-  <arg name="gsm_node_params_name" default="$(find gsm_node)/cfg/yumi.yaml"/>
+  <!-- <arg name="gsm_node_params_name" default="$(find gsm_node)/cfg/yumi.yaml"/> -->
 
-  <node name="gsm_node" pkg="gsm_node" type="gsm_node" output="screen">
+  <!-- <node name="gsm_node" pkg="gsm_node" type="gsm_node" output="screen">
     <rosparam command="load" file="$(arg gsm_node_params_name)" />
     <param name="meshing/visualize" value="$(arg visualize)"/>
     <param name="meshing/update_mesh_every_n_sec" value="0.0" unless="$(arg visualize)"/>
-  </node>
+  </node> -->
 </launch>
