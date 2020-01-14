@@ -41,7 +41,7 @@ class DropActionServer(MovingActionServer):
         self._base_vel_pub = rospy.Publisher("/cmd_vel", Twist, queue_size=10)
 
     def action_callback(self, msg):
-        rospy.loginfo("Start approaching object")
+        rospy.loginfo("Start drop action")
         result = DropMoveResult()
 
         vel_msg = Twist(linear=Vector3(-0.1, 0.0, 0.0))
@@ -55,7 +55,7 @@ class DropActionServer(MovingActionServer):
             self.action_server.set_preempted()
             return
         elif state == GoalStatus.ABORTED:
-            rospy.logerr("Failed to navigate to approach waypoint")
+            rospy.logerr("Failed to navigate to retract waypoint")
             self.action_server.set_aborted()
             return
 
@@ -71,7 +71,7 @@ class DropActionServer(MovingActionServer):
                 self.action_server.set_preempted()
                 return
             elif state == GoalStatus.ABORTED:
-                rospy.logerr("Failed to navigate to approach waypoint " + waypoint)
+                rospy.logerr("Failed to navigate to a drop waypoint")
                 self.action_server.set_aborted()
                 return
 
