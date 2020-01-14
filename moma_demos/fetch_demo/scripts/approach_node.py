@@ -159,7 +159,7 @@ class ApproachActionServer(MovingActionServer):
         robot_goal_pos_m = (
             first_empty_pos_m
             + direction_vector * self.robot_width_m * 0.5
-            - 0.3 * direction_vector
+            - 0.2 * direction_vector
         )
         return robot_goal_pos_m, direction_vector
 
