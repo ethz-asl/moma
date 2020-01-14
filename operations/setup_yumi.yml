@@ -1,5 +1,5 @@
 ---
-- hosts: yumi-box
+- hosts: asl-admin
   remote_user: asl-admin
   vars:
     - user: asl-admin
