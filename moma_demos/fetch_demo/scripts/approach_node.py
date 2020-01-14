@@ -55,6 +55,10 @@ class ApproachActionServer(MovingActionServer):
         target_pos_m = np.array(
             [msg.target_object_pose.position.x, msg.target_object_pose.position.y]
         )
+
+        # HACKALARM: move target object over to compensate for wrong transform of object detection
+        target_pos_m += np.array([0.0, -0.9])
+
         target_pos_px = self._convert_m_to_px(target_pos_m)
 
         rospy.loginfo(
