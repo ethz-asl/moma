@@ -84,7 +84,7 @@ class SearchActionServer(MovingActionServer):
                 self.action_server.set_preempted()
                 return
             elif state == GoalStatus.ABORTED:
-                rospy.logerr("Failed to navigate to approach waypoint " + waypoint)
+                rospy.logerr("Failed to navigate to approach waypoint")
                 self.action_server.set_aborted()
                 return
 
@@ -106,7 +106,7 @@ class SearchActionServer(MovingActionServer):
                     self.action_server.set_preempted()
                     return
                 elif state == GoalStatus.ABORTED:
-                    rospy.logerr("Failed to navigate to approach waypoint " + waypoint)
+                    rospy.logerr("Failed to navigate to approach waypoint")
                     self.action_server.set_aborted()
                     return
 
