@@ -1,0 +1,23 @@
+---
+- hosts: asl-ridgeback
+  remote_user: asl-admin
+  vars:
+    - home_dir: /home/asl-admin
+  tasks:
+    - name: Build container locally
+      local_action:
+        module: command
+        args:
+          cmd: "sh {{ playbook_dir }}/../ridgeback_docker/build_container.sh"
+    - name: Transfer container over
+      synchronize:
+        src: /tmp/mobmi_image.zip
+        dest: "{{ home_dir }}/images/image.zip"
+    - name: Update container
+      command: docker load -i "{{ home_dir }}/images/image.zip"
+    - name: Restart asl-base-container service
+      systemd:
+        name: asl-base-container
+        state: restarted
+      become: true
+
