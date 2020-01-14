@@ -41,6 +41,6 @@
         <node pkg="grasp_demo" type="grasp_selection.py" name="grasp_selection_action_node" output="screen"/>
     </group>
     <node pkg="grasp_demo" type="grasp_execution.py" name="grasp_execution_action_node" output="screen" args="yumi_left_arm" />
-    <node pkg="fetch_demo" type="drop_move_node.py" name="drop_action_node" output="screen"  args="yumi_left_arm"/>
+    <node pkg="fetch_demo" type="drop_move_node.py" name="drop_action_node" output="screen"/>
 
 </launch>
