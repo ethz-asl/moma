@@ -13,6 +13,8 @@ from grasp_demo.msg import SelectGraspAction, SelectGraspResult
 from moma_utils.transform import Transform, Rotation
 from moma_utils.ros_conversions import from_point_msg, from_pose_msg, to_pose_msg
 
+from geometry_msgs.msg import Vector3, Twist
+
 
 def grasp_config_list_to_pose_array(grasp_config_list):
     pose_array_msg = PoseArray()
@@ -81,8 +83,13 @@ class GraspSelectionAction(object):
 
         self.listener = tf.TransformListener()
 
+        self._connect_ridgeback()
+
         self._as.start()
         rospy.loginfo("Grasp selection action server ready")
+
+    def _connect_ridgeback(self):
+        self._base_vel_pub = rospy.Publisher("/cmd_vel", Twist, queue_size=10)
 
     def execute_cb(self, goal_msg):
         grasp_candidates, scores = self.detect_grasps(goal_msg.pointcloud_scene)
@@ -101,6 +108,22 @@ class GraspSelectionAction(object):
         rospy.loginfo("Grasp selected")
 
         self.visualize_selected_grasp(selected_grasp)
+
+        # If it's too far right, move the base a bit
+        grasp_y_position = selected_grasp.pose.position.y
+        if grasp_y_position < 0.0:
+            rospy.loginfo("Need to correct position")
+            vel_abs = 0.05
+            frequency = 20.0
+            safety_margin = 0.04
+            vel_msg = Twist(linear=Vector3(0.0, -vel_abs, 0.0))
+            dist_to_move = -grasp_y_position + safety_margin
+            num_steps = int(dist_to_move / vel_abs * frequency)
+            for _ in range(num_steps):
+                self._base_vel_pub.publish(vel_msg)
+                rospy.sleep(1.0 / frequency)
+            self._as.set_aborted()
+            return
 
         result = SelectGraspResult(target_grasp_pose=selected_grasp)
         self._as.set_succeeded(result)
