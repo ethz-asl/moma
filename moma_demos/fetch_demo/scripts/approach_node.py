@@ -15,6 +15,12 @@ from moma_utils.ros_conversions import waypoint_to_pose_msg
 
 from fetch_demo.common import MovingActionServer
 
+from geometry_msgs.msg import Vector3, Twist
+import tf
+
+from sensor_msgs.msg import Image
+from cv_bridge import CvBridge
+
 DEBUG = False
 
 
@@ -32,6 +38,9 @@ class ApproachActionServer(MovingActionServer):
         super(ApproachActionServer, self).__init__(action_name, ApproachAction)
         if DEBUG:
             rospy.loginfo("Debug logging is active.")
+
+        self._connect_ridgeback()
+        self.listener = tf.TransformListener()
 
         # Obtain map from map server
         rospy.Subscriber("/approach_module/map", OccupancyGrid, self.map_cb)
@@ -55,10 +64,6 @@ class ApproachActionServer(MovingActionServer):
         target_pos_m = np.array(
             [msg.target_object_pose.position.x, msg.target_object_pose.position.y]
         )
-
-        # HACKALARM: move target object over to compensate for wrong transform of object detection
-        target_pos_m += np.array([0.0, 0.9])
-
         target_pos_px = self._convert_m_to_px(target_pos_m)
 
         rospy.loginfo(
@@ -93,12 +98,34 @@ class ApproachActionServer(MovingActionServer):
         if state == GoalStatus.PREEMPTED:
             rospy.loginfo("Got preemption request")
             self.action_server.set_preempted()
+            return
         elif state == GoalStatus.ABORTED:
-            rospy.logerr("Failed to navigate to approach waypoint")
-            self.action_server.set_aborted()
-        else:
-            rospy.loginfo("Finished approach")
-            self.action_server.set_succeeded(result)
+            rospy.logerr("Failed to navigate to approach waypoint. Ignoring it.")
+            # self.action_server.set_aborted()
+            # return
+
+        # Move manually until we reach a threshold in x coordinate
+        vel_msg = Twist(linear=Vector3(0.05, 0.0, 0.0))
+
+        topic_name = "/camera/depth/image_rect_raw"
+        cv_bridge = CvBridge()
+
+        while True:
+            img_msg = rospy.wait_for_message(topic_name, Image)
+            img = cv_bridge.imgmsg_to_cv2(img_msg)
+
+            num_pixels = np.logical_and(img < 1000, img > 0).sum()
+            num_valid = (img > 0).sum()
+
+            ratio = float(num_pixels) / num_valid
+            if ratio > 0.7:
+                break
+
+            self._base_vel_pub.publish(vel_msg)
+            # rospy.sleep(0.05)
+
+        rospy.loginfo("Finished approach")
+        self.action_server.set_succeeded(result)
 
     def map_cb(self, msg):
         rospy.loginfo("Received map")
@@ -117,6 +144,9 @@ class ApproachActionServer(MovingActionServer):
 
         self.map_data = np.array(msg.data)
         self.map_data = np.reshape(self.map_data, (self.map_height, self.map_width))
+
+    def _connect_ridgeback(self):
+        self._base_vel_pub = rospy.Publisher("/cmd_vel", Twist, queue_size=10)
 
     def _find_closest_free_space(self, target_pos_px):
         first_empty_pos_px = []
@@ -166,7 +196,7 @@ class ApproachActionServer(MovingActionServer):
         robot_goal_pos_m = (
             first_empty_pos_m
             + direction_vector * self.robot_width_m * 0.5
-            - 0.3 * direction_vector
+            + 0.15 * direction_vector
         )
         return robot_goal_pos_m, direction_vector
 
