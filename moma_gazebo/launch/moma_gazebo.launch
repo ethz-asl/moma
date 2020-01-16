@@ -6,6 +6,7 @@ Mobmi and yumi support need to be added by specifying the initial config of yumi
 <launch>
   <!-- Arguments -->
   <arg name="robot" default="mopa" doc="Choose platform. Options: {panda, mopa, ridgeback, yumi (TODO), mobmi (TODO)}" />
+  <arg name="ekf_odom" default="true" />
   <arg name="world_name" default="worlds/empty.world"/>
   <arg name="gui" default="true" doc="Starts gazebo gui" />
   <arg name="robot_init_x" default="0" />
@@ -104,7 +105,7 @@ Mobmi and yumi support need to be added by specifying the initial config of yumi
     </group>
     <node name="controller_spawner" pkg="controller_manager" type="spawner"
           args="ridgeback_velocity_controller" />
-    <node pkg="robot_localization" type="ekf_localization_node" name="ekf_localization" />
+    <node if="$(arg ekf_odom)" pkg="robot_localization" type="ekf_localization_node" name="ekf_localization" />
     <node pkg="topic_tools" type="relay" name="cmd_vel_relay"
           args="cmd_vel ridgeback_velocity_controller/cmd_vel" />
   </group>
