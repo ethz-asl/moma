@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="ridgeback">
   <xacro:macro name="ridgeback">
-    
+
     <!-- Ridgeback -->
-    <xacro:include filename="$(find ridgeback_description)/urdf/ridgeback.urdf.xacro"/>  
+    <xacro:include filename="$(find ridgeback_description)/urdf/ridgeback.urdf.xacro"/>
 
     <!-- Sensor mount -->
     <link name="ridgeback_sensor_mount_link">
@@ -14,7 +14,7 @@
       </visual>
       <collision>
         <geometry>
-          <mesh filename="package://moma_description/meshes/ridgeback_sensor_mount.dae"/> 
+          <mesh filename="package://moma_description/meshes/ridgeback_sensor_mount.dae"/>
         </geometry>
       </collision>
     </link>
@@ -24,6 +24,20 @@
     <parent link="mid_mount" />
     <child link="ridgeback_sensor_mount_link" />
   </joint>
+
+  <!-- Ground truth odometry for gazebo simulation evaluations -->
+  <gazebo>
+    <plugin name="p3d_base_controller" filename="libgazebo_ros_p3d.so">
+      <alwaysOn>true</alwaysOn>
+      <updateRate>50.0</updateRate>
+      <bodyName>base_link</bodyName>
+      <topicName>ground_truth/state</topicName>
+      <gaussianNoise>0.0</gaussianNoise>
+      <frameName>world</frameName>
+      <xyzOffsets>0 0 0</xyzOffsets>
+      <rpyOffsets>0 0 0</rpyOffsets>
+    </plugin>
+  </gazebo>
 
   </xacro:macro>
 </robot>
