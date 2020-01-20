@@ -25,37 +25,9 @@ TODO
 
 ## Creating New Version of MobMi Base Image
 
-If the base image docker file `<repo-root>/ridgeback_docker/Dockerfile` was modified, the following steps need to be followed to build it and to install it on the platform.
+If the base image docker file `<repo-root>/ridgeback_docker/Dockerfile` was modified, the container image on the ridgeback mobile base needs to be updated and the container service restarted for the changes to take effect. This can be done by running the playbook `operations/deploy_ridgeback_container.yml`. The playbook can be run using Ansible with the command `ansible-playbook operations/deploy_ridgeback_container.yml --ask-sudo-pass`. This will build the docker image, copy it over, load it into docker and restart the service running the container.
 
-```bash
-cd <repo-root>/ridgeback_docker
-```
-
-Build image:
-
-```bash
-./build_container.sh
-```
-
-Copy to platform:
-
-```bash
-scp ../image.zip asl-admin@192.168.131.1:images/image.zip
-```
-
-Log into the platform via SSH:
-
-```bash
-ssh asl-admin@192.168.131.1
-```
-
-Import image:
-
-```bash
-docker load -i image.zip
-```
-
-Afterwards, the image could be run in a terminal using the following command. However, usually the systemd service will handle this for us (how to set this up is described below).
+The image could be run in a terminal using the following command. However, usually the systemd service will handle this for us (how to set this up is described below).
 
 ```bash
 /usr/bin/docker run --rm --name asl_base_container --network host -v /dev/input:/dev/input --privileged mobmi
