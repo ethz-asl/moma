@@ -1,0 +1,111 @@
+<?xml version='1.0' encoding='utf-8'?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+	<gazebo reference="panda_link1">
+    <sensor name='collision_sensor' type='contact'>
+      <contact>
+        <collision>panda_link1_collision</collision>
+      </contact>
+      <plugin name="collision_sensor" filename="libgazebo_collision_sensor.so">
+        <rosDebugLevel>na</rosDebugLevel>
+        <topicName>/gazebo/collisions/panda</topicName>
+        <updateRate>10.0</updateRate>
+      </plugin>
+    </sensor>
+  </gazebo>
+	<gazebo reference="panda_link2">
+    <sensor name='collision_sensor' type='contact'>
+      <contact>
+        <collision>panda_link2_collision</collision>
+      </contact>
+      <plugin name="collision_sensor" filename="libgazebo_collision_sensor.so">
+        <rosDebugLevel>na</rosDebugLevel>
+        <topicName>/gazebo/collisions/panda</topicName>
+        <updateRate>10.0</updateRate>
+      </plugin>
+    </sensor>
+  </gazebo>
+	<gazebo reference="panda_link3">
+    <sensor name='collision_sensor' type='contact'>
+      <contact>
+        <collision>panda_link3_collision</collision>
+      </contact>
+      <plugin name="collision_sensor" filename="libgazebo_collision_sensor.so">
+        <rosDebugLevel>na</rosDebugLevel>
+        <topicName>/gazebo/collisions/panda</topicName>
+        <updateRate>10.0</updateRate>
+      </plugin>
+    </sensor>
+  </gazebo>
+	<gazebo reference="panda_link4">
+    <sensor name='collision_sensor' type='contact'>
+      <contact>
+        <collision>panda_link4_collision</collision>
+      </contact>
+      <plugin name="collision_sensor" filename="libgazebo_collision_sensor.so">
+        <rosDebugLevel>na</rosDebugLevel>
+        <topicName>/gazebo/collisions/panda</topicName>
+        <updateRate>10.0</updateRate>
+      </plugin>
+    </sensor>
+  </gazebo>
+	<gazebo reference="panda_link5">
+    <sensor name='collision_sensor' type='contact'>
+      <contact>
+        <collision>panda_link5_collision</collision>
+      </contact>
+      <plugin name="collision_sensor" filename="libgazebo_collision_sensor.so">
+        <rosDebugLevel>na</rosDebugLevel>
+        <topicName>/gazebo/collisions/panda</topicName>
+        <updateRate>10.0</updateRate>
+      </plugin>
+    </sensor>
+  </gazebo>
+	<gazebo reference="panda_link6">
+    <sensor name='collision_sensor' type='contact'>
+      <contact>
+        <collision>panda_link6_collision</collision>
+      </contact>
+      <plugin name="collision_sensor" filename="libgazebo_collision_sensor.so">
+        <rosDebugLevel>na</rosDebugLevel>
+        <topicName>/gazebo/collisions/panda</topicName>
+        <updateRate>10.0</updateRate>
+      </plugin>
+    </sensor>
+  </gazebo>
+	<gazebo reference="panda_link7">
+    <sensor name='collision_sensor' type='contact'>
+      <contact>
+        <collision>panda_link7_collision</collision>
+      </contact>
+      <plugin name="collision_sensor" filename="libgazebo_collision_sensor.so">
+        <rosDebugLevel>na</rosDebugLevel>
+        <topicName>/gazebo/collisions/panda</topicName>
+        <updateRate>10.0</updateRate>
+      </plugin>
+    </sensor>
+  </gazebo>
+	<gazebo reference="panda_leftfinger">
+    <sensor name='collision_sensor' type='contact'>
+      <contact>
+        <collision>panda_leftfinger_collision</collision>
+      </contact>
+      <plugin name="collision_sensor" filename="libgazebo_collision_sensor.so">
+        <rosDebugLevel>na</rosDebugLevel>
+        <topicName>/gazebo/collisions/panda</topicName>
+        <updateRate>10.0</updateRate>
+      </plugin>
+    </sensor>
+  </gazebo>
+	<gazebo reference="panda_rightfinger">
+    <sensor name='collision_sensor' type='contact'>
+      <contact>
+        <collision>panda_rightfinger_collision</collision>
+      </contact>
+      <plugin name="collision_sensor" filename="libgazebo_collision_sensor.so">
+        <rosDebugLevel>na</rosDebugLevel>
+        <topicName>/gazebo/collisions/panda</topicName>
+        <updateRate>10.0</updateRate>
+      </plugin>
+    </sensor>
+  </gazebo>
+</robot>

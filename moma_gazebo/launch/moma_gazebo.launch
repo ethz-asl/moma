@@ -13,15 +13,20 @@ Mobmi and yumi support need to be added by specifying the initial config of yumi
   <arg name="robot_init_y" default="0" />
   <arg name="arm_controller" default="position" doc="position or velocity"/>
   <arg name="arm_init_config" default="" />
+  <arg name="collision_detection" default="false" />
 
   <param name="/use_sim_time" value="true" />
 
 
   <!-- Load robot description -->
+  <arg name="collision_detection_str" if="$(arg collision_detection)"
+    value="ridgeback_collision_detection:=true panda_collision_detection:=true yumi_collision_detection:=true"/>
+  <arg name="collision_detection_str" unless="$(arg collision_detection)"
+    value=""/>
   <param name="robot_description" command="
     $(find ridgeback_description)/scripts/env_run
     $(find ridgeback_description)/urdf/configs/dual_hokuyo_lasers
-    $(find xacro)/xacro $(find moma_description)/urdf/$(arg robot).urdf.xacro" />
+    $(find xacro)/xacro $(find moma_description)/urdf/$(arg robot).urdf.xacro $(arg collision_detection_str)" />
 
   <!-- Launch gazebo world -->
   <include file="$(find gazebo_ros)/launch/empty_world.launch">

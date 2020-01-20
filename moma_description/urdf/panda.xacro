@@ -20,6 +20,13 @@
       <origin rpy="0.0 0.0 -0.785" xyz="0.0 0.0 0.103"/>
     </joint>
 
+    <!-- Collision detection -->
+    <xacro:arg name="panda_collision_detection"
+      default="false"/>
+    <xacro:if value="$(arg panda_collision_detection)">
+      <xacro:include filename="$(find moma_description)/urdf/collision_sensors/panda_collision.gazebo.xacro"/>
+    </xacro:if>
+
     <!-- Mount Realsense -->
     <xacro:property name="xyz_panda_link7_camera_link" value="0.06308534561732076 -0.08993980659751674 0.1481860837701407"/>
     <xacro:property name="rpy_panda_link7_camera_link" value="-2.68850999 -1.56973844 -1.20267232"/>

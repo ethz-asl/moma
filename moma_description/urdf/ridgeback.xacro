@@ -5,6 +5,13 @@
     <!-- Ridgeback -->
     <xacro:include filename="$(find ridgeback_description)/urdf/ridgeback.urdf.xacro"/>
 
+    <!-- Collision detection -->
+    <xacro:arg name="ridgeback_collision_detection"
+      default="false"/>
+    <xacro:if value="$(arg ridgeback_collision_detection)">
+      <xacro:include filename="$(find moma_description)/urdf/collision_sensors/ridgeback_collision.gazebo.xacro"/>
+    </xacro:if>
+
     <!-- Sensor mount -->
     <link name="ridgeback_sensor_mount_link">
       <visual>

@@ -1,0 +1,15 @@
+<?xml version='1.0' encoding='utf-8'?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+	<gazebo reference="base_link">
+    <sensor name='collision_sensor' type='contact'>
+      <contact>
+        <collision>base_link_fixed_joint_lump__chassis_link_collision</collision>
+      </contact>
+      <plugin name="collision_sensor" filename="libgazebo_collision_sensor.so">
+        <rosDebugLevel>na</rosDebugLevel>
+        <topicName>/gazebo/collisions/ridgeback</topicName>
+        <updateRate>10.0</updateRate>
+      </plugin>
+    </sensor>
+  </gazebo>
+</robot>

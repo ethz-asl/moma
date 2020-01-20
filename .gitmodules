@@ -9,3 +9,6 @@
 [submodule "realsense-ros"]
 	path = submodules/realsense-ros
 	url = git@github.com:IntelRealSense/realsense-ros.git
+[submodule "submodules/gazebo_model_collision_plugin"]
+	path = submodules/gazebo_model_collision_plugin
+	url = git@github.com:SteveMacenski/gazebo_model_collision_plugin.git
