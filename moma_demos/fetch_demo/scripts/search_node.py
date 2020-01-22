@@ -12,6 +12,12 @@ from fetch_demo.common import MovingActionServer
 from grasp_demo.utils import create_robot_connection
 
 
+class SearchDoneException(Exception):
+    # Thrown when search needs to be stopped
+    # for whatever reason (abort, pre-emption, completion).
+    pass
+
+
 class SearchActionServer(MovingActionServer):
     """
         When called, this action should in turn call the navigation action to follow a
@@ -67,48 +73,36 @@ class SearchActionServer(MovingActionServer):
             self._search_joints_r, max_velocity_scaling=0.5
         )
 
-        for waypoint in self._initial_waypoints:
-            state = self._visit_waypoint(waypoint)
-            if self._object_detected:
-                rospy.loginfo("Search completed")
-                self.action_server.set_succeeded(self._result)
-                self.right_arm.goto_joint_target(
-                    self._first_scan_joint_r, max_velocity_scaling=0.5
-                )
-                self.left_arm.goto_joint_target(
-                    self._ready_joints_l, max_velocity_scaling=0.5
-                )
-                return
-            elif state == GoalStatus.PREEMPTED:
-                rospy.loginfo("Got preemption request")
-                self.action_server.set_preempted()
-                return
-            elif state == GoalStatus.ABORTED:
-                rospy.logerr("Failed to navigate to approach waypoint")
-                self.action_server.set_aborted()
-                return
+        try:
+            for waypoint in self._initial_waypoints:
+                self._handle_waypoint(waypoint)
 
-        while True:
-            for waypoint in self._loop_waypoints:
-                state = self._visit_waypoint(waypoint)
-                if self._object_detected:
-                    rospy.loginfo("Search completed")
-                    self.right_arm.goto_joint_target(
-                        self._first_scan_joint_r, max_velocity_scaling=0.5
-                    )
-                    self.left_arm.goto_joint_target(
-                        self._ready_joints_l, max_velocity_scaling=0.5
-                    )
-                    self.action_server.set_succeeded(self._result)
-                    return
-                elif state == GoalStatus.PREEMPTED:
-                    rospy.loginfo("Got preemption request")
-                    self.action_server.set_preempted()
-                    return
-                elif state == GoalStatus.ABORTED:
-                    rospy.logerr("Failed to navigate to approach waypoint")
-                    self.action_server.set_aborted()
-                    return
+            while True:
+                for waypoint in self._loop_waypoints:
+                    self._handle_waypoint(waypoint)
+        except SearchDoneException:
+            return
+
+    def _handle_waypoint(self, waypoint):
+        state = self._visit_waypoint(waypoint)
+        if self._object_detected:
+            rospy.loginfo("Search completed")
+            self.right_arm.goto_joint_target(
+                self._first_scan_joint_r, max_velocity_scaling=0.5
+            )
+            self.left_arm.goto_joint_target(
+                self._ready_joints_l, max_velocity_scaling=0.5
+            )
+            self.action_server.set_succeeded(self._result)
+            raise SearchDoneException()
+        elif state == GoalStatus.PREEMPTED:
+            rospy.loginfo("Got preemption request")
+            self.action_server.set_preempted()
+            raise SearchDoneException()
+        elif state == GoalStatus.ABORTED:
+            rospy.logerr("Failed to navigate to approach waypoint")
+            self.action_server.set_aborted()
+            raise SearchDoneException()
 
 
 def main():
