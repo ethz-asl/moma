@@ -180,7 +180,7 @@ class SequentialRunner:
         selected_instance = rospy.client.wait_for_message("selected_instance")
         goal = SemanticSelectGraspGoal(
             pointcloud_scene=result_scan.pointcloud_scene,
-            instance_id=selected_instance.id,
+            instance_id=selected_instance.data,
         )
         self.client_plan_grasp.send_goal(goal)
         self.client_plan_grasp.wait_for_result()

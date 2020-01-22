@@ -1,8 +1,8 @@
 #include <sstream>
 #include <string>
 #include "std_msgs/Empty.h"
+#include "std_msgs/UInt16.h"
 #include "semantic_button_panel.h"
-#include "grasp_demo/Instance.h"
 namespace control_gui { InstancePushButton::InstancePushButton(const char *label, int id, ros::Publisher *publisher) : QPushButton(label) {
     instance_id = id;
     topic_pub = publisher;
@@ -15,8 +15,8 @@ InstancePushButton::~InstancePushButton() {
 
 void InstancePushButton::onButtonClick() {
     ROS_INFO_STREAM("Instance " << instance_id << " button clicked");
-    grasp_demo::Instance instance_msg;
-    instance_msg.id = instance_id;
+    std_msgs::UInt16 instance_msg;
+    instance_msg.data = instance_id;
     topic_pub->publish(instance_msg);
 }
 
@@ -27,7 +27,7 @@ SemanticButtonPanel::SemanticButtonPanel(QWidget *parent) : rviz::Panel(parent),
     reset_publisher = node_handle.advertise<std_msgs::Empty>("reset", 1);
     instance_subscriber = node_handle.subscribe("/commander_node/instances", 1, &SemanticButtonPanel::instancesCallback, this);
 
-    instance_publisher = node_handle.advertise<grasp_demo::Instance>("selected_instance", 1);
+    instance_publisher = node_handle.advertise<std_msgs::UInt16>("selected_instance", 1);
 
     // Setup Panel.
     layout = new QVBoxLayout;
