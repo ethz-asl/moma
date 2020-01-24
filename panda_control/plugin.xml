@@ -4,4 +4,10 @@
       A controller that executes cartesian velocities set via ROS messages.
     </description>
   </class>
+
+  <class name="panda_control/JointVelocityController" type="panda_control::JointVelocityController" base_class_type="controller_interface::ControllerBase">
+    <description>
+      A controller that executes joint velocities set via ROS messages.
+    </description>
+  </class>
 </library>

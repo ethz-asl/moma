@@ -11,3 +11,16 @@ cartesian_velocity_controller:
             acceleration: 5.0
             jerk: 2000.0
     max_duration_between_commands: 0.1  # velocity is set to 0 if no new command is received within this time
+
+
+joint_velocity_controller:
+    type: panda_control/JointVelocityController
+    arm_id: panda
+    joint_names:
+      - panda_joint1
+      - panda_joint2
+      - panda_joint3
+      - panda_joint4
+      - panda_joint5
+      - panda_joint6
+      - panda_joint7

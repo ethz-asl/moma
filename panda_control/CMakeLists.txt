@@ -34,6 +34,7 @@ catkin_package(
 
 add_library(panda_control
   src/cartesian_velocity_controller.cpp
+  src/joint_velocity_controller.cpp
 )
 
 add_dependencies(panda_control
