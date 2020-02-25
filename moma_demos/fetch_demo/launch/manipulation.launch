@@ -15,9 +15,9 @@
     </include>
 
     <!-- Bringup robot -->
-    <!-- <include file="$(find moma_bringup)/launch/mobmi_control_moveit_rviz.launch">
+    <include file="$(find moma_bringup)/launch/mobmi_control_moveit_rviz.launch">
         <arg name="launch_rviz" value="false"/>
-    </include> -->
+    </include>
 
     <!-- Launch GPD -->
     <node name="detect_grasps" pkg="gpd_ros" type="detect_grasps" output="screen">
