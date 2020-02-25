@@ -1,5 +1,6 @@
 <?xml version="1.0" ?>
 <launch>
+  <arg name="use_maplab_localization" default="true"/>
   <arg name="map_file" default="$(find fetch_demo)/maps/lasermap_new_clear.yaml"/>
 
   <!-- VI sensor node -->
@@ -7,9 +8,11 @@
 
   <!-- Rigeback navigation -->
   <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)" />
-  <!-- <include file="$(find ridgeback_navigation)/launch/include/amcl.launch" /> -->
-  <include file="$(find rovioli)/launch/rovioli_mobmi.launch" />
-  <node pkg="tf" type="static_transform_publisher" name="maplab_base_link" args="-0.3474 -0.0176 -1.0 0.0 0.0 1.0 0.0 /imu /base_link 10"/> 
+  <include unless="$(arg use_maplab_localization)" file="$(find ridgeback_navigation)/launch/include/amcl.launch" />
+  <group if="$(arg use_maplab_localization)">
+    <include file="$(find rovioli)/launch/rovioli_mobmi.launch" />
+    <node pkg="tf" type="static_transform_publisher" name="maplab_base_link" args="-0.3474 -0.0176 -1.0 0.0 0.0 1.0 0.0 /imu /base_link 10"/>
+  </group>
 
   <include file="$(find ridgeback_navigation)/launch/include/move_base.launch" />
 </launch>
