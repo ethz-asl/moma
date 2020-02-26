@@ -1,6 +1,0 @@
-
-robot_arm_names: ["left_arm", "right_arm"]    # It is assumed that the first arm in the list is used for grasping and the second one for scanning.
-
-home_joints_left_arm: [0, -2.26893, 0.5235, 0, 0.698132, 0, 2.35619]
-ready_joints_left_arm:  [0.15707963, -1.58824962,  0.55850536,  0.31415927,  1.23918377, -0.78539816,  0.54105207]
-search_joints_right_arm: [-0.36651914, -1.79768913,  1.04719755,  1.79768913,  0.27925268, 0.2443461 ,  1.34390352]

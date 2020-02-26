@@ -1,10 +1,20 @@
-scan_joint_values: 
+
+robot_arm_names: ["left_arm", "right_arm"] 
+# It is assumed that the first arm in the list is used for grasping and the second one for scanning.
+
+scan_joints_right_arm: 
  - [ 0.01745329, -1.36135682, -0.12217305, -0.12217305,  2.12930169, 1.44862328, -0.31415927]
  - [-0.34906585, -0.76794487, -0.41887902, -0.2268928 ,  2.16420827, 1.44862328,  0.2443461 ]
  - [-1.25663706, -1.02974426, -0.48869219,  0.19198622,  2.25147474, 1.57079633,  0.52359878]
  - [-1.46607657, -1.20427718, -0.45378561, -0.17453293,  2.11184839, 1.57079633,  1.27409035]
-
-arm_side_scanning: "right_arm"
-# Must be either "right_arm" or "left_arm" for YuMi.
+drop_joints_left_arm: [-0.303, -1.214,  0.812, -1.754, 0.168, 1.118, 0.999]  # TODO set correctly
+home_joints_left_arm: [0, -2.26893, 0.5235, 0, 0.698132, 0, 2.35619]
+ready_joints_left_arm:  [0.15707963, -1.58824962,  0.55850536,  0.31415927,  1.23918377, -0.78539816,  0.54105207]
+search_joints_right_arm: [-0.36651914, -1.79768913,  1.04719755,  1.79768913,  0.27925268, 0.2443461 ,  1.34390352]
 
 base_frame_id: "yumi_body"
+
+arm_velocity_scaling_drop: 0.5
+arm_velocity_scaling_grasp: 0.2
+
+pregrasp_offset_z: -0.05
