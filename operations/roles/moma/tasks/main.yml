@@ -26,6 +26,7 @@
     packages:
       - ros-melodic-rqt-py-trees
       - ros-melodic-py-trees-ros
+      - ros-melodic-py-trees
 - name: Install python dependencies for grasp_demo
   become: no
   pip:

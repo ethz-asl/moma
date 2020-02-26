@@ -1,3 +1,2 @@
 numpy
 scipy
-py-trees==2.0.6

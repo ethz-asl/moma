@@ -33,16 +33,6 @@ roslaunch fetch_demo user_interface.launch
 
 Each of these commands is blocking, they should be run in separate terminals.
 
-### As a single launch file
-
-On the machine used for the user interface, run the following command to distribute the nodes.
-
-```bash
-roslaunch fetch_demo single_command.launch
-```
-
-This only works if all nodes in this launch file are also installed on the local machine.
-
 
 ## Useful commands
 
