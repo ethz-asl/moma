@@ -20,7 +20,7 @@ class DropActionServer(MovingActionServer):
         super(DropActionServer, self).__init__(action_name, DropMoveAction)
         self._read_joint_configurations()
         self._connect_ridgeback()
-        self._connect_yumi()
+        self._connect_robot_arm()
         self._read_waypoints()
 
     def _read_waypoints(self):
@@ -29,13 +29,25 @@ class DropActionServer(MovingActionServer):
         self._drop_waypoints = waypoints["drop_waypoints"]
 
     def _read_joint_configurations(self):
-        self._search_joints_r = rospy.get_param("search_joints_r")
-        self._ready_joints_l = rospy.get_param("ready_joints_l")
-        self._home_joints_l = rospy.get_param("home_joints_l")
+        self._robot_arm_names = rospy.get_param("robot_arm_names")
+        self._home_joints = rospy.get_param("home_joints_" + self._robot_arm_names[0])
+        self._drop_joints = rospy.get_param("drop_joints_" + self._robot_arm_names[0])
+        self._search_joints = rospy.get_param("drop_joints_" + self._robot_arm_names[1])
+        self._arm_velocity_scaling = rospy.get_param("arm_velocity_scaling_drop")
 
-    def _connect_yumi(self):
-        self._left_arm = create_robot_connection("yumi_left_arm")
-        self._right_arm = create_robot_connection("yumi_right_arm")
+    def _connect_robot_arm(self):
+        full_robot_name = (
+            self.robot_name + "_" + self._robot_arm_names[0]
+            if len(self._robot_arm_names) > 1
+            else self.robot_name
+        )
+        self._robot_arm_grasp = create_robot_connection(full_robot_name)
+
+        if len(self._robot_arm_names) > 1:
+            full_robot_name = self.robot_name + "_" + self._robot_arm_names[1]
+            self._robot_arm_scan = create_robot_connection(full_robot_name)
+        else:
+            self._robot_arm_scan = None
 
     def _connect_ridgeback(self):
         self._base_vel_pub = rospy.Publisher("/cmd_vel", Twist, queue_size=10)
@@ -59,11 +71,16 @@ class DropActionServer(MovingActionServer):
             self.action_server.set_aborted()
             return
 
-        self._left_arm.goto_joint_target(self._home_joints_l, max_velocity_scaling=0.5)
-        self._right_arm.goto_joint_target(
-            self._search_joints_r, max_velocity_scaling=0.5
+        # Move arms into a good position for driving
+        self._robot_arm_grasp.goto_joint_target(
+            self._home_joints, max_velocity_scaling=self._arm_velocity_scaling
         )
+        if self._robot_arm_scan is not None:
+            self._robot_arm_scan.goto_joint_target(
+                self._search_joints, max_velocity_scaling=self._arm_velocity_scaling
+            )
 
+        # Follow waypoints to drop location
         for waypoint in self._drop_waypoints:
             state = self._visit_waypoint(waypoint)
             if state == GoalStatus.PREEMPTED:
@@ -75,9 +92,14 @@ class DropActionServer(MovingActionServer):
                 self.action_server.set_aborted()
                 return
 
-        self._left_arm.goto_joint_target(self._ready_joints_l, max_velocity_scaling=0.5)
-        self._left_arm.release()
-        self._left_arm.goto_joint_target(self._home_joints_l, max_velocity_scaling=0.5)
+        # Drop the object
+        self._robot_arm_grasp.goto_joint_target(
+            self._drop_joints, max_velocity_scaling=self._arm_velocity_scaling
+        )
+        self._robot_arm_grasp.release()
+        self._robot_arm_grasp.goto_joint_target(
+            self._home_joints, max_velocity_scaling=self._arm_velocity_scaling
+        )
 
         rospy.loginfo("Finished dropping")
         self.action_server.set_succeeded(result)
