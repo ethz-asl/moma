@@ -12,6 +12,8 @@ from sensor_msgs.msg import JointState
 from grasp_demo.msg import GraspAction, GraspResult
 from grasp_demo.utils import create_robot_connection
 
+from moma_utils.transform import Transform
+
 
 def multiply_transforms(A, B):
     trans1, rot1 = A[:3], Rotation.from_quat(A[3:])
@@ -45,17 +47,23 @@ class GraspExecutionAction(object):
 
     def _read_joint_configurations(self):
         self._ready_joints_l = rospy.get_param("ready_joints_l")
+        self._base_frame_id = rospy.get_param("base_frame_id")
 
     def execute_cb(self, goal_msg):
         rospy.loginfo("Received grasp pose")
 
         grasp_pose_msg = goal_msg.target_grasp_pose.pose
-        T_base_grasp = pose_to_list(grasp_pose_msg)
+        grasp_pose_msg_list = pose_to_list(grasp_pose_msg)
+        T_base_grasp = Transform(
+            Rotation.from_quat(grasp_pose_msg_list[3:]), grasp_pose_msg_list[:3]
+        )
 
-        T_grasp_pregrasp = np.r_[0.0, 0.0, -0.05, 0.0, 0.0, 0.0, 1.0]
-        T_base_pregrasp = multiply_transforms(T_base_grasp, T_grasp_pregrasp)
+        T_grasp_pregrasp = Transform(
+            Rotation.from_quat([0.0, 0.0, 0.0, 1.0]), np.array([0.0, 0.0, -0.05]),
+        )
+        T_base_pregrasp = T_base_grasp * T_grasp_pregrasp
 
-        msg = list_to_pose_stamped(T_base_pregrasp, "yumi_body")
+        msg = T_base_pregrasp.to_pose_stamped(self._base_frame_id)
         self.pregrasp_pub.publish(msg)
 
         rospy.loginfo("Opening hand")
