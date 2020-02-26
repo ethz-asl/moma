@@ -7,7 +7,6 @@ from moveit_commander.conversions import pose_to_list
 import numpy as np
 import rospy
 from scipy.spatial.transform import Rotation
-from sensor_msgs.msg import JointState
 
 from grasp_demo.msg import GraspAction, GraspResult
 from grasp_demo.utils import create_robot_connection
@@ -21,9 +20,9 @@ class GraspExecutionAction(object):
     """
 
     def __init__(self):
-        self.robot_commander = create_robot_connection(sys.argv[1])
-
-        self._read_joint_configurations()
+        self.robot_name = sys.argv[1]
+        self._load_parameters()
+        self._connect_robot()
 
         self._as = SimpleActionServer(
             "grasp_execution_action",
@@ -39,9 +38,20 @@ class GraspExecutionAction(object):
         self._as.start()
         rospy.loginfo("Grasp action server ready")
 
-    def _read_joint_configurations(self):
-        self._ready_joints_l = rospy.get_param("ready_joints_l")
+    def _connect_robot(self):
+        full_robot_name = (
+            self.robot_name + "_" + self._robot_arm_names[0]
+            if len(self._robot_arm_names) > 1
+            else self.robot_name
+        )
+        self._robot_arm = create_robot_connection(full_robot_name)
+
+    def _load_parameters(self):
+        self._robot_arm_names = rospy.get_param("robot_arm_names")
+        self._ready_joints = rospy.get_param("ready_joints_" + self._robot_arm_names[0])
         self._base_frame_id = rospy.get_param("base_frame_id")
+        self._arm_velocity_scaling = rospy.get_param("arm_velocity_scaling_grasp")
+        self._pregrasp_offset_z = rospy.get_param("pregrasp_offset_z")
 
     def execute_cb(self, goal_msg):
         rospy.loginfo("Received grasp pose")
@@ -53,7 +63,8 @@ class GraspExecutionAction(object):
         )
 
         T_grasp_pregrasp = Transform(
-            Rotation.from_quat([0.0, 0.0, 0.0, 1.0]), np.array([0.0, 0.0, -0.05]),
+            Rotation.from_quat([0.0, 0.0, 0.0, 1.0]),
+            np.array([0.0, 0.0, self._pregrasp_offset_z]),
         )
         T_base_pregrasp = T_base_grasp * T_grasp_pregrasp
 
@@ -61,34 +72,35 @@ class GraspExecutionAction(object):
         self.pregrasp_pub.publish(msg)
 
         rospy.loginfo("Opening hand")
-        # self.robot_commander.move_gripper(width=0.10)
-        self.robot_commander.release()
+        # self._robot_arm.move_gripper(width=0.10)
+        self._robot_arm.release()
 
         rospy.loginfo("Moving to pregrasp pose")
-        self.robot_commander.goto_pose_target(
-            T_base_pregrasp.tolist(), max_velocity_scaling=0.2
+        self._robot_arm.goto_pose_target(
+            T_base_pregrasp.tolist(), max_velocity_scaling=self._arm_velocity_scaling
         )
 
         rospy.loginfo("Moving to grasp pose")
-        self.robot_commander.goto_pose_target(T_base_grasp, max_velocity_scaling=0.2)
+        self._robot_arm.goto_pose_target(
+            T_base_grasp, max_velocity_scaling=self._arm_velocity_scaling
+        )
 
         rospy.loginfo("Grasping")
-        # self.robot_commander.grasp(0.05)
-        self.robot_commander.grasp()
+        # self._robot_arm.grasp(0.05)
+        self._robot_arm.grasp()
 
         rospy.loginfo("Retrieving object")
-        self.robot_commander.goto_pose_target(
-            T_base_pregrasp.tolist(), max_velocity_scaling=0.2
+        self._robot_arm.goto_pose_target(
+            T_base_pregrasp.tolist(), max_velocity_scaling=self._arm_velocity_scaling
         )
 
-        self.robot_commander.goto_joint_target(
-            self._ready_joints_l, max_velocity_scaling=0.2
+        self._robot_arm.goto_joint_target(
+            self._ready_joints, max_velocity_scaling=self._arm_velocity_scaling
         )
 
-        gripper_state = rospy.wait_for_message("/yumi/gripper_states", JointState)
-        gripper_width_l = gripper_state.position[0]
+        grasped_something = self._robot_arm.check_object_grasped()
 
-        if gripper_width_l < 0.005:
+        if not grasped_something:
             self._as.set_aborted()
         else:
             self._as.set_succeeded(GraspResult())

@@ -3,6 +3,7 @@ import moveit_commander
 from moveit_commander.conversions import list_to_pose
 import rospy
 from std_msgs.msg import Float64
+from sensor_msgs.msg import JointState
 
 
 class YumiCommander(object):
@@ -67,3 +68,12 @@ class ArmCommander(object):
     def release(self):
         self.grasp_pub.publish(Float64(data=-self._gripper_force))
         rospy.sleep(2.0)
+
+    def check_object_grasped(self):
+        """
+        Returns "true" if an object is in the gripper fingers and false otherwise.
+        """
+        gripper_state = rospy.wait_for_message("/yumi/gripper_states", JointState)
+        gripper_width_l = gripper_state.position[0]
+
+        return False if gripper_width_l < 0.005 else True

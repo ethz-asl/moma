@@ -99,3 +99,7 @@ class PandaCommander(object):
     def release(self):
         raise NotImplementedError
         # TODO need to implement this using either move_gripper or _grasp
+
+    def check_object_grasped(self):
+        raise NotImplementedError
+        # TODO need to implement this

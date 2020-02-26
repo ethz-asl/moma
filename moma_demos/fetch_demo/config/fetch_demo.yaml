@@ -1,7 +1,8 @@
 # General settings:
 
-arm_velocity_scaling: 0.5
-
+arm_velocity_scaling_search: 0.5
+arm_velocity_scaling_grasp: 0.2
+pregrasp_offset_z: -0.05
 
 # Waypoints for the base to follow during search action:
 

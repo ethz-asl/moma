@@ -67,7 +67,7 @@ class SearchActionServer(MovingActionServer):
         )
 
     def _connect_robot(self):
-        self._arm_velocity_scaling = rospy.get_param("arm_velocity_scaling")
+        self._arm_velocity_scaling = rospy.get_param("arm_velocity_scaling_search")
 
         full_grasp_arm_name = (
             self.robot_name + "_" + self._robot_arm_names[0]
