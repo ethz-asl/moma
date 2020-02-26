@@ -61,7 +61,7 @@
     <node pkg="grasp_demo" type="semantic_grasp_selection.py" name="semantic_grasp_selection_action_node"
             if="$(arg semantic_grasping)" output="screen" />
     <node pkg="grasp_demo" type="grasp_selection.py" name="grasp_selection_action_node"
-            unless="$(arg semantic_grasping)" output="screen"/>
+            unless="$(arg semantic_grasping)" args="$(arg robot_name)" output="screen"/>
     <node pkg="grasp_demo" type="grasp_execution.py" name="grasp_execution_action_node" args="$(arg robot_name)" output="screen" />
     <node pkg="fetch_demo" type="drop_move_node.py" name="drop_action_node" args="$(arg robot_name)" output="screen"/>
 

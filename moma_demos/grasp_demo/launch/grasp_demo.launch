@@ -48,7 +48,7 @@
         <node pkg="grasp_demo" type="semantic_grasp_selection.py" name="semantic_grasp_selection_node" output="screen" />
     </group>
     <group unless="semantic_grasping">
-        <node pkg="grasp_demo" type="grasp_selection.py" name="grasp_selection_action_node" output="screen"/>
+        <node pkg="grasp_demo" type="grasp_selection.py" name="grasp_selection_action_node" args="$(arg robot_name)" output="screen"/>
     </group>
 
     <node pkg="grasp_demo" type="run_bt.py" name="behaviour_tree_node" output="screen"/>

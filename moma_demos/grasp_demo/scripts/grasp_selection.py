@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import sys
 from actionlib import SimpleActionServer
 import numpy as np
 from geometry_msgs.msg import PointStamped, Pose, PoseArray, PoseStamped
@@ -60,6 +61,8 @@ class GraspSelectionAction(object):
     """
 
     def __init__(self):
+        self.robot_name = sys.argv[1]
+
         self._as = SimpleActionServer(
             "grasp_selection_action",
             SelectGraspAction,
@@ -67,7 +70,7 @@ class GraspSelectionAction(object):
             auto_start=False,
         )
 
-        self.base_frame_id = "yumi_body"
+        self.base_frame_id = rospy.get_param("base_frame_id")
 
         self.gpd_cloud_pub = rospy.Publisher(
             "/cloud_stitched", PointCloud2, queue_size=10
@@ -109,21 +112,22 @@ class GraspSelectionAction(object):
 
         self.visualize_selected_grasp(selected_grasp)
 
-        # If it's too far right, move the base a bit
-        grasp_y_position = selected_grasp.pose.position.y
-        if grasp_y_position < 0.0:
-            rospy.loginfo("Need to correct position")
-            vel_abs = 0.05
-            frequency = 20.0
-            safety_margin = 0.04
-            vel_msg = Twist(linear=Vector3(0.0, -vel_abs, 0.0))
-            dist_to_move = -grasp_y_position + safety_margin
-            num_steps = int(dist_to_move / vel_abs * frequency)
-            for _ in range(num_steps):
-                self._base_vel_pub.publish(vel_msg)
-                rospy.sleep(1.0 / frequency)
-            self._as.set_aborted()
-            return
+        if self.robot_name == "yumi":
+            # If it's too far right, move the base a bit
+            grasp_y_position = selected_grasp.pose.position.y
+            if grasp_y_position < 0.0:
+                rospy.loginfo("Need to correct position")
+                vel_abs = 0.05
+                frequency = 20.0
+                safety_margin = 0.04
+                vel_msg = Twist(linear=Vector3(0.0, -vel_abs, 0.0))
+                dist_to_move = -grasp_y_position + safety_margin
+                num_steps = int(dist_to_move / vel_abs * frequency)
+                for _ in range(num_steps):
+                    self._base_vel_pub.publish(vel_msg)
+                    rospy.sleep(1.0 / frequency)
+                self._as.set_aborted()
+                return
 
         result = SelectGraspResult(target_grasp_pose=selected_grasp)
         self._as.set_succeeded(result)
