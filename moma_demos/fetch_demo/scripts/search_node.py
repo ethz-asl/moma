@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import sys
 import actionlib
 from actionlib_msgs.msg import GoalStatus
 from fetch_demo.msg import SearchAction, SearchResult
@@ -27,11 +28,12 @@ class SearchActionServer(MovingActionServer):
 
     def __init__(self):
         action_name = "search_action"
+        self.robot_name = sys.argv[1]
         super(SearchActionServer, self).__init__(action_name, SearchAction)
         self._read_waypoints()
         self._read_joint_configurations()
         self._subscribe_object_detection()
-        self._connect_yumi()
+        self._connect_robot()
 
     def _read_waypoints(self):
         waypoints = rospy.get_param("search_waypoints")
@@ -39,10 +41,23 @@ class SearchActionServer(MovingActionServer):
         self._loop_waypoints = waypoints["loop"]
 
     def _read_joint_configurations(self):
-        self._search_joints_r = rospy.get_param("search_joints_r")
-        self._ready_joints_l = rospy.get_param("ready_joints_l")
-        self._home_joints_l = rospy.get_param("home_joints_l")
-        self._first_scan_joint_r = rospy.get_param("scan_joint_values")[0]
+        self._robot_arm_names = rospy.get_param("robot_arm_names")
+        self._search_joints = {}
+        self._ready_joints = {}
+        self._home_joints = {}
+        arm_purposes = ["grasp", "scan"]
+        for i, arm in enumerate(self._robot_arm_names):
+            self._search_joints[arm_purposes[i]] = rospy.get_param(
+                "search_joints_" + arm, default=None
+            )
+            self._ready_joints[arm_purposes[i]] = rospy.get_param(
+                "ready_joints_" + arm, default=None
+            )
+            self._home_joints[arm_purposes[i]] = rospy.get_param(
+                "home_joints_" + arm, default=None
+            )
+
+        self._first_scan_joint = rospy.get_param("scan_joint_values")[0]
 
     def _subscribe_object_detection(self):
         self._result = None
@@ -51,9 +66,20 @@ class SearchActionServer(MovingActionServer):
             "/W_landmark", PointStamped, callback=self._object_detection_cb
         )
 
-    def _connect_yumi(self):
-        self.left_arm = create_robot_connection("yumi_left_arm")
-        self.right_arm = create_robot_connection("yumi_right_arm")
+    def _connect_robot(self):
+        self._arm_velocity_scaling = rospy.get_param("arm_velocity_scaling")
+
+        full_grasp_arm_name = (
+            self.robot_name + "_" + self._robot_arm_names[0]
+            if len(self._robot_arm_names) > 1
+            else self.robot_name
+        )
+        self.grasp_arm = create_robot_connection(full_grasp_arm_name)
+        if len(self._robot_arm_names) > 1:
+            full_scan_arm_name = self.robot_name + "_" + self._robot_arm_names[1]
+            self.scan_arm = create_robot_connection(full_scan_arm_name)
+        else:
+            self.scan_arm = None
 
     def _object_detection_cb(self, msg):
         self._object_detected = True
@@ -68,10 +94,20 @@ class SearchActionServer(MovingActionServer):
         self._object_detected = False
         rospy.loginfo("Start following search waypoints")
 
-        self.left_arm.goto_joint_target(self._home_joints_l, max_velocity_scaling=0.5)
-        self.right_arm.goto_joint_target(
-            self._search_joints_r, max_velocity_scaling=0.5
-        )
+        if self.scan_arm is not None:
+            self.grasp_arm.goto_joint_target(
+                self._home_joints["grasp"],
+                max_velocity_scaling=self._arm_velocity_scaling,
+            )
+            self.scan_arm.goto_joint_target(
+                self._search_joints["scan"],
+                max_velocity_scaling=self._arm_velocity_scaling,
+            )
+        else:
+            self.grasp_arm.goto_joint_target(
+                self._search_joints["grasp"],
+                max_velocity_scaling=self._arm_velocity_scaling,
+            )
 
         try:
             for waypoint in self._initial_waypoints:
@@ -87,12 +123,23 @@ class SearchActionServer(MovingActionServer):
         state = self._visit_waypoint(waypoint)
         if self._object_detected:
             rospy.loginfo("Search completed")
-            self.right_arm.goto_joint_target(
-                self._first_scan_joint_r, max_velocity_scaling=0.5
-            )
-            self.left_arm.goto_joint_target(
-                self._ready_joints_l, max_velocity_scaling=0.5
-            )
+
+            # Move arm(s) into the right place for approach
+            if self.scan_arm is not None:
+                self.grasp_arm.goto_joint_target(
+                    self._ready_joints["grasp"],
+                    max_velocity_scaling=self._arm_velocity_scaling,
+                )
+                self.scan_arm.goto_joint_target(
+                    self._first_scan_joint,
+                    max_velocity_scaling=self._arm_velocity_scaling,
+                )
+            else:
+                self.grasp_arm.goto_joint_target(
+                    self._first_scan_joint,
+                    max_velocity_scaling=self._arm_velocity_scaling,
+                )
+
             self.action_server.set_succeeded(self._result)
             raise SearchDoneException()
         elif state == GoalStatus.PREEMPTED:
@@ -107,7 +154,7 @@ class SearchActionServer(MovingActionServer):
 
 def main():
     rospy.init_node("search_action_node")
-    action = SearchActionServer()
+    _ = SearchActionServer()
     rospy.spin()
 
 

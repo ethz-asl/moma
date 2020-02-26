@@ -3,7 +3,7 @@ import sys
 
 from geometry_msgs.msg import PoseStamped
 from actionlib import SimpleActionServer
-from moveit_commander.conversions import pose_to_list, list_to_pose_stamped
+from moveit_commander.conversions import pose_to_list
 import numpy as np
 import rospy
 from scipy.spatial.transform import Rotation
@@ -13,12 +13,6 @@ from grasp_demo.msg import GraspAction, GraspResult
 from grasp_demo.utils import create_robot_connection
 
 from moma_utils.transform import Transform
-
-
-def multiply_transforms(A, B):
-    trans1, rot1 = A[:3], Rotation.from_quat(A[3:])
-    trans2, rot2 = B[:3], Rotation.from_quat(B[3:])
-    return np.r_[rot1.apply(trans2) + trans1, (rot1 * rot2).as_quat()]
 
 
 class GraspExecutionAction(object):

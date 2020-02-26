@@ -14,7 +14,7 @@
     <!-- ======== Launch everything ======== -->
 
     <!-- Load parameteres -->
-    <rosparam command="load" file="$(find fetch_demo)/config/search_waypoints.yaml" />
+    <rosparam command="load" file="$(find fetch_demo)/config/fetch_demo.yaml" />
     <rosparam command="load" file="$(find fetch_demo)/config/$(arg robot_arm_name)/joint_configurations.yaml" />
     <rosparam command="load" file="$(find grasp_demo)/config/$(arg robot_arm_name)/grasp_demo.yaml" />
 

@@ -1,8 +1,9 @@
 ###### WARNING! These joint values are still for YuMi. Need to adapt them to work with panda.
 # TODO Find joint values that work with panda.
 
-home_joints_l: [0, -2.26893, 0.5235, 0, 0.698132, 0, 2.35619]
-ready_joints_l:  [0.15707963, -1.58824962,  0.55850536,  0.31415927,  1.23918377, -0.78539816,  0.54105207]
+robot_arm_names: ["arm"]
+
+home_joints_arm: [0, -2.26893, 0.5235, 0, 0.698132, 0, 2.35619]
 grasp_waypoint_l: [ 0.45378561, -0.64577182,  0.34906585,  0.68067841,  0.9424778 , -0.78539816, -0.38397244]
 
-search_joints_r: [-0.36651914, -1.79768913,  1.04719755,  1.79768913,  0.27925268, 0.2443461 ,  1.34390352]
+search_joints_arm: [-0.36651914, -1.79768913,  1.04719755,  1.79768913,  0.27925268, 0.2443461 ,  1.34390352]

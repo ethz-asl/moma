@@ -1,3 +1,10 @@
+# General settings:
+
+arm_velocity_scaling: 0.5
+
+
+# Waypoints for the base to follow during search action:
+
 search_waypoints:
   initial:
     - [15.6757316589, -0.985509037971, -1.14762610015]
