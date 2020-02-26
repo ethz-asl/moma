@@ -26,7 +26,7 @@ class SimpleScanAction(ScanAction):
     def __init__(self):
         super(SimpleScanAction, self).__init__()
 
-        self.base_frame_id = "yumi_body"
+        self.base_frame_id = rospy.get_param("base_frame_id")
 
         self.listener = tf.TransformListener()
         self.latest_cloud_data = None

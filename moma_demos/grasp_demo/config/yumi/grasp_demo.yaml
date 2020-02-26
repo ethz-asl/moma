@@ -6,3 +6,4 @@ scan_joint_values:
   - [-0.303, -1.214,  0.812, -1.754, 0.168, 1.118, 0.999]
 
 arm_side_scanning: "right_arm"
+base_frame_id: "yumi_body"
