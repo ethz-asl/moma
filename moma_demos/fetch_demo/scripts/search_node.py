@@ -124,7 +124,8 @@ class SearchActionServer(MovingActionServer):
         if self._object_detected:
             rospy.loginfo("Search completed")
 
-            # Move arm(s) into the right place for approach
+            # Move arm(s) into the right place for approach.
+            # By doing it here, we don't have to move the arms in the approach action.
             if self.scan_arm is not None:
                 self.grasp_arm.goto_joint_target(
                     self._ready_joints["grasp"],

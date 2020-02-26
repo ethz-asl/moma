@@ -52,7 +52,7 @@
     </node>
 
     <!-- Launch the action nodes -->
-    <node pkg="fetch_demo" type="search_node.py" name="search_action_node" output="screen"/>
+    <node pkg="fetch_demo" type="search_node.py" name="search_action_node" args="$(arg robot_name)" output="screen"/>
     <node pkg="fetch_demo" type="approach_node.py" name="approach_action_node" output="screen"/>
     <node pkg="grasp_demo" type="simple_scan.py" name="scan_action_node" args="$(arg robot_name)"
             unless="$(arg scan_using_voxbloxpp)" output="screen"/>
