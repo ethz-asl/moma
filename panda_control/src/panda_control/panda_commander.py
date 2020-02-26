@@ -86,8 +86,16 @@ class PandaCommander(object):
         self.move_client.send_goal(goal)
         return self.move_client.wait_for_result()
 
-    def grasp(self, width, epsilon_inner=0.1, epsilon_outer=0.1, speed=0.1, force=1):
+    def _grasp(self, width, epsilon_inner=0.1, epsilon_outer=0.1, speed=0.1, force=1):
         grasp_epsilon = GraspEpsilon(epsilon_inner, epsilon_outer)
         goal = GraspGoal(width, grasp_epsilon, speed, force)
         self.grasp_client.send_goal(goal)
         return self.grasp_client.wait_for_result()
+
+    def grasp(self):
+        raise NotImplementedError
+        # TODO need to implement this using either move_gripper or _grasp
+
+    def release(self):
+        raise NotImplementedError
+        # TODO need to implement this using either move_gripper or _grasp

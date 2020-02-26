@@ -20,7 +20,49 @@ from grasp_demo.msg import ScanSceneAction, ScanSceneResult
 from grasp_demo.utils import create_robot_connection
 
 
-class VoxbloxPPScanAction(object):
+class ScanAction(object):
+    def __init__(self):
+        self.robot_name = sys.argv[1]
+
+        self._read_joint_configurations()
+
+        self._connect_robot()
+
+        self._setup_action_server()
+        self._as.start()
+        rospy.loginfo("Scan action server ready")
+
+    def _setup_action_server(self):
+        self._as = SimpleActionServer(
+            "scan_action", ScanSceneAction, execute_cb=self.execute_cb, auto_start=False
+        )
+
+    def _read_joint_configurations(self):
+        self._scan_joints = rospy.get_param("scan_joint_values")
+
+        if rospy.has_param("arm_side_scanning"):
+            self._arm_side = rospy.get_param("arm_side_scanning")
+        else:
+            self._arm_side = ""
+            rospy.loginfo(
+                "No arm side given, assume that robot {} has only one arm.".format(
+                    self.robot_name
+                )
+            )
+
+    def _connect_robot(self):
+        full_robot_name = (
+            self.robot_name + "_" + self._arm_side
+            if len(self._arm_side) > 0
+            else self.robot_name
+        )
+        self._robot_arm = create_robot_connection(full_robot_name)
+
+    def execute_cb(self, goal):
+        raise NotImplementedError
+
+
+class VoxbloxPPScanAction(ScanAction):
     """
         Move arm along prespecified joint configurations (scanning motion). While doing so,
         let Voxblox++ integrate sensor readings. Finally, obtain a pointcloud of the reconstructed
@@ -28,18 +70,9 @@ class VoxbloxPPScanAction(object):
     """
 
     def __init__(self):
-        self._read_joint_configurations()
         self._subscribe_voxbloxpp()
-        self._connect_yumi()
-        self._setup_action_server()
-        self._as.start()
-        rospy.loginfo("Scan action server ready")
+        super(VoxbloxPPScanAction, self).__init__()
 
-    def _read_joint_configurations(self):
-        self._scan_joints = rospy.get_param("scan_joint_values")
-        self._search_joints_r = rospy.get_param("search_joints_r")
-        self._ready_joints_l = rospy.get_param("ready_joints_l")
-    
     def _subscribe_voxbloxpp(self):
         reset_srv_name = "/gsm_node/reset_map"
         rospy.wait_for_service(reset_srv_name)
@@ -55,30 +88,20 @@ class VoxbloxPPScanAction(object):
             point_cloud_srv_name, GetScenePointcloud
         )
 
-    def _connect_yumi(self):
-        self._left_arm = create_robot_connection("yumi_left_arm")
-        self._right_arm = create_robot_connection("yumi_right_arm")
-
-    def _setup_action_server()
-        self._as = SimpleActionServer(
-            "scan_action", ScanSceneAction, execute_cb=self.execute_cb, auto_start=False
-        )
-
     def execute_cb(self, goal):
         rospy.loginfo("Scanning action was triggered")
 
         self._reset_map(EmptyRequest())
-        self._left_arm.goto_joint_target(self._ready_joints_l, max_velocity_scaling=0.4)
 
         self._toggle_integration(SetBoolRequest(data=True))
 
-        for i, joints in enumerate(self.scan_joints):
+        for joints in self._scan_joints:
             if self._as.is_preempt_requested():
                 rospy.loginfo("Got preempted")
                 self._as.set_preempted()
                 return
 
-            self._right_arm.goto_joint_target(
+            self._robot_arm.goto_joint_target(
                 joints, max_acceleration_scaling=0.2, max_velocity_scaling=0.2
             )
             rospy.sleep(1.0)
@@ -88,13 +111,16 @@ class VoxbloxPPScanAction(object):
         # Wait for the scene point cloud
         msg = self._query_point_cloud(GetScenePointcloudRequest())
         cloud = msg.scene_cloud
-        # TODO(mbreyer) check frame of point cloud 
+        # TODO(mbreyer) check frame of point cloud
 
-        self._right_arm.goto_joint_target(self._scan_joints[0], max_velocity_scaling=0.4)
+        # Move home
+        self._robot_arm.goto_joint_target(
+            self._scan_joints[0], max_velocity_scaling=0.4
+        )
 
-        rospy.loginfo("Scan scene action succeeded")
         result = ScanSceneResult(pointcloud_scene=cloud)
         self._as.set_succeeded(result)
+        rospy.loginfo("Scan scene action succeeded")
 
 
 if __name__ == "__main__":

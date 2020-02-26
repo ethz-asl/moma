@@ -17,31 +17,22 @@ from tf2_sensor_msgs.tf2_sensor_msgs import do_transform_cloud
 from grasp_demo.msg import ScanSceneAction, ScanSceneResult
 from grasp_demo.utils import create_robot_connection
 
+from voxbloxpp_scan import ScanAction
 
-class SimpleScanAction(object):
+
+class SimpleScanAction(ScanAction):
     """Move robot to a set of predefined scan poses and stitch together the captured point clouds."""
 
     def __init__(self):
-        self._as = SimpleActionServer(
-            "scan_action", ScanSceneAction, execute_cb=self.execute_cb, auto_start=False
-        )
-        self.commander = create_robot_connection(sys.argv[1])
-        self.left_arm = create_robot_connection("yumi_left_arm")
+        super(SimpleScanAction, self).__init__()
+
         self.base_frame_id = "yumi_body"
 
         self.listener = tf.TransformListener()
         self.latest_cloud_data = None
 
-        self.scan_joints = rospy.get_param("scan_joint_values")
-        self.search_joints_r = rospy.get_param("search_joints_r")
-        self.ready_joints_l = rospy.get_param("ready_joints_l")
-        # self.home_joints = self.commander.move_group.get_named_target_values("home")
-
         rospy.Subscriber("/camera/depth/color/points", PointCloud2, self.point_cloud_cb)
         self.cloud_pub = rospy.Publisher("~cloud", PointCloud2, queue_size=1)
-
-        self._as.start()
-        rospy.loginfo("Scan action server ready")
 
     def point_cloud_cb(self, data):
         self.latest_cloud_data = copy.deepcopy(data)
@@ -50,18 +41,17 @@ class SimpleScanAction(object):
         """Move to each scan pose, capture a point cloud and stitch them together."""
         rospy.loginfo("Scanning action was triggered")
 
-        self.left_arm.goto_joint_target(self.ready_joints_l, max_velocity_scaling=0.4)
-
         captured_clouds = []
 
-        for joints in self.scan_joints:
-
+        for joints in self._scan_joints:
             if self._as.is_preempt_requested():
                 rospy.loginfo("Got preempted")
                 self._as.set_preempted()
                 return
 
-            self.commander.goto_joint_target(joints, max_velocity_scaling=0.4)
+            self._robot_arm.goto_joint_target(
+                joints, max_acceleration_scaling=0.2, max_velocity_scaling=0.4
+            )
             rospy.sleep(0.5)
             cloud = self.capture_point_cloud()
             captured_clouds.append(cloud)
@@ -73,11 +63,12 @@ class SimpleScanAction(object):
         self.cloud_pub.publish(cloud)
 
         # Move home
-        self.commander.goto_joint_target(self.scan_joints[0], max_velocity_scaling=0.4)
+        self._robot_arm.goto_joint_target(
+            self._scan_joints[0], max_velocity_scaling=0.4
+        )
 
         result = ScanSceneResult(pointcloud_scene=cloud)
         self._as.set_succeeded(result)
-
         rospy.loginfo("Scan scene action succeeded")
 
     def capture_point_cloud(self):
