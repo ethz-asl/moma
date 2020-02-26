@@ -2,10 +2,11 @@
 <launch>
     <arg name="robot_ip" default="172.16.0.2"/>
     <arg name="load_gripper" default="true"/>
+    <arg name="robot_description" default="$(find moma_description)/urdf/panda.urdf.xacro"/>
 
     <include file="$(find franka_control)/launch/franka_control.launch">
         <arg name="robot_ip" value="$(arg robot_ip)" />
         <arg name="load_gripper" value="$(arg load_gripper)" />
-        <arg name="robot_description_xacro" value="$(find moma_description)/urdf/panda.urdf.xacro"/>
+        <arg name="robot_description_xacro" value="$(arg robot_description)"/>
     </include>
 </launch>
