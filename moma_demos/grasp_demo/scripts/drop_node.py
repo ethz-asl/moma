@@ -13,7 +13,9 @@ from grasp_demo.utils import create_robot_connection
 
 class DropActionNode(object):
     def __init__(self):
-        self.robot_commander = create_robot_connection(sys.argv[1])
+        self.robot_name = sys.argv[1]
+        self._load_parameters()
+        self._connect_robot()
 
         self._as = SimpleActionServer(
             "drop_action", DropAction, execute_cb=self.execute_cb, auto_start=False
@@ -22,21 +24,32 @@ class DropActionNode(object):
 
         rospy.loginfo("Drop action server ready")
 
+    def _connect_robot(self):
+        full_robot_name = (
+            self.robot_name + "_" + self._robot_arm_names[0]
+            if len(self._robot_arm_names) > 1
+            else self.robot_name
+        )
+        self._robot_arm = create_robot_connection(full_robot_name)
+
+    def _load_parameters(self):
+        self._robot_arm_names = rospy.get_param("robot_arm_names")
+        self._home_joints = rospy.get_param("home_joints_" + self._robot_arm_names[0])
+        self._drop_joints = rospy.get_param("drop_joints_" + self._robot_arm_names[0])
+        self._arm_velocity_scaling = rospy.get_param("arm_velocity_scaling_drop")
+
     def execute_cb(self, goal):
         rospy.loginfo("Dropping action was triggered")
 
-        drop_pose = rospy.get_param("grasp_demo")["drop_pose"]
-        self.robot_commander.goto_pose_target(drop_pose, max_velocity_scaling=0.4)
-
+        self._robot_arm.goto_joint_target(
+            self._drop_joints, max_velocity_scaling=self._arm_velocity_scaling
+        )
         rospy.sleep(0.5)  # wait for the operator's hand to be placed under the EE
-
-        # self.robot_commander.move_gripper(width=0.07)
-        self.robot_commander.release()
-
+        self._robot_arm.release()
         rospy.sleep(0.2)
-
-        home_joints = self.robot_commander.move_group.get_named_target_values("home")
-        self.robot_commander.goto_joint_target(home_joints, max_velocity_scaling=0.4)
+        self._robot_arm.goto_joint_target(
+            self._home_joints, max_velocity_scaling=self._arm_velocity_scaling
+        )
 
         rospy.loginfo("Dropping action succeeded")
         self._as.set_succeeded(DropResult())

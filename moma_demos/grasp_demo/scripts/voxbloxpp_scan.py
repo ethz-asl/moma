@@ -38,22 +38,20 @@ class ScanAction(object):
         )
 
     def _read_joint_configurations(self):
-        self._scan_joints = rospy.get_param("scan_joint_values")
-
-        if rospy.has_param("arm_side_scanning"):
-            self._arm_side = rospy.get_param("arm_side_scanning")
+        self._robot_arm_names = rospy.get_param("robot_arm_names")
+        if len(self._robot_arm_names) > 1:
+            self._scan_joints = rospy.get_param(
+                "scan_joints_" + self._robot_arm_names[1]
+            )
         else:
-            self._arm_side = ""
-            rospy.loginfo(
-                "No arm side given, assume that robot {} has only one arm.".format(
-                    self.robot_name
-                )
+            self._scan_joints = rospy.get_param(
+                "scan_joints_" + self._robot_arm_names[0]
             )
 
     def _connect_robot(self):
         full_robot_name = (
-            self.robot_name + "_" + self._arm_side
-            if len(self._arm_side) > 0
+            self.robot_name + "_" + self._robot_arm_names[1]
+            if len(self._robot_arm_names) > 1
             else self.robot_name
         )
         self._robot_arm = create_robot_connection(full_robot_name)
