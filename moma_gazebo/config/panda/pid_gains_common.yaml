@@ -1,12 +1,12 @@
-gazebo_ros_control:
-  pid_gains:
-    panda_finger_joint1: {p: 100, i: 0, d: 50}
-    panda_finger_joint2: {p: 100, i: 0, d: 50}
-
-    panda_joint1: {p: 250, i: 0, d: 60}
-    panda_joint2: {p: 50000, i: 0, d: 1500}
-    panda_joint3: {p: 500, i: 0, d: 30}
-    panda_joint4: {p: 5000, i: 0, d: 150}
-    panda_joint5: {p: 500, i: 0, d: 30}
-    panda_joint6: {p: 500, i: 0, d: 30}
-    panda_joint7: {p: 50, i: 0.5, d: 0.3}
+# gazebo_ros_control:
+#   pid_gains:
+#     panda_finger_joint1: {p: 100, i: 0, d: 50}
+#     panda_finger_joint2: {p: 100, i: 0, d: 50}
+#
+#     panda_joint1: {p: 250, i: 0, d: 60}
+#     panda_joint2: {p: 50000, i: 0, d: 1500}
+#     panda_joint3: {p: 500, i: 0, d: 30}
+#     panda_joint4: {p: 5000, i: 0, d: 150}
+#     panda_joint5: {p: 500, i: 0, d: 30}
+#     panda_joint6: {p: 500, i: 0, d: 30}
+#     panda_joint7: {p: 50, i: 0.5, d: 0.3}
