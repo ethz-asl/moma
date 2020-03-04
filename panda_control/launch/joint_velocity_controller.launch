@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <launch>
     <!-- Launch the panda control node -->
-    <include file="$(find panda_control)/launch/panda_control.launch"/>
+    <include file="$(find panda_control)/launch/panda_control_mopa.launch"/>
 
     <!-- Start our joint velocity controller -->
     <rosparam command="load" file="$(find panda_control)/config/controllers.yaml" />
