@@ -14,9 +14,9 @@
     <!-- ======== Launch everything ======== -->
 
     <!-- Load parameteres -->
-    <rosparam command="load" file="$(find fetch_demo)/config/fetch_demo.yaml" />
-    <rosparam command="load" file="$(find fetch_demo)/config/$(arg robot_arm_name)/joint_configurations.yaml" />
-    <rosparam command="load" file="$(find grasp_demo)/config/$(arg robot_arm_name)/grasp_demo.yaml" />
+    <rosparam command="load" file="$(find fetch_demo)/config/fetch_demo.yaml" ns="moma_demo" />
+    <rosparam command="load" file="$(find fetch_demo)/config/$(arg robot_arm_name)/joint_configurations.yaml" ns="moma_demo" />
+    <rosparam command="load" file="$(find grasp_demo)/config/$(arg robot_arm_name)/grasp_demo.yaml" ns="moma_demo" />
 
     <!-- Load map onto map server -->
     <node pkg="map_server" name="asl_map_server_node" type="map_server" ns="approach_module" args="$(find fetch_demo)/maps/lasermap_new_table.yaml" output="screen"/>

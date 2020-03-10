@@ -4,18 +4,18 @@
     <!-- ======== Arguments ======== -->
 
     <!-- Select a robot. Can be "yumi" or "panda". -->
-    <arg name="robot_name" default="yumi"/>
+    <arg name="robot_name" default="panda"/>
 
     <!-- Choose whether to use voxblox++ for scanning. If set to false, will fall back to point cloud stitching. -->
-    <arg name="scan_using_voxbloxpp" default="true"/>
+    <arg name="scan_using_voxbloxpp" default="false"/>
 
-    <arg name="semantic_grasping" default="false" />
+    <arg name="semantic_grasping" default="false"/>
     <arg name="launch_rviz" default="false"/>
 
     <!-- ======== Launch everything ======== -->
 
     <!-- Load parameters -->
-    <rosparam command="load" file="$(find grasp_demo)/config/$(arg robot_name)/grasp_demo.yaml" ns="grasp_demo"/>
+    <rosparam command="load" file="$(find grasp_demo)/config/$(arg robot_name)/grasp_demo.yaml" ns="moma_demo"/>
 
     <!-- Launch camera -->
     <include file="$(find realsense2_camera)/launch/rs_camera.launch">
@@ -44,15 +44,15 @@
     <node pkg="grasp_demo" type="grasp_execution.py" name="grasp_execution_action_node" args="$(arg robot_name)" output="screen"/>
     <node pkg="grasp_demo" type="drop_node.py" name="drop_action_node" args="$(arg robot_name)" output="screen"/>
 
-    <group if="semantic_grasping">
+    <group if="$(arg semantic_grasping)">
         <node pkg="grasp_demo" type="semantic_grasp_selection.py" name="semantic_grasp_selection_node" output="screen" />
     </group>
-    <group unless="semantic_grasping">
+    <group unless="$(arg semantic_grasping)">
         <node pkg="grasp_demo" type="grasp_selection.py" name="grasp_selection_action_node" args="$(arg robot_name)" output="screen"/>
     </group>
 
     <node pkg="grasp_demo" type="run_bt.py" name="behaviour_tree_node" output="screen"/>
-    <node pkg="rqt_py_trees" type="rqt_py_trees" name="rqt_viewer"/>
+    <!-- <node pkg="rqt_py_trees" type="rqt_py_trees" name="rqt_viewer"/> -->
 
     <!-- Open rviz if desired -->
     <node if="$(arg launch_rviz)" type="rviz" name="rviz" pkg="rviz" args="-d $(find grasp_demo)/config/$(arg robot_name)/rviz.rviz"/>

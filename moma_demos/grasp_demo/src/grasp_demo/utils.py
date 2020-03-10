@@ -7,7 +7,7 @@ def create_robot_connection(robot_name):
     if robot_name == "panda":
         from panda_control.panda_commander import PandaCommander
 
-        return PandaCommaner()
+        return PandaCommander()
     elif robot_name == "yumi_left_arm":
         from yumi_controllers.yumi_commander import YumiCommander
 

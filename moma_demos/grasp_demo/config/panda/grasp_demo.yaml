@@ -12,7 +12,7 @@ home_joints_arm: [0, -2.26893, 0.5235, 0, 0.698132, 0, 2.35619]  # TODO set corr
 ready_joints_arm:  [0.15707963, -1.58824962,  0.55850536,  0.31415927,  1.23918377, -0.78539816,  0.54105207]  # TODO set correctly
 search_joints_arm: [-0.36651914, -1.79768913,  1.04719755,  1.79768913,  0.27925268, 0.2443461 ,  1.34390352]  # TODO set correctly
 
-base_frame_id: "panda_base"
+base_frame_id: "panda_link0"
 
 arm_velocity_scaling_drop: 0.5
 arm_velocity_scaling_grasp: 0.2

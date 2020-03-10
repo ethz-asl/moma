@@ -47,11 +47,15 @@ class GraspExecutionAction(object):
         self._robot_arm = create_robot_connection(full_robot_name)
 
     def _load_parameters(self):
-        self._robot_arm_names = rospy.get_param("robot_arm_names")
-        self._ready_joints = rospy.get_param("ready_joints_" + self._robot_arm_names[0])
-        self._base_frame_id = rospy.get_param("base_frame_id")
-        self._arm_velocity_scaling = rospy.get_param("arm_velocity_scaling_grasp")
-        self._pregrasp_offset_z = rospy.get_param("pregrasp_offset_z")
+        self._robot_arm_names = rospy.get_param("/moma_demo/robot_arm_names")
+        self._ready_joints = rospy.get_param(
+            "/moma_demo/ready_joints_" + self._robot_arm_names[0]
+        )
+        self._base_frame_id = rospy.get_param("/moma_demo/base_frame_id")
+        self._arm_velocity_scaling = rospy.get_param(
+            "/moma_demo/arm_velocity_scaling_grasp"
+        )
+        self._pregrasp_offset_z = rospy.get_param("/moma_demo/pregrasp_offset_z")
 
     def execute_cb(self, goal_msg):
         rospy.loginfo("Received grasp pose")

@@ -70,7 +70,7 @@ class GraspSelectionAction(object):
             auto_start=False,
         )
 
-        self.base_frame_id = rospy.get_param("base_frame_id")
+        self.base_frame_id = rospy.get_param("/moma_demo/base_frame_id")
 
         self.gpd_cloud_pub = rospy.Publisher(
             "/cloud_stitched", PointCloud2, queue_size=10
