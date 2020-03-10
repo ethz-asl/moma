@@ -7,14 +7,19 @@ scan_joints_arm:
   - [0.035, 0.079, 0.000, -1.229, 0.0741, 0.977, 0.890]
   - [-1.076, -0.981, 1.051, -1.420, 0.233, 0.977, 0.681]
   - [-0.303, -1.214,  0.812, -1.754, 0.168, 1.118, 0.999]
-drop_joints_arm: [-0.303, -1.214,  0.812, -1.754, 0.168, 1.118, 0.999]  # TODO set correctly
-home_joints_arm: [0, -2.26893, 0.5235, 0, 0.698132, 0, 2.35619]  # TODO set correctly
-ready_joints_arm:  [0.15707963, -1.58824962,  0.55850536,  0.31415927,  1.23918377, -0.78539816,  0.54105207]  # TODO set correctly
+drop_joints_arm: [1.8125419079753868, 0.35502879822802413, -0.044053724205053386, -2.5928146389998137, 0.0011553696715772578, 2.9127716170698204, 0.94913]
+home_joints_arm: [0.0, -0.785, 0.0, -2.356, 0.0, 1.57, 0.785]
+ready_joints_arm:  [0.0, -0.785, 0.0, -2.356, 0.0, 1.57, 0.785]
 search_joints_arm: [-0.36651914, -1.79768913,  1.04719755,  1.79768913,  0.27925268, 0.2443461 ,  1.34390352]  # TODO set correctly
 
 base_frame_id: "panda_link0"
 
-arm_velocity_scaling_drop: 0.5
+arm_velocity_scaling_drop: 0.3
 arm_velocity_scaling_grasp: 0.2
 
-pregrasp_offset_z: -0.05
+pregrasp_offset_z: -0.07
+grasp_offset_z: -0.02
+
+grasp_selection_method: "manual"    # choice: manual, best
+
+table_height: 0.035   # Measured from the base frame specified above

@@ -56,6 +56,7 @@ class GraspExecutionAction(object):
             "/moma_demo/arm_velocity_scaling_grasp"
         )
         self._pregrasp_offset_z = rospy.get_param("/moma_demo/pregrasp_offset_z")
+        self._grasp_offset_z = rospy.get_param("/moma_demo/grasp_offset_z")
 
     def execute_cb(self, goal_msg):
         rospy.loginfo("Received grasp pose")
@@ -65,6 +66,11 @@ class GraspExecutionAction(object):
         T_base_grasp = Transform(
             Rotation.from_quat(grasp_pose_msg_list[3:]), grasp_pose_msg_list[:3]
         )
+        T_grasp_offset = Transform(
+            Rotation.from_quat([0.0, 0.0, 0.0, 1.0]),
+            np.array([0.0, 0.0, self._grasp_offset_z]),
+        )
+        T_base_grasp = T_base_grasp * T_grasp_offset
 
         T_grasp_pregrasp = Transform(
             Rotation.from_quat([0.0, 0.0, 0.0, 1.0]),
@@ -76,26 +82,24 @@ class GraspExecutionAction(object):
         self.pregrasp_pub.publish(msg)
 
         rospy.loginfo("Opening hand")
-        # self._robot_arm.move_gripper(width=0.10)
         self._robot_arm.release()
 
         rospy.loginfo("Moving to pregrasp pose")
         self._robot_arm.goto_pose_target(
-            T_base_pregrasp.tolist(), max_velocity_scaling=self._arm_velocity_scaling
+            T_base_pregrasp.to_list(), max_velocity_scaling=self._arm_velocity_scaling
         )
 
         rospy.loginfo("Moving to grasp pose")
         self._robot_arm.goto_pose_target(
-            T_base_grasp, max_velocity_scaling=self._arm_velocity_scaling
+            T_base_grasp.to_list(), max_velocity_scaling=self._arm_velocity_scaling
         )
 
         rospy.loginfo("Grasping")
-        # self._robot_arm.grasp(0.05)
         self._robot_arm.grasp()
 
         rospy.loginfo("Retrieving object")
         self._robot_arm.goto_pose_target(
-            T_base_pregrasp.tolist(), max_velocity_scaling=self._arm_velocity_scaling
+            T_base_pregrasp.to_list(), max_velocity_scaling=self._arm_velocity_scaling
         )
 
         self._robot_arm.goto_joint_target(

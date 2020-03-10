@@ -93,13 +93,13 @@ class PandaCommander(object):
         return self.grasp_client.wait_for_result()
 
     def grasp(self):
-        raise NotImplementedError
-        # TODO need to implement this using either move_gripper or _grasp
+        # TODO unify this with release. Does it make sense to use two different interfaces?
+        self._grasp(0.05)
 
     def release(self):
-        raise NotImplementedError
-        # TODO need to implement this using either move_gripper or _grasp
+        self.move_gripper(width=0.1)
 
     def check_object_grasped(self):
-        raise NotImplementedError
+        # raise NotImplementedError
         # TODO need to implement this
+        return True

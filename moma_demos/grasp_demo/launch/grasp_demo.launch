@@ -20,6 +20,7 @@
     <!-- Launch camera -->
     <include file="$(find realsense2_camera)/launch/rs_camera.launch">
         <arg name="enable_pointcloud" value="true"/>
+        <arg name="filters" value="temporal"/>
     </include>
 
     <!-- Bringup robot -->

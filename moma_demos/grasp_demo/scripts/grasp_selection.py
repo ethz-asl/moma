@@ -71,6 +71,9 @@ class GraspSelectionAction(object):
         )
 
         self.base_frame_id = rospy.get_param("/moma_demo/base_frame_id")
+        self.grasp_selection_method = rospy.get_param(
+            "/moma_demo/grasp_selection_method"
+        )
 
         self.gpd_cloud_pub = rospy.Publisher(
             "/cloud_stitched", PointCloud2, queue_size=10
@@ -106,9 +109,7 @@ class GraspSelectionAction(object):
 
         self.visualize_detected_grasps(grasp_candidates)
 
-        # selected_grasp = self.wait_for_user_selection(grasp_candidates)
-        selected_grasp = self.select_highest_ranked_grasp(grasp_candidates, scores)
-        rospy.loginfo("Grasp selected")
+        selected_grasp = self.select_grasp(grasp_candidates, scores)
 
         self.visualize_selected_grasp(selected_grasp)
 
@@ -145,6 +146,18 @@ class GraspSelectionAction(object):
         grasp_candidates, scores = grasp_config_list_to_pose_array(grasp_config_list)
         grasp_candidates.header.frame_id = self.base_frame_id
         return grasp_candidates, scores
+
+    def select_grasp(self, grasp_candidates, scores):
+        if self.grasp_selection_method == "manual":
+            selected_grasp = self.wait_for_user_selection(grasp_candidates)
+        elif self.grasp_selection_method == "auto":
+            selected_grasp = self.select_highest_ranked_grasp(grasp_candidates, scores)
+        else:
+            raise NotImplementedError(
+                "Grasp selection method {} invalid".format(self.grasp_selection_method)
+            )
+        rospy.loginfo("Grasp selected")
+        return selected_grasp
 
     def visualize_detected_grasps(self, grasp_candidates):
         self.detected_grasps_pub.publish(grasp_candidates)

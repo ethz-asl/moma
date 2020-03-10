@@ -18,3 +18,8 @@ arm_velocity_scaling_drop: 0.5
 arm_velocity_scaling_grasp: 0.2
 
 pregrasp_offset_z: -0.05
+grasp_offset_z: -0.02
+
+grasp_selection_method: "manual"    # choice: manual, best
+
+table_height: 0.035   # Measured from the base frame specified above
