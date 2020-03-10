@@ -97,7 +97,7 @@ class GraspSelectionAction(object):
     def execute_cb(self, goal_msg):
         grasp_candidates, scores = self.detect_grasps(goal_msg.pointcloud_scene)
 
-        if not grasp_candidates:
+        if not grasp_candidates or len(grasp_candidates.poses) == 0:
             self._as.set_aborted(SelectGraspResult())
             rospy.loginfo("No grasps detected, aborting")
             return
