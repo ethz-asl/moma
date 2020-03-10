@@ -67,4 +67,3 @@ COPY config/ros_setup.bash /home/config/
 COPY ./asl_entrypoint.bash /
 ENTRYPOINT ["/asl_entrypoint.bash"]
 CMD /opt/ros/$ROS_DISTRO/bin/roslaunch /home/launch/ros.launch
-
