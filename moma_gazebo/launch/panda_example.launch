@@ -1,6 +1,7 @@
 <launch>
   <arg name="gui" default="true" />
   <arg name="paused" default="true" />
+  <arg name="rviz" default="false" />
 
   <!-- start gazebo -->
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
@@ -18,5 +19,13 @@
 
   <!-- start a robot state publisher -->
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="true" output="screen" />
+
+  <!-- start moveit -->
+  <include file="$(find panda_moveit_config)/launch/move_group.launch">
+    <arg name="load_robot_description" value="false" />
+  </include>
+
+  <!-- start rviz -->
+  <node if="$(arg rviz)" name="rviz" pkg="rviz" type="rviz" args="-d $(find moma_gazebo)/config/panda_example.rviz" />
 
 </launch>
