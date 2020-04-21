@@ -1,18 +1,6 @@
 # moma_gazebo
 
-Work in progress.
-
-To launch a simulation and some standard trajectory following controllers, run
-
-```
-roslaunch mopa_control gazebo.launch
-```
-
-To launch a simulation together with MoveIt for motion planning, run
-
-```
-roslaunch moma_bringup gazebo_moveit.launch
-```
+Launch files, models and worlds for Gazebo simulation.
 
 ## TODO
 
