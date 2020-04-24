@@ -1,7 +1,7 @@
 <launch>
   <arg name="gui" default="true" />
   <arg name="paused" default="true" />
-  <arg name="rviz" default="false" />
+  <arg name="rviz" default="true" />
 
   <!-- start gazebo -->
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
@@ -15,7 +15,7 @@
 
   <!-- start joint position trajectory controller -->
   <rosparam file="$(find moma_gazebo)/config/panda_controllers.yaml" command="load" />
-  <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="joint_state_controller position_joint_trajectory_controller" />
+  <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="joint_state_controller position_joint_trajectory_controller franka_gripper" />
 
   <!-- start a robot state publisher -->
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="true" output="screen" />

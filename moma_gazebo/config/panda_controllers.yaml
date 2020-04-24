@@ -14,3 +14,7 @@ position_joint_trajectory_controller:
     - panda_joint7
   constraints:
     goal_time: 0.5
+
+franka_gripper:
+  type: position_controllers/GripperActionController
+  joint: panda_finger_joint1
