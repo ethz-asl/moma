@@ -9,6 +9,8 @@ sudo apt-get install \
 	ros-$ROS_DISTRO-rosmon \
 	ros-$ROS_DISTRO-pcl-ros \
 	ros-$ROS_DISTRO-tf2-sensor-msgs \
+	ros-$ROS_DISTRO-py-trees \
+	ros-$ROS_DISTRO-py-trees-ros \
 	ros-$ROS_DISTRO-rqt-py-trees \
 	ros-$ROS_DISTRO-libfranka \
 	qtbase5-dev
