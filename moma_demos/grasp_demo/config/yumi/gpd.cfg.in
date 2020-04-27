@@ -1,11 +1,11 @@
 # Path to config file for robot hand geometry
-hand_geometry_filename = /home/asl-admin/catkin_ws/src/moma/moma_demos/grasp_demo/config/yumi/hand_geometry.cfg
+hand_geometry_filename = @CMAKE_CURRENT_SOURCE_DIR@/config/yumi/hand_geometry.cfg
 
 # Path to config file for volume and image geometry
-image_geometry_filename = /home/asl-admin/catkin_ws/src/moma/submodules/gpd/cfg/image_geometry_15channels.cfg
+image_geometry_filename = @CMAKE_CURRENT_SOURCE_DIR@/../../submodules/gpd/cfg/image_geometry_15channels.cfg
 
 # Path to directory that contains neural network parameters
-weights_file =  /home/asl-admin/catkin_ws/src/moma/submodules/gpd/models/lenet/15channels/params/
+weights_file = @CMAKE_CURRENT_SOURCE_DIR@/../../submodules/gpd/models/lenet/15channels/params/
 
 # Preprocessing of point cloud
 #   voxelize: if the cloud gets voxelized/downsampled
