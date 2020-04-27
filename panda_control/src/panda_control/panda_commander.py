@@ -4,6 +4,7 @@ import actionlib
 from franka_gripper.msg import *
 import moveit_commander
 from moveit_commander.conversions import list_to_pose
+from moveit_msgs.msg import MoveGroupAction
 
 
 class PandaCommander(object):
@@ -12,6 +13,11 @@ class PandaCommander(object):
     """
 
     def __init__(self, group_name="panda_arm"):
+        # Before connecting to move group, wait for it to be available
+        temp_client = actionlib.SimpleActionClient("move_group", MoveGroupAction)
+        temp_client.wait_for_server()
+        del temp_client
+
         # Connect to Panda MoveGroup
         self.robot = moveit_commander.RobotCommander()
         self.scene = moveit_commander.PlanningSceneInterface()
