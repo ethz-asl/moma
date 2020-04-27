@@ -1,11 +1,15 @@
 <launch>
   <arg name="gui" default="true" />
-  <arg name="paused" default="true" />
+  <arg name="moveit" default="true" />
   <arg name="rviz" default="true" />
+
+  <env name="GAZEBO_MODEL_PATH" value="${GAZEBO_MODEL_PATH}:$(find moma_gazebo)/models"/>
 
   <!-- start gazebo -->
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
-    <arg name="paused" value="$(arg paused)" />
+    <arg name="world_name" value="$(find moma_gazebo)/worlds/panda_example.world"/>
+    <arg name="use_sim_time" value="true" />
+    <arg name="paused" value="true" />
     <arg name="gui" value="$(arg gui)" />
   </include>
 
@@ -21,7 +25,7 @@
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="true" output="screen" />
 
   <!-- start moveit -->
-  <include file="$(find panda_moveit_config)/launch/move_group.launch">
+  <include if="$(arg moveit)" file="$(find panda_moveit_config)/launch/move_group.launch">
     <arg name="load_robot_description" value="false" />
   </include>
 
