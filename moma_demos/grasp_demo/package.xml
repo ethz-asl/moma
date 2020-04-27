@@ -25,6 +25,7 @@
 
   <depend>moma_bringup</depend>
   <depend>moma_description</depend>
+  <depend>panda_control</depend>
 
   <exec_depend>message_runtime</exec_depend>
   <exec_depend>rviz</exec_depend>

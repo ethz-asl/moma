@@ -31,6 +31,10 @@ Then, use catkin to build the desired packages.
 
 Before you start developing, familiarize yourself with the [robotic platform](https://github.com/ethz-asl/moma/wiki/Robots) you will be working with and make sure to checkout the [Development](https://github.com/ethz-asl/moma/wiki/Development) section of our wiki.
 
+## GPD
+
+When building a package that relies on GPD (e.g. `fetch_demo`), GPD needs to be built separately first. For the installation instructions, refer to `submodules/gpd/README.md`.
+
 ## Documentation
 
 Every package should contain a `README.md` file documenting its main features.
