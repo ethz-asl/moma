@@ -28,14 +28,12 @@ class SearchActionServer(MovingActionServer):
 
     def __init__(self):
         action_name = "search_action"
-        super(SearchActionServer, self).__init__(action_name, SearchAction)
         self.robot_name = sys.argv[1]
-        simulation_mode = True if sys.argv[2] == "true" else False
-
+        super(SearchActionServer, self).__init__(action_name, SearchAction)
         self._read_waypoints()
         self._read_joint_configurations()
         self._subscribe_object_detection()
-        self._connect_robot(simulation_mode)
+        self._connect_robot()
 
     def _read_waypoints(self):
         waypoints = rospy.get_param("search_waypoints")
@@ -68,7 +66,7 @@ class SearchActionServer(MovingActionServer):
             "/W_landmark", PointStamped, callback=self._object_detection_cb
         )
 
-    def _connect_robot(self, simulation_mode):
+    def _connect_robot(self):
         self._arm_velocity_scaling = rospy.get_param("arm_velocity_scaling_search")
 
         full_grasp_arm_name = (
@@ -76,10 +74,10 @@ class SearchActionServer(MovingActionServer):
             if len(self._robot_arm_names) > 1
             else self.robot_name
         )
-        self.grasp_arm = create_robot_connection(full_grasp_arm_name, simulation_mode)
+        self.grasp_arm = create_robot_connection(full_grasp_arm_name)
         if len(self._robot_arm_names) > 1:
             full_scan_arm_name = self.robot_name + "_" + self._robot_arm_names[1]
-            self.scan_arm = create_robot_connection(full_scan_arm_name, simulation_mode)
+            self.scan_arm = create_robot_connection(full_scan_arm_name)
         else:
             self.scan_arm = None
 

@@ -15,6 +15,7 @@ import tf
 from tf2_sensor_msgs.tf2_sensor_msgs import do_transform_cloud
 
 from grasp_demo.msg import ScanSceneAction, ScanSceneResult
+from grasp_demo.utils import create_robot_connection
 
 from voxbloxpp_scan import ScanAction
 
@@ -24,6 +25,7 @@ class SimpleScanAction(ScanAction):
 
     def __init__(self):
         super(SimpleScanAction, self).__init__()
+
         self.base_frame_id = rospy.get_param("/moma_demo/base_frame_id")
 
         self.listener = tf.TransformListener()

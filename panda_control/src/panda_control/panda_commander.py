@@ -5,7 +5,6 @@ from franka_gripper.msg import *
 import moveit_commander
 from moveit_commander.conversions import list_to_pose
 from moveit_msgs.msg import MoveGroupAction
-from control_msgs.msg import GripperCommandAction, GripperCommandGoal, GripperCommand
 
 
 class PandaCommander(object):
@@ -13,21 +12,11 @@ class PandaCommander(object):
     TODO(mbreyer): write docstrings
     """
 
-    def __init__(self, group_name="panda_arm", simulation_mode=False):
-        """Constructor of PandaCommander
-
-        Keyword Arguments:
-            group_name {str} -- The move group to be controlled (default: {"panda_arm"})
-            simulation_mode {bool} -- Whether to use the Franka gripper interface appropriate
-                                        for the real robot or the simulation (default: {False})
-        """
-        self.simulation_mode = simulation_mode
-
+    def __init__(self, group_name="panda_arm"):
         # Before connecting to move group, wait for it to be available
-        if self.simulation_mode:
-            temp_client = actionlib.SimpleActionClient("move_group", MoveGroupAction)
-            temp_client.wait_for_server()
-            del temp_client
+        temp_client = actionlib.SimpleActionClient("move_group", MoveGroupAction)
+        temp_client.wait_for_server()
+        del temp_client
 
         # Connect to Panda MoveGroup
         self.robot = moveit_commander.RobotCommander()
@@ -35,26 +24,20 @@ class PandaCommander(object):
         self.move_group = moveit_commander.MoveGroupCommander(group_name)
 
         # Setup action clients to command the gripper
-        if not self.simulation_mode:
-            self.home_client = actionlib.SimpleActionClient(
-                "franka_gripper/homing", HomingAction
-            )
-            self.home_client.wait_for_server()
+        self.home_client = actionlib.SimpleActionClient(
+            "franka_gripper/homing", HomingAction
+        )
+        self.home_client.wait_for_server()
 
-            self.move_client = actionlib.SimpleActionClient(
-                "franka_gripper/move", MoveAction
-            )
-            self.move_client.wait_for_server()
+        self.move_client = actionlib.SimpleActionClient(
+            "franka_gripper/move", MoveAction
+        )
+        self.move_client.wait_for_server()
 
-            self.grasp_client = actionlib.SimpleActionClient(
-                "franka_gripper/grasp", GraspAction
-            )
-            self.grasp_client.wait_for_server()
-        else:
-            self.grasp_client = actionlib.SimpleActionClient(
-                "franka_gripper/gripper_cmd", GripperCommandAction
-            )
-            self.grasp_client.wait_for_server()
+        self.grasp_client = actionlib.SimpleActionClient(
+            "franka_gripper/grasp", GraspAction
+        )
+        self.grasp_client.wait_for_server()
         rospy.loginfo("Connected to franka_gripper action servers")
 
     def goto_joint_target(
@@ -101,39 +84,26 @@ class PandaCommander(object):
         return success
 
     def home_gripper(self):
-        if self.simulation_mode:
-            raise NotImplementedError
         self.home_client.send_goal(HomingGoal())
         return self.home_client.wait_for_result()
 
     def move_gripper(self, width, speed=0.1):
-        if self.simulation_mode:
-            raise NotImplementedError
         goal = MoveGoal(width, speed)
         self.move_client.send_goal(goal)
         return self.move_client.wait_for_result()
 
     def _grasp(self, width, epsilon_inner=0.1, epsilon_outer=0.1, speed=0.1, force=1):
-        if not self.simulation_mode:
-            grasp_epsilon = GraspEpsilon(epsilon_inner, epsilon_outer)
-            goal = GraspGoal(width, grasp_epsilon, speed, force)
-            self.grasp_client.send_goal(goal)
-        else:
-            cmd = GripperCommand()
-            cmd.position = width
-            cmd.max_effort = force
-            self.grasp_client.send_goal(GripperCommandGoal(command=cmd))
+        grasp_epsilon = GraspEpsilon(epsilon_inner, epsilon_outer)
+        goal = GraspGoal(width, grasp_epsilon, speed, force)
+        self.grasp_client.send_goal(goal)
         return self.grasp_client.wait_for_result()
 
     def grasp(self):
-        self._grasp(0.04)
+        # TODO unify this with release. Does it make sense to use two different interfaces?
+        self._grasp(0.05)
 
     def release(self):
-        if not self.simulation_mode:
-            # TODO unify this with grasp. Does it make sense to use two different interfaces?
-            self.move_gripper(width=0.1)
-        else:
-            self._grasp(0.1)
+        self.move_gripper(width=0.1)
 
     def check_object_grasped(self):
         # raise NotImplementedError
