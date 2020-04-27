@@ -3,7 +3,13 @@
   <xacro:include filename="$(find moma_description)/urdf/panda.xacro"/>
 
   <link name="world"/>
-  <xacro:panda connected_to="world"/>
+  <link name="base_link"/>
+  <joint name="base_link_joint" type="fixed">
+    <parent link="world"/>
+    <child link="base_link"/>
+    <origin rpy="0 0 0" xyz="0 0 0"/>
+  </joint>
+  <xacro:panda connected_to="base_link"/>
 
   <gazebo>
     <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
