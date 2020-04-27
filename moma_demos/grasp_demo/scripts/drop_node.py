@@ -14,8 +14,9 @@ from grasp_demo.utils import create_robot_connection
 class DropActionNode(object):
     def __init__(self):
         self.robot_name = sys.argv[1]
+        simulation_mode = True if sys.argv[2] == "true" else False
         self._load_parameters()
-        self._connect_robot()
+        self._connect_robot(simulation_mode)
 
         self._as = SimpleActionServer(
             "drop_action", DropAction, execute_cb=self.execute_cb, auto_start=False
@@ -24,13 +25,13 @@ class DropActionNode(object):
 
         rospy.loginfo("Drop action server ready")
 
-    def _connect_robot(self):
+    def _connect_robot(self, simulation_mode):
         full_robot_name = (
             self.robot_name + "_" + self._robot_arm_names[0]
             if len(self._robot_arm_names) > 1
             else self.robot_name
         )
-        self._robot_arm = create_robot_connection(full_robot_name)
+        self._robot_arm = create_robot_connection(full_robot_name, simulation_mode)
 
     def _load_parameters(self):
         self._robot_arm_names = rospy.get_param("/moma_demo/robot_arm_names")

@@ -1,4 +1,4 @@
-def create_robot_connection(robot_name):
+def create_robot_connection(robot_name, simulation_mode=False):
     """Connect to the robot.
 
     Args:
@@ -7,12 +7,18 @@ def create_robot_connection(robot_name):
     if robot_name == "panda":
         from panda_control.panda_commander import PandaCommander
 
-        return PandaCommander()
+        return PandaCommander(simulation_mode=simulation_mode)
     elif robot_name == "yumi_left_arm":
+        if simulation_mode:
+            raise NotImplementedError
+
         from yumi_controllers.yumi_commander import YumiCommander
 
         return YumiCommander().left_arm
     elif robot_name == "yumi_right_arm":
+        if simulation_mode:
+            raise NotImplementedError
+
         from yumi_controllers.yumi_commander import YumiCommander
 
         return YumiCommander().right_arm

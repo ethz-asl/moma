@@ -23,10 +23,10 @@ from grasp_demo.utils import create_robot_connection
 class ScanAction(object):
     def __init__(self):
         self.robot_name = sys.argv[1]
+        simulation_mode = True if sys.argv[2] == "true" else False
 
         self._read_joint_configurations()
-
-        self._connect_robot()
+        self._connect_robot(simulation_mode)
 
         self._setup_action_server()
         self._as.start()
@@ -48,13 +48,13 @@ class ScanAction(object):
                 "/moma_demo/scan_joints_" + self._robot_arm_names[0]
             )
 
-    def _connect_robot(self):
+    def _connect_robot(self, simulation_mode):
         full_robot_name = (
             self.robot_name + "_" + self._robot_arm_names[1]
             if len(self._robot_arm_names) > 1
             else self.robot_name
         )
-        self._robot_arm = create_robot_connection(full_robot_name)
+        self._robot_arm = create_robot_connection(full_robot_name, simulation_mode)
 
     def execute_cb(self, goal):
         raise NotImplementedError
