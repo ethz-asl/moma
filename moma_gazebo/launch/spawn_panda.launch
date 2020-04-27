@@ -4,7 +4,7 @@
   <arg name="z" default="0.0"/>
 
   <!-- send the robot XML to param server -->
-  <param name="robot_description" command="$(find xacro)/xacro $(find moma_description)/urdf/panda.urdf.xacro" />
+  <param name="robot_description" command="$(find xacro)/xacro $(find moma_description)/urdf/panda.urdf.xacro use_nominal_extrinsics:=true" />
 
   <!-- spawn robot in gazebo -->
   <node name="spawn_panda" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen" args="-urdf -param robot_description -model panda
