@@ -24,6 +24,7 @@
         <joint>panda_finger_joint1</joint>
         <mimicJoint>panda_finger_joint2</mimicJoint>
         <hasPID></hasPID>
+        <multiplier>2.0</multiplier>
       </plugin>
     </gazebo>
 

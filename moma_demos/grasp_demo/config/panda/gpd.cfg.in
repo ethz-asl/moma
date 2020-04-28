@@ -31,8 +31,8 @@ sample_above_plane = 1
 #   deepen_hand: if the hand is pushed forward onto the object
 #   friction_coeff: angle of friction cone in degrees
 #   min_viable: minimum number of points required on each side to be antipodal
-num_samples = 100
-num_threads = 4
+num_samples = 150
+num_threads = 6
 nn_radius = 0.01
 num_orientations = 8
 num_finger_placements = 10
