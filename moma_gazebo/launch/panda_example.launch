@@ -1,0 +1,35 @@
+<launch>
+  <arg name="gui" default="true" />
+  <arg name="moveit" default="true" />
+  <arg name="rviz" default="true" />
+
+  <env name="GAZEBO_MODEL_PATH" value="${GAZEBO_MODEL_PATH}:$(find moma_gazebo)/models"/>
+
+  <!-- start gazebo -->
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" value="$(find moma_gazebo)/worlds/panda_example.world"/>
+    <arg name="use_sim_time" value="true" />
+    <arg name="paused" value="true" />
+    <arg name="gui" value="$(arg gui)" />
+  </include>
+
+  <!-- spawn panda -->
+  <include file="$(find moma_gazebo)/launch/spawn_panda.launch">
+  </include>
+
+  <!-- start joint position trajectory controller -->
+  <rosparam file="$(find moma_gazebo)/config/panda_controllers.yaml" command="load" />
+  <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="joint_state_controller position_joint_trajectory_controller franka_gripper" />
+
+  <!-- start a robot state publisher -->
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="true" output="screen" />
+
+  <!-- start moveit -->
+  <include if="$(arg moveit)" file="$(find panda_moveit_config)/launch/move_group.launch">
+    <arg name="load_robot_description" value="false" />
+  </include>
+
+  <!-- start rviz -->
+  <node if="$(arg rviz)" name="rviz" pkg="rviz" type="rviz" args="-d $(find moma_gazebo)/config/panda_example.rviz" />
+
+</launch>

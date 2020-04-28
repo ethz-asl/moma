@@ -19,3 +19,6 @@
 	path = submodules/yumi
 	url = git@github.com:ethz-asl/yumi.git
 	branch = asl-devel
+[submodule "submodules/roboticsgroup_gazebo_plugins"]
+	path = submodules/roboticsgroup_gazebo_plugins
+	url = git@github.com:roboticsgroup/roboticsgroup_gazebo_plugins.git

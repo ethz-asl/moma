@@ -1,2 +1,0 @@
-/franka/ik/chain_start: "panda_link0"
-/franka/ik/chain_end: "panda_link8"

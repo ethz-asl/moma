@@ -2,15 +2,15 @@
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="panda">
   <xacro:macro name="panda" params="connected_to:='' rpy:='0 0 0' xyz:='0 0 0'">
 
-    <!-- Panda arm  -->
+    <!-- panda arm  -->
     <xacro:include filename="$(find franka_description)/robots/panda_arm.xacro"/>
     <xacro:panda_arm connected_to="${connected_to}" rpy="${rpy}" xyz="${xyz}"/>
 
-    <!-- Panda hand -->
+    <!-- panda hand -->
     <xacro:include filename="$(find franka_description)/robots/hand.xacro"/>
     <xacro:hand ns="panda" rpy="0 0 ${-pi/4}" connected_to="panda_link8"/>
 
-    <!-- Add end effector frame for MoveIt -->
+    <!-- end effector frame for MoveIt -->
     <link name="panda_default_ee"/>
     <joint name="joint_link8_default_ee" type="fixed">
       <parent link="panda_link8"/>
@@ -18,11 +18,24 @@
       <origin rpy="0.0 0.0 -0.785" xyz="0.0 0.0 0.103"/>
     </joint>
 
-    <!-- Mount Realsense -->
-    <xacro:property name="xyz_panda_link7_camera_link" value="0.06308534561732076 -0.08993980659751674 0.1481860837701407"/>
-    <xacro:property name="rpy_panda_link7_camera_link" value="-2.68850999 -1.56973844 -1.20267232"/>
-    <xacro:include filename="$(find moma_description)/urdf/realsense.xacro"/>
-    <xacro:realsense ns="panda" connected_to="panda_link7" rpy="${rpy_panda_link7_camera_link}" xyz="${xyz_panda_link7_camera_link}"/>
+    <!-- gazebo plugin to mimic finger joints -->
+    <gazebo>
+      <plugin name="panda_hand_mimic_joint_plugin" filename="libroboticsgroup_gazebo_mimic_joint_plugin.so">
+        <joint>panda_finger_joint1</joint>
+        <mimicJoint>panda_finger_joint2</mimicJoint>
+        <hasPID></hasPID>
+        <multiplier>2.0</multiplier>
+      </plugin>
+    </gazebo>
+
+    <!-- realsense -->
+    <xacro:include filename="$(find realsense2_description)/urdf/_d435.urdf.xacro" />
+    <xacro:include filename="$(find moma_description)/urdf/realsense.gazebo.xacro" />
+    <xacro:property name="panda_link7_camera_bottom_screw_frame_rpy" value="-2.68850999 -1.56973844 -1.20267232" />
+    <xacro:property name="panda_link7_camera_bottom_screw_frame_xyz" value="0.06585917 -0.06861364 0.14820608" />
+    <xacro:sensor_d435 parent="panda_link7">
+      <origin rpy="${panda_link7_camera_bottom_screw_frame_rpy}" xyz="${panda_link7_camera_bottom_screw_frame_xyz}" />
+    </xacro:sensor_d435>
 
   </xacro:macro>
 </robot>

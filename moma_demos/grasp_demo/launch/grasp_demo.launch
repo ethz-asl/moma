@@ -10,7 +10,10 @@
     <arg name="scan_using_voxbloxpp" default="false"/>
 
     <arg name="semantic_grasping" default="false"/>
-    <arg name="launch_rviz" default="false"/>
+    <arg name="launch_rviz" default="true"/>
+
+    <!-- Simulation mode (when set to true, the demo is run in Gazebo) -->
+    <arg name="simulation_mode" default="false"/>
 
     <!-- ======== Launch everything ======== -->
 
@@ -18,14 +21,18 @@
     <rosparam command="load" file="$(find grasp_demo)/config/$(arg robot_name)/grasp_demo.yaml" ns="moma_demo"/>
 
     <!-- Launch camera -->
-    <include file="$(find realsense2_camera)/launch/rs_camera.launch">
+    <include file="$(find realsense2_camera)/launch/rs_camera.launch" unless="$(arg simulation_mode)">
         <arg name="enable_pointcloud" value="true"/>
         <arg name="filters" value="temporal"/>
     </include>
 
     <!-- Bringup robot -->
-    <include file="$(find moma_bringup)/launch/$(arg robot_name)_control_moveit_rviz.launch">
+    <include unless="$(arg simulation_mode)" file="$(find moma_bringup)/launch/$(arg robot_name)_control_moveit_rviz.launch">
         <arg name="launch_rviz" value="false"/>
+    </include>
+    <include if="$(arg simulation_mode)" file="$(find moma_gazebo)/launch/$(arg robot_name)_example.launch">
+        <arg name="paused" value="true"/>
+        <arg name="rviz" value="false"/>
     </include>
 
     <!-- Launch GPD -->
@@ -42,8 +49,10 @@
             unless="$(arg scan_using_voxbloxpp)" output="screen"/>
     <node pkg="grasp_demo" type="voxbloxpp_scan.py" name="scan_action_node" args="$(arg robot_name)"
             if="$(arg scan_using_voxbloxpp)" output="screen"/>
-    <node pkg="grasp_demo" type="grasp_execution.py" name="grasp_execution_action_node" args="$(arg robot_name)" output="screen"/>
-    <node pkg="grasp_demo" type="drop_node.py" name="drop_action_node" args="$(arg robot_name)" output="screen"/>
+    <node pkg="grasp_demo" type="grasp_execution.py" name="grasp_execution_action_node"
+            args="$(arg robot_name)" output="screen"/>
+    <node pkg="grasp_demo" type="drop_node.py" name="drop_action_node"
+            args="$(arg robot_name)" output="screen"/>
 
     <group if="$(arg semantic_grasping)">
         <node pkg="grasp_demo" type="semantic_grasp_selection.py" name="semantic_grasp_selection_node" output="screen" />
