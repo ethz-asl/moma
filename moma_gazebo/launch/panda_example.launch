@@ -2,12 +2,14 @@
   <arg name="gui" default="true" />
   <arg name="moveit" default="true" />
   <arg name="rviz" default="true" />
+  <arg name="world_name" default="$(find moma_gazebo)/worlds/panda_example.world"/>
+  <arg name="panda_z_position" default="0.0"/>
 
   <env name="GAZEBO_MODEL_PATH" value="${GAZEBO_MODEL_PATH}:$(find moma_gazebo)/models"/>
 
   <!-- start gazebo -->
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
-    <arg name="world_name" value="$(find moma_gazebo)/worlds/panda_example.world"/>
+    <arg name="world_name" value="$(arg world_name)"/>
     <arg name="use_sim_time" value="true" />
     <arg name="paused" value="true" />
     <arg name="gui" value="$(arg gui)" />
@@ -15,6 +17,7 @@
 
   <!-- spawn panda -->
   <include file="$(find moma_gazebo)/launch/spawn_panda.launch">
+    <arg name="z" value="$(arg panda_z_position)"/>
   </include>
 
   <!-- start joint position trajectory controller -->

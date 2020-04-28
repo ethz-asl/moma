@@ -126,14 +126,14 @@ class PandaCommander(object):
         return self.grasp_client.wait_for_result()
 
     def grasp(self):
-        self._grasp(0.04)
+        self._grasp(0.0)
 
     def release(self):
         if not self.simulation_mode:
             # TODO unify this with grasp. Does it make sense to use two different interfaces?
             self.move_gripper(width=0.1)
         else:
-            self._grasp(0.1)
+            self._grasp(0.05)
 
     def check_object_grasped(self):
         # raise NotImplementedError
