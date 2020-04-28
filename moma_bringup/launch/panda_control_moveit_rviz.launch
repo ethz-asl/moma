@@ -1,11 +1,11 @@
 <?xml version="1.0" ?>
 <launch>
-  <!-- Adapted from $(find panda_moveit_config)/launch/panda_control_moveit_rviz.launch -->
-
   <arg name="launch_rviz" default="true" />
 
   <!-- Launch the panda control node -->
-  <include file="$(find panda_control)/launch/panda_control.launch"/>
+  <include file="$(find panda_control)/launch/panda_control.launch">
+    <arg name="robot_description" value="$(find moma_description)/urdf/panda.urdf.xacro"/>
+  </include>
 
   <!-- Start a joint trajectory controller -->
   <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="position_joint_trajectory_controller"/>

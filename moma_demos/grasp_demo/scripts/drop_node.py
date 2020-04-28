@@ -2,45 +2,59 @@
 
 from __future__ import print_function
 
-import actionlib
+import sys
+
+from actionlib import SimpleActionServer
 import rospy
 
 from grasp_demo.msg import DropAction, DropResult
-from panda_control.panda_commander import PandaCommander
+from grasp_demo.utils import create_robot_connection
 
 
 class DropActionNode(object):
     def __init__(self):
-        # Panda commander
-        self.panda_commander = PandaCommander("panda_arm")
+        self.robot_name = sys.argv[1]
+        self._load_parameters()
+        self._connect_robot()
 
-        # Poses [x y z qx qy qz qw]
-        self.drop_pose = [0.267, -0.379, 0.454, 0.937, -0.349, 0.004, -0.006]
-
-        # Set up action server
-        action_name = "drop_action"
-        self._as = actionlib.SimpleActionServer(
-            action_name, DropAction, execute_cb=self.execute_cb, auto_start=False
+        self._as = SimpleActionServer(
+            "drop_action", DropAction, execute_cb=self.execute_cb, auto_start=False
         )
         self._as.start()
 
-        self.home_joints = [0.0, -0.785, 0.0, -2.356, 0.0, 1.57, 0.785]
-
         rospy.loginfo("Drop action server ready")
+
+    def _connect_robot(self):
+        full_robot_name = (
+            self.robot_name + "_" + self._robot_arm_names[0]
+            if len(self._robot_arm_names) > 1
+            else self.robot_name
+        )
+        self._robot_arm = create_robot_connection(full_robot_name)
+
+    def _load_parameters(self):
+        self._robot_arm_names = rospy.get_param("/moma_demo/robot_arm_names")
+        self._home_joints = rospy.get_param(
+            "/moma_demo/home_joints_" + self._robot_arm_names[0]
+        )
+        self._drop_joints = rospy.get_param(
+            "/moma_demo/drop_joints_" + self._robot_arm_names[0]
+        )
+        self._arm_velocity_scaling = rospy.get_param(
+            "/moma_demo/arm_velocity_scaling_drop"
+        )
 
     def execute_cb(self, goal):
         rospy.loginfo("Dropping action was triggered")
 
-        self.panda_commander.goto_pose_target(self.drop_pose, max_velocity_scaling=0.4)
-
+        self._robot_arm.goto_joint_target(
+            self._drop_joints, max_velocity_scaling=self._arm_velocity_scaling
+        )
         rospy.sleep(0.5)  # wait for the operator's hand to be placed under the EE
-
-        self.panda_commander.move_gripper(width=0.07)
-
+        self._robot_arm.release()
         rospy.sleep(0.2)
-
-        self.panda_commander.goto_joint_target(
-            self.home_joints, max_velocity_scaling=0.4
+        self._robot_arm.goto_joint_target(
+            self._home_joints, max_velocity_scaling=self._arm_velocity_scaling
         )
 
         rospy.loginfo("Dropping action succeeded")

@@ -1,0 +1,11 @@
+moveit_setup_assistant_config:
+  URDF:
+    package: moma_description
+    relative_path: urdf/mobmi.urdf.xacro
+    xacro_args: ""
+  SRDF:
+    relative_path: config/mobmi.srdf
+  CONFIG:
+    author_name: Michel Breyer
+    author_email: michel.breyer@mavt.ethz.ch
+    generated_timestamp: 1578946761

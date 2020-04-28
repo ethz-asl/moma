@@ -11,5 +11,12 @@ venv
 # Vim stuff
 *.swp
 
+# Ansible stuff
+*.retry
 
+# Catkin stuff
 CATKIN_IGNORE
+
+# Files that will be auto-generated on compile
+moma_demos/grasp_demo/config/yumi/gpd.cfg
+moma_demos/grasp_demo/config/panda/gpd.cfg

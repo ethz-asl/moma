@@ -20,6 +20,10 @@
   <depend>roscpp</depend>
   <depend>geometry_msgs</depend>
   <depend>sensor_msgs</depend>
+  
+  <depend>grasp_demo</depend>
+  <depend>moma_utils</depend>
+  <depend>yumi_controllers</depend>
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>

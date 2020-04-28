@@ -1,5 +1,6 @@
 import numpy as np
 import scipy.spatial.transform
+from moveit_commander.conversions import list_to_pose_stamped
 
 
 class Rotation(scipy.spatial.transform.Rotation):
@@ -35,6 +36,13 @@ class Transform(object):
             "rotation": self.rotation.as_quat().tolist(),
             "translation": self.translation.tolist(),
         }
+
+    def to_list(self):
+        return self.translation.tolist() + self.rotation.as_quat().tolist()
+
+    def to_pose_stamped(self, frame_id):
+        pose_list = self.to_list()
+        return list_to_pose_stamped(pose_list, frame_id)
 
     def __mul__(self, other):
         """Compose this transform with another."""

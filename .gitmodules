@@ -9,3 +9,13 @@
 [submodule "realsense-ros"]
 	path = submodules/realsense-ros
 	url = git@github.com:IntelRealSense/realsense-ros.git
+[submodule "submodules/gpd"]
+	path = submodules/gpd
+	url = https://github.com/kekeblom/gpd
+[submodule "submodules/gpd_ros"]
+	path = submodules/gpd_ros
+	url = ssh://git@github.com/kekeblom/gpd_ros
+[submodule "submodules/yumi"]
+	path = submodules/yumi
+	url = git@github.com:ethz-asl/yumi.git
+	branch = asl-devel
