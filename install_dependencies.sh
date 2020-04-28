@@ -13,4 +13,5 @@ sudo apt-get install \
 	ros-$ROS_DISTRO-py-trees-ros \
 	ros-$ROS_DISTRO-rqt-py-trees \
 	ros-$ROS_DISTRO-libfranka \
+	ros-$ROS_DISTRO-ddynamic-reconfigure \
 	qtbase5-dev
