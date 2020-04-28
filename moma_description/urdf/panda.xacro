@@ -23,6 +23,7 @@
       <plugin name="panda_hand_mimic_joint_plugin" filename="libroboticsgroup_gazebo_mimic_joint_plugin.so">
         <joint>panda_finger_joint1</joint>
         <mimicJoint>panda_finger_joint2</mimicJoint>
+        <hasPID></hasPID>
       </plugin>
     </gazebo>
 
