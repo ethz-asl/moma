@@ -22,4 +22,3 @@ franka_gripper:
 gazebo_ros_control:
   pid_gains:
     panda_finger_joint1: {p: 100, i: 0, d: 50}
-    panda_finger_joint2: {p: 100, i: 0, d: 50}
