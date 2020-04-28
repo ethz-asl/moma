@@ -1,10 +1,13 @@
-import rospy
-
 import actionlib
-from franka_gripper.msg import *
+from control_msgs.msg import (
+    GripperCommand,
+    GripperCommandAction,
+    GripperCommandGoal,
+)
 import moveit_commander
 from moveit_commander.conversions import list_to_pose
 from moveit_msgs.msg import MoveGroupAction
+import rospy
 
 
 class PandaCommander(object):
@@ -12,33 +15,25 @@ class PandaCommander(object):
     TODO(mbreyer): write docstrings
     """
 
-    def __init__(self, group_name="panda_arm"):
-        # Before connecting to move group, wait for it to be available
-        temp_client = actionlib.SimpleActionClient("move_group", MoveGroupAction)
-        temp_client.wait_for_server()
-        del temp_client
+    def __init__(self):
+        self._connect_to_move_group()
+        self._setup_gripper_action_client()
+        rospy.loginfo("PandaCommander ready")
 
-        # Connect to Panda MoveGroup
+    def _connect_to_move_group(self):
+        # wait for moveit to be available
+        tmp = actionlib.SimpleActionClient("move_group", MoveGroupAction)
+        tmp.wait_for_server()
+
         self.robot = moveit_commander.RobotCommander()
         self.scene = moveit_commander.PlanningSceneInterface()
-        self.move_group = moveit_commander.MoveGroupCommander(group_name)
+        self.move_group = moveit_commander.MoveGroupCommander("panda_arm")
 
-        # Setup action clients to command the gripper
-        self.home_client = actionlib.SimpleActionClient(
-            "franka_gripper/homing", HomingAction
-        )
-        self.home_client.wait_for_server()
-
-        self.move_client = actionlib.SimpleActionClient(
-            "franka_gripper/move", MoveAction
-        )
-        self.move_client.wait_for_server()
-
-        self.grasp_client = actionlib.SimpleActionClient(
-            "franka_gripper/grasp", GraspAction
-        )
-        self.grasp_client.wait_for_server()
-        rospy.loginfo("Connected to franka_gripper action servers")
+    def _setup_gripper_action_client(self):
+        name = "gripper_cmd" if rospy.get_param("use_sim_time") else "gripper_action"
+        name = "franka_gripper/" + name
+        self.gripper_client = actionlib.SimpleActionClient(name, GripperCommandAction)
+        self.gripper_client.wait_for_server()
 
     def goto_joint_target(
         self, joints, max_velocity_scaling=1.0, max_acceleration_scaling=1.0
@@ -83,27 +78,17 @@ class PandaCommander(object):
         self.move_group.clear_pose_targets()
         return success
 
-    def home_gripper(self):
-        self.home_client.send_goal(HomingGoal())
-        return self.home_client.wait_for_result()
-
-    def move_gripper(self, width, speed=0.1):
-        goal = MoveGoal(width, speed)
-        self.move_client.send_goal(goal)
-        return self.move_client.wait_for_result()
-
-    def _grasp(self, width, epsilon_inner=0.1, epsilon_outer=0.1, speed=0.1, force=1):
-        grasp_epsilon = GraspEpsilon(epsilon_inner, epsilon_outer)
-        goal = GraspGoal(width, grasp_epsilon, speed, force)
-        self.grasp_client.send_goal(goal)
-        return self.grasp_client.wait_for_result()
+    def move_gripper(self, width, max_effort=10):
+        command = GripperCommand(width, max_effort)
+        goal = GripperCommandGoal(command)
+        self.gripper_client.send_goal(goal)
+        return self.gripper_client.wait_for_result(timeout=rospy.Duration(1.0))
 
     def grasp(self):
-        # TODO unify this with release. Does it make sense to use two different interfaces?
-        self._grasp(0.05)
+        self.move_gripper(0.01)
 
     def release(self):
-        self.move_gripper(width=0.1)
+        self.move_gripper(0.1)
 
     def check_object_grasped(self):
         # raise NotImplementedError
