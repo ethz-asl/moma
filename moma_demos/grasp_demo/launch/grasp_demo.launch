@@ -47,14 +47,14 @@
     </node>
 
     <!-- Launch action scripts -->
-    <node pkg="grasp_demo" type="simple_scan.py" name="scan_action_node" args="$(arg robot_name) $(arg simulation_mode)"
+    <node pkg="grasp_demo" type="simple_scan.py" name="scan_action_node" args="$(arg robot_name)"
             unless="$(arg scan_using_voxbloxpp)" output="screen"/>
-    <node pkg="grasp_demo" type="voxbloxpp_scan.py" name="scan_action_node" args="$(arg robot_name) $(arg simulation_mode)"
+    <node pkg="grasp_demo" type="voxbloxpp_scan.py" name="scan_action_node" args="$(arg robot_name)"
             if="$(arg scan_using_voxbloxpp)" output="screen"/>
     <node pkg="grasp_demo" type="grasp_execution.py" name="grasp_execution_action_node"
-            args="$(arg robot_name) $(arg simulation_mode)" output="screen"/>
+            args="$(arg robot_name)" output="screen"/>
     <node pkg="grasp_demo" type="drop_node.py" name="drop_action_node"
-            args="$(arg robot_name) $(arg simulation_mode)" output="screen"/>
+            args="$(arg robot_name)" output="screen"/>
 
     <group if="$(arg semantic_grasping)">
         <node pkg="grasp_demo" type="semantic_grasp_selection.py" name="semantic_grasp_selection_node" output="screen" />
