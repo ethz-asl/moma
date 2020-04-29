@@ -22,3 +22,6 @@
 [submodule "submodules/roboticsgroup_gazebo_plugins"]
 	path = submodules/roboticsgroup_gazebo_plugins
 	url = git@github.com:roboticsgroup/roboticsgroup_gazebo_plugins.git
+[submodule "submodules/vpp_msgs"]
+	path = submodules/vpp_msgs
+	url = git@github.com:ethz-asl/vpp_msgs.git

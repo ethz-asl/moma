@@ -15,29 +15,39 @@ Main repository of the mobile manipulation (moma) team at ASL containing launch 
 
 Note that all instructions in this repository are tested on Ubuntu 18.04 with ROS melodic.
 
-First, install some general system dependencies.
+First, clone this repository and its submodules into the `src` folder of a new or existing catkin workspace.
 
+```bash
+git clone --recurse-submodules git@github.com:ethz-asl/moma.git
 ```
+
+Install some general system dependencies.
+
+```bash
 ./install_dependencies.sh
 ```
 
-Clone this repository and its submodules into the `src` folder of a new or existing catkin workspace.
+Set the build type to `release` for faster execution.
 
+```bash
+catkin config -DCMAKE_BUILD_TYPE=Release
 ```
-git clone --recursive git@github.com:ethz-asl/moma.git
+
+Then, use catkin to build the desired packages, e.g.
+
+```bash
+catkin build grasp_demo
 ```
 
-Then, use catkin to build the desired packages.
+### GPD
 
-Before you start developing, familiarize yourself with the [robotic platform](https://github.com/ethz-asl/moma/wiki/Robots) you will be working with and make sure to checkout the [Development](https://github.com/ethz-asl/moma/wiki/Development) section of our wiki.
+When building a package that relies on GPD (e.g. `fetch_demo` or `grasp_demo`), GPD needs to be built separately first. For the installation instructions, refer to `submodules/gpd/README.md`.
 
-*GPD*
+### Wiki
 
-When building a package that relies on GPD (e.g. `fetch_demo`), GPD needs to be built separately first. For the installation instructions, refer to `submodules/gpd/README.md`.
+Before you start developing, familiarize yourself with the [robotic platform](https://github.com/ethz-asl/moma/wiki/Robots) you will be working with and make sure to checkout the [development](https://github.com/ethz-asl/moma/wiki/Development) section of our wiki.
 
-*Packages to be cloned from github into the ROS workspace*
 
-[vpp_msgs](https://github.com/ethz-asl/vpp_msgs)
 
 ## Documentation
 
