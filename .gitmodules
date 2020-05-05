@@ -22,3 +22,6 @@
 [submodule "submodules/roboticsgroup_gazebo_plugins"]
 	path = submodules/roboticsgroup_gazebo_plugins
 	url = git@github.com:roboticsgroup/roboticsgroup_gazebo_plugins.git
+[submodule "submodules/ocs2"]
+	path = submodules/ocs2
+	url = git@bitbucket.org:leggedrobotics/ocs2.git
