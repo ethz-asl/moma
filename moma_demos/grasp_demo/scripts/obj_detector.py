@@ -50,7 +50,9 @@ class CVdetector():
         self.net.setPreferableTarget(cv2.dnn.DNN_TARGET_CPU)
 
         # Subscriber
-        self.image_sub = rospy.Subscriber("/webcam/image_raw",Image,self.callback_Yolo, queue_size=1)
+        #self.image_sub = rospy.Subscriber("/grasp_demo/image_red",Image,self.callback_Yolo, queue_size=1)
+        # self.image_sub = rospy.Subscriber("/camera/color/image_raw",Image,self.callback_Yolo, queue_size=1)
+        self.image_sub = rospy.Subscriber("/image_publisher_1589137204781691768/image_raw",Image,self.callback_Yolo, queue_size=1)
         
         # Publisher
         self.boundBoxes_pub = rospy.Publisher("/grasp_demo/BoundingBoxes",BoundingBoxes,queue_size=1)
