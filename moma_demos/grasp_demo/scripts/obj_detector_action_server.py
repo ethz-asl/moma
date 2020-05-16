@@ -7,59 +7,69 @@ from std_msgs.msg import (
     String,
     UInt8
     )
-from grasp_demo.msg import (
-    BoundingBoxes,
-    BoundingBox
-    )
+# from grasp_demo.msg import (
+#     BoundingBoxes,
+#     BoundingBox,
+#     DetectionAction,
+#     DetectionActionFeedback,
+#     DetectionActionGoal,
+#     DetectionActionResult,
+#     DetectionFeedback,
+#     DetectionGoal,
+#     DetectionResult
+#     )
+
+from grasp_demo.msg import *
+
+import actionlib
 
 from cv_bridge import CvBridge, CvBridgeError
 import numpy as np
 
-class CVdetector():
+class CVdetectorAction():
 
     # create messages that are used to publish feedback/result
-    _feedback = actionlib_tutorials.msg.DetectionFeedback()
-    _result = actionlib_tutorials.msg.DetectionResult()
+    _feedback = grasp_demo.msg.DetectionFeedback()
+    _result = grasp_demo.msg.DetectionResult()
 
     # Variables
-    self.confThreshold = 0.5                #Confidence threshold
-    self.nmsThreshold = 0.4                 #Non-maximum suppression threshold
-    self.inpWidth = 416                     #Width of network's input image
-    self.inpHeight = 416                    #Height of network's input image
-    self.bridge = CvBridge()
-    self.boundBoxTL = 0
-    self.cv_image = None                    # Will be cv Mat
-
-    self.boundingBox = None
+    confThreshold = 0.5                #Confidence threshold
+    nmsThreshold = 0.4                 #Non-maximum suppression threshold
+    inpWidth = 416                     #Width of network's input image
+    inpHeight = 416                    #Height of network's input image
+    bridge = CvBridge()
+    boundBoxTL = 0
+    cv_image = None                    # Will be cv Mat
 
     # DNN
     # Load names of classes
     classesFile = "/home/zinnerc/catkin_ws/src/moma/moma_demos/grasp_demo/src/yolo/coco.names"
-    self.classes = None
+    classes = None
     with open(classesFile, 'rt') as f:
-        self.classes = f.read().rstrip('\n').split('\n')
+        classes = f.read().rstrip('\n').split('\n')
 
     # Give the configuration and weight files for the model and load the network using them.
     modelConfiguration = "/home/zinnerc/catkin_ws/src/moma/moma_demos/grasp_demo/src/yolo/yolov3.cfg"
     modelWeights = "/home/zinnerc/catkin_ws/src/moma/moma_demos/grasp_demo/src/yolo/yolov3.weights"
 
-    self.net = cv2.dnn.readNetFromDarknet(modelConfiguration, modelWeights)
-    self.net.setPreferableBackend(cv2.dnn.DNN_BACKEND_OPENCV)
-    self.net.setPreferableTarget(cv2.dnn.DNN_TARGET_CPU)
-
     # CV Window settings
-    self.winName = 'Object Detection'
-    cv2.namedWindow(self.winName, cv2.WINDOW_NORMAL)
+    winName = 'Object Detection'
+    cv2.namedWindow(winName, cv2.WINDOW_NORMAL)
 
     def __init__(self,name):
         self._action_name = name
-        self._as = actionlib.SimpleActionServer(self._action_name, actionlib_tutorials.msg.DetectionAction, execute_cb=self.BBcheck_cb, auto_start = False)
+        self._as = actionlib.SimpleActionServer(self._action_name, grasp_demo.msg.DetectionAction, execute_cb=self.BBcheck_cb, auto_start = False)
         self._as.start()
 
+        self.boundingBox = None
         self.boundingBoxes = BoundingBoxes()
 
         # Subscriber
         self.image_sub = rospy.Subscriber("/webcam/image_raw",Image,self.callback_IMG, queue_size=1)
+
+        self.net = cv2.dnn.readNetFromDarknet(self.modelConfiguration, self.modelWeights)
+        self.net.setPreferableBackend(cv2.dnn.DNN_BACKEND_OPENCV)
+        self.net.setPreferableTarget(cv2.dnn.DNN_TARGET_CPU)
 
     # Get the names of the output layers
     def getOutputsNames(self,net):
@@ -144,7 +154,7 @@ class CVdetector():
         except CvBridgeError as e:
             print(e)
 
-    def yolo_detector(self)
+    def yolo_detector(self):
         # Create a 4D blob from a frame.
         blob = cv2.dnn.blobFromImage(self.cv_image, 1/float(255), (self.inpWidth, self.inpHeight), [0,0,0], 1, crop=False)
         # Sets the input to the network
@@ -167,7 +177,8 @@ class CVdetector():
         try:
             self.boundingBoxes.header.stamp = rospy.Time.now()
             self.boundingBoxes.header.frame_id = 'header_frame_id'
-            return self.boundingBoxes
+            # return self.boundingBoxes
+            return True
             self.boundingBoxes.bounding_box = []
         except CvBridgeError as e:
             print(e)
@@ -177,13 +188,14 @@ class CVdetector():
 
         self._feedback.in_progress = True
 
-        self._feedback.detectedBB = yolo_detector()
+        self._feedback.detectedBB = self.yolo_detector()
 
         rospy.loginfo('detection finished, start looking for % s',goal)
 
         i = 0
         index = 0
         for box in self._feedback.detectedBB.bounding_box:
+            print('goal_name')
             if box.Class == goal.name: # and self.request:
                 self._result.targetBB = box
                 self._result.success = True
@@ -196,8 +208,8 @@ class CVdetector():
                 rospy.loginfo("object not found in this frame")
 
 def main():
-    rospy.init_node('CVdetector', anonymous=False)
-    ic = CVdetector()
+    rospy.init_node('CVdetectorAction', anonymous=False)
+    server = CVdetectorAction(rospy.get_name())
     try:
         rospy.spin()
     except KeyboardInterrupt:

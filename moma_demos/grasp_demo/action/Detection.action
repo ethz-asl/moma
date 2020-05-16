@@ -1,10 +1,10 @@
 # Define the goal
-std_msgs/String name
+string name
 ---
 # Define the result
 bool success
-#grasp_demo/Boundingbox targetBB
+grasp_demo/Boundingbox targetBB
 ---
 # Define the feedback
 bool in_progress
-#grasp_demo/Boundingboxes detectedBB
+grasp_demo/BoundingBoxes detectedBB
