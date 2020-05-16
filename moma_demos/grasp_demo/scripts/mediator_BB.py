@@ -13,7 +13,7 @@ class mediator():
         # Subscribers
         self.detect_BB_sub = rospy.Subscriber("/grasp_demo/BoundingBoxes",BoundingBoxes,self.callback_Detector)
         self.goal_obj_sub = rospy.Subscriber("/grasp_demo/GoalObject",String,self.callback_ObjectValidation)
-        self.med_request_sub = rospy.Subscriber("/py_trees_BlBo/med_req",Bool,self.callback_Request)
+        # self.med_request_sub = rospy.Subscriber("/py_trees_BlBo/med_req",Bool,self.callback_Request)
 
         # Variables
         self.goal_obj = None        # Will be String
@@ -59,10 +59,11 @@ class mediator():
         i = 0
         index = 0
         for box in self.boundingBoxes.bounding_box:
-            if box.Class == self.goal_obj and self.request:
+            if box.Class == self.goal_obj: # and self.request:
                 print(self.goal_obj)
-                print("found")
+                rospy.loginfo("object found - %s" ,self.goal_obj)
                 self.track_BB_pub.publish(box)
+            else: rospy.loginfo("object not found")
 
 
 def main():

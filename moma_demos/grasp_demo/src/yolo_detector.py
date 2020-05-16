@@ -15,7 +15,7 @@ from grasp_demo.msg import (
 from cv_bridge import CvBridge, CvBridgeError
 import numpy as np
 
-class CVdetector():
+class yolo_detector():
 
     def __init__(self):
         # Variables
@@ -31,37 +31,31 @@ class CVdetector():
         self.boundingBoxes = BoundingBoxes()
 
         # CV Window settings
-        self.winName = 'Object Detection'
+        self.winName = 'Deep learning object detection in OpenCV'
         cv2.namedWindow(self.winName, cv2.WINDOW_NORMAL)
         
         # DNN
         # Load names of classes
-        classesFile = "/home/zinnerc/catkin_ws/src/moma/moma_demos/grasp_demo/src/yolo/coco.names"
+        classesFile = "/yolo/coco.names"
         self.classes = None
         with open(classesFile, 'rt') as f:
             self.classes = f.read().rstrip('\n').split('\n')
 
         # Give the configuration and weight files for the model and load the network using them.
-        modelConfiguration = "/home/zinnerc/catkin_ws/src/moma/moma_demos/grasp_demo/src/yolo/yolov3.cfg"
-        modelWeights = "/home/zinnerc/catkin_ws/src/moma/moma_demos/grasp_demo/src/yolo/yolov3.weights"
+        modelConfiguration = "/yolo/yolov3.cfg"
+        modelWeights = "/yolo/yolov3.weights"
 
         self.net = cv2.dnn.readNetFromDarknet(modelConfiguration, modelWeights)
         self.net.setPreferableBackend(cv2.dnn.DNN_BACKEND_OPENCV)
         self.net.setPreferableTarget(cv2.dnn.DNN_TARGET_CPU)
 
         # Subscriber
-        #self.image_sub = rospy.Subscriber("/grasp_demo/image_red",Image,self.callback_Yolo, queue_size=1)
-        #self.image_sub = rospy.Subscriber("/camera/color/image_raw",Image,self.callback_Yolo, queue_size=1)
-        #self.image_sub = rospy.Subscriber("/image_publisher_1589137204781691768/image_raw",Image,self.callback_Yolo, queue_size=1)
-        self.image_sub = rospy.Subscriber("/webcam/image_raw",Image,self.callback_Yolo, queue_size=1)
-
+        # self.image_sub = rospy.Subscriber("/grasp_demo/image_red",Image,self.callback_Yolo, queue_size=1)
+        # self.image_sub = rospy.Subscriber("/camera/color/image_raw",Image,self.callback_Yolo, queue_size=1)
+        # self.image_sub = rospy.Subscriber("/image_publisher_1589137204781691768/image_raw",Image,self.callback_Yolo, queue_size=1)
+        
         # Publisher
-        self.boundBoxes_pub = rospy.Publisher("/grasp_demo/BoundingBoxes",BoundingBoxes,queue_size=1)
-
-    def resizeVid(cap,width,height):
-        cap.set(3,width)
-        cap.set(4,height)
-        return cap
+        # self.boundBoxes_pub = rospy.Publisher("/grasp_demo/BoundingBoxes",BoundingBoxes,queue_size=1)
 
     # Get the names of the output layers
     def getOutputsNames(self,net):
@@ -169,7 +163,7 @@ class CVdetector():
         try:
             self.boundingBoxes.header.stamp = rospy.Time.now()
             self.boundingBoxes.header.frame_id = 'header_frame_id'
-            self.boundBoxes_pub.publish(self.boundingBoxes)
+            # self.boundBoxes_pub.publish(self.boundingBoxes)
             self.boundingBoxes.bounding_box = []
         except CvBridgeError as e:
             print(e)

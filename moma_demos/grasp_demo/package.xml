@@ -32,7 +32,9 @@
   <exec_depend>message_runtime</exec_depend>
   <exec_depend>rviz</exec_depend>
   <exec_depend>panda_moveit_config</exec_depend>
-  
+  <!-- <exec_depend>actionlib</exec_depend>
+  <exec_depend>actionlib_msgs</exec_depend> -->
+
   <export>
     <rviz plugin="${prefix}/plugin_description.xml" />
   </export>

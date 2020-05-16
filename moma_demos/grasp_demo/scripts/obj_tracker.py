@@ -49,8 +49,8 @@ class object_tracker:
     self.bridge = CvBridge()
     
     # Subscribers
-    # self.image_sub = rospy.Subscriber("/webcam/image_raw",Image,self.callbackIMG)
-    self.image_sub = rospy.Subscriber("/image_publisher_1589137204781691768/image_raw",Image,self.callbackIMG)
+    self.image_sub = rospy.Subscriber("/webcam/image_raw",Image,self.callbackIMG)
+    # self.image_sub = rospy.Subscriber("/image_publisher_1589137204781691768/image_raw",Image,self.callbackIMG)
     self.BB_sub = rospy.Subscriber("/grasp_demo/BB_Goal",BoundingBox,self.callbackBB)
 
     # Variables
@@ -63,7 +63,11 @@ class object_tracker:
     self.success = True
     self.deltas = np.zeros(5)
 
-    self.initBB = (770,700,100,100)
+    # CV Window settings
+    self.winName = 'Object Tracking'
+    cv2.namedWindow(self.winName, cv2.WINDOW_NORMAL)
+
+    self.initBB = (320,300,50,50)
     
   def _drawBox(self):
     (x, y, w, h) = [int(v) for v in self.box]
@@ -115,7 +119,7 @@ class object_tracker:
     if self.success:
       self._motionDetector()
 
-    cv2.imshow("Image window", self.cv_image)
+    cv2.imshow(self.winName, self.cv_image)
     cv2.waitKey(3)
 
     try:
@@ -130,8 +134,8 @@ class object_tracker:
     print(self.initBB)
 
 def main(args):
-  ic = object_tracker()
   rospy.init_node('object_tracker', anonymous=False)
+  ic = object_tracker()
   try:
     rospy.spin()
   except KeyboardInterrupt:

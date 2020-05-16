@@ -15,7 +15,7 @@ from grasp_demo.msg import (
 from cv_bridge import CvBridge, CvBridgeError
 import numpy as np
 
-class CVdetector():
+class yolo_detector():
 
     def __init__(self):
         # Variables
@@ -53,10 +53,10 @@ class CVdetector():
         #self.image_sub = rospy.Subscriber("/grasp_demo/image_red",Image,self.callback_Yolo, queue_size=1)
         #self.image_sub = rospy.Subscriber("/camera/color/image_raw",Image,self.callback_Yolo, queue_size=1)
         #self.image_sub = rospy.Subscriber("/image_publisher_1589137204781691768/image_raw",Image,self.callback_Yolo, queue_size=1)
-        self.image_sub = rospy.Subscriber("/webcam/image_raw",Image,self.callback_Yolo, queue_size=1)
+        #self.image_sub = rospy.Subscriber("/webcam/image_raw",Image,self.callback_Yolo, queue_size=1)
 
         # Publisher
-        self.boundBoxes_pub = rospy.Publisher("/grasp_demo/BoundingBoxes",BoundingBoxes,queue_size=1)
+        #self.boundBoxes_pub = rospy.Publisher("/grasp_demo/BoundingBoxes",BoundingBoxes,queue_size=1)
 
     def resizeVid(cap,width,height):
         cap.set(3,width)
@@ -174,18 +174,3 @@ class CVdetector():
         except CvBridgeError as e:
             print(e)
         r.sleep()
-
-def main():
-    rospy.init_node('CVdetector', anonymous=False)
-    ic = CVdetector()
-    try:
-        rospy.spin()
-    except KeyboardInterrupt:
-        print("Shutting down")
-    cv2.destroyAllWindows()
-
-if __name__ == '__main__':
-    try :
-        main()
-    except rospy.ROSInterruptException:
-        pass

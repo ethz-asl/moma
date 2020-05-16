@@ -17,51 +17,49 @@ import numpy as np
 
 class CVdetector():
 
-    def __init__(self):
-        # Variables
-        self.confThreshold = 0.5                #Confidence threshold
-        self.nmsThreshold = 0.4                 #Non-maximum suppression threshold
-        self.inpWidth = 416                     #Width of network's input image
-        self.inpHeight = 416                    #Height of network's input image
-        self.bridge = CvBridge()
-        self.boundBoxTL = 0
-        self.cv_image = None                    # Will be cv Mat
+    # create messages that are used to publish feedback/result
+    _feedback = actionlib_tutorials.msg.DetectionFeedback()
+    _result = actionlib_tutorials.msg.DetectionResult()
 
-        self.boundingBox = None
+    # Variables
+    self.confThreshold = 0.5                #Confidence threshold
+    self.nmsThreshold = 0.4                 #Non-maximum suppression threshold
+    self.inpWidth = 416                     #Width of network's input image
+    self.inpHeight = 416                    #Height of network's input image
+    self.bridge = CvBridge()
+    self.boundBoxTL = 0
+    self.cv_image = None                    # Will be cv Mat
+
+    self.boundingBox = None
+
+    # DNN
+    # Load names of classes
+    classesFile = "/home/zinnerc/catkin_ws/src/moma/moma_demos/grasp_demo/src/yolo/coco.names"
+    self.classes = None
+    with open(classesFile, 'rt') as f:
+        self.classes = f.read().rstrip('\n').split('\n')
+
+    # Give the configuration and weight files for the model and load the network using them.
+    modelConfiguration = "/home/zinnerc/catkin_ws/src/moma/moma_demos/grasp_demo/src/yolo/yolov3.cfg"
+    modelWeights = "/home/zinnerc/catkin_ws/src/moma/moma_demos/grasp_demo/src/yolo/yolov3.weights"
+
+    self.net = cv2.dnn.readNetFromDarknet(modelConfiguration, modelWeights)
+    self.net.setPreferableBackend(cv2.dnn.DNN_BACKEND_OPENCV)
+    self.net.setPreferableTarget(cv2.dnn.DNN_TARGET_CPU)
+
+    # CV Window settings
+    self.winName = 'Object Detection'
+    cv2.namedWindow(self.winName, cv2.WINDOW_NORMAL)
+
+    def __init__(self,name):
+        self._action_name = name
+        self._as = actionlib.SimpleActionServer(self._action_name, actionlib_tutorials.msg.DetectionAction, execute_cb=self.BBcheck_cb, auto_start = False)
+        self._as.start()
+
         self.boundingBoxes = BoundingBoxes()
 
-        # CV Window settings
-        self.winName = 'Object Detection'
-        cv2.namedWindow(self.winName, cv2.WINDOW_NORMAL)
-        
-        # DNN
-        # Load names of classes
-        classesFile = "/home/zinnerc/catkin_ws/src/moma/moma_demos/grasp_demo/src/yolo/coco.names"
-        self.classes = None
-        with open(classesFile, 'rt') as f:
-            self.classes = f.read().rstrip('\n').split('\n')
-
-        # Give the configuration and weight files for the model and load the network using them.
-        modelConfiguration = "/home/zinnerc/catkin_ws/src/moma/moma_demos/grasp_demo/src/yolo/yolov3.cfg"
-        modelWeights = "/home/zinnerc/catkin_ws/src/moma/moma_demos/grasp_demo/src/yolo/yolov3.weights"
-
-        self.net = cv2.dnn.readNetFromDarknet(modelConfiguration, modelWeights)
-        self.net.setPreferableBackend(cv2.dnn.DNN_BACKEND_OPENCV)
-        self.net.setPreferableTarget(cv2.dnn.DNN_TARGET_CPU)
-
         # Subscriber
-        #self.image_sub = rospy.Subscriber("/grasp_demo/image_red",Image,self.callback_Yolo, queue_size=1)
-        #self.image_sub = rospy.Subscriber("/camera/color/image_raw",Image,self.callback_Yolo, queue_size=1)
-        #self.image_sub = rospy.Subscriber("/image_publisher_1589137204781691768/image_raw",Image,self.callback_Yolo, queue_size=1)
-        self.image_sub = rospy.Subscriber("/webcam/image_raw",Image,self.callback_Yolo, queue_size=1)
-
-        # Publisher
-        self.boundBoxes_pub = rospy.Publisher("/grasp_demo/BoundingBoxes",BoundingBoxes,queue_size=1)
-
-    def resizeVid(cap,width,height):
-        cap.set(3,width)
-        cap.set(4,height)
-        return cap
+        self.image_sub = rospy.Subscriber("/webcam/image_raw",Image,self.callback_IMG, queue_size=1)
 
     # Get the names of the output layers
     def getOutputsNames(self,net):
@@ -140,13 +138,13 @@ class CVdetector():
 
             self.boundingBoxes.bounding_box.append(self.boundingBox)
 
-    def callback_Yolo(self,data):
-        r = rospy.Rate(3)
+    def callback_IMG(self,data):
         try:
             self.cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
         except CvBridgeError as e:
             print(e)
 
+    def yolo_detector(self)
         # Create a 4D blob from a frame.
         blob = cv2.dnn.blobFromImage(self.cv_image, 1/float(255), (self.inpWidth, self.inpHeight), [0,0,0], 1, crop=False)
         # Sets the input to the network
@@ -169,11 +167,33 @@ class CVdetector():
         try:
             self.boundingBoxes.header.stamp = rospy.Time.now()
             self.boundingBoxes.header.frame_id = 'header_frame_id'
-            self.boundBoxes_pub.publish(self.boundingBoxes)
+            return self.boundingBoxes
             self.boundingBoxes.bounding_box = []
         except CvBridgeError as e:
             print(e)
-        r.sleep()
+
+    def BBcheck_cb(self, goal):
+        rospy.loginfo('detection started')
+
+        self._feedback.in_progress = True
+
+        self._feedback.detectedBB = yolo_detector()
+
+        rospy.loginfo('detection finished, start looking for % s',goal)
+
+        i = 0
+        index = 0
+        for box in self._feedback.detectedBB.bounding_box:
+            if box.Class == goal.name: # and self.request:
+                self._result.targetBB = box
+                self._result.success = True
+                self._feedback.in_progress = False
+                rospy.loginfo("%s found in this frame" ,goal.name)
+                self._as.set_succeeded(self._result)
+            else:
+                self._result.success = False
+                self._feedback.in_progress = False
+                rospy.loginfo("object not found in this frame")
 
 def main():
     rospy.init_node('CVdetector', anonymous=False)

@@ -18,14 +18,14 @@ class frame_injector:
 
         self.time = None
 
-    def time2sec(time):
-        return float(time.secs)+float(time.nsecs/1000000000)
+    # def time2sec(self):
+    #     return float(self.time.secs)+float(self.time.nsecs/1000000000)
 
     def callbackIMG(self,data):
-        prev_time = self.time
-        self.time = rospy.Time.now()
-        delta = time2sec(self.time) - time2sec(prev_time)
-        print(1/delta)
+        # prev_time = self.time
+        # self.time = rospy.Time.now()
+        # delta = self.time2sec(self.time) - self.time2sec(prev_time)
+        # print(1/delta)
         try:
             self.cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
         except CvBridgeError as e:
