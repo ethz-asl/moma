@@ -6,11 +6,12 @@ import rospy
 # Brings in the SimpleActionClient
 import actionlib
 
+import sys
 # Brings in the messages used by the fibonacci action, including the
 # goal message and the result message.
 from grasp_demo.msg import *
 
-def detection_client():
+def detection_client(goal):
     # Creates the SimpleActionClient, passing the type of the action
     # (FibonacciAction) to the constructor.
     client = actionlib.SimpleActionClient('CVdetectorAction', grasp_demo.msg.DetectionAction)
@@ -20,7 +21,7 @@ def detection_client():
     client.wait_for_server()
 
     # Creates a goal to send to the action server.
-    goal = grasp_demo.msg.DetectionGoal(name = "person")
+    goal = grasp_demo.msg.DetectionGoal(name = goal)
 
     # Sends the goal to the action server.
     client.send_goal(goal)
@@ -36,7 +37,7 @@ if __name__ == '__main__':
         # Initializes a rospy node so that the SimpleActionClient can
         # publish and subscribe over ROS.
         rospy.init_node('detection_client_py')
-        result = detection_client()
-        print("Result:", result.success)
+        result = detection_client(sys.argv[1])
+        print("Result:", result.targetBB)
     except rospy.ROSInterruptException:
         print("program interrupted before completion", file=sys.stderr)

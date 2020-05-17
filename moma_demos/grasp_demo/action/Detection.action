@@ -3,8 +3,10 @@ string name
 ---
 # Define the result
 bool success
-grasp_demo/Boundingbox targetBB
+float64 probability
+int32[] targetBB
+# grasp_demo/Boundingbox targetBB
 ---
 # Define the feedback
 bool in_progress
-grasp_demo/BoundingBoxes detectedBB
+# grasp_demo/BoundingBoxes detectedBB

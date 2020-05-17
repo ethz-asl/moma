@@ -65,7 +65,7 @@ class CVdetectorAction():
         self.boundingBoxes = BoundingBoxes()
 
         # Subscriber
-        self.image_sub = rospy.Subscriber("/webcam/image_raw",Image,self.callback_IMG, queue_size=1)
+        self.image_sub = rospy.Subscriber("/camera/color/image_raw",Image,self.callback_IMG, queue_size=1)
 
         self.net = cv2.dnn.readNetFromDarknet(self.modelConfiguration, self.modelWeights)
         self.net.setPreferableBackend(cv2.dnn.DNN_BACKEND_OPENCV)
@@ -155,6 +155,7 @@ class CVdetectorAction():
             print(e)
 
     def yolo_detector(self):
+        self.boundingBoxes.bounding_box = []
         # Create a 4D blob from a frame.
         blob = cv2.dnn.blobFromImage(self.cv_image, 1/float(255), (self.inpWidth, self.inpHeight), [0,0,0], 1, crop=False)
         # Sets the input to the network
@@ -167,45 +168,57 @@ class CVdetectorAction():
         self.postprocess(outs)
 
         # Put efficiency information. The function getPerfProfile returns the overall time for inference(t) and the timings for each of the layers(in layersTimes)
-        t, _ = self.net.getPerfProfile()
-        label = 'Inference time: %.2f ms' % (t * 1000.0 / cv2.getTickFrequency())
-        cv2.putText(self.cv_image, label, (0, 15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255))
+        # t, _ = self.net.getPerfProfile()
+        # label = 'Inference time: %.2f ms' % (t * 1000.0 / cv2.getTickFrequency())
+        # cv2.putText(self.cv_image, label, (0, 15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255))
 
-        cv2.imshow(self.winName, self.cv_image)
-        cv2.waitKey(3)
+        # cv2.imshow(self.winName, self.cv_image)
+        # cv2.waitKey(3)
 
         try:
             self.boundingBoxes.header.stamp = rospy.Time.now()
             self.boundingBoxes.header.frame_id = 'header_frame_id'
-            # return self.boundingBoxes
-            return True
-            self.boundingBoxes.bounding_box = []
+            return self.boundingBoxes
         except CvBridgeError as e:
             print(e)
 
     def BBcheck_cb(self, goal):
+        success = False
+        self._result.targetBB = [None]*4
         rospy.loginfo('detection started')
 
         self._feedback.in_progress = True
 
-        self._feedback.detectedBB = self.yolo_detector()
+        # self._feedback.detectedBB = self.yolo_detector()
+        interm_result = self.yolo_detector()
 
-        rospy.loginfo('detection finished, start looking for % s',goal)
+        rospy.loginfo('detection finished, %s objects present, start looking for %s',len(interm_result.bounding_box) ,goal.name)
 
-        i = 0
-        index = 0
-        for box in self._feedback.detectedBB.bounding_box:
-            print('goal_name')
+        i = 1
+        # for box in self._feedback.detectedBB.bounding_box:
+        for box in interm_result.bounding_box:
             if box.Class == goal.name: # and self.request:
-                self._result.targetBB = box
+                self._result.probability = box.probability
+                self._result.targetBB[0] = box.xmin
+                self._result.targetBB[1] = box.ymin
+                self._result.targetBB[2] = box.xmax
+                self._result.targetBB[3] = box.ymax
                 self._result.success = True
+                success = True
                 self._feedback.in_progress = False
-                rospy.loginfo("%s found in this frame" ,goal.name)
-                self._as.set_succeeded(self._result)
-            else:
-                self._result.success = False
-                self._feedback.in_progress = False
-                rospy.loginfo("object not found in this frame")
+                i += 1
+            
+
+        if success:
+            self._as.set_succeeded(self._result)
+            rospy.loginfo("object %s %s found in this frame with prob. %s" ,i ,goal,self._result.probability)
+            rospy.loginfo("BoundingBox: [%d,%d,%d,%d] " ,self._result.targetBB[0],self._result.targetBB[1],self._result.targetBB[2],self._result.targetBB[3])
+        else:
+            self._result.success = False
+            rospy.loginfo("object not found in this frame")
+
+        print("-")*10
+
 
 def main():
     rospy.init_node('CVdetectorAction', anonymous=False)
