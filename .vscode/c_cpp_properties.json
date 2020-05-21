@@ -1,0 +1,36 @@
+{
+    "configurations": [
+        {
+            "browse": {
+                "databaseFilename": "",
+                "limitSymbolsToIncludedHeaders": true
+            },
+            "includePath": [
+                "/home/zinnerc/catkin_ws/devel/include/**",
+                "/opt/ros/melodic/include/**",
+                "/home/zinnerc/catkin_ws/src/beginner_tutorials/include/**",
+                "/home/zinnerc/catkin_ws/src/moma/submodules/franka_ros/franka_control/include/**",
+                "/home/zinnerc/catkin_ws/src/moma/submodules/franka_ros/franka_example_controllers/include/**",
+                "/home/zinnerc/catkin_ws/src/moma/submodules/franka_ros/franka_gripper/include/**",
+                "/home/zinnerc/catkin_ws/src/moma/submodules/franka_ros/franka_hw/include/**",
+                "/home/zinnerc/catkin_ws/src/moma/submodules/yumi/gazebo_mimic/include/**",
+                "/home/zinnerc/catkin_ws/src/moma/submodules/gpd_ros/include/**",
+                "/home/zinnerc/catkin_ws/src/moma/moma_demos/grasp_demo/include/**",
+                "/home/zinnerc/catkin_ws/src/moma/panda_control/include/**",
+                "/home/zinnerc/catkin_ws/src/moma/submodules/realsense-ros/realsense2_camera/include/**",
+                "/home/zinnerc/catkin_ws/src/moma/submodules/ridgeback/ridgeback_control/include/**",
+                "/home/zinnerc/catkin_ws/src/moma/submodules/roboticsgroup_gazebo_plugins/include/**",
+                "/home/zinnerc/catkin_ws/src/moma/submodules/yumi/yumi_cameras/include/**",
+                "/home/zinnerc/catkin_ws/src/moma/submodules/yumi/yumi_hw/include/**",
+                "/home/zinnerc/catkin_ws/src/moma/submodules/yumi/yumi_test_controllers/include/**",
+                "/usr/include/**"
+            ],
+            "name": "ROS",
+            "intelliSenseMode": "gcc-x64",
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "gnu11",
+            "cppStandard": "gnu++14"
+        }
+    ],
+    "version": 4
+}
