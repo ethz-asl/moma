@@ -72,7 +72,8 @@ class SimpleScanAction(ScanAction):
         )
 
         result_pub = True
-        result = ScanSceneResult(pointcloud_scene=cloud,result = result_pub)
+        # result = ScanSceneResult(pointcloud_scene=cloud,result = result_pub)
+        result = ScanSceneResult(pointcloud_scene=cloud)
         # pub.publish(result_pub)
         self._as.set_succeeded(result)
         rospy.loginfo("Scan scene action succeeded")

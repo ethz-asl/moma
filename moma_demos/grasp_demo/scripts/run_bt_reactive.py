@@ -9,7 +9,7 @@ import rospy
 from grasp_demo.execution.reactive_tree import Reactive_PandaTree
 
 DEBUG = False
-PRINT_TREE = False
+PRINT_TREE = True
 
 
 def main():

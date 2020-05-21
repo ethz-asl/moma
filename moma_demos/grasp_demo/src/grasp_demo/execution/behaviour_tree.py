@@ -42,7 +42,8 @@ def get_bt_reset(condition_variable_names, reset_all):
     reset_root = py_trees.composites.Sequence(
         name="Check " + action_name, children=[button_reset, var_reset]
     )
-    reset_root.blackbox_level = py_trees.common.BlackBoxLevel.DETAIL
+    # reset_root.blackbox_level = py_trees.common.BlackBoxLevel.DETAIL
+    reset_root.blackbox_level = py_trees.common.BlackBoxLevel.NOT_A_BLACKBOX
 
     # Reset exec
     check_var_reset = py_trees.blackboard.CheckBlackboardVariable(
@@ -58,7 +59,8 @@ def get_bt_reset(condition_variable_names, reset_all):
         name="Do " + action_name,
         children=[check_var_reset, clear_var_reset, reset_action],
     )
-    reset_exec_root.blackbox_level = py_trees.common.BlackBoxLevel.DETAIL
+    # reset_exec_root.blackbox_level = py_trees.common.BlackBoxLevel.DETAIL
+    reset_exec_root.blackbox_level = py_trees.common.BlackBoxLevel.NOT_A_BLACKBOX
     return reset_root, reset_exec_root
 
 
@@ -90,7 +92,8 @@ def get_bt_repeat(condition_variable_names):
     repeat_exec_root = py_trees.composites.Sequence(
         children=[check_var_repeat, clear_var_repeat, repeat_action, click_next_button]
     )
-    repeat_exec_root.blackbox_level = py_trees.common.BlackBoxLevel.DETAIL
+    # repeat_exec_root.blackbox_level = py_trees.common.BlackBoxLevel.DETAIL
+    repeat_exec_root.blackbox_level = py_trees.common.BlackBoxLevel.NOT_A_BLACKBOX
 
 
 def get_bt_topics2bb():
@@ -100,7 +103,8 @@ def get_bt_topics2bb():
         variable_name="button_pressed",
     )
     topics2bb = py_trees.composites.Sequence("Topics2BB", children=[button_next_2bb])
-    topics2bb.blackbox_level = py_trees.common.BlackBoxLevel.DETAIL
+    # topics2bb.blackbox_level = py_trees.common.BlackBoxLevel.DETAIL
+    topics2bb.blackbox_level = py_trees.common.BlackBoxLevel.NOT_A_BLACKBOX
     return topics2bb
 
 
@@ -124,7 +128,8 @@ def get_button_next_check():
             child = py_trees.decorators.RunningIsFailure(child=child)
         children.append(child)
     button_next = py_trees.composites.Selector(name="Button next?", children=children)
-    button_next.blackbox_level = py_trees.common.BlackBoxLevel.DETAIL
+    # button_next.blackbox_level = py_trees.common.BlackBoxLevel.DETAIL
+    button_next.blackbox_level = py_trees.common.BlackBoxLevel.NOT_A_BLACKBOX
     return button_next
 
 

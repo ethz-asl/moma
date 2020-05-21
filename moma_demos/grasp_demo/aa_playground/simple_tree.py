@@ -9,6 +9,13 @@ import py_trees_ros
 
 import std_msgs
 
+from grasp_demo.msg import (
+    DropAction,
+    DropGoal,
+    ScanSceneAction,
+    ScanSceneGoal,
+)
+
 # from grasp_demo.execution.behaviour_tree import PandaTree
 
 DEBUG = False
@@ -21,23 +28,55 @@ def get_bb():
     #     variable_name="value",
     # )
 
-    read_Sub = py_trees_ros.subscribers.ToBlackboard(
-        name="Read Subscriber from Publisher",
+    wait4scan = py_trees_ros.subscribers.ToBlackboard(
+        name="do_scan",
         topic_name="/test_topic/value",
-        topic_type=std_msgs.msg.String,
-        blackboard_variables={"action_drop_result": 'data'},
-        initialise_variables={"action_drop_result": 'text'}
+        topic_type=std_msgs.msg.Bool,
+        blackboard_variables={"do_action_scan": 'data'},
+        initialise_variables={"do_action_scan": True}
     )
 
-    topics2bb = py_trees.composites.Sequence("Topics2BB", children=[read_Sub])
-    topics2bb.blackbox_level = py_trees.common.BlackBoxLevel.DETAIL
+    topics2bb = py_trees.composites.Sequence("Topics2BB", children=[wait4scan])
+    # topics2bb.blackbox_level = py_trees.common.BlackBoxLevel.DETAIL
+    topics2bb.blackbox_level = py_trees.common.BlackBoxLevel.NOT_A_BLACKBOX
     return topics2bb
 
 def get_arm():
+    top_element = py_trees.composites.Selector(name="tol Elem")
     first_elem = py_trees.composites.Sequence(name="first Elem")
-    successor = py_trees.behaviours.Success(name="Successor")
-    first_elem.add_child(successor)
-    return first_elem
+
+    check_var_scan = py_trees.blackboard.CheckBlackboardVariable(
+        name="do_scan",
+        variable_name="do_action_scan",
+        expected_value=True,
+    )
+    # action_scan = py_trees.behaviours.Success(name="Action Scan")
+    action_scan = py_trees_ros.actions.ActionClient(
+        name="Action Scan",
+        action_spec=ScanSceneAction,
+        action_goal=ScanSceneGoal(),
+        action_namespace="scan_action",
+        override_feedback_message_on_running="scanning"
+        )
+
+    # action_drop = py_trees_ros.actions.ActionClient(
+    #     name="Action Drop",
+    #     action_spec=DropAction,
+    #     action_goal=DropGoal(),
+    #     action_namespace="drop_action_node",
+    #     override_feedback_message_on_running="dropping"
+    #     )
+    set_var_scan = py_trees.blackboard.SetBlackboardVariable(
+        name="stop_scan",
+        variable_name= "do_action_scan",
+        variable_value= False,
+    )
+
+    successor = py_trees.behaviours.Success(name="successor")
+
+    top_element.add_children([first_elem,successor])
+    first_elem.add_children([check_var_scan,action_scan,set_var_scan])
+    return top_element
 
 def get_root():
     blackboard = get_bb()
