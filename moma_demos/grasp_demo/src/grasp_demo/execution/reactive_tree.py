@@ -16,7 +16,7 @@ from grasp_demo.msg import (
     DropAction,
 )
 
-# import sensor_msgs
+import sensor_msgs.msg
 
 from action_client import ActionClient_ResultSaver
 
@@ -32,9 +32,9 @@ def get_bt_topics2bb():
     # ScannedCloudBB = py_trees_ros.subscribers.ToBlackboard(
     #     name="ScannedCloudBB",
     #     topic_name="/scan_action/result",
-    #     topic_type=sensor_msgs/PointCloud2,
-    #     blackboard_variables={"varScannedCloudBB": 'data'},
-    #     # initialise_variables={"varScannedCloudBB": None}
+    #     topic_type=sensor_msgs.msg.PointCloud2,
+    #     blackboard_variables={"varScannedCloudBB": None},
+    #     initialise_variables={"varScannedCloudBB": None}
     # )
     ScannedBB = py_trees_ros.subscribers.ToBlackboard(
         name="ScannedBB",
@@ -99,7 +99,7 @@ def get_bt_topics2bb():
 
 
     # topics2bb = py_trees.behaviours.Success(name = "Topics2BB")
-    topics2bb = py_trees.composites.Sequence("Topics2BB",\
+    topics2bb = py_trees.composites.Parallel("Topics2BB",\
         children=[
             # ScannedCloudBB,
             ScannedBB,
@@ -194,11 +194,11 @@ def get_bt_actions():
         override_feedback_message_on_running="detecting"
     )
 
-    setDetection = py_trees.blackboard.SetBlackboardVariable(
-        name="Detected",
-        variable_name= "varDetectedBB",
-        variable_value= True,
-    )
+    # setDetection = py_trees.blackboard.SetBlackboardVariable(
+    #     name="Detected",
+    #     variable_name= "varDetectedBB",
+    #     variable_value= True,
+    # )
     # ------ #
     # selDetect.add_children([checkDetected,action_obj_detection,setDetection])
     successElem1 = py_trees.behaviours.Success("Success 1")
@@ -227,11 +227,7 @@ def get_bt_actions():
         expected_value = True,
         # clearing_policy=py_trees.common.ClearingPolicy.ON_INITIALISE,
     )
-    seq_action_scan = py_trees.composites.Sequence(name="Action Seq: Scan")
-
-    # ------ #
-    selScan.add_children([check_scene_scanned,seq_action_scan])
-    # ====== #
+    
     action_scan = py_trees_ros.actions.ActionClient(
         name="action_scan",
         action_spec=ScanSceneAction,
@@ -239,30 +235,9 @@ def get_bt_actions():
         action_namespace="scan_action",
         override_feedback_message_on_running="scanning"
     )
-    # action_scan_goal = ScanSceneGoal()
-    # action_scan = ActionClient_ResultSaver(
-    #     name="action_scan",
-    #     action_spec=ScanSceneAction,
-    #     action_goal=action_scan_goal,
-    #     action_namespace="scan_action",
-    #     set_flag_instead_result=False,
-    # )
-
-
-    set_var_scan = py_trees.blackboard.SetBlackboardVariable(
-        name="Set scanned scene",
-        variable_name= "varScannedBB",
-        variable_value= True,
-    )
-
-    # set_var_scanCloud = py_trees.blackboard.SetBlackboardVariable(
-    #     name="Set scanned scene",
-    #     variable_name= "varScannedCloudBB",
-    #     variable_value= ScanSceneActionResult(),
-    # )
+    
     # ------ #
-    # seq_action_scan.add_children([action_scan,set_var_scan,set_var_scanCloud])
-    seq_action_scan.add_children([action_scan,set_var_scan])
+    selScan.add_children([check_scene_scanned,action_scan])
     # ====== #
     check_grasp_options = py_trees.blackboard.CheckBlackboardVariable(
         name="Check scanned scene",

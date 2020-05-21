@@ -36,7 +36,7 @@ class SimpleScanAction(ScanAction):
             "/wrist_camera/depth/color/points", PointCloud2, self.point_cloud_cb
         )
         self.cloud_pub = rospy.Publisher("~cloud", PointCloud2, queue_size=1)
-        # self.result_pub = rospy.Publisher("/bt_BB/ScannedBB", Bool, queue_size=1)
+        self.result_pub = rospy.Publisher("/bt_BB/ScannedBB", Bool, queue_size=1)
 
     def point_cloud_cb(self, data):
         self.latest_cloud_data = copy.deepcopy(data)
@@ -71,10 +71,9 @@ class SimpleScanAction(ScanAction):
             self._scan_joints[0], max_velocity_scaling=0.4
         )
 
-        result_pub = True
         # result = ScanSceneResult(pointcloud_scene=cloud,result = result_pub)
         result = ScanSceneResult(pointcloud_scene=cloud)
-        # pub.publish(result_pub)
+        self.result_pub.publish(True)
         self._as.set_succeeded(result)
         rospy.loginfo("Scan scene action succeeded")
 
