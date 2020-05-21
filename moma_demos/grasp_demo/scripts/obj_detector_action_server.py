@@ -26,7 +26,7 @@ import actionlib
 from cv_bridge import CvBridge, CvBridgeError
 import numpy as np
 
-class CVdetectorAction():
+class yolo_action():
 
     # create messages that are used to publish feedback/result
     _feedback = grasp_demo.msg.DetectionFeedback()
@@ -184,12 +184,13 @@ class CVdetectorAction():
 
     def BBcheck_cb(self, goal):
         success = False
-        self._result.targetBB = [None]*4
+        # self._result.targetBB = [None]*4
+        self._result.targetBB = None
         rospy.loginfo('detection started')
 
         self._feedback.in_progress = True
 
-        # self._feedback.detectedBB = self.yolo_detector()
+        self._feedback.detectedBB = self.yolo_detector()
         interm_result = self.yolo_detector()
 
         rospy.loginfo('detection finished, %s objects present, start looking for %s',len(interm_result.bounding_box) ,goal.name)
@@ -198,11 +199,12 @@ class CVdetectorAction():
         # for box in self._feedback.detectedBB.bounding_box:
         for box in interm_result.bounding_box:
             if box.Class == goal.name: # and self.request:
-                self._result.probability = box.probability
-                self._result.targetBB[0] = box.xmin
-                self._result.targetBB[1] = box.ymin
-                self._result.targetBB[2] = box.xmax
-                self._result.targetBB[3] = box.ymax
+                self._result.targetBB = box
+                # self._result.probability = box.probability
+                # self._result.targetBB[0] = box.xmin
+                # self._result.targetBB[1] = box.ymin
+                # self._result.targetBB[2] = box.xmax
+                # self._result.targetBB[3] = box.ymax
                 self._result.success = True
                 success = True
                 self._feedback.in_progress = False
@@ -211,8 +213,9 @@ class CVdetectorAction():
 
         if success:
             self._as.set_succeeded(self._result)
-            rospy.loginfo("object %s %s found in this frame with prob. %s" ,i ,goal,self._result.probability)
-            rospy.loginfo("BoundingBox: [%d,%d,%d,%d] " ,self._result.targetBB[0],self._result.targetBB[1],self._result.targetBB[2],self._result.targetBB[3])
+            rospy.loginfo("object %s %s found in this frame with prob. %s" ,i ,goal,self._result.targetBB.probability)
+            # rospy.loginfo("BoundingBox: [%d,%d,%d,%d] " ,self._result.targetBB[0],self._result.targetBB[1],self._result.targetBB[2],self._result.targetBB[3])
+            rospy.loginfo("BoundingBox: " ,self._result.targetBB)
         else:
             self._result.success = False
             rospy.loginfo("object not found in this frame")
@@ -221,8 +224,8 @@ class CVdetectorAction():
 
 
 def main():
-    rospy.init_node('CVdetectorAction', anonymous=False)
-    server = CVdetectorAction(rospy.get_name())
+    rospy.init_node('yolo_action', anonymous=False)
+    server = yolo_action(rospy.get_name())
     try:
         rospy.spin()
     except KeyboardInterrupt:

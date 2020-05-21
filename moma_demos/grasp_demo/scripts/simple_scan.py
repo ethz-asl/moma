@@ -9,6 +9,7 @@ from actionlib import SimpleActionServer
 import numpy as np
 from geometry_msgs.msg import TransformStamped
 import rospy
+from std_msgs.msg import Bool
 from sensor_msgs.msg import PointCloud2
 from sensor_msgs.point_cloud2 import read_points, create_cloud
 import tf
@@ -33,6 +34,7 @@ class SimpleScanAction(ScanAction):
 
         rospy.Subscriber("/camera/depth/color/points", PointCloud2, self.point_cloud_cb)
         self.cloud_pub = rospy.Publisher("~cloud", PointCloud2, queue_size=1)
+        # self.result_pub = rospy.Publisher("/bt_BB/ScannedBB", Bool, queue_size=1)
 
     def point_cloud_cb(self, data):
         self.latest_cloud_data = copy.deepcopy(data)
@@ -67,7 +69,9 @@ class SimpleScanAction(ScanAction):
             self._scan_joints[0], max_velocity_scaling=0.4
         )
 
-        result = ScanSceneResult(pointcloud_scene=cloud)
+        result_pub = True
+        result = ScanSceneResult(pointcloud_scene=cloud,result = result_pub)
+        # pub.publish(result_pub)
         self._as.set_succeeded(result)
         rospy.loginfo("Scan scene action succeeded")
 

@@ -1,6 +1,7 @@
 # Define the goal
 ---
 # Define the result
+bool result
 sensor_msgs/PointCloud2 pointcloud_scene
 ---
 # Define the feedback

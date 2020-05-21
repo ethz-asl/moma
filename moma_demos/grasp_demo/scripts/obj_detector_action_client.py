@@ -14,7 +14,7 @@ from grasp_demo.msg import *
 def detection_client(goal):
     # Creates the SimpleActionClient, passing the type of the action
     # (FibonacciAction) to the constructor.
-    client = actionlib.SimpleActionClient('CVdetectorAction', grasp_demo.msg.DetectionAction)
+    client = actionlib.SimpleActionClient('yolo_action', grasp_demo.msg.DetectionAction)
 
     # Waits until the action server has started up and started
     # listening for goals.

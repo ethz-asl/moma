@@ -4,9 +4,9 @@ string name
 # Define the result
 bool success
 float64 probability
-int32[] targetBB
-# grasp_demo/Boundingbox targetBB
+# int32[] targetBB
+grasp_demo/BoundingBox targetBB
 ---
 # Define the feedback
 bool in_progress
-# grasp_demo/BoundingBoxes detectedBB
+grasp_demo/BoundingBoxes detectedBB

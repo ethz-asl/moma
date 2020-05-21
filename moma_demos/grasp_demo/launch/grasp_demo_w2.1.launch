@@ -64,7 +64,7 @@
     </group>
 
     <node pkg="grasp_demo" type="run_bt.py" name="behaviour_tree_node" output="screen"/>
-    <!-- <node pkg="rqt_py_trees" type="rqt_py_trees" name="rqt_viewer"/> -->
+    <node pkg="rqt_py_trees" type="rqt_py_trees" name="rqt_viewer"/>
 
     <!-- Open rviz if desired -->
     <node if="$(arg launch_rviz)" type="rviz" name="rviz" pkg="rviz" args="-d $(find grasp_demo)/config/$(arg robot_name)/rviz.rviz"/>
