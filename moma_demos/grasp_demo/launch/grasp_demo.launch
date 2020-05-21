@@ -31,10 +31,10 @@
         <arg name="launch_rviz" value="false"/>
     </include>
     <include if="$(arg simulation_mode)" file="$(find moma_gazebo)/launch/$(arg robot_name)_example.launch">
-        <!-- <arg name="paused" value="true"/> -->
         <arg name="rviz" value="false"/>
         <arg name="world_name" value="$(find moma_gazebo)/worlds/table_top_2.world"/>
         <arg name="panda_z_position" value="0.8"/>
+        <arg name="use_fixed_realsense" value="true"/>
     </include>
 
     <!-- Launch GPD -->

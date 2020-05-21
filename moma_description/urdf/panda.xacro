@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="panda">
-  <xacro:macro name="panda" params="connected_to:='' rpy:='0 0 0' xyz:='0 0 0'">
+   <xacro:macro name="panda" params="connected_to:='' rpy:='0 0 0' xyz:='0 0 0' use_fixed_realsense:=false">
 
     <!-- panda arm  -->
     <xacro:include filename="$(find franka_description)/robots/panda_arm.xacro"/>
@@ -28,14 +28,25 @@
       </plugin>
     </gazebo>
 
-    <!-- realsense -->
+     <!-- wrist realsense -->
     <xacro:include filename="$(find realsense2_description)/urdf/_d435.urdf.xacro" />
     <xacro:include filename="$(find moma_description)/urdf/realsense.gazebo.xacro" />
+    <xacro:realsense_gazebo_plugin camera_name="wrist_camera"/>
     <xacro:property name="panda_link7_camera_bottom_screw_frame_rpy" value="-2.68850999 -1.56973844 -1.20267232" />
     <xacro:property name="panda_link7_camera_bottom_screw_frame_xyz" value="0.06585917 -0.06861364 0.14820608" />
-    <xacro:sensor_d435 parent="panda_link7">
+     <xacro:sensor_d435 parent="panda_link7" name="wrist_camera">
       <origin rpy="${panda_link7_camera_bottom_screw_frame_rpy}" xyz="${panda_link7_camera_bottom_screw_frame_xyz}" />
     </xacro:sensor_d435>
+
+    <!-- fixed realsense -->
+    <xacro:if value="${use_fixed_realsense}">
+      <xacro:realsense_gazebo_plugin camera_name="fixed_camera"/>
+      <xacro:property name="base_link_camera_bottom_screw_frame_rpy" value="0 0.79 -0.79" />
+      <xacro:property name="base_link_camera_bottom_screw_frame_xyz" value="0.1 0.75 0.9" />
+      <xacro:sensor_d435 parent="base_link" name="fixed_camera">
+        <origin rpy="${base_link_camera_bottom_screw_frame_rpy}" xyz="${base_link_camera_bottom_screw_frame_xyz}" />
+      </xacro:sensor_d435>
+    </xacro:if>
 
   </xacro:macro>
 </robot>

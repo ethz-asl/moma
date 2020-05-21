@@ -2,9 +2,10 @@
   <arg name="x" default="0.0"/>
   <arg name="y" default="0.0"/>
   <arg name="z" default="0.0"/>
+  <arg name="use_fixed_realsense" default="false"/>
 
   <!-- send the robot XML to param server -->
-  <param name="robot_description" command="$(find xacro)/xacro $(find moma_description)/urdf/panda.urdf.xacro use_nominal_extrinsics:=true" />
+  <param name="robot_description" command="$(find xacro)/xacro $(find moma_description)/urdf/panda.urdf.xacro use_nominal_extrinsics:=true use_fixed_realsense:=$(arg use_fixed_realsense)"/>
 
   <!-- spawn robot in gazebo -->
   <node name="spawn_panda" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen" args="-urdf -param robot_description -model panda

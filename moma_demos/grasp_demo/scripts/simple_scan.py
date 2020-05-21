@@ -32,7 +32,9 @@ class SimpleScanAction(ScanAction):
         self.listener = tf.TransformListener()
         self.latest_cloud_data = None
 
-        rospy.Subscriber("/camera/depth/color/points", PointCloud2, self.point_cloud_cb)
+        rospy.Subscriber(
+            "/wrist_camera/depth/color/points", PointCloud2, self.point_cloud_cb
+        )
         self.cloud_pub = rospy.Publisher("~cloud", PointCloud2, queue_size=1)
         # self.result_pub = rospy.Publisher("/bt_BB/ScannedBB", Bool, queue_size=1)
 

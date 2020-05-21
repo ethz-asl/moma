@@ -1,40 +1,42 @@
 <?xml version='1.0' encoding='utf-8'?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="realsense">
-  <gazebo reference="camera_link">
-    <sensor type="depth" name="camera">
-      <always_on>true</always_on>
-      <update_rate>30</update_rate>
-      <camera>
-        <horizontal_fov>0.976899239</horizontal_fov>
-        <image>
-          <format>R8G8B8</format>
-          <width>640</width>
-          <height>480</height>
-        </image>
-        <clip>
-          <near>0.1</near>
-          <far>10</far>
-        </clip>
-      </camera>
-      <plugin filename="libgazebo_ros_openni_kinect.so" name="camera_plugin">
-        <alwaysOn>true</alwaysOn>
-        <!-- <baseline>0.2</baseline> -->
-        <updateRate>0.0</updateRate>
-        <cameraName>camera</cameraName>
-        <imageTopicName>/camera/color/image_raw</imageTopicName>
-        <cameraInfoTopicName>/camera/color/camera_info</cameraInfoTopicName>
-        <depthImageTopicName>/camera/depth/image_rect_raw</depthImageTopicName>
-        <depthImageCameraInfoTopicName>/camera/depth/camera_info</depthImageCameraInfoTopicName>
-        <pointCloudTopicName>/camera/depth/color/points</pointCloudTopicName>
-        <frameName>camera_depth_optical_frame</frameName>
-        <pointCloudCutoff>0.1</pointCloudCutoff>
-        <pointCloudCutoffMax>10</pointCloudCutoffMax>
-        <distortionK1>0</distortionK1>
-        <distortionK2>0</distortionK2>
-        <distortionK3>0</distortionK3>
-        <distortionT1>0</distortionT1>
-        <distortionT2>0</distortionT2>
-      </plugin>
-    </sensor>
-  </gazebo>
+ <xacro:macro name="realsense_gazebo_plugin" params="camera_name:=camera">
+    <gazebo reference="${camera_name}_link">
+      <sensor type="depth" name="${camera_name}">
+        <always_on>true</always_on>
+        <update_rate>30</update_rate>
+        <camera>
+          <horizontal_fov>0.976899239</horizontal_fov>
+          <image>
+            <format>R8G8B8</format>
+            <width>640</width>
+            <height>480</height>
+          </image>
+          <clip>
+            <near>0.1</near>
+            <far>10</far>
+          </clip>
+        </camera>
+        <plugin filename="libgazebo_ros_openni_kinect.so" name="camera_plugin">
+          <alwaysOn>true</alwaysOn>
+          <!-- <baseline>0.2</baseline> -->
+          <updateRate>0.0</updateRate>
+          <cameraName>${camera_name}</cameraName>
+          <imageTopicName>/${camera_name}/color/image_raw</imageTopicName>
+          <cameraInfoTopicName>/${camera_name}/color/camera_info</cameraInfoTopicName>
+          <depthImageTopicName>/${camera_name}/depth/image_rect_raw</depthImageTopicName>
+          <depthImageCameraInfoTopicName>/${camera_name}/depth/camera_info</depthImageCameraInfoTopicName>
+          <pointCloudTopicName>/${camera_name}/depth/color/points</pointCloudTopicName>
+          <frameName>${camera_name}_depth_optical_frame</frameName>
+          <pointCloudCutoff>0.1</pointCloudCutoff>
+          <pointCloudCutoffMax>10</pointCloudCutoffMax>
+          <distortionK1>0</distortionK1>
+          <distortionK2>0</distortionK2>
+          <distortionK3>0</distortionK3>
+          <distortionT1>0</distortionT1>
+          <distortionT2>0</distortionT2>
+        </plugin>
+      </sensor>
+    </gazebo>
+  </xacro:macro>
 </robot>
