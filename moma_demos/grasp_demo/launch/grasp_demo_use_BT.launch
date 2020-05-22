@@ -47,7 +47,7 @@
     </node>
 
     <!-- Launch action scripts -->
-    <node pkg="grasp_demo" type="yolo_detector.py" name="yolo_action_node" args="$(arg robot_name)"
+    <node pkg="grasp_demo" type="obj_detector_action_server.py" name="detection_action_node" args="$(arg robot_name)"
             unless="$(arg scan_using_voxbloxpp)" output="screen"/>
     <node pkg="grasp_demo" type="simple_scan.py" name="scan_action_node" args="$(arg robot_name)"
             unless="$(arg scan_using_voxbloxpp)" output="screen"/>
@@ -65,7 +65,7 @@
         <node pkg="grasp_demo" type="grasp_selection.py" name="grasp_selection_action_node" args="$(arg robot_name)" output="screen"/>
     </group>
 
-    <node pkg="grasp_demo" type="run_bt_reactive.py" name="behaviour_tree_node" output="screen"/>
+    <node pkg="grasp_demo" type="run_bt.py" name="behaviour_tree_node" output="screen"/>
     <node pkg="rqt_py_trees" type="rqt_py_trees" name="rqt_viewer"/>
 
     <!-- Open rviz if desired -->

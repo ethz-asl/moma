@@ -1,5 +1,5 @@
 # Define the goal
-string name
+# string name
 ---
 # Define the result
 bool success

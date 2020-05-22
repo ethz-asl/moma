@@ -18,7 +18,7 @@ from grasp_demo.msg import (
 
 import sensor_msgs.msg
 
-from action_client import ActionClient_ResultSaver
+from action_client import ActionClient_ResultSaver, ActionClient_BBgoal
 
 import std_msgs
 
@@ -27,15 +27,19 @@ def generate_selection_goal_msg(msg):
     goal.pointcloud_scene = msg.pointcloud_scene
     return goal
 
+def generate_yolo_detection_goal_msg(msg):
+    goal = DetectionGoal()
+    goal.name = get_bt_store2bb.__get__(name="yolo_Object_goal")
+    return goal
 
-def get_bt_topics2bb():    
-    # ScannedCloudBB = py_trees_ros.subscribers.ToBlackboard(
-    #     name="ScannedCloudBB",
-    #     topic_name="/scan_action/result",
-    #     topic_type=sensor_msgs.msg.PointCloud2,
-    #     blackboard_variables={"varScannedCloudBB": None},
-    #     initialise_variables={"varScannedCloudBB": None}
-    # )
+def get_bt_states2bb():    
+    ScannedCloudBB = py_trees_ros.subscribers.ToBlackboard(
+        name="ScannedCloudBB",
+        topic_name="/scan_action/result",
+        topic_type=sensor_msgs.msg.PointCloud2,
+        blackboard_variables={"varScannedCloudBB": None},
+        initialise_variables={"varScannedCloudBB": None}
+    )
     ScannedBB = py_trees_ros.subscribers.ToBlackboard(
         name="ScannedBB",
         topic_name="/bt_BB/ScannedBB",
@@ -53,12 +57,20 @@ def get_bt_topics2bb():
         initialise_variables={"varGripperContent": False}
     )
 
-    TargetBB = py_trees_ros.subscribers.ToBlackboard(
+    DropZoneBB = py_trees_ros.subscribers.ToBlackboard(
         name="TargetBB",
-        topic_name="/bt_BB/TargetBB",
+        topic_name="/bt_BB/DropZoneBB",
         topic_type=std_msgs.msg.Bool,
         blackboard_variables={"varObjAtTarget": 'data'},
         initialise_variables={"varObjAtTarget": False}
+    )
+
+    Obj2DetectBB = py_trees_ros.subscribers.ToBlackboard(
+        name="DetectedBB",
+        topic_name="/bt_BB/Obj2DetectBB",
+        topic_type=std_msgs.msg.String,
+        blackboard_variables={"varObj2DetectBB": 'data'},
+        initialise_variables={"varObj2DetectBB": "keyboard"}
     )
 
     DetectedBB = py_trees_ros.subscribers.ToBlackboard(
@@ -66,7 +78,7 @@ def get_bt_topics2bb():
         topic_name="/bt_BB/DetectedBB",
         topic_type=std_msgs.msg.Bool,
         blackboard_variables={"varDetectedBB": 'data'},
-        initialise_variables={"varDetectedBB": True}
+        initialise_variables={"varDetectedBB": False}
     )
     TrackLockBB = py_trees_ros.subscribers.ToBlackboard(
         name="TrackLockBB",
@@ -104,7 +116,8 @@ def get_bt_topics2bb():
             # ScannedCloudBB,
             ScannedBB,
             GripperBB,
-            TargetBB,
+            DropZoneBB,
+            # Obj2DetectBB
             DetectedBB,
             TrackLockBB,
             gpdBB,
@@ -114,6 +127,19 @@ def get_bt_topics2bb():
     topics2bb.blackbox_level = py_trees.common.BlackBoxLevel.NOT_A_BLACKBOX
     print("return topics2bb")
     return topics2bb
+
+
+def get_bt_store2bb():
+    storageBB = py_trees.blackboard.Blackboard()
+
+    storageBB.set(name="yolo_Object_goal",value="keyboard")
+    storageBB.set(name="yolo_BouningBox_result",value=None)
+    storageBB.set(name="scan_cloud_result",value=None)
+    storageBB.set(name="gpd_options_result",value=None)
+    storageBB.set(name="gpd_selection_result",value=None)
+    
+
+    return storageBB
 
 
 def get_bt_actions():
@@ -186,13 +212,22 @@ def get_bt_actions():
         # clearing_policy=py_trees.common.ClearingPolicy.ON_INITIALISE,
     )
 
-    action_obj_detection = py_trees_ros.actions.ActionClient(
-        name="action_detection",
-        action_spec=DetectionAction,
-        action_goal=DetectionGoal(),
-        action_namespace="detection_execution_action",
-        override_feedback_message_on_running="detecting"
-    )
+    # action_obj_detection = ActionClient_BBgoal(
+    #     name="yolo_action",
+    #     action_spec=DetectionAction,
+    #     action_namespace="yolo_action_node",
+    #     goal_gen_callback=generate_yolo_detection_goal_msg,
+    #     bb_goal_var_name="varObj2DetectBB",
+    #     set_flag_instead_result=False,
+    # )
+
+    # action_obj_detection = py_trees_ros.actions.ActionClient(
+    #     name="yolo_action",
+    #     action_spec=DetectionAction,
+    #     action_goal=DetectionGoal(),
+    #     action_namespace="yolo_action_node",
+    #     override_feedback_message_on_running="detecting"
+    # )
 
     # setDetection = py_trees.blackboard.SetBlackboardVariable(
     #     name="Detected",
@@ -203,6 +238,8 @@ def get_bt_actions():
     # selDetect.add_children([checkDetected,action_obj_detection,setDetection])
     successElem1 = py_trees.behaviours.Success("Success 1")
     selDetect.add_child(successElem1)
+    # selDetect.add_child(checkDetected)
+    # selDetect.add_children([checkDetected,action_obj_detection])
     # ====== #
     checkPresence = py_trees.blackboard.CheckBlackboardVariable(
         name="Check Presence",
@@ -320,7 +357,10 @@ def get_bt_actions():
 def get_root():
     print("enter root")
     # Subscriber
-    subscriber_root = get_bt_topics2bb()
+    subscriber_root = get_bt_states2bb()
+
+    # Action mediation
+    storage_root = get_bt_store2bb()
 
     # Actions
     action_root = get_bt_actions()
