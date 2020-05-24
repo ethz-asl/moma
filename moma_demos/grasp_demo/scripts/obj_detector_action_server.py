@@ -159,9 +159,9 @@ class yolo_action(object):
 
             self.boundingBox.probability = confidences[i]
             self.boundingBox.xmin = int(left)
-            self.boundingBox.ymin = int(top+height)
+            self.boundingBox.ymin = int(top)
             self.boundingBox.xmax = int(left+width)
-            self.boundingBox.ymax = int(top)
+            self.boundingBox.ymax = int(top+height)
             self.boundingBox.id = int(classIds[i])
             self.boundingBox.Class = self.classes[classIds[i]]
 
@@ -210,17 +210,17 @@ class yolo_action(object):
         success = False
         # self._result.targetBB = [None]*4
         self._result.targetBB = None
-        rospy.loginfo('detection started')
+        # rospy.loginfo('detection started')
 
         self._feedback.in_progress = True
         # rospy.loginfo('BBcheck_cb 1')
         
         interm_result = self.yolo_detector()
         self._feedback.detectedBB = interm_result
-        rospy.loginfo('BBcheck_cb 2')
-        rospy.loginfo('detection finished, %s objects present',len(interm_result.bounding_box))
-        for box in interm_result.bounding_box:
-            rospy.loginfo('  - %s',box.Class)
+        # rospy.loginfo('BBcheck_cb 2')
+        # rospy.loginfo('detection finished, %s objects present',len(interm_result.bounding_box))
+        # for box in interm_result.bounding_box:
+            # rospy.loginfo('  - %s',box.Class)
         # for item in interm_result.bounding_box:
         #     rospy.loginfo('  - %s',item.Class)
         # rospy.loginfo('start looking for %s' ,goal.name)
@@ -228,11 +228,13 @@ class yolo_action(object):
         # rospy.loginfo('BBcheck_cb 4')
         i = 1
         # for box in self._feedback.detectedBB.bounding_box:
-        rospy.loginfo(goal)
+        # rospy.loginfo(goal)
         for box in interm_result.bounding_box:
             # if box.Class == goal.name: # and self.request:
             if box.Class == "orange": # and self.request:
                 self._result.targetBB = box
+                # rospy.loginfo(box)
+                # rospy.loginfo(type(box))
                 # self._result.probability = box.probability
                 # self._result.targetBB[0] = box.xmin
                 # self._result.targetBB[1] = box.ymin
@@ -246,19 +248,19 @@ class yolo_action(object):
 
         if success:
             self._as.set_succeeded(self._result)
-            rospy.loginfo("object %s %s found in this frame with prob. %s" ,i ,goal,self._result.targetBB.probability)
+            # rospy.loginfo("object %s %s found in this frame with prob. %s" ,i ,goal,self._result.targetBB.probability)
             # rospy.loginfo("BoundingBox: [%d,%d,%d,%d] " ,self._result.targetBB[0],self._result.targetBB[1],self._result.targetBB[2],self._result.targetBB[3])
             # rospy.loginfo("BoundingBox: {0}" ,self._result.targetBB.xmin)
             success = False
         else:
             self._result.success = False
-            rospy.loginfo("object not found in this frame")
+            # rospy.loginfo("object not found in this frame")
 
         print("-")*10
 
 
 def main():
-    rospy.init_node('yolo_action', anonymous=False)
+    rospy.init_node('detection_action_node')
     server = yolo_action(rospy.get_name())
     try:
         rospy.spin()
