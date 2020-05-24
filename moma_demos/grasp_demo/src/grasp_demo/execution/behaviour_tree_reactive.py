@@ -294,7 +294,7 @@ def get_bt_detect_track_scan_select_grasp_drop(subtree=None):
         action_spec=DetectionAction,
         action_goal=action_detection_goal,
         action_namespace="detection_action",
-        set_flag_instead_result=True,
+        set_flag_instead_result=False,
     )
 
     check_object_detected = py_trees.blackboard.CheckBlackboardVariable(
