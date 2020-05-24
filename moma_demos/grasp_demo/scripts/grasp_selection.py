@@ -10,11 +10,16 @@ from sensor_msgs.msg import PointCloud2
 from scipy.spatial.transform import Rotation
 import tf
 
-from grasp_demo.msg import SelectGraspAction, SelectGraspResult
+from grasp_demo.msg import SelectGraspAction, SelectGraspResult, DetectionActionResult
 from moma_utils.transform import Transform, Rotation
 from moma_utils.ros_conversions import from_point_msg, from_pose_msg, to_pose_msg
 
 from geometry_msgs.msg import Vector3, Twist
+
+import tf2_ros
+import tf2_geometry_msgs
+import numpy as np
+import cv2 as cv
 
 
 def grasp_config_list_to_pose_array(grasp_config_list):
@@ -87,12 +92,24 @@ class GraspSelectionAction(object):
             "/grasp_pose", PoseStamped, queue_size=10
         )
 
+        # self.detect_target = rospy.Subscriber(
+        # #     name="/detection_action/result",
+        # #     DetectionActionResult,
+        # #     callback=cameraInfo_CBs,
+        # #     queue_size=1,
+        # # )
+
         self.listener = tf.TransformListener()
 
         self._connect_ridgeback()
 
         self._as.start()
         rospy.loginfo("Grasp selection action server ready")
+
+    # def detect_target_CB(self):
+    #     targetBB=self.result.targetBB
+    #     rospy.loginfo("this i need to use")
+    #     rospy.loginfo(targetBB)
 
     def _connect_ridgeback(self):
         self._base_vel_pub = rospy.Publisher("/cmd_vel", Twist, queue_size=10)
@@ -152,6 +169,8 @@ class GraspSelectionAction(object):
             selected_grasp = self.wait_for_user_selection(grasp_candidates)
         elif self.grasp_selection_method == "auto":
             selected_grasp = self.select_highest_ranked_grasp(grasp_candidates, scores)
+        elif self.grasp_selection_method == "box":
+            selected_grasp = self.select_highest_ranked_in_boundingbox(grasp_candidates, scores)
         else:
             raise NotImplementedError(
                 "Grasp selection method {} invalid".format(self.grasp_selection_method)
@@ -192,6 +211,115 @@ class GraspSelectionAction(object):
         selected_grasp_msg.pose = grasp_candidates.poses[index]
 
         return selected_grasp_msg
+
+    def select_highest_ranked_in_boundingbox(self,grasp_candidates, scores):
+    # #     # get target boundingbox
+    # #     # detected_BB_msg = rospy.wait_for_message("/detection_action/result",DetectionActionResult)
+    # #     # detected_BB = targetBB_msg.result.targetBB
+        
+    #     # xmin = targetBB.xmin
+    #     # xmax = targetBB.xmax
+    #     # ymin = targetBB.ymin
+    #     # ymax = targetBB.ymax
+        # # Orange
+        # xmin = 270
+        # xmax = 322
+        # ymin = 170
+        # ymax = 222
+        # Cube
+        xmin = 351
+        xmax = 412
+        ymin = 241
+        ymax = 302
+    #     rospy.loginfo("point 1")
+
+        # extract  and transform poses from the candidates
+        cam_poses = PoseArray()
+        cam_poses.header.stamp = rospy.Time.now()
+        cam_poses.header.frame_id = "fixed_camera_depth_optical_frame"
+        for pose in grasp_candidates.poses:
+            transformed_pose = self.transform_pose(pose, 'panda_link0', 'fixed_camera_depth_optical_frame')
+            cam_poses.poses = np.append(cam_poses.poses, transformed_pose.pose)
+        rospy.loginfo(cam_poses)
+        # move the positions into a 3xN matrix for projection into camera
+        points=np.empty((3,0))
+        for pose in cam_poses.poses:
+            reshaped = [[pose.position.x],[pose.position.y],[pose.position.z]]
+            points=np.append(points,reshaped,axis=1)
+        rospy.loginfo("points shape")
+        rospy.loginfo(points.shape)
+        
+        # move the positions from 3D into the image frame
+        cameraMatrix = np.array([602.1849879340944, 0.0, 320.5, 0.0, 602.1849879340944, 240.5, 0.0, 0.0, 1.0]).reshape(3,3)
+        rospy.loginfo("cameraMatrix.shape")
+        rospy.loginfo(cameraMatrix.shape)
+        rospy.loginfo(cameraMatrix)
+        distCoeffs=np.array([0.0, 0.0, 0.0, 0.0, 0.0])
+        rospy.loginfo("distCoeffs.shape")
+        rospy.loginfo(distCoeffs.shape)
+        rospy.loginfo(distCoeffs)
+        rvec = np.array([0,0,0], np.float) # rotation vector
+        rospy.loginfo("rvec")
+        tvec = np.array([0,0,0], np.float) # translation vector
+        rospy.loginfo("tvec")
+        imagePoints, jac = cv.projectPoints(points, rvec=rvec, tvec=tvec, cameraMatrix=cameraMatrix,distCoeffs=distCoeffs)
+
+        rospy.loginfo("imagePoints")
+        rospy.loginfo(imagePoints)
+        imagePoints = imagePoints.flatten()
+        imagePoints = imagePoints.reshape(imagePoints.size/2,2)
+        imagePoints = imagePoints.T
+        rospy.loginfo(imagePoints)
+
+        # eliminate points outside of the boundingbox
+        index=0
+        # # Orange
+        # imagePoints = np.array([[100,300,301,270,100,269,100,300,301,270,100,269],[200,200,300,170,100,223,200,200,300,170,100,223]])
+        # Cube
+        rospy.loginfo("scores:")
+        rospy.loginfo(scores)
+        # imagePoints = np.array([[100,390,301,270,100,269,100,300,301,270,100,269],[200,250,300,170,100,223,200,200,300,170,100,223]])
+        for point in imagePoints.T:
+            # if not in bouningbox
+            if not ((xmin <= point[0] and point[0] <= xmax) and (ymin <= point[1] and point[1] <= ymax)):
+                scores[index] = 0
+            index += 1
+        rospy.loginfo("scores:")
+        rospy.loginfo(scores)
+        # select the highest score in the remainings
+        index = np.argmax(scores)
+
+        # prepare the return message
+        selected_grasp_msg = PoseStamped()
+        selected_grasp_msg.header.stamp = rospy.Time.now()
+        selected_grasp_msg.header.frame_id = self.base_frame_id
+        selected_grasp_msg.pose = grasp_candidates.poses[index]
+
+        rospy.loginfo("Grasp selection by BB")
+        rospy.loginfo(selected_grasp_msg)
+        rospy.loginfo(imagePoints[:,index])
+
+        # send the best selection back
+        return selected_grasp_msg
+
+    def transform_pose(self, input_pose, from_frame, to_frame):
+
+        # **Assuming /tf2 topic is being broadcasted
+        tf_buffer = tf2_ros.Buffer()
+        listener = tf2_ros.TransformListener(tf_buffer)
+
+        pose_stamped = tf2_geometry_msgs.PoseStamped()
+        pose_stamped.pose = input_pose
+        pose_stamped.header.frame_id = from_frame
+        pose_stamped.header.stamp = rospy.Time.now()
+
+        try:
+            # ** It is important to wait for the listener to start listening. Hence the rospy.Duration(1)
+            output_pose_stamped = tf_buffer.transform(pose_stamped, to_frame, rospy.Duration(1))
+            return output_pose_stamped
+
+        except (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException):
+            raise
 
     def visualize_selected_grasp(self, selected_grasp):
         self.selected_grasp_pub.publish(selected_grasp)
