@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="realsense">
- <xacro:macro name="realsense_gazebo_plugin" params="camera_name:=camera">
+  <xacro:macro name="realsense_gazebo_plugin" params="camera_name:=camera">
     <gazebo reference="${camera_name}_link">
       <sensor type="depth" name="${camera_name}">
         <always_on>true</always_on>
