@@ -49,7 +49,7 @@ class object_tracker:
     self.bridge = CvBridge()
     
     # Subscribers
-    self.image_sub = rospy.Subscriber("/webcam/image_raw",Image,self.callbackIMG)
+    self.image_sub = rospy.Subscriber("/fixed_camera/color/image_raw",Image,self.callbackIMG)
     # self.image_sub = rospy.Subscriber("/image_publisher_1589137204781691768/image_raw",Image,self.callbackIMG)
     self.BB_sub = rospy.Subscriber("/grasp_demo/BB_Goal",BoundingBox,self.callbackBB)
 

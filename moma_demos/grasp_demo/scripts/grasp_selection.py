@@ -10,7 +10,7 @@ from sensor_msgs.msg import PointCloud2
 from scipy.spatial.transform import Rotation
 import tf
 
-from grasp_demo.msg import SelectGraspAction, SelectGraspResult, DetectionActionResult
+from grasp_demo.msg import SelectGraspAction, SelectGraspResult, DetectionActionResult, BoundingBox
 from moma_utils.transform import Transform, Rotation
 from moma_utils.ros_conversions import from_point_msg, from_pose_msg, to_pose_msg
 
@@ -20,6 +20,8 @@ import tf2_ros
 import tf2_geometry_msgs
 import numpy as np
 import cv2 as cv
+
+import py_trees
 
 
 def grasp_config_list_to_pose_array(grasp_config_list):
@@ -202,18 +204,27 @@ class GraspSelectionAction(object):
         return selected_grasp_msg
 
     def select_highest_ranked_in_boundingbox(self,grasp_candidates, scores):
+        rospy.loginfo("waiting for detection result") 
         try:
+            # self.detection_client("mouse")
+            # blackboard = py_trees.Blackboard()
+            # detection_result = blackboard.get("action_detect_result/result")
+            # detection_result = rospy.wait_for_message(
+            #     "/detection_action/result", DetectionActionResult, timeout=120
+            # )
             detection_result = rospy.wait_for_message(
-                "/detection_action/result", DetectionActionResult, timeout=120
+                "/object_tracker/objBB", BoundingBox, timeout=120
             )
+            rospy.loginfo(detection_result)
         except rospy.ROSException:
+            rospy.loginfo("did not get info")
             return []
 
-        targetBB = detection_result.result
-        xmin = targetBB.xmin
-        xmax = targetBB.xmax
-        ymin = targetBB.ymin
-        ymax = targetBB.ymax
+        # targetBB = detection_result.result.targetBB
+        xmin = detection_result.xmin
+        xmax = detection_result.xmax
+        ymin = detection_result.ymin
+        ymax = detection_result.ymax
 
         # extract  and transform poses from the candidates
         cam_poses = PoseArray()
@@ -253,7 +264,7 @@ class GraspSelectionAction(object):
         index = np.argmax(scores)
 
         if scores[index] == 0:
-            rospy.loginfo("no grasp possible")
+            rospy.loginfo("no grasp matches the boundingbox")
             return []
         else:
             # prepare the return message
@@ -283,6 +294,30 @@ class GraspSelectionAction(object):
 
         except (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException):
             raise
+
+
+    # def detection_client(self,goal="mouse"):
+    #     # Creates the SimpleActionClient, passing the type of the action
+    #     # (FibonacciAction) to the constructor.
+    #     # client = actionlib.SimpleActionClient('yolo_action', grasp_demo.msg.DetectionAction)
+    #     client = actionlib.SimpleActionClient('detection_action_node', grasp_demo.msg.DetectionAction)
+
+    #     # Waits until the action server has started up and started
+    #     # listening for goals.
+    #     client.wait_for_server()
+
+    #     # Creates a goal to send to the action server.
+    #     goal = grasp_demo.msg.DetectionGoal(name = goal)
+
+    #     # Sends the goal to the action server.
+    #     client.send_goal(goal)
+
+    #     # Waits for the server to finish performing the action.
+    #     client.wait_for_result()
+
+    #     # Prints out the result of executing the action
+    #     return client.get_result()  # A DetectionResult
+
 
     def visualize_selected_grasp(self, selected_grasp):
         self.selected_grasp_pub.publish(selected_grasp)

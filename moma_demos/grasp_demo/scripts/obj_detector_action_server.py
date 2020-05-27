@@ -196,7 +196,8 @@ class yolo_action(object):
         self._feedback.detectedBB = interm_result
         
         for box in interm_result.bounding_box:
-            if box.Class == "orange":
+            # if box.Class == "orange":
+            if box.Class == "mouse":
                 self._result.targetBB = box
                 self._result.success = True
                 success = True

@@ -6,11 +6,11 @@ import py_trees
 import time
 import rospy
 
-from grasp_demo.execution.behaviour_tree_reactive import PandaTree
+from grasp_demo.execution.behaviour_tree_reactive_outPer import PandaTree
+# from grasp_demo.execution.behaviour_tree_reactive import PandaTree
 
 DEBUG = False
 PRINT_TREE = False
-
 
 def main():
     rospy.init_node("behaviour_tree_node")
@@ -26,6 +26,7 @@ def main():
         pt.tree.tick()
         if PRINT_TREE:
             py_trees.display.print_ascii_tree(pt.tree.root, show_status=True)
+            # py_trees.display.render_dot_tree(pt.tree.root, name="debug_tree")
         index += 1
         time.sleep(0.5)  # Not really needed. Just for debugging.
 

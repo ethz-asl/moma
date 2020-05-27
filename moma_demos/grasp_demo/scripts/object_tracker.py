@@ -18,31 +18,32 @@ class object_tracker:
   # Class Attributes
   # initialize a dictionary that maps strings to their corresponding
   # OpenCV object tracker implementations
-  OPENCV_OBJECT_TRACKERS = {
-      "csrt": cv2.TrackerCSRT_create,
-      "kcf": cv2.TrackerKCF_create,
-      "boosting": cv2.TrackerBoosting_create,
-      "mil": cv2.TrackerMIL_create,
-      "tld": cv2.TrackerTLD_create,
-      "medianflow": cv2.TrackerMedianFlow_create,
-      "mosse": cv2.TrackerMOSSE_create
-  }
+  # OPENCV_OBJECT_TRACKERS = {
+  #     "csrt": cv2.TrackerCSRT_create,
+  #     "kcf": cv2.TrackerKCF_create,
+  #     "boosting": cv2.TrackerBoosting_create,
+  #     "mil": cv2.TrackerMIL_create,
+  #     "tld": cv2.TrackerTLD_create,
+  #     "medianflow": cv2.TrackerMedianFlow_create,
+  #     "mosse": cv2.TrackerMOSSE_create
+  # }
 
-  algorithm = "csrt"
+  # algorithm = "kcf"
 
   # grab the appropriate object tracker using our dictionary of
   # OpenCV object tracker objects
-  tracker = OPENCV_OBJECT_TRACKERS[algorithm]()
+  # tracker = OPENCV_OBJECT_TRACKERS[algorithm]()
 
   def __init__(self):
     # Publishers
     self.image_pub = rospy.Publisher("/object_tracker/image",Image, queue_size=1)
-    self.motion_pub = rospy.Publisher("/object_tracker/motion",Bool, queue_size=1)
-    self.objLock_pub = rospy.Publisher("/object_tracker/objLock",Bool, queue_size=1)
+    # self.objRest_pub = rospy.Publisher("/object_tracker/objRest",Bool, queue_size=1)
+    # self.objLock_pub = rospy.Publisher("/object_tracker/objLock",Bool, queue_size=1)
+    self.objRest_pub = rospy.Publisher("/object_tracker/objRest",String, queue_size=1)
+    self.objLock_pub = rospy.Publisher("/object_tracker/objLock",String, queue_size=1)
+    self.objBB_pub = rospy.Publisher("/object_tracker/objBB",BoundingBox, queue_size=1)
 
 
-    
-    
     # Subscribers
     self.image_sub = rospy.Subscriber("/fixed_camera/color/image_raw",Image,self.callbackIMG)
     self.BB_sub = rospy.Subscriber("/detection_action/result",DetectionActionResult,self.callbackBB)
@@ -52,15 +53,29 @@ class object_tracker:
     self.box = None
     self.cv_image = None
     self.prev_box = None
-    self.motion = None
+    self.objRest = None
     self.firstRound = True
     self.successTracking = False
-    self.deltas = np.zeros(5)
+    self.successDetection = None
+    self.deltas = np.zeros(30)
     self.bridge = CvBridge()
+    self.motion_threshold = 20
+    self.threshold_length = 30
 
     # # CV Window settings (Used for directly showing image)
     # self.winName = 'Object Tracking'
     # cv2.namedWindow(self.winName, cv2.WINDOW_NORMAL)
+    self.OPENCV_OBJECT_TRACKERS = {
+      "csrt": cv2.TrackerCSRT_create,
+      "kcf": cv2.TrackerKCF_create,
+      "boosting": cv2.TrackerBoosting_create,
+      "mil": cv2.TrackerMIL_create,
+      "tld": cv2.TrackerTLD_create,
+      "medianflow": cv2.TrackerMedianFlow_create,
+      "mosse": cv2.TrackerMOSSE_create
+    }
+
+    self.algorithm = "kcf"
 
     
   def _drawBox(self):
@@ -72,12 +87,22 @@ class object_tracker:
         (0, 0, 0), 2)
 
   def _startTracker(self):
+    self.tracker = self.OPENCV_OBJECT_TRACKERS[self.algorithm]()
     self.tracker.init(self.cv_image,self.initBB)
     self._updateTracker()
 
   def _updateTracker(self):
     (self.successTracking, self.box) = self.tracker.update(self.cv_image)
     self._drawBox()
+    boundingbox = BoundingBox()
+    boundingbox.xmin = self.box[0]
+    boundingbox.xmax = self.box[0]+self.box[2]
+    boundingbox.ymin = self.box[1]
+    boundingbox.ymax = self.box[1]+self.box[3]
+    self.objBB_pub.publish(boundingbox)
+
+  def _releaseTracker(self):
+    self.tracker = self.OPENCV_OBJECT_TRACKERS[self.algorithm]()
 
   def _motionDetector(self):
     if self.prev_box is not None:
@@ -91,13 +116,13 @@ class object_tracker:
       self.deltas = np.concatenate(([new_delta], self.deltas[0:-1]))
       
       tempDeltas = self.deltas
+      # rospy.loginfo(tempDeltas)
+      # rospy.loginfo(tempDeltas.sum())
 
-      if tempDeltas.sum()>(tempDeltas.size):
-        self.motion = True
-        rospy.loginfo("moving")
+      if tempDeltas.sum()>self.motion_threshold:
+        self.objRest = False
       else:
-        self.motion = False
-        rospy.loginfo("still")
+        self.objRest = True
 
     # update the boxes
     self.prev_box = self.box
@@ -121,17 +146,42 @@ class object_tracker:
 
     try:
       self.image_pub.publish(self.bridge.cv2_to_imgmsg(self.cv_image, "bgr8"))
-      self.motion_pub.publish(self.motion)
-      self.objLock_pub.publish(self.successTracking)
+      if self.objRest:
+        # rospy.loginfo(self.objRest)
+        self.objRest_pub.publish("resting")
+      if not self.objRest:
+        # rospy.loginfo(self.objRest)
+        self.objRest_pub.publish("moving")
+      else:
+        pass
+      if self.successTracking and self.successDetection:
+        self.objLock_pub.publish("locked")
+      else:
+        self.objLock_pub.publish("loose")
+        self._releaseTracker()
+
     except CvBridgeError as e:
       print(e)
 
   def callbackBB(self,data):
+    # if data.result.success and (not self.successTracking):
+    # rospy.sleep(10)
     if data.result.success:
+      # rospy.loginfo("checking Boundingbox")
       targetBB = data.result.targetBB
       self.initBB = (targetBB.xmin,targetBB.ymin,abs(targetBB.xmax - targetBB.xmin),abs(targetBB.ymax - targetBB.ymin))
       self.successTracking = False
-      print(self.initBB)
+      self.successDetection = True
+      # rospy.loginfo(self.initBB)
+    else:
+      self.successDetection = False
+    # else:
+    #   self.initBB = None
+    #   # self.box = None
+    #   self.cv_image = None
+    #   self.prev_box = None
+    #   self.objRest = None
+    #   self.firstRound = True
 
 def main(args):
   rospy.init_node('object_tracker', anonymous=False)

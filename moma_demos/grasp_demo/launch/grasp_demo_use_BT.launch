@@ -47,6 +47,8 @@
     </node>
 
     <!-- Launch action scripts -->
+    <node pkg="grasp_demo" type="object_tracker.py" name="tracker_action_node" args="$(arg robot_name)"
+            unless="$(arg scan_using_voxbloxpp)" output="screen"/>
     <node pkg="grasp_demo" type="obj_detector_action_server.py" name="detection_action_node" args="$(arg robot_name)"
             unless="$(arg scan_using_voxbloxpp)" output="screen"/>
     <node pkg="grasp_demo" type="simple_scan.py" name="scan_action_node" args="$(arg robot_name)"
