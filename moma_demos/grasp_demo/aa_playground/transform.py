@@ -185,14 +185,19 @@
 
 # # print(direct_array)
 
+# # ==============================
+
+# from py_trees.blackboard import Blackboard
+
+# while True:
+
+#     blackboard = Blackboard()
+#     result = blackboard.set("foo", "bar")
+#     foo = blackboard.get("foo")
+
+#     print(foo)
 # ==============================
 
-from py_trees.blackboard import Blackboard
+model = {"s": 'sphere_o_40mm' , "c": 'wood_cube_5cm'}
 
-while True:
-
-    blackboard = Blackboard()
-    result = blackboard.set("foo", "bar")
-    foo = blackboard.get("foo")
-
-    print(foo)
+print(model["s"])

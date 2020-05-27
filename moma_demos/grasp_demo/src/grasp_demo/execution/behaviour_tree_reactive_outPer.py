@@ -273,11 +273,29 @@ def get_bt_perception(subtree=None):
         clearing_policy=py_trees.common.ClearingPolicy.ON_INITIALISE
     )
     
+    check_grasp_selected = py_trees.blackboard.CheckBlackboardVariable(
+        name="Grasp selected?",
+        variable_name="action_select_result",
+        clearing_policy=py_trees.common.ClearingPolicy.ON_INITIALISE,
+    )
 
     root_var_tracker = py_trees.composites.Sequence(
         children=[
             check_obj_rest,
             check_obj_locked_1,
+            # py_trees.behaviours.Success("Successor 1"),
+            # py_trees.behaviours.Failure("Failure 1"),
+            # py_trees.behaviours.SuccessEveryN(name="Successor 2",n=1),
+            # check_obj_rest,
+            # check_obj_locked
+            # py_trees.behaviours.SuccessEveryN(name="Successor 3",n=1),
+        ]    
+    )
+
+    root_tracker_occlusion = py_trees.composites.Selector(
+        children=[
+            check_grasp_selected,
+            root_var_tracker,
             # py_trees.behaviours.Success("Successor 1"),
             # py_trees.behaviours.Failure("Failure 1"),
             # py_trees.behaviours.SuccessEveryN(name="Successor 2",n=1),
@@ -299,7 +317,7 @@ def get_bt_perception(subtree=None):
 
     root_perception = py_trees.composites.Selector(
         children=[
-            root_var_tracker,
+            root_tracker_occlusion,
             root_tracking,
         ]
     )

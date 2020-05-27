@@ -8,7 +8,7 @@ from math import sqrt,pow
 
 from geometry_msgs.msg import Wrench
 
-def move_cmd(x,y,d,t):
+def move_cmd(x,y,d,t,target):
     rospy.wait_for_service('/gazebo/apply_body_wrench')
 
     apply_body_wrench = rospy.ServiceProxy('/gazebo/apply_body_wrench',ApplyBodyWrench)
@@ -33,32 +33,39 @@ def move_cmd(x,y,d,t):
     stop.torque.y = -1*wrench.torque.y
     stop.torque.z = -1*wrench.torque.z
 
+    model = {"s": 'sphere_o_40mm::link_2' , "c": 'wood_cube_5cm::link'}
 
     try:
-        apply_body_wrench(body_name = 'sphere_o_40mm::link_2',
-                 reference_frame = '',
-                 wrench = wrench,
-                 duration = rospy.Duration(1))
+        apply_body_wrench(
+            body_name = model[target],
+            reference_frame = '',
+            wrench = wrench,
+            duration = rospy.Duration(1)
+        )
+        print(type(target))
         time.sleep(t)
-        apply_body_wrench(body_name = 'sphere_o_40mm::link_2',
-                 reference_frame = '',
-                 wrench = stop,
-                 duration = rospy.Duration(1))
+        apply_body_wrench(
+            body_name = model[target],
+            reference_frame = '',
+            wrench = stop,
+            duration = rospy.Duration(1)
+        )
         print("done")
 
     except rospy.ServiceException, e:
         print("Service call failed: %s", e)
 
 def usage():
-    return "%s x y d t"%sys.argv[0]
+    return "%s x y d t target"%sys.argv[0]
 
 if __name__ == "__main__":
-    if len(sys.argv) == 5:
+    if len(sys.argv) == 6:
         x = float(sys.argv[1])
         y = float(sys.argv[2])
         d = float(sys.argv[3])
         t = float(sys.argv[4])
-        move_cmd(x,y,d,t)
+        target = sys.argv[5]
+        move_cmd(x,y,d,t,target)
     else:
         print usage()
         sys.exit(1)
