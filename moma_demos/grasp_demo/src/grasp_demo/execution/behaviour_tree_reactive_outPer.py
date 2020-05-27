@@ -70,6 +70,42 @@ def get_bt_reset(condition_variable_names, reset_all):
     reset_exec_root.blackbox_level = py_trees.common.BlackBoxLevel.NOT_A_BLACKBOX
     return reset_root, reset_exec_root
 
+def get_bt_reset_perception(condition_variable_names, reset_all):
+    action_name = "reset" if reset_all else "repeat"
+
+    # button_reset = py_trees_ros.subscribers.WaitForData(
+    #     name="Button reset?",
+    #     topic_name="/manipulation_actions/" + action_name,
+    #     topic_type=std_msgs.msg.Empty,
+    # )
+    var_reset = py_trees.blackboard.SetBlackboardVariable(
+        variable_name="do_" + action_name, variable_value=True
+    )
+    reset_root = py_trees.composites.Sequence(
+        name="Check " + action_name, children=[var_reset]
+        # name="Check " + action_name, children=[button_reset, var_reset]
+    )
+    # reset_root.blackbox_level = py_trees.common.BlackBoxLevel.DETAIL
+    reset_root.blackbox_level = py_trees.common.BlackBoxLevel.NOT_A_BLACKBOX
+
+    # Reset exec
+    check_var_reset = py_trees.blackboard.CheckBlackboardVariable(
+        name="Check reset var", variable_name="do_" + action_name, expected_value=True
+    )
+    clear_var_reset = py_trees.blackboard.ClearBlackboardVariable(
+        variable_name="do_" + action_name
+    )
+    reset_action = RepeatAction(
+        name=action_name, variable_names=condition_variable_names, repeat_all=reset_all,
+    )
+    reset_exec_root = py_trees.composites.Sequence(
+        name="Do " + action_name,
+        children=[clear_var_reset, reset_action],
+        # children=[check_var_reset, clear_var_reset, reset_action],
+    )
+    # reset_exec_root.blackbox_level = py_trees.common.BlackBoxLevel.DETAIL
+    reset_exec_root.blackbox_level = py_trees.common.BlackBoxLevel.NOT_A_BLACKBOX
+    return reset_root, reset_exec_root
 
 def get_bt_repeat(condition_variable_names):
     button_repeat = py_trees_ros.subscribers.WaitForData(
@@ -168,6 +204,25 @@ def get_bt_perception(subtree=None):
         set_flag_instead_result=False,
     )
 
+    condition_variable_names = [
+        "action_drop_result",
+        "action_grasp_result",
+        "action_select_result",
+        "action_scan_result",
+        "action_detect_result",
+        "action_tracking_result"
+    ]
+
+    # Add reset button
+    reset_root, reset_exec_root = get_bt_reset_perception(condition_variable_names, reset_all=True)
+
+    root_reset_detection = py_trees.composites.Sequence(
+        children=[
+            reset_exec_root,
+            action_detection,
+        ]
+    )
+
     check_object_detected = py_trees.blackboard.CheckBlackboardVariable(
         name="Object detected?",
         variable_name="action_detect_result",
@@ -180,7 +235,7 @@ def get_bt_perception(subtree=None):
     root_detection = py_trees.composites.Selector(
         children=[
             check_object_detected,
-            action_detection,
+            root_reset_detection,
         ]
     )
 
