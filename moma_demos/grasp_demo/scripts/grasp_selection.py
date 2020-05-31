@@ -226,7 +226,7 @@ class GraspSelectionAction(object):
         ymin = detection_result.ymin
         ymax = detection_result.ymax
 
-        # extract  and transform poses from the candidates
+        # extract and transform poses from the candidates
         cam_poses = PoseArray()
         cam_poses.header.stamp = rospy.Time.now()
         cam_poses.header.frame_id = "fixed_camera_depth_optical_frame"

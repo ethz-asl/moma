@@ -23,3 +23,17 @@ grasp_offset_z: -0.02
 grasp_selection_method: "box"    # choice: manual, auto, box
 
 table_height: 0.035   # Measured from the base frame specified above
+
+grasp_target: "mouse"          # choice: orange, cup, mouse, donut
+                               # cup (grasp is somehow not executed)
+                               # mouse (only if fixed cam at the lower left table edge)
+
+tracking_method: "kcf"    # choice: csrt, kcf, boosting, mil, tld, medianflow, mosse
+                          # recommended: kcf
+tracking_motion_threshold: 20
+tracking_threshold_length: 30
+
+
+yolo_coco_names: "/src/yolo/coco.names"
+yolo_v3_cfg: "/src/yolo/yolov3.cfg"
+yolo_v3_weight: "/src/yolo/yolov3.weights"

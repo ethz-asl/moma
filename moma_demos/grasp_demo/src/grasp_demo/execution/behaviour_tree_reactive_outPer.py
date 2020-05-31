@@ -17,6 +17,8 @@ from action_client import ActionClient_ResultSaver, ActionClient_BBgoal, RepeatA
 
 import std_msgs
 
+import operator
+
 def generate_detection_goal_msg():
     goal = DetectionGoal()
     goal.name = "orange"
@@ -70,6 +72,7 @@ def get_bt_reset(condition_variable_names, reset_all):
     reset_exec_root.blackbox_level = py_trees.common.BlackBoxLevel.NOT_A_BLACKBOX
     return reset_root, reset_exec_root
 
+
 def get_bt_reset_perception(condition_variable_names, reset_all):
     action_name = "reset" if reset_all else "repeat"
 
@@ -106,6 +109,7 @@ def get_bt_reset_perception(condition_variable_names, reset_all):
     # reset_exec_root.blackbox_level = py_trees.common.BlackBoxLevel.DETAIL
     reset_exec_root.blackbox_level = py_trees.common.BlackBoxLevel.NOT_A_BLACKBOX
     return reset_root, reset_exec_root
+
 
 def get_bt_repeat(condition_variable_names):
     button_repeat = py_trees_ros.subscribers.WaitForData(
@@ -163,7 +167,60 @@ def get_bt_topics2bb():
         # blackboard_variables='object_at_rest',
         # initialise_variables="moving"
     )
-    topics2bb = py_trees.composites.Sequence("Topics2BB", children=[button_next_2bb,tracker_lock,tracker_motion])
+
+    # grasp_state = py_trees_ros.subscribers.EventToBlackboard(
+    #     name="Proximity: TCP_Obj",
+    #     topic_name="/proximity_detector",
+    #     topic_type=std_msgs.msg.Float64,
+    #     blackboard_variables={'grasp_state': 'data'},
+    #     # initialise_variables="open"
+    # )
+
+    # grasp_state = py_trees_ros.subscribers.CheckData(
+    #     name="Proximity: TCP_Obj",
+    #     topic_name="/proximity_detector",
+    #     topic_type=std_msgs.msg.Float64,
+    #     blackboard_variables={'grasp_state': 'data'},
+    #     fail_if_no_data = True,
+    #     fail_if_bad_comparison = True,
+    # )
+
+    # wait_4_grasp_state = py_trees_ros.subscribers.WaitForData(
+    #         name='Wait 4 Proximity',
+    #         topic_name="/proximity_detector",
+    #         topic_type=std_msgs.msg.Float64,
+    #     )
+
+    # # grasp_state = py_trees.behaviours.Success(
+    # #     name="Proximity: TCP_Obj",
+    # # )
+
+    # root_proximity = py_trees.composites.Selector(
+    #     name="Selector",
+    #     children=[
+    #         py_trees.decorators.RunningIsFailure(   # Otherwhise the robot actions will fail
+    #             wait_4_grasp_state,
+    #         ),
+    #         grasp_state
+    #     ]
+    # )
+
+    gripper_proximity = py_trees_ros.subscribers.ToBlackboard(
+        name="Proximity: TCP_Obj",
+        topic_name="/proximity_detector",
+        topic_type=std_msgs.msg.String,
+        blackboard_variables={'gripper_proximity': 'data'},
+        # initialise_variables="open"
+    )
+
+    topics2bb = py_trees.composites.Parallel("Topics2BB",
+        children=[
+            button_next_2bb,
+            tracker_lock,
+            tracker_motion,
+            gripper_proximity,
+            ]
+        )
     # topics2bb.blackbox_level = py_trees.common.BlackBoxLevel.DETAIL
     topics2bb.blackbox_level = py_trees.common.BlackBoxLevel.NOT_A_BLACKBOX
     return topics2bb
@@ -273,11 +330,20 @@ def get_bt_perception(subtree=None):
         clearing_policy=py_trees.common.ClearingPolicy.ON_INITIALISE
     )
     
-    check_grasp_selected = py_trees.blackboard.CheckBlackboardVariable(
-        name="Grasp selected?",
-        variable_name="action_select_result",
+    check_gripper_proximity = py_trees.blackboard.CheckBlackboardVariable(
+        name="Gripper proximity?",
+        variable_name="proximity_detector",
+        expected_value="close",
         clearing_policy=py_trees.common.ClearingPolicy.ON_INITIALISE,
     )
+
+    # check_gripper_proximity = py_trees.blackboard.CheckBlackboardVariable(
+    #     name="Gripper proximity?",
+    #     variable_name="proximity_detector",
+    #     clearing_policy=py_trees.common.ClearingPolicy.ON_INITIALISE,
+    #     expected_value=0.5,
+    #     comparison_operator=operator.le,
+    # )
 
     root_var_tracker = py_trees.composites.Sequence(
         children=[
@@ -294,7 +360,9 @@ def get_bt_perception(subtree=None):
 
     root_tracker_occlusion = py_trees.composites.Selector(
         children=[
-            check_grasp_selected,
+            # grasp_state,
+            # check_grasp_selected,
+            check_gripper_proximity,
             root_var_tracker,
             # py_trees.behaviours.Success("Successor 1"),
             # py_trees.behaviours.Failure("Failure 1"),

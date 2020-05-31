@@ -32,7 +32,7 @@
     </include>
     <include if="$(arg simulation_mode)" file="$(find moma_gazebo)/launch/$(arg robot_name)_example.launch">
         <arg name="rviz" value="false"/>
-        <arg name="world_name" value="$(find moma_gazebo)/worlds/table_top_1.world"/>
+        <arg name="world_name" value="$(find moma_gazebo)/worlds/table_top_1.1.world"/>
         <arg name="panda_z_position" value="0.8"/>
         <arg name="use_fixed_realsense" value="true"/>
     </include>
@@ -47,6 +47,11 @@
     </node>
 
     <!-- Launch action scripts -->
+    <node pkg="grasp_demo" type="object_tracker.py" name="tracker_action_node"/>
+    <node pkg="grasp_demo" type="obj_detector_action_server.py" name="detection_action_node"/>
+    <node pkg="grasp_demo" type="proximity_detector.py" name="proximity_detector_node"/>
+
+            
     <node pkg="grasp_demo" type="simple_scan.py" name="scan_action_node" args="$(arg robot_name)"
             unless="$(arg scan_using_voxbloxpp)" output="screen"/>
     <node pkg="grasp_demo" type="voxbloxpp_scan.py" name="scan_action_node" args="$(arg robot_name)"
