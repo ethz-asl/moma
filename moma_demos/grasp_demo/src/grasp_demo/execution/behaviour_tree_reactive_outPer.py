@@ -51,8 +51,8 @@ def get_bt_reset(condition_variable_names, reset_all):
     reset_root = py_trees.composites.Sequence(
         name="Check " + action_name, children=[button_reset, var_reset]
     )
-    # reset_root.blackbox_level = py_trees.common.BlackBoxLevel.DETAIL
-    reset_root.blackbox_level = py_trees.common.BlackBoxLevel.NOT_A_BLACKBOX
+    reset_root.blackbox_level = py_trees.common.BlackBoxLevel.DETAIL
+    # reset_root.blackbox_level = py_trees.common.BlackBoxLevel.NOT_A_BLACKBOX
 
     # Reset exec
     check_var_reset = py_trees.blackboard.CheckBlackboardVariable(
@@ -68,8 +68,8 @@ def get_bt_reset(condition_variable_names, reset_all):
         name="Do " + action_name,
         children=[check_var_reset, clear_var_reset, reset_action],
     )
-    # reset_exec_root.blackbox_level = py_trees.common.BlackBoxLevel.DETAIL
-    reset_exec_root.blackbox_level = py_trees.common.BlackBoxLevel.NOT_A_BLACKBOX
+    reset_exec_root.blackbox_level = py_trees.common.BlackBoxLevel.DETAIL
+    # reset_exec_root.blackbox_level = py_trees.common.BlackBoxLevel.NOT_A_BLACKBOX
     return reset_root, reset_exec_root
 
 
@@ -144,6 +144,17 @@ def get_bt_repeat(condition_variable_names):
 
 
 def get_bt_topics2bb():
+
+    condition_variable_names = [
+        "action_drop_result",
+        "action_grasp_result",
+        "action_select_result",
+        "action_scan_result",
+        "action_detect_result",
+        "action_tracking_result"
+    ]
+    reset_root, _ = get_bt_reset(condition_variable_names, reset_all=True)
+    
     button_next_2bb = py_trees_ros.subscribers.EventToBlackboard(
         name="Next button listener",
         topic_name="/manipulation_actions/next",
@@ -206,15 +217,16 @@ def get_bt_topics2bb():
     # )
 
     gripper_proximity = py_trees_ros.subscribers.ToBlackboard(
-        name="Proximity: TCP_Obj",
-        topic_name="/proximity_detector",
+        name="Gripper occluding",
+        topic_name="/occlusion_detector",
         topic_type=std_msgs.msg.String,
-        blackboard_variables={'gripper_proximity': 'data'},
+        blackboard_variables={'occlusion': 'data'},
         # initialise_variables="open"
     )
 
     topics2bb = py_trees.composites.Parallel("Topics2BB",
         children=[
+            reset_root,
             button_next_2bb,
             tracker_lock,
             tracker_motion,
@@ -270,8 +282,9 @@ def get_bt_perception(subtree=None):
         "action_tracking_result"
     ]
 
-    # Add reset button
-    reset_root, reset_exec_root = get_bt_reset_perception(condition_variable_names, reset_all=True)
+    # # Add reset button
+    _, reset_exec_root = get_bt_reset_perception(condition_variable_names, reset_all=True)
+    reset_exec_root.blackbox_level = py_trees.common.BlackBoxLevel.DETAIL
 
     root_reset_detection = py_trees.composites.Sequence(
         children=[
@@ -293,6 +306,7 @@ def get_bt_perception(subtree=None):
         children=[
             check_object_detected,
             root_reset_detection,
+            # action_detection,
         ]
     )
 
@@ -330,10 +344,17 @@ def get_bt_perception(subtree=None):
         clearing_policy=py_trees.common.ClearingPolicy.ON_INITIALISE
     )
     
-    check_gripper_proximity = py_trees.blackboard.CheckBlackboardVariable(
-        name="Gripper proximity?",
-        variable_name="proximity_detector",
-        expected_value="close",
+    check_gripper_occlusion = py_trees.blackboard.CheckBlackboardVariable(
+        name="Gripper occluding?",
+        variable_name="occlusion",
+        expected_value="occluded",
+        clearing_policy=py_trees.common.ClearingPolicy.ON_INITIALISE,
+    )
+
+    check_object_in_hand = py_trees.blackboard.CheckBlackboardVariable(
+        name="Object in hand?",
+        variable_name="action_grasp_result",
+        expected_value=True,
         clearing_policy=py_trees.common.ClearingPolicy.ON_INITIALISE,
     )
 
@@ -362,7 +383,8 @@ def get_bt_perception(subtree=None):
         children=[
             # grasp_state,
             # check_grasp_selected,
-            check_gripper_proximity,
+            check_object_in_hand,
+            check_gripper_occlusion,
             root_var_tracker,
             # py_trees.behaviours.Success("Successor 1"),
             # py_trees.behaviours.Failure("Failure 1"),
@@ -386,7 +408,8 @@ def get_bt_perception(subtree=None):
     root_perception = py_trees.composites.Selector(
         children=[
             root_tracker_occlusion,
-            root_tracking,
+            # root_tracking,
+            root_detection,
         ]
     )
 
@@ -525,11 +548,12 @@ def get_root():
     ]
 
     # Add reset button
-    reset_root, reset_exec_root = get_bt_reset(condition_variable_names, reset_all=True)
+    # reset_root, reset_exec_root = get_bt_reset(condition_variable_names, reset_all=True)
+    _, reset_exec_root = get_bt_reset(condition_variable_names, reset_all=True)
 
 
     # Subscriber
-    subscriber_root = get_bt_topics2bb()
+    root_bb = get_bt_topics2bb()
 
     # Add nodes with condition checks and actions
     root_robot = get_bt_track_scan_select_grasp_drop()
@@ -543,10 +567,8 @@ def get_root():
         ]
     )
 
-    root_action = root_action
-
     # Assemble tree
-    action_root = py_trees.composites.Selector(
+    root_execution = py_trees.composites.Selector(
         children=[
             reset_exec_root,
             # repeat_exec_root,
@@ -555,10 +577,10 @@ def get_root():
     root = py_trees.composites.Parallel(
         policy="SUCCESS_ON_ONE",
         children=[
-            reset_root,
-            # repeat_root,
-            subscriber_root,
-            action_root
+            # reset_root,
+            # # repeat_root,
+            root_bb,
+            root_execution
         ]
     )
 
@@ -566,7 +588,7 @@ def get_root():
 
 
 class PandaTree:
-    def __init__(self, debug=False):
+    def __init__(self, debug=False, render_tree=False):
 
         if debug:
             py_trees.logging.level = py_trees.logging.Level.DEBUG
@@ -575,6 +597,9 @@ class PandaTree:
         self.tree = py_trees_ros.trees.BehaviourTree(self._root)
 
         self.show_tree_console()
+
+        if render_tree:
+            py_trees.display.render_dot_tree(self._root,name="BehaviourTree")
 
     def show_tree_console(self):
         print("=" * 20)

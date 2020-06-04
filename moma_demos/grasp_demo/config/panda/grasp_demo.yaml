@@ -32,6 +32,9 @@ tracking_method: "kcf"    # choice: csrt, kcf, boosting, mil, tld, medianflow, m
                           # recommended: kcf
 tracking_motion_threshold: 20
 tracking_threshold_length: 30
+occlusion_margin: 100
+
+tick_tock_times: 2.0        # tree cycles per second [Hz]
 
 
 yolo_coco_names: "/src/yolo/coco.names"

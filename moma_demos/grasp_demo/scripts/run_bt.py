@@ -10,12 +10,13 @@ from grasp_demo.execution.behaviour_tree_reactive_outPer import PandaTree
 # from grasp_demo.execution.behaviour_tree_reactive import PandaTree
 
 DEBUG = False
-PRINT_TREE = False
+PRINT_TREE = True
+REMDER_TREE = True
 
 def main():
     rospy.init_node("behaviour_tree_node")
 
-    pt = PandaTree(debug=DEBUG)
+    pt = PandaTree(debug=DEBUG,render_tree=REMDER_TREE)
     pt.setup()
 
     index = 1
@@ -26,9 +27,10 @@ def main():
         pt.tree.tick()
         if PRINT_TREE:
             py_trees.display.print_ascii_tree(pt.tree.root, show_status=True)
-            # py_trees.display.render_dot_tree(pt.tree.root, name="debug_tree")
+            # py_trees.display.render_dot_tree(pt)
         index += 1
-        time.sleep(0.5)  # Not really needed. Just for debugging.
+        freqencie = rospy.get_param("/moma_demo/tick_tock_times")
+        time.sleep(float(1/freqencie))  # Not really needed. Just for debugging.
 
     # Alternative to the while loop:
     # pt.tree.tick_tock(sleep_ms=1000, number_of_iterations=py_trees.trees.CONTINUOUS_TICK_TOCK)

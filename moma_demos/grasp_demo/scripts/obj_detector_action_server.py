@@ -197,7 +197,8 @@ class yolo_action(object):
         
         for box in interm_result.bounding_box:
             # if box.Class == "orange":
-            if box.Class == "mouse":
+            # if box.Class == "mouse":
+            if box.Class == rospy.get_param("/moma_demo/grasp_target"):
                 self._result.targetBB = box
                 self._result.success = True
                 success = True

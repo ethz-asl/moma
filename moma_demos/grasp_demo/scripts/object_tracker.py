@@ -8,10 +8,14 @@ from std_msgs.msg import String, Bool
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 from grasp_demo.msg import BoundingBox, DetectionActionResult
+from geometry_msgs.msg import Pose, PoseStamped
 import imutils
 from operator import xor
 import numpy as np
 from math import sqrt
+import tf
+
+
 
 class object_tracker:
 
@@ -57,10 +61,11 @@ class object_tracker:
     self.firstRound = True
     self.successTracking = False
     self.successDetection = None
-    self.deltas = np.zeros(30)
     self.bridge = CvBridge()
-    self.motion_threshold = 20
-    self.threshold_length = 30
+
+    self.motion_threshold = rospy.get_param("/moma_demo/tracking_motion_threshold")
+    self.threshold_length = rospy.get_param("/moma_demo/tracking_threshold_length")
+    self.deltas = np.zeros(self.threshold_length)
 
     # # CV Window settings (Used for directly showing image)
     # self.winName = 'Object Tracking'
@@ -75,16 +80,56 @@ class object_tracker:
       "mosse": cv2.TrackerMOSSE_create
     }
 
-    self.algorithm = "kcf"
+    self.algorithm = rospy.get_param("/moma_demo/tracking_method")
 
+    self.listener = tf.TransformListener()
+
+  def create_pose(self,trans,rot):
+    pose=Pose()
+    pose.position.x = trans[0]
+    pose.position.y = trans[1]
+    pose.position.z = trans[2]
+    pose.orientation.x = rot[0]
+    pose.orientation.y = rot[1]
+    pose.orientation.z = rot[2]
+    pose.orientation.w = rot[3]
+    return pose
+
+  def position2imgPoints(self,position):
+    position_transformed = np.array([[position.x,position.y,position.z]])
+    position_transformed = position_transformed.T
+    cameraMatrix = np.array([602.1849879340944, 0.0, 320.5, 0.0, 602.1849879340944, 240.5, 0.0, 0.0, 1.0]).reshape(3,3)
+    distCoeffs=np.array([0.0, 0.0, 0.0, 0.0, 0.0])
+    rvec = np.array([0,0,0], np.float) # rotation vector
+    tvec = np.array([0,0,0], np.float) # translation vector
+    imagePoints, jac = cv2.projectPoints(position_transformed, rvec=rvec, tvec=tvec, cameraMatrix=cameraMatrix,distCoeffs=distCoeffs)
+    return [imagePoints[0][0][0],imagePoints[0][0][1]]
     
   def _drawBox(self):
     (x, y, w, h) = [int(v) for v in self.box]
+    # Object box
     cv2.rectangle(self.cv_image, (x, y), (x + w, y + h),
         (0, 255, 0), 2)
+    # Occlusion Margin
+    m=rospy.get_param("/moma_demo/occlusion_margin")
+    cv2.rectangle(self.cv_image, (x - m, y - m), (x + w + m, y + h + m),
+        (200, 200, 200), 2)
     # Draws a small black circle in the center of the rectangle
     cv2.circle(self.cv_image, (x+w/2, y+h/2), 2,
         (0, 0, 0), 2)
+    # Draws a small whie circle in the end effector of the robot
+    (trans,rot) = self.listener.lookupTransform("/fixed_camera_depth_optical_frame","/panda_default_ee", rospy.Time(0))
+    ee_pose_inCAM = self.create_pose(trans,rot)
+    ee_imgPoints = self.position2imgPoints(ee_pose_inCAM.position)
+    cv2.circle(self.cv_image, (int(ee_imgPoints[0]), int(ee_imgPoints[1])), 2,
+      (255, 255, 255), 2)
+      
+    # Draws a small blue circle in the link8 of the robot
+    (trans,rot) = self.listener.lookupTransform("/fixed_camera_depth_optical_frame","/panda_link8", rospy.Time(0))
+    ee_pose_inCAM = self.create_pose(trans,rot)
+    ee_imgPoints = self.position2imgPoints(ee_pose_inCAM.position)
+    cv2.circle(self.cv_image, (int(ee_imgPoints[0]), int(ee_imgPoints[1])), 2,
+      (255, 0, 0), 2)
 
   def _startTracker(self):
     self.tracker = self.OPENCV_OBJECT_TRACKERS[self.algorithm]()

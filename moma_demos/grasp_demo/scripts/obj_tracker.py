@@ -68,11 +68,18 @@ class object_tracker:
     cv2.namedWindow(self.winName, cv2.WINDOW_NORMAL)
 
     self.initBB = (320,300,50,50)
+
+    self.occlusion_margin = rospy.get_param("/moma_demo/occlusion_margin")
     
   def _drawBox(self):
     (x, y, w, h) = [int(v) for v in self.box]
+    # Object box
     cv2.rectangle(self.cv_image, (x, y), (x + w, y + h),
-        (0, 255, 0), 2)
+        (255, 0, 0), 2)
+    # Occlusion margin
+    m=self.occlusion_margin
+    cv2.rectangle(self.cv_image, (x-m, y-m), (x + w+m, y + h+m),
+        (200, 200, 200), 2)
     # Draws a small black circle in the center of the rectangle
     cv2.circle(self.cv_image, (x+w/2, y+h/2), 2,
         (0, 0, 0), 2)
