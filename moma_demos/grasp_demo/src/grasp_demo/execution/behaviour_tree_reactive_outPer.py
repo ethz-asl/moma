@@ -13,7 +13,7 @@ from grasp_demo.msg import (
     DetectionAction,
     DetectionGoal,
 )
-from action_client import ActionClient_ResultSaver, ActionClient_BBgoal, RepeatAction
+from action_client import ActionClient_ResultSaver, ActionClient_BBgoal, RepeatAction #, ActionClient_AllCancelation
 
 import std_msgs
 
@@ -145,20 +145,29 @@ def get_bt_repeat(condition_variable_names):
 
 def get_bt_topics2bb():
 
-    condition_variable_names = [
-        "action_drop_result",
-        "action_grasp_result",
-        "action_select_result",
-        "action_scan_result",
-        "action_detect_result",
-        "action_tracking_result"
-    ]
-    reset_root, _ = get_bt_reset(condition_variable_names, reset_all=True)
+    # condition_variable_names = [
+    #     "action_drop_result",
+    #     "action_grasp_result",
+    #     "action_select_result",
+    #     "action_scan_result",
+    #     "action_detect_result",
+    #     "action_tracking_result"
+    # ]
+    # reset_root, _ = get_bt_reset(condition_variable_names, reset_all=True)
     
-    button_next_2bb = py_trees_ros.subscribers.EventToBlackboard(
-        name="Next button listener",
-        topic_name="/manipulation_actions/next",
-        variable_name="button_pressed",
+    # button_next_2bb = py_trees_ros.subscribers.EventToBlackboard(
+    #     name="Next button listener",
+    #     topic_name="/manipulation_actions/next",
+    #     variable_name="button_pressed",
+    # )
+
+    detection = py_trees_ros.subscribers.ToBlackboard(
+        name="Object detection",
+        topic_name="/detection_action/success",
+        topic_type=std_msgs.msg.Bool,
+        blackboard_variables={'detection_success': 'data'},
+        # blackboard_variables='object_at_rest',
+        # initialise_variables="moving"
     )
 
     tracker_lock = py_trees_ros.subscribers.ToBlackboard(
@@ -180,45 +189,45 @@ def get_bt_topics2bb():
     )
 
     # grasp_state = py_trees_ros.subscribers.EventToBlackboard(
-    #     name="Proximity: TCP_Obj",
-    #     topic_name="/proximity_detector",
-    #     topic_type=std_msgs.msg.Float64,
-    #     blackboard_variables={'grasp_state': 'data'},
-    #     # initialise_variables="open"
-    # )
+        #     name="Proximity: TCP_Obj",
+        #     topic_name="/proximity_detector",
+        #     topic_type=std_msgs.msg.Float64,
+        #     blackboard_variables={'grasp_state': 'data'},
+        #     # initialise_variables="open"
+        # )
 
-    # grasp_state = py_trees_ros.subscribers.CheckData(
-    #     name="Proximity: TCP_Obj",
-    #     topic_name="/proximity_detector",
-    #     topic_type=std_msgs.msg.Float64,
-    #     blackboard_variables={'grasp_state': 'data'},
-    #     fail_if_no_data = True,
-    #     fail_if_bad_comparison = True,
-    # )
+        # grasp_state = py_trees_ros.subscribers.CheckData(
+        #     name="Proximity: TCP_Obj",
+        #     topic_name="/proximity_detector",
+        #     topic_type=std_msgs.msg.Float64,
+        #     blackboard_variables={'grasp_state': 'data'},
+        #     fail_if_no_data = True,
+        #     fail_if_bad_comparison = True,
+        # )
 
-    # wait_4_grasp_state = py_trees_ros.subscribers.WaitForData(
-    #         name='Wait 4 Proximity',
-    #         topic_name="/proximity_detector",
-    #         topic_type=std_msgs.msg.Float64,
-    #     )
+        # wait_4_grasp_state = py_trees_ros.subscribers.WaitForData(
+        #         name='Wait 4 Proximity',
+        #         topic_name="/proximity_detector",
+        #         topic_type=std_msgs.msg.Float64,
+        #     )
 
-    # # grasp_state = py_trees.behaviours.Success(
-    # #     name="Proximity: TCP_Obj",
-    # # )
+        # # grasp_state = py_trees.behaviours.Success(
+        # #     name="Proximity: TCP_Obj",
+        # # )
 
-    # root_proximity = py_trees.composites.Selector(
-    #     name="Selector",
-    #     children=[
-    #         py_trees.decorators.RunningIsFailure(   # Otherwhise the robot actions will fail
-    #             wait_4_grasp_state,
-    #         ),
-    #         grasp_state
-    #     ]
-    # )
+        # root_proximity = py_trees.composites.Selector(
+        #     name="Selector",
+        #     children=[
+        #         py_trees.decorators.RunningIsFailure(   # Otherwhise the robot actions will fail
+        #             wait_4_grasp_state,
+        #         ),
+        #         grasp_state
+        #     ]
+        # )
 
     gripper_proximity = py_trees_ros.subscribers.ToBlackboard(
         name="Gripper occluding",
-        topic_name="/occlusion_detector",
+        topic_name="/gripper_occlusion",
         topic_type=std_msgs.msg.String,
         blackboard_variables={'occlusion': 'data'},
         # initialise_variables="open"
@@ -226,8 +235,9 @@ def get_bt_topics2bb():
 
     topics2bb = py_trees.composites.Parallel("Topics2BB",
         children=[
-            reset_root,
-            button_next_2bb,
+            # reset_root,
+            # button_next_2bb,
+            # detection,
             tracker_lock,
             tracker_motion,
             gripper_proximity,
@@ -286,19 +296,60 @@ def get_bt_perception(subtree=None):
     _, reset_exec_root = get_bt_reset_perception(condition_variable_names, reset_all=True)
     reset_exec_root.blackbox_level = py_trees.common.BlackBoxLevel.DETAIL
 
+    # cancel_grasp_select = py_trees_ros.actions.ActionClient(
+    #     name="cancel_grasp_select",
+    #     action_spec=SelectGraspAction,
+    #     action_namespace="/grasp_selection_action",
+    # )
+    # cancel_grasp_select.terminate(new_status="SUCCESS")
+
+    # cancel_scan = py_trees_ros.actions.ActionClient(
+    #     name="cancel_scan",
+    #     action_spec=ScanSceneAction,
+    #     action_namespace="/scan_action",
+    # )
+    # cancel_scan.terminate(new_status="SUCCESS")
+
+    # cancel_grasp = py_trees_ros.actions.ActionClient(
+    #     name="cancel_grasp",
+    #     action_spec=GraspAction,
+    #     action_namespace="/grasp_execution_action",
+    # )
+    # cancel_grasp.terminate(new_status="SUCCESS")
+
+    # root_cancel_actions = py_trees.composites.Sequence(
+    #     name="Cancel Actions",
+    #     children=[
+    #         py_trees.decorators.RunningIsSuccess(cancel_scan),
+    #         py_trees.decorators.RunningIsSuccess(cancel_grasp_select),
+    #         py_trees.decorators.RunningIsSuccess(cancel_grasp),
+    #     ]
+    # )
+
+    # check_object_detected_afterAction = py_trees.blackboard.WaitForBlackboardVariable(
+    #     name="Object detected?",
+    #     variable_name="action_detect_result/success",
+    #     expected_value=True,
+    #     # clearing_policy=py_trees.common.ClearingPolicy.ON_INITIALISE,
+    #     clearing_policy=py_trees.common.ClearingPolicy.ON_INITIALISE
+    # )
+
     root_reset_detection = py_trees.composites.Sequence(
         children=[
             reset_exec_root,
             action_detection,
+            # root_cancel_actions,
+            # check_object_detected_afterAction,
         ]
     )
 
     check_object_detected = py_trees.blackboard.CheckBlackboardVariable(
         name="Object detected?",
-        variable_name="action_detect_result",
+        # variable_name="action_detect_result/success",
+        variable_name="detection_success",
         expected_value=True,
         # clearing_policy=py_trees.common.ClearingPolicy.ON_INITIALISE,
-        clearing_policy=py_trees.common.ClearingPolicy.NEVER
+        clearing_policy=py_trees.common.ClearingPolicy.ON_INITIALISE
     )
 
 
@@ -395,21 +446,23 @@ def get_bt_perception(subtree=None):
         ]    
     )
 
-    root_tracking = py_trees.composites.Sequence(
-        children=[
-            root_detection,
-            py_trees.decorators.FailureIsRunning(   # Otherwhise the robot actions will fail
-            check_obj_locked_2,
-            )
-        ]
-    )
+    # root_tracking = py_trees.composites.Sequence(
+    #     children=[
+    #         root_detection,
+    #         py_trees.decorators.Failure py_trees.decorators.FailureIsRunning(   # Otherwhise the robot actions will fail
+    #         check_obj_locked_2,
+    #         )
+    #     ]
+    # )
 
 
     root_perception = py_trees.composites.Selector(
         children=[
             root_tracker_occlusion,
             # root_tracking,
-            root_detection,
+            root_reset_detection
+            # root_detection,
+            # root_tracker_occlusion,
         ]
     )
 
@@ -580,7 +633,8 @@ def get_root():
             # reset_root,
             # # repeat_root,
             root_bb,
-            root_execution
+            # root_execution,
+            root_action,
         ]
     )
 

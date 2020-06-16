@@ -10,13 +10,13 @@ from grasp_demo.execution.behaviour_tree_reactive_outPer import PandaTree
 # from grasp_demo.execution.behaviour_tree_reactive import PandaTree
 
 DEBUG = False
-PRINT_TREE = True
-REMDER_TREE = True
+PRINT_TREE = False
+RENDER_TREE = True
 
 def main():
     rospy.init_node("behaviour_tree_node")
 
-    pt = PandaTree(debug=DEBUG,render_tree=REMDER_TREE)
+    pt = PandaTree(debug=DEBUG,render_tree=RENDER_TREE)
     pt.setup()
 
     index = 1

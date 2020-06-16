@@ -120,3 +120,44 @@ class RepeatAction(py_trees.behaviours.Success):
                     break
             except AttributeError:
                 continue
+
+class ActionClient_AllCancelation(py_trees_ros.actions.ActionClient):
+    def __init__(
+        self,
+        name,
+        action_spec,
+        action_namespace,
+        action_client,
+        # goal_gen_callback,
+        # bb_goal_var_name,
+        # bb_result_var_name=None,
+        # set_flag_instead_result=True,
+        # override_feedback_message_on_running="moving",
+        # new_status = "SUCCESS"
+    ):
+        new_status = "SUCCESS"
+        action_cancel = None
+        super(ActionClient_AllCancelation, self).__init__(
+            name,
+            action_spec,
+            # action_goal,
+            action_namespace,
+            # override_feedback_message_on_running,
+        )
+        # self.blackboard = py_trees.blackboard.Blackboard()
+        # self.bb_goal_var_name = bb_goal_var_name
+        # self.goal_gen_callback = goal_gen_callback
+        # if bb_result_var_name is None:
+        #     bb_result_var_name = name + "_result"
+        # self.bb_result_var_name = bb_result_var_name
+        # self.set_flag_instead_result = set_flag_instead_result
+
+    def terminate(self, new_status):
+        super(ActionClient_AllCancelation, self).terminate()
+        # self.action_goal = self.goal_gen_callback(
+        #     self.blackboard.get(self.bb_goal_var_name)
+        # )
+        # try:
+        #     delattr(self.blackboard, self.bb_result_var_name)
+        # except AttributeError:
+        #     pass

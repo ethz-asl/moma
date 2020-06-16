@@ -17,10 +17,12 @@ import tf2_geometry_msgs
 
 import py_trees
 
+# from helper_functions import transform2position, create_pose, position2imgPoints
+
 # grasp_pose = None
 
 # proximity_detextor_pub = rospy.Publisher(name="/proximity_detector", data_class=Float64, queue_size=1)
-occlusion_detector_pub = rospy.Publisher(name="/occlusion_detector", data_class=String, queue_size=1)
+occlusion_detector_pub = rospy.Publisher(name="/gripper_occlusion", data_class=String, queue_size=1)
 
 def transform2position(input_pose, from_frame, to_frame):
 
