@@ -153,7 +153,6 @@ class yolo_action(object):
 
     def callback_IMG(self,data):
         try:
-            # rospy.loginfo('callback_IMG 1')
             self.cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
         except CvBridgeError as e:
             print(e)

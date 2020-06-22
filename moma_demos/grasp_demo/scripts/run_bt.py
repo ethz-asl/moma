@@ -6,7 +6,7 @@ import py_trees
 import time
 import rospy
 
-from grasp_demo.execution.behaviour_tree_reactive_outPer import PandaTree
+from grasp_demo.execution.behaviour_tree_reactive import PandaTree
 # from grasp_demo.execution.behaviour_tree_reactive import PandaTree
 
 DEBUG = False

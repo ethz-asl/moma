@@ -206,12 +206,6 @@ class GraspSelectionAction(object):
     def select_highest_ranked_in_boundingbox(self,grasp_candidates, scores):
         rospy.loginfo("waiting for detection result") 
         try:
-            # self.detection_client("mouse")
-            # blackboard = py_trees.Blackboard()
-            # detection_result = blackboard.get("action_detect_result/result")
-            # detection_result = rospy.wait_for_message(
-            #     "/detection_action/result", DetectionActionResult, timeout=120
-            # )
             detection_result = rospy.wait_for_message(
                 "/object_tracker/objBB", BoundingBox, timeout=120
             )
@@ -220,7 +214,6 @@ class GraspSelectionAction(object):
             rospy.loginfo("did not get info")
             return []
 
-        # targetBB = detection_result.result.targetBB
         xmin = detection_result.xmin
         xmax = detection_result.xmax
         ymin = detection_result.ymin
@@ -276,6 +269,7 @@ class GraspSelectionAction(object):
             # send the best selection back
             return selected_grasp_msg
 
+    # used to transform poses between frames
     def transform_pose(self, input_pose, from_frame, to_frame):
 
         # **Assuming /tf2 topic is being broadcasted
@@ -294,29 +288,6 @@ class GraspSelectionAction(object):
 
         except (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException):
             raise
-
-
-    # def detection_client(self,goal="mouse"):
-    #     # Creates the SimpleActionClient, passing the type of the action
-    #     # (FibonacciAction) to the constructor.
-    #     # client = actionlib.SimpleActionClient('yolo_action', grasp_demo.msg.DetectionAction)
-    #     client = actionlib.SimpleActionClient('detection_action_node', grasp_demo.msg.DetectionAction)
-
-    #     # Waits until the action server has started up and started
-    #     # listening for goals.
-    #     client.wait_for_server()
-
-    #     # Creates a goal to send to the action server.
-    #     goal = grasp_demo.msg.DetectionGoal(name = goal)
-
-    #     # Sends the goal to the action server.
-    #     client.send_goal(goal)
-
-    #     # Waits for the server to finish performing the action.
-    #     client.wait_for_result()
-
-    #     # Prints out the result of executing the action
-    #     return client.get_result()  # A DetectionResult
 
 
     def visualize_selected_grasp(self, selected_grasp):

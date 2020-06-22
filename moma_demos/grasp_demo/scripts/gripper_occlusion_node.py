@@ -17,25 +17,17 @@ import tf2_geometry_msgs
 
 import py_trees
 
-# from helper_functions import transform2position, create_pose, position2imgPoints
-
-# grasp_pose = None
-
-# proximity_detextor_pub = rospy.Publisher(name="/proximity_detector", data_class=Float64, queue_size=1)
 occlusion_detector_pub = rospy.Publisher(name="/gripper_occlusion", data_class=String, queue_size=1)
 
 def transform2position(input_pose, from_frame, to_frame):
-
-        # **Assuming /tf2 topic is being broadcasted
+        # Assuming /tf2 topic is being broadcasted
         tf_buffer = tf2_ros.Buffer()
         listener = tf2_ros.TransformListener(tf_buffer)
-        # print("F1")
         pose_stamped = tf2_geometry_msgs.PoseStamped()
         pose_stamped.pose = input_pose
         pose_stamped.header.frame_id = from_frame
         pose_stamped.header.stamp = rospy.Time.now()
 
-        # print("F2")
         try:
             # ** It is important to wait for the listener to start listening. Hence the rospy.Duration(1)
             output_pose_stamped = tf_buffer.transform(pose_stamped, to_frame, rospy.Duration(1))
@@ -55,6 +47,7 @@ def create_pose(trans,rot):
     pose.orientation.w = rot[3]
     return pose
 
+# projecting point from 3D into the image frame
 def position2imgPoints(position):
     position_transformed = np.array([[position.x,position.y,position.z]])
     position_transformed = position_transformed.T
@@ -63,6 +56,7 @@ def position2imgPoints(position):
     rvec = np.array([0,0,0], np.float) # rotation vector
     tvec = np.array([0,0,0], np.float) # translation vector
     imagePoints, jac = cv.projectPoints(position_transformed, rvec=rvec, tvec=tvec, cameraMatrix=cameraMatrix,distCoeffs=distCoeffs)
+    # returns the (x,y) pixel positions from the 3D point in the camera frame
     return [imagePoints[0][0][0],imagePoints[0][0][1]]
 
 def main():
@@ -75,14 +69,13 @@ def main():
             PoseStamped,
             timeout=480
         )
-        print(1)
         grasp_position_inCAM = transform2position(grasp_pose.pose,'panda_link0', 'fixed_camera_depth_optical_frame')
         grasp_imgPoints = position2imgPoints(grasp_position_inCAM)
-        print(grasp_position_inCAM)
     except rospy.ROSException:
         rospy.loginfo("did not get info")
         return []
 
+    # box margin defined from ROS parameter server, tracking uses same value for drawing frame
     box_margin = rospy.get_param("/moma_demo/occlusion_margin")
     xmin = grasp_imgPoints[0] - box_margin
     xmax = grasp_imgPoints[0] + box_margin
@@ -91,34 +84,18 @@ def main():
 
     while not rospy.is_shutdown():
         try:
-            # (trans,rot) = listener.lookupTransform("/panda_link0","/fixed_camera_depth_optical_frame", rospy.Time(0))
             (trans,rot) = listener.lookupTransform("/fixed_camera_depth_optical_frame","/panda_default_ee", rospy.Time(0))
-            # (trans,rot) = listener.lookupTransform("/panda_link0","/panda_default_ee", rospy.Time(0))
             ee_pose_inCAM = create_pose(trans,rot)
-            # ee_position_inCAM = transform2position(ee_pose,'panda_link8', 'fixed_camera_depth_optical_frame')
             ee_imgPoints = position2imgPoints(ee_pose_inCAM.position)
-            # print(ee_imgPoints)
 
+            # checks if the end effector gets into close probximity of the tracked object
             if not ((xmin <= ee_imgPoints[0] and ee_imgPoints[0] <= xmax) and (ymin <= ee_imgPoints[1] and ee_imgPoints[1] <= ymax)):
                 occlusion_detector_pub.publish("visible")
-                # print("false x: ",xmin ,"<=", ee_imgPoints[0] ,"<=", xmax," | ",ymin ,"<=", ee_imgPoints[1] ,"<=", ymax)
-                # print("false")
             else:
                 occlusion_detector_pub.publish("occluded")
-                # print("true x: ",xmin ,"<=", ee_imgPoints[0] ,"<=", xmax," | ",ymin ,"<=", ee_imgPoints[1] ,"<=", ymax)
-                # print("true")
         except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
             continue
 
-        # print("Gripper:")
-        # print(ee_imgPoints)
-        # print("Box:")
-        # print(grasp_imgPoints)
-        # print(rospy.Time.now()-time)
-        # rospy.Time.now()
-        # print(rospy.Time.now())
-    
-    # rate.sleep()
     rospy.spin()
 
 

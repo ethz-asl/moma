@@ -1,6 +1,8 @@
 # Helper functions for Reactive Decision Making
 # Used for Pose and Point transformations functions
 
+from geometry_msgs.msg import Pose, PoseStamped
+
 def transform2position(input_pose, from_frame, to_frame):
 
         # **Assuming /tf2 topic is being broadcasted
@@ -22,7 +24,7 @@ def transform2position(input_pose, from_frame, to_frame):
             raise
 
 def create_pose(trans,rot):
-    pose=Pose()
+    pose=geometry_msgs.msg.Pose()
     pose.position.x = trans[0]
     pose.position.y = trans[1]
     pose.position.z = trans[2]
