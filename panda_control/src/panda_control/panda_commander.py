@@ -36,7 +36,7 @@ class PandaCommander(object):
         self.gripper_client.wait_for_server()
 
     def goto_joint_target(
-        self, joints, max_velocity_scaling=1.0, max_acceleration_scaling=1.0
+        self, joints, max_velocity_scaling=0.1, max_acceleration_scaling=0.1
     ):
         self.move_group.set_max_velocity_scaling_factor(max_velocity_scaling)
         self.move_group.set_max_acceleration_scaling_factor(max_acceleration_scaling)
@@ -47,7 +47,7 @@ class PandaCommander(object):
         return success
 
     def goto_pose_target(
-        self, pose, max_velocity_scaling=1.0, max_acceleration_scaling=1.0
+        self, pose, max_velocity_scaling=0.1, max_acceleration_scaling=0.1
     ):
         pose_msg = list_to_pose(pose) if type(pose) is list else pose
         self.move_group.set_max_velocity_scaling_factor(max_velocity_scaling)
@@ -60,7 +60,7 @@ class PandaCommander(object):
         return success
 
     def follow_cartesian_waypoints(
-        self, poses, velocity_scaling=1.0, acceleration_scaling=1.0
+        self, poses, velocity_scaling=0.1, acceleration_scaling=0.1
     ):
         assert type(poses) == list
 
