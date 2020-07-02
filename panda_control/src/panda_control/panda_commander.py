@@ -59,7 +59,9 @@ class PandaCommander(object):
         self.move_group.clear_pose_targets()
         return success
 
-    def follow_cartesian_waypoints(self, poses):
+    def follow_cartesian_waypoints(
+        self, poses, velocity_scaling=1.0, acceleration_scaling=1.0
+    ):
         assert type(poses) == list
 
         waypoints = []
@@ -67,15 +69,20 @@ class PandaCommander(object):
             pose_msg = list_to_pose(pose) if type(pose) is list else pose
             waypoints.append(pose_msg)
 
-        plan, fraction = self.move_group.compute_cartesian_path(
-            waypoints=waypoints, eef_step=0.005, jump_threshold=0.0
-        )
+        plan, fraction = self.move_group.compute_cartesian_path(waypoints, 0.01, 0.0)
         if fraction != 1.0:
-            raise ValueError("Unable to plan entire path!")
+            rospy.logerr("Unable to plan entire path!")
+            return False
+
+        plan = self.move_group.retime_trajectory(
+            self.robot.get_current_state(), plan, velocity_scaling, acceleration_scaling
+        )
 
         success = self.move_group.execute(plan, wait=True)
+
         self.move_group.stop()
         self.move_group.clear_pose_targets()
+
         return success
 
     def move_gripper(self, width, max_effort=10):
