@@ -35,6 +35,9 @@ class PandaCommander(object):
         self.gripper_client = actionlib.SimpleActionClient(name, GripperCommandAction)
         self.gripper_client.wait_for_server()
 
+    def home(self):
+        self.goto_joint_target([0, -0.785, 0, -2.356, 0, 1.57, 0.785], 0.4, 0.4)
+
     def goto_joint_target(
         self, joints, max_velocity_scaling=0.1, max_acceleration_scaling=0.1
     ):
