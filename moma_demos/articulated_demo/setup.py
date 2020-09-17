@@ -1,10 +1,12 @@
-from setuptools import setup, find_packages
+# ! DO NOT MANUALLY INVOKE THIS setup.py, USE CATKIN INSTEAD
 
-setup(
-    name="highlevel_planning",
-    version="0.0.0",
-    description="Not here yet",
+from setuptools import setup
+from catkin_pkg.python_setup import generate_distutils_setup
+
+# fetch values from package.xml
+setup_args = generate_distutils_setup(
     author="Julian Foerster",
-    package_dir={"": "src"},
-    packages=find_packages(where="src"),
-)
+    packages=['highlevel_planning'],
+    package_dir={'': 'src'})
+
+setup(**setup_args)
