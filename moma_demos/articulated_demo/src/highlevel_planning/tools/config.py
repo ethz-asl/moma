@@ -5,7 +5,7 @@ from copy import deepcopy
 class ConfigYaml:
     def __init__(self, filepath):
         with open(filepath, "r") as f:
-            self._cfg = yaml.load(f)
+            self._cfg = yaml.load(f, Loader=yaml.FullLoader)
 
     def getparam(self, args_list, default_value=None):
         ret = deepcopy(self._cfg)

@@ -5,11 +5,15 @@
   <description>The articulated_demo package</description>
 
   <maintainer email="fjulian@ethz.ch">Julian Foerster</maintainer>
+  <author>Julian Foerster</author>
 
   <!-- One license tag required, multiple allowed, one license per tag -->
   <!-- Commonly used license strings: -->
   <!--   BSD, MIT, Boost Software License, GPLv2, GPLv3, LGPLv2.1, LGPLv3 -->
   <license>TODO</license>
+
+  <depend>trac_ik_python</depend>
+  <depend>robot_control</depend>
 
   <buildtool_depend>catkin</buildtool_depend>
 </package>

@@ -164,6 +164,7 @@ class SkillMove:
         return True
 
     def plot_data(self, plot_time, plot_direction_data, plot_force_data, filename=None):
+        print("Plotting data...")
         plot_force_color = self.robot._world.colors["red"]
         plot_dir_color = self.robot._world.colors["green"]
         _, axs_dir = plt.subplots(3, 1, figsize=(9, 7))
@@ -215,22 +216,3 @@ class SkillMove:
             plt.show()
         else:
             plt.savefig(filename)
-
-
-# def get_move_description():
-#     action_name = "move"
-#     action_params = [
-#         ["obj", "item"],
-#         ["pos", "position"],
-#         ["rob", "robot"]
-#     ]
-#     action_preconditions = [
-#         ("in-reach-pos", False, ["pos", "rob"]),
-#         ("empty-hand", True, ["rob"]),
-#         ("in-hand", False, ["obj", "rob"])
-#     ]
-#     action_effects = [
-#         ("empty-hand", False, ["rob"]),
-#         ("in-hand", True, ["obj", "rob"])
-#     ]
-#     return (action_name, {"params": action_params, "preconds": action_preconditions, "effects": action_effects})
