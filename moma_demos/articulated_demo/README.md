@@ -13,7 +13,7 @@ moma/moma_demos/articulated_demo/install_dependencies.sh
 In a ROS Noetic workspace `test_ws/src`, clone the some repos recursively, i.e. using the following commands:
 
 ```bash
-git clone --recursive https://github.com/ethz-asl/moma.git
+git clone --recursive -b projects/articulated-mechanisms https://github.com/ethz-asl/moma.git
 git checkout projects/articulated-mechanisms
 git clone https://bitbucket.org/traclabs/trac_ik/src/master/
 git clone --recursive -b cartesian-velocity-controller https://github.com/ethz-asl/robot_control.git
