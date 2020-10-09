@@ -216,14 +216,14 @@ class SkillTrajectoryPlanning:
 		velocity_translation_rob = x_dot_arm_rob[:3]
 		velocity_rotation_rob = x_dot_arm_rob[3:6]
 		
-		print("GOVNO: ", velocity_translation_rob, velocity_rotation_rob)
+		print("vel_trans rob: ", velocity_translation_rob, velocity_rotation_rob)
 		
 		velocity_translation_O = C_O_rob.apply(velocity_translation_rob)
 		velocity_rotation_O = C_O_rob.apply(velocity_rotation_rob)
 		velocity_translation_O = np.array(velocity_translation_O)
 		velocity_rotation_O = np.array(velocity_rotation_O)
 		
-		print("GOVNO2: ", velocity_translation_O)
+		print("vel trans world: ", velocity_translation_O)
 		
 		self.robot.task_space_velocity_control(np.squeeze(velocity_translation_O), np.squeeze(velocity_rotation_O), 1)
 		
