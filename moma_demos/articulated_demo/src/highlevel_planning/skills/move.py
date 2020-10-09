@@ -144,7 +144,7 @@ class SkillMove:
 
             # Compute new rotation velocity reference
             velocity_rotation = self.desired_velocity * hinge_vector - w_t
-
+            
             # ---- Apply for one step --------
 
             self.robot.task_space_velocity_control(

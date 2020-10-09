@@ -453,11 +453,9 @@ class RobotArmPybullet(RobotArm):
 
         # Convert velocity commands to world frame
         vel_trans_world = orient.apply(self.velocity_trans)
+        
         # vel_rot doesn't need to be converted, since body and world z axis coincide.
-
-        p.resetBaseVelocity(
-            self.model.uid, vel_trans_world.tolist(), [0.0, 0.0, self.velocity_turn]
-        )
+        p.resetBaseVelocity(self.model.uid, vel_trans_world.tolist(), [0.0, 0.0, self.velocity_turn])
 
     def get_wrist_force_torque(self):
         _, _, f_t, _ = p.getJointState(self.model.uid, self.joint_idx_hand)
