@@ -137,8 +137,6 @@ class SkillModelIdentification:
 		
 		v1 = vh[:,0]
 		direction_vector = -X[0, :] + X[X.shape[0]-1, :]
-		#print("**************** v1: ", v1)
-		#print("**************** dir: ", direction_vector)
 		
 		e = np.sign(np.dot(v1, direction_vector))*v1
 		 
