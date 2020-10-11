@@ -8,6 +8,7 @@ from pinocchio.utils import *
 from numpy import linalg as LA
 
 from math import log
+import math
 
 from scipy.spatial.transform import Rotation as R
 from highlevel_planning.tools.util import homogenous_trafo, invert_hom_trafo
@@ -22,43 +23,35 @@ EPS = 1e-10
 DEBUG = True
 
 def ortho_projection(direction):
-    assert np.abs(np.linalg.norm(direction) - 1.0) < EPS
-    projection = np.matmul(direction, direction.T)
-    return np.eye(3) - projection
+	assert np.abs(np.linalg.norm(direction) - 1.0) < EPS
+	projection = np.matmul(direction, direction.T)
+	return np.eye(3) - projection
 
 def getJointStates(robot):
-  joint_states = p.getJointStates(robot, range(p.getNumJoints(robot)))
-  joint_positions = [state[0] for state in joint_states]
-  joint_velocities = [state[1] for state in joint_states]
-  joint_torques = [state[3] for state in joint_states]
-  return joint_positions, joint_velocities, joint_torques
+	joint_states = p.getJointStates(robot, range(p.getNumJoints(robot)))
+	joint_positions = [state[0] for state in joint_states]
+	joint_velocities = [state[1] for state in joint_states]
+	joint_torques = [state[3] for state in joint_states]
+	return joint_positions, joint_velocities, joint_torques
 
 
 def getMotorJointStates(robot):
-  joint_states = p.getJointStates(robot, range(p.getNumJoints(robot)))
-  joint_infos = [p.getJointInfo(robot, i) for i in range(p.getNumJoints(robot))]
-  joint_states = [j for j, i in zip(joint_states, joint_infos) if i[3] > -1]
-  joint_positions = [state[0] for state in joint_states]
-  joint_velocities = [state[1] for state in joint_states]
-  joint_torques = [state[3] for state in joint_states]
-  return joint_positions, joint_velocities, joint_torques
+	joint_states = p.getJointStates(robot, range(p.getNumJoints(robot)))
+	joint_infos = [p.getJointInfo(robot, i) for i in range(p.getNumJoints(robot))]
+	joint_states = [j for j, i in zip(joint_states, joint_infos) if i[3] > -1]
+	joint_positions = [state[0] for state in joint_states]
+	joint_velocities = [state[1] for state in joint_states]
+	joint_torques = [state[3] for state in joint_states]
+	return joint_positions, joint_velocities, joint_torques
 
 
 def setJointPosition(robot, position, kp=1.0, kv=0.3):
-  num_joints = p.getNumJoints(robot)
-  zero_vec = [0.0] * num_joints
-  if len(position) == num_joints:
-    p.setJointMotorControlArray(robot,
-                                range(num_joints),
-                                p.POSITION_CONTROL,
-                                targetPositions=position,
-                                targetVelocities=zero_vec,
-                                positionGains=[kp] * num_joints,
-                                velocityGains=[kv] * num_joints)
-  else:
-    print("Not setting torque. "
-          "Expected torque vector of "
-          "length {}, got {}".format(num_joints, len(torque)))
+	num_joints = p.getNumJoints(robot)
+	zero_vec = [0.0] * num_joints
+	if len(position) == num_joints:
+		p.setJointMotorControlArray(robot, range(num_joints), p.POSITION_CONTROL, targetPositions=position, targetVelocities=zero_vec, positionGains=[kp] * num_joints, velocityGains=[kv] * num_joints)
+	else:
+		print("Not setting torque. ""Expected torque vector of ""length {}, got {}".format(num_joints, len(torque)))
 
 def objective(x, *args):
    
@@ -71,8 +64,113 @@ def objective(x, *args):
 	v = np.matmul(A, x_dot_des)
 	v = v/LA.norm(v)
 		
-	return -np.abs(np.dot(v, u1))-c*LA.norm(x)    
+	return -np.abs(np.dot(v, u1))-c*LA.norm(x)
+	
+def objective_t1(x, *args)
+	
+	M = args[0]
+	J_O_ee = args[1]
+	drift = args[2]
+	
+	A = np.concatenate((M, -J_O_ee.transpose()), axis=1)
+	v = np.matmul(A, x)
+	
+	return (LA.norm(v+drift))**2    
 
+def ineq_constraint_t1(x, *args):
+	
+	n_joints = args[0]
+	M = args[1]
+	J_O_ee = args[2]
+	drift = args[3]
+	tau_max = args[4]
+	dt = args[5]
+	joint_position_max = args[6]
+	joint_velocity_max = args[7]
+	curr_joint_position = args[8]
+	curr_joint_velocity = args[9]
+
+	A1 = np.concatenate((M, -J_O_ee.transpose()), axis=1)
+	A2 = np.concatenate((-M, J_O_ee.transpose()), axis=1)
+	A3 = np.concatenate((np.eye(n_joints), np.zeros([n_joints,6])), axis=1)
+	A4 = np.copy(A3)
+	
+	A_constraint = np.concatenate((A1,A2,A3,A4), axis=0)
+	
+	b1 = tau_max-drift
+	b2 = drift
+	b3 = (1.0/dt)*(joint_velocity_max-curr_joint_velocity)
+	b4 = (2.0/dt/dt)*(joint_position_max-curr_joint_position-dt*curr_joint_velocity)
+	
+	b_constraint = np.concatenate((b1,b2,b3,b4), axis=0)
+	v = np.matmul(A_constraint, x)
+		
+	return b_constraint-v
+	
+def objective_t2(x, *args):
+	
+	task_1_sol = args[0]
+	task_1_null_space = args[1]
+	
+	w_des_O_ee = args[2]
+	w_curr_O_ee = args[3]
+	dJdt_O_ee = args[4]
+	curr_joint_velocity = args[5]
+	dt = args[6]
+	
+	A = np.concatenate((dt*J_curr_O_ee, np.zeros([6,6])), axis=1)
+	b = w_des_O_ee-w_curr_O_ee-np.matmul(dt*dJdt_O_ee, curr_joint_velocity)
+	v = np.matmul(A, task_1_sol + np.matmul(task_1_null_space, x))
+	
+	return (LA.norm(v-b))**2
+	
+def ineq_constraint_t2(x, *args):
+
+	A_constraint_task_1 = args[0]
+	b_constraint_task_1 = args[1]
+	task_1_sol = args[2]
+	taks_1_null_space = args[3]
+	
+	v = np.matmul(A_constraint_task_1, task_1_sol + np.matmul(task_1_null_space, x))
+	return b_constraint_task_1 - v
+	
+def objective_t3(x, *args):
+
+	task_1_sol = args[0]
+	task_1_null_space = args[1]
+	task_2_sol = args[2]
+	task_1_2_null_space = args[3]
+	
+	q_mean = args[4]
+	
+	A1 = np.concatenate((np.eye(7), np.zeros([7,6])), axis=1)
+	A2 = np.concatenate((np.zeros([6,7]), np.eye(6)), axis=1)
+	A = np.concatenate((A1, A2), axis=0)
+	
+	b = np.concatenate((q_mean, np.zeros([6,1])), axis=0)
+	
+	v = np.matmul(A, task_1_sol + np.matmul(task_1_null_space, task_2_sol) + np.matmul(task_1_2_null_space, x))
+	
+	return (LA.norm(v-b))**2
+	
+def ineq_constraint_t3(x, *args):
+
+	A_constraint_task_1 = args[0]
+	b_constraint_task_1 = args[1]
+	A_constraint_task_2 = args[2]
+	b_constraint_task_2 = args[3]
+	
+	task_1_sol = args[4]
+	task_2_sol = args[5]
+	task_1_null_space = args[6]
+	task_1_2_null_space = args[7]
+	
+	A = np.concatenate((A_constraint_task_1, A_constraint_task_2), axis=0)
+	b = np.concatenate((b_constraint_task_1, b_constraint_task_2), axis=0)
+	
+	v = np.matmul(A, task_1_sol + np.matmul(task_1_null_space, task_2_sol) + np.matmul(task_1_2_null_space, x))
+	
+	return b - v
 
 class SkillTrajectoryPlanning:
 
@@ -83,6 +181,54 @@ class SkillTrajectoryPlanning:
 		self.dt = time_step
 		self.sk_mID = sk_mID_
 		
+		num_joints = p.getNumJoints(self.robot.model.uid)
+		
+		self.torque_max = []
+		self.q_max = []
+		self.q_min = []
+		self.q_dot_max = []
+		self.q_mean_value = []
+		
+		print("***** Robot joint information *****")
+		for i in range(num_joints):
+		
+			info = p.getJointInfo(self.robot.model.uid, i)
+			joint_name = info[1] if type(info[1]) is str else info[1].decode("utf-8")
+			print("i: ", i, " | name: ", joint_name, " | type: ", info[2], " | parentIndex: ", info[16], " | linkName: ", info[12], " | min and max: ", info[8], info[9], info[10], info[11])
+			if i in self.robot.joint_idx_arm or i in self.robot.joint_idx_fingers:
+					
+				self.torque_max.append(info[10])
+				self.q_max.append(info[9])
+				self.q_min.append(info[8])
+				self.q_dot_max.append(info[11])
+					
+		self.torque_max = np.array(self.torque_max)
+		self.q_max = np.array(self.q_max)
+		self.q_min = np.array(self.q_min)
+		self.q_dot_max = np.array(self.q_dot_max)
+		self.q_mean = 0.5*(self.q_max+self.q_min)
+		
+		curr_q = []
+		for i in self.robot.joint_idx_arm+self.robot.joint_idx_fingers:
+			joint_pos,_,_,_ = p.getJointState(self.robot.model.uid, i)
+			curr_q.append(joint_pos)
+		
+		
+		self.examine_robot_in_pinnochio(curr_q)
+		M_p = p.calculateMassMatrix(self.robot.model.uid, curr_q)
+		M_p = np.array(M_p)
+		print("M_p: ", M_p[6:15, 6:15])
+
+		#pos, vel, torq = getJointStates(self.robot.model.uid)
+		#mpos, mvel, mtorq = getMotorJointStates(self.robot.model.uid)
+		#print(mpos)
+		#print(mvel)
+		#print(mtorq)
+		#zero_vec = [0.1]*len(mpos)
+						
+		#list_of_forces = p.calculateInverseDynamics(self.robot.model.uid, list(mpos), list(mvel), list(zero_vec))
+		#print("h+g: ", list_of_forces)		
+				
 	def get_grasped_obj_pos_and_ori(self, target_name=None, link_idx=None, grasp_id=0):
 
 		obj_info = self.scene.objects[target_name]
@@ -197,7 +343,7 @@ class SkillTrajectoryPlanning:
 		
 		return x_dot_arm_rob, x_dot_base_rob
 		
-	def perform_one_step(self, v, observation_available_= True, target_name_="cupboard", link_idx_=3):
+	def perform_one_step_velocity_control(self, v, observation_available_= True, target_name_="cupboard", link_idx_=3):
 	
 		pos, vel, torq = getJointStates(self.robot.model.uid)
 		mpos, mvel, mtorq = getMotorJointStates(self.robot.model.uid)
@@ -269,8 +415,10 @@ class SkillTrajectoryPlanning:
 			self.sk_mID.obj_pose_buffer.append(target_pos)
 			
 		print("Pose of the drawer: ", np.squeeze(target_pos))
+		
+	def 
 				
-	def examine_robot_in_pinnochio(self):
+	def examine_robot_in_pinnochio(self, q_curr):
 		
 		model = pin.buildModelFromUrdf(self.robot.urdf_path)	
 		data = model.createData()
@@ -299,8 +447,13 @@ class SkillTrajectoryPlanning:
 		Mtool = data.oMf[IDX_TOOL]
 		print(Mtool)
 		
-		q = rand(model.nq)
-		vq = rand(model.nv)
+		q = np.array(q_curr)
+		#q = np.matrix(q)
+		#q = rand(model.nq)
+		
+		vq = np.array([0.1] * model.nv)
+		#vq = np.matrix(vq)
+		#vq = rand(model.nv)
 		aq0 = zero(model.nv)
 
 		pin.forwardKinematics(model, data, q)
@@ -315,11 +468,11 @@ class SkillTrajectoryPlanning:
 		pin.forwardKinematics(model, data, q)
 		pin.updateFramePlacements(model, data)
 		pin.computeJointJacobians(model, data, q)
-		print("J: ", data.J)
+		#print("J: ", data.J)
 		J1 = pin.computeFrameJacobian(model, data, q, IDX_TOOL, pin.ReferenceFrame.WORLD) #tool jacobian in the tool frame
-		print("J1 :", J1)
-		J2 = pin.computeFrameJacobian(model, data, q, IDX_TOOL, pin.ReferenceFrame.LOCAL)  
-		print("J2: ", J2)	
+		#print("J1 :", J1)
+		J2 = pin.computeFrameJacobian(model, data, q, IDX_TOOL, pin.ReferenceFrame.LOCAL_WORLD_ALIGNED)  
+		#print("J2: ", J2)	
 		
 	def examine_robot_in_bullet(self):
 	
