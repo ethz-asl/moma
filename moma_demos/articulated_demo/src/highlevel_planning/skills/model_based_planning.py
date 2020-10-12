@@ -1,6 +1,7 @@
 import pybullet as p
 import numpy as np
 import pinocchio as pin
+import time
 from pinocchio.robot_wrapper import RobotWrapper
 from scipy.optimize import minimize
 from pinocchio.utils import *
@@ -23,29 +24,36 @@ EPS = 1e-10
 DEBUG = True
 
 def ortho_projection(direction):
+
 	assert np.abs(np.linalg.norm(direction) - 1.0) < EPS
 	projection = np.matmul(direction, direction.T)
+	
 	return np.eye(3) - projection
 
 def getJointStates(robot):
+
 	joint_states = p.getJointStates(robot, range(p.getNumJoints(robot)))
 	joint_positions = [state[0] for state in joint_states]
 	joint_velocities = [state[1] for state in joint_states]
 	joint_torques = [state[3] for state in joint_states]
+	
 	return joint_positions, joint_velocities, joint_torques
 
 
 def getMotorJointStates(robot):
+
 	joint_states = p.getJointStates(robot, range(p.getNumJoints(robot)))
 	joint_infos = [p.getJointInfo(robot, i) for i in range(p.getNumJoints(robot))]
 	joint_states = [j for j, i in zip(joint_states, joint_infos) if i[3] > -1]
 	joint_positions = [state[0] for state in joint_states]
 	joint_velocities = [state[1] for state in joint_states]
 	joint_torques = [state[3] for state in joint_states]
+	
 	return joint_positions, joint_velocities, joint_torques
 
 
 def setJointPosition(robot, position, kp=1.0, kv=0.3):
+
 	num_joints = p.getNumJoints(robot)
 	zero_vec = [0.0] * num_joints
 	if len(position) == num_joints:
@@ -53,7 +61,7 @@ def setJointPosition(robot, position, kp=1.0, kv=0.3):
 	else:
 		print("Not setting torque. ""Expected torque vector of ""length {}, got {}".format(num_joints, len(torque)))
 
-def objective(x, *args):
+def objective_velocity_planning(x, *args):
    
 	u1 = args[0]
 	u1 = u1/LA.norm(u1)
@@ -65,61 +73,68 @@ def objective(x, *args):
 	v = v/LA.norm(v)
 		
 	return -np.abs(np.dot(v, u1))-c*LA.norm(x)
-	
-def objective_t1(x, *args)
-	
-	M = args[0]
-	J_O_ee = args[1]
-	drift = args[2]
-	
+
+def calculate_objective_A_b_t1(M, J_O_ee, drift):
+
 	A = np.concatenate((M, -J_O_ee.transpose()), axis=1)
+	b = drift
+	
+	return A, b	
+	
+def objective_t1(x, *args):
+	
+	A = args[0]
+	drift = args[1]
+
 	v = np.matmul(A, x)
 	
-	return (LA.norm(v+drift))**2    
-
-def ineq_constraint_t1(x, *args):
+	return (LA.norm(v+drift))**2   
 	
-	n_joints = args[0]
-	M = args[1]
-	J_O_ee = args[2]
-	drift = args[3]
-	tau_max = args[4]
-	dt = args[5]
-	joint_position_max = args[6]
-	joint_velocity_max = args[7]
-	curr_joint_position = args[8]
-	curr_joint_velocity = args[9]
+def calculate_constraint_A_b_t1(n_joints, M, J_O_ee, drift, tau_max, dt, joint_position_max, joint_position_min, joint_velocity_max, joint_velocity_min, curr_joint_position, curr_joint_velocity):
 
 	A1 = np.concatenate((M, -J_O_ee.transpose()), axis=1)
 	A2 = np.concatenate((-M, J_O_ee.transpose()), axis=1)
 	A3 = np.concatenate((np.eye(n_joints), np.zeros([n_joints,6])), axis=1)
 	A4 = np.copy(A3)
+	A5 = np.concatenate((-np.eye(n_joints), np.zeros([n_joints,6])), axis=1)
+	A6 = np.copy(A5)
 	
-	A_constraint = np.concatenate((A1,A2,A3,A4), axis=0)
+	A_constraint = np.concatenate((A1,A2,A3,A4,A5,A6), axis=0)
 	
 	b1 = tau_max-drift
 	b2 = drift
 	b3 = (1.0/dt)*(joint_velocity_max-curr_joint_velocity)
 	b4 = (2.0/dt/dt)*(joint_position_max-curr_joint_position-dt*curr_joint_velocity)
+	b5 = (-1.0/dt)*(joint_velocity_min-curr_joint_velocity)
+	b6 = (-2.0/dt/dt)*(joint_position_min-curr_joint_position-dt*curr_joint_velocity)
 	
-	b_constraint = np.concatenate((b1,b2,b3,b4), axis=0)
+	b_constraint = np.concatenate((b1,b2,b3,b4,b5,b6), axis=0)
+	
+	return A_constraint, b_constraint
+ 
+def ineq_constraint_t1(x, *args):
+	
+	A_constraint = args[0]
+	b_constraint = args[1]
 	v = np.matmul(A_constraint, x)
 		
 	return b_constraint-v
 	
+def calculate_objective_A_b_t2(task_1_sol, task_1_null_space, J_curr_O_ee, w_des_O_ee, w_curr_O_ee, dJdt_O_ee, curr_joint_velocity, dt):
+
+	A = np.concatenate((dt*np.array(J_curr_O_ee), np.zeros([6,6])), axis=1)
+	b = w_des_O_ee-w_curr_O_ee-np.matmul(dt*np.array(dJdt_O_ee), curr_joint_velocity)
+	
+	return A, b
+		
 def objective_t2(x, *args):
 	
-	task_1_sol = args[0]
-	task_1_null_space = args[1]
+	A = args[0]
+	b = args[1]
 	
-	w_des_O_ee = args[2]
-	w_curr_O_ee = args[3]
-	dJdt_O_ee = args[4]
-	curr_joint_velocity = args[5]
-	dt = args[6]
+	task_1_sol = args[2]
+	task_1_null_space = args[3]
 	
-	A = np.concatenate((dt*J_curr_O_ee, np.zeros([6,6])), axis=1)
-	b = w_des_O_ee-w_curr_O_ee-np.matmul(dt*dJdt_O_ee, curr_joint_velocity)
 	v = np.matmul(A, task_1_sol + np.matmul(task_1_null_space, x))
 	
 	return (LA.norm(v-b))**2
@@ -129,7 +144,7 @@ def ineq_constraint_t2(x, *args):
 	A_constraint_task_1 = args[0]
 	b_constraint_task_1 = args[1]
 	task_1_sol = args[2]
-	taks_1_null_space = args[3]
+	task_1_null_space = args[3]
 	
 	v = np.matmul(A_constraint_task_1, task_1_sol + np.matmul(task_1_null_space, x))
 	return b_constraint_task_1 - v
@@ -147,7 +162,7 @@ def objective_t3(x, *args):
 	A2 = np.concatenate((np.zeros([6,7]), np.eye(6)), axis=1)
 	A = np.concatenate((A1, A2), axis=0)
 	
-	b = np.concatenate((q_mean, np.zeros([6,1])), axis=0)
+	b = np.concatenate((q_mean, np.zeros(6)), axis=0)
 	
 	v = np.matmul(A, task_1_sol + np.matmul(task_1_null_space, task_2_sol) + np.matmul(task_1_2_null_space, x))
 	
@@ -157,20 +172,22 @@ def ineq_constraint_t3(x, *args):
 
 	A_constraint_task_1 = args[0]
 	b_constraint_task_1 = args[1]
-	A_constraint_task_2 = args[2]
-	b_constraint_task_2 = args[3]
 	
-	task_1_sol = args[4]
-	task_2_sol = args[5]
-	task_1_null_space = args[6]
-	task_1_2_null_space = args[7]
+	task_1_sol = args[2]
+	task_2_sol = args[3]
+	task_1_null_space = args[4]
+	task_1_2_null_space = args[5]
 	
-	A = np.concatenate((A_constraint_task_1, A_constraint_task_2), axis=0)
-	b = np.concatenate((b_constraint_task_1, b_constraint_task_2), axis=0)
+	A = np.copy(A_constraint_task_1)
+	b = np.copy(b_constraint_task_1)
 	
 	v = np.matmul(A, task_1_sol + np.matmul(task_1_null_space, task_2_sol) + np.matmul(task_1_2_null_space, x))
 	
 	return b - v
+	
+def Null_proj(A):
+	
+	return np.eye(A.shape[1])-np.matmul(LA.pinv(A), A) 
 
 class SkillTrajectoryPlanning:
 
@@ -206,7 +223,13 @@ class SkillTrajectoryPlanning:
 		self.q_max = np.array(self.q_max)
 		self.q_min = np.array(self.q_min)
 		self.q_dot_max = np.array(self.q_dot_max)
-		self.q_mean = 0.5*(self.q_max+self.q_min)
+		self.q_dot_min = -np.copy(self.q_dot_max)
+		self.q_mean = 0.5*(self.q_max+self.q_min)	
+		
+		self.pinocchio_model = pin.buildModelFromUrdf(self.robot.urdf_path)
+		self.pinocchio_data = self.pinocchio_model.createData()
+		
+		self.previous_J_O_ee = None
 		
 		curr_q = []
 		for i in self.robot.joint_idx_arm+self.robot.joint_idx_fingers:
@@ -215,9 +238,9 @@ class SkillTrajectoryPlanning:
 		
 		
 		self.examine_robot_in_pinnochio(curr_q)
-		M_p = p.calculateMassMatrix(self.robot.model.uid, curr_q)
-		M_p = np.array(M_p)
-		print("M_p: ", M_p[6:15, 6:15])
+		#M_p = p.calculateMassMatrix(self.robot.model.uid, curr_q)
+		#M_p = np.array(M_p)
+		#print("M_p: ", M_p[6:15, 6:15])
 
 		#pos, vel, torq = getJointStates(self.robot.model.uid)
 		#mpos, mvel, mtorq = getMotorJointStates(self.robot.model.uid)
@@ -262,7 +285,7 @@ class SkillTrajectoryPlanning:
 		
 		return np.array(C_O_obj[:,0])		#This is true if the object's x axis is aligned with the object's plane normal!		
 		
-	def calculte_desired_velocity(self, v, observation_available=True, target_name=None, link_idx=None, B=np.diag([0.005,0.005,0.005,0.005,0.005,0.005]), grasp_id=0):
+	def calculte_desired_velocity(self, v, observation_available=True, target_name=None, link_idx=None, B=np.diag([0.0,0.0,0.0, 0.0,0.0,0.0]), grasp_id=0):
 	
 		model_type, parameters = self.sk_mID.PickModel()
 		
@@ -328,11 +351,11 @@ class SkillTrajectoryPlanning:
 		
 		return x_dot_rob 
 			
-	def one_step_optimize(self, a0, x_dot_des, c, u1, a_min, a_max):
+	def one_step_optimize_velocity(self, a0, x_dot_des, c, u1, a_min, a_max):
 	
 		b = (a_min, a_max)
 		bnds = (b,b,b)
-		sol = minimize(objective, np.array(a0), args = (np.array(u1), np.array(x_dot_des), c), method = 'SLSQP', bounds=bnds)
+		sol = minimize(objective_velocity_planning, np.array(a0), args = (np.array(u1), np.array(x_dot_des), c), method = 'SLSQP', bounds=bnds)
 		
 		a = sol.x
 		print("optimal a: ", a)
@@ -343,7 +366,7 @@ class SkillTrajectoryPlanning:
 		
 		return x_dot_arm_rob, x_dot_base_rob
 		
-	def perform_one_step_velocity_control(self, v, observation_available_= True, target_name_="cupboard", link_idx_=3):
+	def split_arm_and_base_velocity(self, v, observation_available_= True, target_name_="cupboard", link_idx_=3):
 	
 		pos, vel, torq = getJointStates(self.robot.model.uid)
 		mpos, mvel, mtorq = getMotorJointStates(self.robot.model.uid)
@@ -375,11 +398,24 @@ class SkillTrajectoryPlanning:
 		a0 = [1, 1, 1]
 		u1 = u[:, 0]
 
-		x_dot_des = self.calculte_desired_velocity(v, observation_available_, target_name_, link_idx_, np.diag([0.0,0.0,0.0,0.0,0.0,0.0]), 0)
+		x_dot_des = self.calculte_desired_velocity(v, observation_available_, target_name_, link_idx_, np.diag([0.001,0.001,0.001,0.0,0.0,0.0]), 0)
+		x_dot_arm_rob, x_dot_base_rob = self.one_step_optimize_velocity(a0, x_dot_des, c, u1, a_min, a_max)
+		
+		return x_dot_arm_rob, x_dot_base_rob
+		
+	def perform_one_step_velocity_control(self, v, observation_available_= True, target_name_="cupboard", link_idx_=3):
 
+		link_poses = p.getLinkStates(self.robot.model.uid, linkIndices=[self.robot.arm_base_link_idx, self.robot.link_name_to_index["panda_hand"]])		
+		C_O_rob = R.from_quat(link_poses[0][5])
+		C_O_ee = R.from_quat(link_poses[1][5])
+		
+		C_rob_O = C_O_rob.inv()
+		C_rob_O = C_rob_O.as_matrix()
+		
 		#------------ Whole body control ----------------------------------
 		
-		x_dot_arm_rob, x_dot_base_rob = self.one_step_optimize(a0, x_dot_des, c, u1, a_min, a_max)
+		x_dot_arm_rob, x_dot_base_rob = self.split_arm_and_base_velocity(v, observation_available_, target_name_, link_idx_)
+		self.one_step_optimize_torques( v, observation_available_, target_name_, link_idx_)
 		self.robot.update_velocity(np.squeeze(x_dot_base_rob[0:3]), x_dot_base_rob[5])		
 		self.robot.velocity_setter()					
 		
@@ -416,8 +452,97 @@ class SkillTrajectoryPlanning:
 			
 		print("Pose of the drawer: ", np.squeeze(target_pos))
 		
-	def 
-				
+	
+	def get_arm_mass_matrix_jacobian_drift(self, q, q_dot, q_dot_dot):
+	
+		q = np.array(q)
+		q_dot = np.array(q_dot)
+		q_dot_dot = np.array(q_dot_dot)
+		
+		zero_vec = [0.0]*9
+		
+		M = pin.crba(self.pinocchio_model, self.pinocchio_data, q)
+		b = pin.rnea(self.pinocchio_model, self.pinocchio_data, q, q_dot, q_dot_dot)
+		
+		M = np.array(M)
+		b = np.array(b)
+		
+		lin, ang = p.calculateJacobian(self.robot.model.uid, self.robot.arm_ee_link_idx, [0.0, 0.0, 0.0], list(q), zero_vec, zero_vec)
+		lin = np.array(lin)
+		ang = np.array(ang)
+
+		J_O_ee = np.concatenate((lin, ang), axis=0)
+		J_O_ee = J_O_ee[:, 6:13]
+		
+		return M[0:7, 0:7], J_O_ee, b[:7]
+		
+	def one_step_optimize_torques(self, v, observation_available_, target_name_, link_idx_):
+		
+		start_time = time.time()
+		mpos, mvel, mtorq = getMotorJointStates(self.robot.model.uid)
+		zero_vec = [0.0]*len(mpos)
+		
+		M, J_O_ee, drift = self.get_arm_mass_matrix_jacobian_drift(mpos, mvel, zero_vec)
+		
+		link_poses_and_vel = p.getLinkStates(self.robot.model.uid, linkIndices=[self.robot.arm_base_link_idx, self.robot.link_name_to_index["panda_hand"]], computeLinkVelocity=1)		
+		C_O_rob = R.from_quat(link_poses_and_vel[0][5])
+		C_O_ee = R.from_quat(link_poses_and_vel[1][5])
+		
+		C_rob_O = C_O_rob.inv()
+		C_rob_O = C_rob_O.as_matrix()
+		
+		x_dot_arm_rob, x_dot_base_rob = self.split_arm_and_base_velocity(v, observation_available_, target_name_, link_idx_)
+
+		velocity_translation_rob = x_dot_arm_rob[:3]
+		velocity_rotation_rob = x_dot_arm_rob[3:6]
+		
+		velocity_translation_O = C_O_rob.apply(velocity_translation_rob)
+		velocity_rotation_O = C_O_rob.apply(velocity_rotation_rob)
+		velocity_translation_O = np.array(velocity_translation_O)
+		velocity_rotation_O = np.array(velocity_rotation_O)
+		
+		w_des_O_ee = np.concatenate((velocity_translation_O, velocity_rotation_O), axis=0)
+		
+		curr_v_O_ee = link_poses_and_vel[1][6]
+		curr_w_O_ee = link_poses_and_vel[1][7]
+		
+		w_curr_O_ee = np.concatenate((np.array(curr_v_O_ee), np.array(curr_w_O_ee)), axis=0)		
+		dt = self.robot._world.T_s
+		
+		dJdt_O_ee = (1/dt)*(J_O_ee - self.previous_J_O_ee)
+		self.previous_J_O_ee = np.copy(J_O_ee)	
+		
+		
+		A_t1, b_t1 = calculate_objective_A_b_t1(M, J_O_ee, drift)
+		A_constraint_t1, b_constraint_t1 = calculate_constraint_A_b_t1(7, M, J_O_ee, drift, self.torque_max[:7], dt, self.q_max[:7], self.q_min[:7], self.q_dot_max[:7], self.q_dot_min[:7], np.array(mpos[:7]), np.array(mvel[:7]))
+		
+		con_t1_1 = {'type': 'ineq', 'fun': ineq_constraint_t1, 'args': (A_constraint_t1, b_constraint_t1)}
+		cons_t1 = [con_t1_1]
+		
+		sol_t1 = minimize(objective_t1, x0=np.array([0.0]*13), args=(A_t1, b_t1), method='SLSQP', constraints=cons_t1)
+		
+		null_t1 = Null_proj(A_t1)
+		
+		A_t2, b_t2 = calculate_objective_A_b_t2(sol_t1, null_t1, J_O_ee, w_des_O_ee, w_curr_O_ee, dJdt_O_ee, np.array(mvel[:7]), dt)
+		
+		con_t2_1 = {'type': 'ineq', 'fun': ineq_constraint_t2, 'args': (A_constraint_t1, b_constraint_t1, np.array(sol_t1.x), null_t1)}
+		cons_t2 = [con_t2_1]
+		
+		sol_t2 = minimize(objective_t2, x0=np.array([0.0]*13), args=(A_t2, b_t2, np.array(sol_t1.x), null_t1), method='SLSQP', constraints=cons_t2)
+		
+		null_t1_t2 = Null_proj(np.concatenate((A_t1, A_t2), axis=0))
+		
+		con_t3_1 = {'type': 'ineq', 'fun': ineq_constraint_t3, 'args': (A_constraint_t1, b_constraint_t1, np.array(sol_t1.x), np.array(sol_t2.x), null_t1, null_t1_t2)}
+		cons_t3 = [con_t3_1]
+		
+		sol_t3 = minimize(objective_t3, x0=np.array([0.0]*13), args=(np.array(sol_t1.x), null_t1, np.array(sol_t2.x), null_t1_t2, self.q_mean[:7]), method='SLSQP', constraints=cons_t3)
+		
+		optimal_variable = sol_t1.x + np.matmul(null_t1, np.array(sol_t2.x)) + np.matmul(null_t1_t2, np.array(sol_t3.x))
+		
+		stop_time = time.time()
+		print("Optmal :", optimal_variable)
+		print("Elapsed time: ", stop_time-start_time)
+		
 	def examine_robot_in_pinnochio(self, q_curr):
 		
 		model = pin.buildModelFromUrdf(self.robot.urdf_path)	
@@ -437,7 +562,7 @@ class SkillTrajectoryPlanning:
 		IDX_TOOL = self.robot.arm_ee_link_idx
 		IDX_BASIS = self.robot.arm_base_link_idx
 		
-		print("IDX_TOOL: ", IDX_TOOL)
+		#print("IDX_TOOL: ", IDX_TOOL)
 		
 		Mtool = data.oMf[IDX_TOOL]
 		Mbasis = data.oMf[IDX_BASIS]
@@ -445,7 +570,7 @@ class SkillTrajectoryPlanning:
 		pin.forwardKinematics(model, data, q)
 		pin.updateFramePlacements(model, data) 
 		Mtool = data.oMf[IDX_TOOL]
-		print(Mtool)
+		#print(Mtool)
 		
 		q = np.array(q_curr)
 		#q = np.matrix(q)
@@ -461,8 +586,8 @@ class SkillTrajectoryPlanning:
 		b = pin.rnea(model, data, q, vq, aq0)
 		M = pin.crba(model, data, q)
 		
-		print("M: ", M)
-		print("b: ", b)
+		#print("M: ", M)
+		#print("b: ", b)
 		
 		pin.computeJointJacobians(model, data, q)
 		pin.forwardKinematics(model, data, q)
