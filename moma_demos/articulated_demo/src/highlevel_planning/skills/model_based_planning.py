@@ -21,6 +21,7 @@ from highlevel_planning.tools.util import IKError
 from collections import deque
 import matplotlib.pyplot as plt
 
+from highlevel_planning.tools.optimization_util import *
 
 EPS = 1e-10
 DEBUG = True
@@ -31,155 +32,6 @@ def ortho_projection(direction):
 	projection = np.matmul(direction, direction.T)
 	
 	return np.eye(3) - projection
-
-def getJointStates(robot):
-
-	joint_states = p.getJointStates(robot, range(p.getNumJoints(robot)))
-	joint_positions = [state[0] for state in joint_states]
-	joint_velocities = [state[1] for state in joint_states]
-	joint_torques = [state[3] for state in joint_states]
-	
-	return joint_positions, joint_velocities, joint_torques
-
-
-def getMotorJointStates(robot):
-
-	joint_states = p.getJointStates(robot, range(p.getNumJoints(robot)))
-	joint_infos = [p.getJointInfo(robot, i) for i in range(p.getNumJoints(robot))]
-	joint_states = [j for j, i in zip(joint_states, joint_infos) if i[3] > -1]
-	joint_positions = [state[0] for state in joint_states]
-	joint_velocities = [state[1] for state in joint_states]
-	joint_torques = [state[3] for state in joint_states]
-	
-	return joint_positions, joint_velocities, joint_torques
-
-def objective_velocity_planning(x, *args):
-   
-	u1 = args[0]
-	u1 = u1/LA.norm(u1)
-	x_dot_des = args[1]
-	c = args[2]
-  
-	A = np.diag([x[0], x[1], 1, 1, 1, x[2]])
-	v = np.matmul(A, x_dot_des)
-	v = v/LA.norm(v)
-		
-	return -np.abs(np.dot(v, u1))-c*LA.norm(x)
-
-def calculate_objective_A_b_t1(M, J_O_ee, drift, F_meas_O):
-
-	A = np.concatenate((M, -np.eye(7)), axis=1)
-	b = -drift+np.matmul(-J_O_ee.transpose(), F_meas_O)
-		
-	return A, b	
-	
-def objective_t1(x, *args):
-	
-	A = args[0]
-	b = args[1]
-
-	v = np.matmul(A, x)
-	
-	return (LA.norm(v-b))**2   
-	
-def calculate_constraint_A_b_t1(n_joints, tau_max, tau_min, dt, joint_position_max, joint_position_min, joint_velocity_max, joint_velocity_min, curr_joint_position, curr_joint_velocity):
-
-	A1 = np.concatenate((np.zeros([7,7]), np.eye(7)), axis=1)
-	A2 = np.concatenate((np.zeros([7,7]), -np.eye(7)), axis=1)
-	A3 = np.concatenate((np.eye(n_joints), np.zeros([n_joints,7])), axis=1)
-	A4 = np.copy(A3)
-	A5 = np.concatenate((-np.eye(n_joints), np.zeros([n_joints,7])), axis=1)
-	A6 = np.copy(A5)
-	
-	A_constraint = np.concatenate((A1,A2,A3,A4,A5,A6), axis=0)
-	
-	b1 = tau_max
-	b2 = -tau_min
-	b3 = (1.0/dt)*(joint_velocity_max-curr_joint_velocity)
-	b4 = (2.0/dt/dt)*(joint_position_max-curr_joint_position-dt*curr_joint_velocity)
-	b5 = (-1.0/dt)*(joint_velocity_min-curr_joint_velocity)
-	b6 = (-2.0/dt/dt)*(joint_position_min-curr_joint_position-dt*curr_joint_velocity)
-	
-	b_constraint = np.concatenate((b1,b2,b3,b4,b5,b6), axis=0)
-	
-	return A_constraint, b_constraint
- 
-def ineq_constraint_t1(x, *args):
-	
-	A_constraint = args[0]
-	b_constraint = args[1]
-	v = np.matmul(A_constraint, x)
-		
-	return b_constraint-v
-	
-def calculate_objective_A_b_t2(task_1_sol, task_1_null_space, J_curr_O_ee, w_des_O_ee, w_curr_O_ee, dJdt_O_ee, curr_joint_velocity, dt):
-
-	A = np.concatenate((dt*np.array(J_curr_O_ee), np.zeros([6,7])), axis=1)
-	b = w_des_O_ee-w_curr_O_ee-np.matmul(dt*np.array(dJdt_O_ee), curr_joint_velocity)
-	
-	return A, b
-		
-def objective_t2(x, *args):
-	
-	A = args[0]
-	b = args[1]
-	
-	task_1_sol = args[2]
-	task_1_null_space = args[3]
-	
-	v = np.matmul(A, task_1_sol + np.matmul(task_1_null_space, x))
-	
-	return (LA.norm(v-b))**2
-	
-def ineq_constraint_t2(x, *args):
-
-	A_constraint_task_1 = args[0]
-	b_constraint_task_1 = args[1]
-	task_1_sol = args[2]
-	task_1_null_space = args[3]
-	
-	v = np.matmul(A_constraint_task_1, task_1_sol + np.matmul(task_1_null_space, x))
-	return b_constraint_task_1 - v
-	
-def objective_t3(x, *args):
-
-	task_1_sol = args[0]
-	task_1_null_space = args[1]
-	task_2_sol = args[2]
-	task_1_2_null_space = args[3]
-	
-	q_mean = args[4]
-	
-	A1 = np.concatenate((np.eye(7), np.zeros([7,7])), axis=1)
-	A2 = np.concatenate((np.zeros([7,7]), np.eye(7)), axis=1)
-	A = np.concatenate((A1, A2), axis=0)
-	
-	b = np.concatenate((q_mean, np.zeros(7)), axis=0)
-	
-	v = np.matmul(A, task_1_sol + np.matmul(task_1_null_space, task_2_sol) + np.matmul(task_1_2_null_space, x))
-	
-	return (LA.norm(v-b))**2
-	
-def ineq_constraint_t3(x, *args):
-
-	A_constraint_task_1 = args[0]
-	b_constraint_task_1 = args[1]
-	
-	task_1_sol = args[2]
-	task_2_sol = args[3]
-	task_1_null_space = args[4]
-	task_1_2_null_space = args[5]
-	
-	A = np.copy(A_constraint_task_1)
-	b = np.copy(b_constraint_task_1)
-	
-	v = np.matmul(A, task_1_sol + np.matmul(task_1_null_space, task_2_sol) + np.matmul(task_1_2_null_space, x))
-	
-	return b - v
-	
-def Null_proj(A):
-	
-	return np.eye(A.shape[1])-np.matmul(LA.pinv(A), A) 
 
 class SkillTrajectoryPlanning:
 
@@ -229,6 +81,8 @@ class SkillTrajectoryPlanning:
 		self.log_x_dot_des_rob = []		# Velocity component from model ID
 		self.log_x_dot_compl_rob = []		# Velocity component from force reading
 		self.log_x_dot_rob = []		# Total ee velocity
+		self.log_force = []
+		self.log_torque = []
 		
 		self.log_optimal_a = []	
 		
@@ -345,13 +199,17 @@ class SkillTrajectoryPlanning:
 		n_w_des_O = n_w_des_O/LA.norm(n_w_des_O)
 		w_des_O = 0.2*(theta-theta_des)*n_w_des_O
 		
-		v_des_rob = C_O_rob.inv().apply(v_des) #v_des in the robot body frame
+		v_des_rob = C_O_rob.inv().apply(v_des) 
 		v_des_rob = np.array(v_des_rob)
 		w_des_rob = C_O_rob.inv().apply(np.array(w_des_O ))
 		w_des_rob = np.array(w_des_rob)
 		x_dot_des_rob = np.concatenate((v_des_rob, w_des_rob), axis=0)
 		
 		force, torque = self.robot.get_wrist_force_torque()
+		
+		self.log_force.append(force)
+		self.log_torque.append(torque)
+		
 		force = force/LA.norm(force)
 		torque = torque/LA.norm(torque)
 		F_ee = np.concatenate((force, torque), axis=0)
@@ -376,7 +234,9 @@ class SkillTrajectoryPlanning:
 		sol = minimize(objective_velocity_planning, np.array(a0), args = (np.array(u1), np.array(x_dot_des), c), method = 'SLSQP', bounds=bnds)
 		
 		a = sol.x
+		
 		print("optimal a: ", a)
+		
 		A_arm = np.diag([a[0], a[1], 1, 1, 1, a[2]])
 		A_base = np.eye(6)-A_arm
 		x_dot_arm_rob = np.matmul(A_arm, x_dot_des)
@@ -459,15 +319,20 @@ class SkillTrajectoryPlanning:
 		velocity_translation_O = np.array(velocity_translation_O)
 		velocity_rotation_O = np.array(velocity_rotation_O)
 		
+		self.robot.task_space_velocity_control(np.squeeze(velocity_translation_O), np.squeeze(velocity_rotation_O), 1)
+		
+		stop_time = time.time()
+		
+		#------------------- Log the data for plotting ---------------------------
+		
 		self.log_v_O_ee.append(velocity_translation_O)
 		self.log_w_O_ee.append(velocity_rotation_O)
 		self.log_v_meas_O_ee.append(link_poses[1][6])
 		self.log_w_meas_O_ee.append(link_poses[1][7])
 		
-		self.robot.task_space_velocity_control(np.squeeze(velocity_translation_O), np.squeeze(velocity_rotation_O), 1)
-		
-		stop_time = time.time()
 		self.log_exec_time.append(stop_time-start_time)
+		
+		#---------------- Update buffer for model estimation --------------------
 		
 		obj_info = self.scene.objects["cupboard"]
 		target_id = obj_info.model.uid
@@ -526,8 +391,6 @@ class SkillTrajectoryPlanning:
 		C_rob_O = C_rob_O.as_matrix()
 		
 		C_O_ee = C_O_ee.as_matrix()
-		
-		#x_dot_arm_rob, x_dot_base_rob = self.split_arm_and_base_velocity(v, observation_available_, target_name_, link_idx_)
 
 		velocity_translation_rob = x_dot_arm_rob[:3]
 		velocity_rotation_rob = x_dot_arm_rob[3:6]
@@ -536,12 +399,16 @@ class SkillTrajectoryPlanning:
 		velocity_rotation_O = C_O_rob.apply(velocity_rotation_rob)
 		velocity_translation_O = np.array(velocity_translation_O)
 		velocity_rotation_O = np.array(velocity_rotation_O)
-
+		
+		#--------------- Log the data for plotting -------------------------------------
+		
 		self.log_v_O_ee.append(velocity_translation_O)
 		self.log_w_O_ee.append(velocity_rotation_O)
 		self.log_v_meas_O_ee.append(link_poses_and_vel[1][6])
 		self.log_w_meas_O_ee.append(link_poses_and_vel[1][7])
-				
+		
+		#--------------------------------------------------------------------------------
+		
 		w_des_O_ee = np.concatenate((velocity_translation_O, velocity_rotation_O), axis=0)
 		
 		curr_v_O_ee = link_poses_and_vel[1][6]
@@ -559,6 +426,8 @@ class SkillTrajectoryPlanning:
 		
 		F_meas_O = np.concatenate((force_O, torque_O), axis=0)
 		
+		#-------------- Sequential hierarchical quadratic optimization -------------------
+		
 		A_t1, b_t1 = calculate_objective_A_b_t1(M, J_O_ee, drift, F_meas_O)
 		A_constraint_t1, b_constraint_t1 = calculate_constraint_A_b_t1(7, self.torque_max[:7], -self.torque_max[:7], dt, self.q_max[:7], self.q_min[:7], self.q_dot_max[:7], self.q_dot_min[:7], np.array(mpos[:7]), np.array(mvel[:7]))
 		
@@ -569,7 +438,7 @@ class SkillTrajectoryPlanning:
 		
 		null_t1 = Null_proj(A_t1)
 		
-		A_t2, b_t2 = calculate_objective_A_b_t2(sol_t1, null_t1, J_O_ee, w_des_O_ee, w_curr_O_ee, dJdt_O_ee, np.array(mvel[:7]), dt)
+		A_t2, b_t2 = calculate_objective_A_b_t2(J_O_ee, w_des_O_ee, w_curr_O_ee, dJdt_O_ee, np.array(mvel[:7]), dt)
 		
 		con_t2_1 = {'type': 'ineq', 'fun': ineq_constraint_t2, 'args': (A_constraint_t1, b_constraint_t1, np.array(sol_t1.x), null_t1)}
 		cons_t2 = [con_t2_1]
@@ -578,14 +447,14 @@ class SkillTrajectoryPlanning:
 		
 		null_t1_t2 = Null_proj(np.concatenate((A_t1, A_t2), axis=0))
 		
+		A_t3, b_t3 = calculate_objective_A_b_t3(self.q_mean[:7], dt, np.array(mpos[:7]), np.array(mvel[:7]), mode='min_acc')
+		
 		con_t3_1 = {'type': 'ineq', 'fun': ineq_constraint_t3, 'args': (A_constraint_t1, b_constraint_t1, np.array(sol_t1.x), np.array(sol_t2.x), null_t1, null_t1_t2)}
 		cons_t3 = [con_t3_1]
 		
-		sol_t3 = minimize(objective_t3, x0=np.array([0.0]*14), args=(np.array(sol_t1.x), null_t1, np.array(sol_t2.x), null_t1_t2, self.q_mean[:7]), method='SLSQP', constraints=cons_t3)
+		sol_t3 = minimize(objective_t3, x0=np.array([0.0]*14), args=(A_t3, b_t3, np.array(sol_t1.x), null_t1, np.array(sol_t2.x), null_t1_t2), method='SLSQP', constraints=cons_t3)
 		
 		optimal_variable = sol_t1.x + np.matmul(null_t1, np.array(sol_t2.x)) + np.matmul(null_t1_t2, np.array(sol_t3.x))
-		
-		print("Optmal :", optimal_variable)
 		
 		return optimal_variable
 		
@@ -616,15 +485,18 @@ class SkillTrajectoryPlanning:
 		tau = optimal_variable[7:]
 		
 		p.setJointMotorControlArray(self.robot.model.uid, self.robot.joint_idx_arm, p.TORQUE_CONTROL, forces=list(tau))
-		
+		self.robot._world.step_one()
+		self.robot._world.sleep(self.robot._world.T_s)
+				
 		stop_time = time.time()
+		
+		#----------- Log the data fror plotting ----------------------------
 		
 		self.log_exec_time.append(stop_time-start_time)
 		self.log_tau.append(tau)
+			
+		#----------- Update buffer for model estimation --------------------
 		
-		self.robot._world.step_one()
-		self.robot._world.sleep(self.robot._world.T_s)
-
 		obj_info = self.scene.objects["cupboard"]
 		target_id = obj_info.model.uid
 		link_id = obj_info.grasp_links[3]
@@ -636,41 +508,324 @@ class SkillTrajectoryPlanning:
 		else:
 			temp = p.getLinkState(target_id, link_id, computeForwardKinematics = True)
 			target_pos = np.array(temp[4]).reshape((-1, 1))
+			
 			target_ori = R.from_quat(np.array(temp[5]))
 		if np.linalg.norm( self.sk_mID.obj_pose_buffer[len(self.sk_mID.obj_pose_buffer)-1]- target_pos)>EPS:
 			self.sk_mID.obj_pose_buffer.append(target_pos)
 			
 		print("Pose of the drawer: ", np.squeeze(target_pos))
 		
-		#print(np.array(self.log_q).shape[0], np.array(self.log_q).shape[1])
-		
 	def plot_data(self, mode='velocity_control'):
 		
 		N = len(self.log_q)
-		
-		
-		fig, (ax1, ax2, ax3, ax4, ax5, ax6, ax7) = plt.subplots(7,1)
-		fig.suptitle('Arm joint position')
-		
-		ax = [ax1, ax2, ax3, ax4, ax5, ax6, ax7]
 		t = np.arange(1,N+1)
 		
-		q = np.array(self.log_q)
-		q_dot = np.array(self.log_q_dot)
+		fig1, (ax1_1, ax1_2, ax1_3) = plt.subplots(3,1)
+		fig1.suptitle('Arm joint position')
 		
+		fig2, (ax2_1, ax2_2, ax2_3, ax2_4) = plt.subplots(4,1)
+		fig2.suptitle('Arm joint position')
+		
+		ax_q = [ax1_1, ax1_2, ax1_3, ax2_1, ax2_2, ax2_3, ax2_4]		
+		q = np.array(self.log_q)
+		
+		#---------------------------------------------------------
+		
+		fig3, (ax3_1, ax3_2, ax3_3) = plt.subplots(3,1)
+		fig3.suptitle('Arm joint velocities')
+		
+		fig4, (ax4_1, ax4_2, ax4_3, ax4_4) = plt.subplots(4,1)
+		fig4.suptitle('Arm joint velocities')
+		
+		ax_q_dot = [ax3_1, ax3_2, ax3_3, ax4_1, ax4_2, ax4_3, ax4_4]		
+		q_dot = np.array(self.log_q_dot)
+
+		#----------------------------------------------------------
+		
+		fig5, (ax5_1, ax5_2, ax5_3) = plt.subplots(3,1)
+		fig5.suptitle('Joint torques')
+		
+		fig6, (ax6_1, ax6_2, ax6_3, ax6_4) = plt.subplots(4,1)
+		fig6.suptitle('Joint torques')
+		
+		ax_tau = [ax5_1, ax5_2, ax5_3, ax6_1, ax6_2, ax6_3, ax6_4]
+		tau = np.array(self.log_tau)
+		
+		#----------------------------------------------------------
 		for i in range(7):
-			ax[i].axhline(y=self.q_max[i], color='r', linestyle='-.')
-			ax[i].axhline(y=self.q_min[i], color='r', linestyle='-.')
-			ax[i].plot(t, q[:,i], '-')
-			ax[i].set_ylabel('q'+str(i))
-			ax[i].grid('both', 'both')
-			ax[i].set_xlim(t[0], t[-1])
-			if not i == 6:
-				ax[i].axes.xaxis.set_ticklabels([])
+		
+			ax_q[i].axhline(y=self.q_max[i], color='r', linestyle='-.')
+			ax_q[i].axhline(y=self.q_min[i], color='r', linestyle='-.')
+			ax_q[i].plot(t, q[:,i], '-')
+			ax_q[i].set_ylabel(r'$q_{'+str(i+1)+'}$')
+			ax_q[i].grid('both', 'both')
+			ax_q[i].set_xlim(t[0], t[-1])
 			
+			ax_q_dot[i].axhline(y=self.q_dot_max[i], color='r', linestyle='-.')
+			ax_q_dot[i].axhline(y=self.q_dot_min[i], color='r', linestyle='-.')
+			ax_q_dot[i].plot(t, q_dot[:,i], '-')
+			ax_q_dot[i].set_ylabel(r'$\dot{q}_{'+str(i+1)+'}$')
+			ax_q_dot[i].grid('both', 'both')
+			ax_q_dot[i].set_xlim(t[0], t[-1])
 			
-		plt.xlabel('Number of steps') 
-		#plt.tight_layout()		
+			if mode == 'velocity_control':
+				
+				ax_tau[i].axhline(y=self.torque_max[i], color='r', linestyle='-.')
+				ax_tau[i].axhline(y=-self.torque_max[i], color='r', linestyle='-.')
+				ax_tau[i].plot(t, tau[:,i], '-')
+				ax_tau[i].set_ylabel(r'$\tau_{'+str(i+1)+'}$')
+				ax_tau[i].grid('both', 'both')
+				ax_tau[i].set_xlim(t[0], t[-1])
+										
+			if i==2 or i==6:
+				
+				ax_q[i].set_xlabel('Number of steps')
+				ax_q_dot[i].set_xlabel('Number of steps')
+				ax_tau[i].set_xlabel('Number of steps')	
+		
+		#------------------------------------------------------------------
+		fig7, (ax7_1, ax7_2, ax7_3) = plt.subplots(3,1)
+		fig7.suptitle('Angle, force and torque measurement')
+		
+		force = np.array(self.log_force)
+		torque = np.array(self.log_torque)
+		theta = np.array(self.log_theta)
+		
+		ax7_1.plot(t, theta)
+		ax7_1.set_ylabel('Angle '+r'$\theta$')
+		ax7_1.grid('both','both')
+		ax7_1.set_xlim(t[0], t[-1])
+		
+		ax7_2.plot(t, force[:,0], label=r"$F^{meas}_{x, ee}$")
+		ax7_2.plot(t, force[:,1], label=r"$F^{meas}_{y, ee}$")
+		ax7_2.plot(t, force[:,2], label=r"$F^{meas}_{z, ee}$")
+		ax7_2.legend(shadow=True)
+		
+		ax7_2.set_ylabel(r'$F^{meas}_{ee}$')
+		ax7_2.grid('both','both')
+		ax7_2.set_xlim(t[0], t[-1])		
+		
+		ax7_3.plot(t, torque[:,0], label=r"$T^{meas}_{x, ee}$")
+		ax7_3.plot(t, torque[:,1], label=r"$T^{meas}_{y, ee}$")
+		ax7_3.plot(t, torque[:,2], label=r"$T^{meas}_{z, ee}$")
+		ax7_3.legend(shadow=True)
+		
+		ax7_3.set_ylabel(r'$T^{meas}_{ee}$')
+		ax7_3.grid('both','both')
+		ax7_3.set_xlim(t[0], t[-1])	
+		
+		#---------------------------------------------------------------
+		
+		fig8, (ax8_1, ax8_2) = plt.subplots(2,1)
+		fig8.suptitle('Optimal values of vector a and epoch execution time')
+		
+		a = np.array(self.log_optimal_a)
+		exec_time = np.array(self.log_exec_time)
+		
+		ax8_1.plot(t, a[:,0], label=r"$a_{v_{x}}$")
+		ax8_1.plot(t, a[:,1], label=r"$a_{v_{y}}$")
+		ax8_1.plot(t, a[:,2], label=r"$a_{\omega_{z}}$")
+		ax8_1.legend(shadow=True)
+		
+		ax8_1.set_ylabel(r"$a$")
+		ax8_1.grid('both','both')
+		ax8_1.set_xlim(t[0], t[-1])
+		
+		ax8_2.plot(t, exec_time)			
+		ax8_2.set_ylabel('Iteration duration [s]')
+		ax8_2.set_xlim(t[0], t[-1])
+		ax8_2.grid('both','both')
+		
+		#--------------------------------------------------------------------
+		
+		fig9, (ax9_1, ax9_2, ax9_3) = plt.subplots(3,1)
+		fig9.suptitle('End effector compliant and model based desired translational velocity')
+		fig10, (ax10_1, ax10_2, ax10_3) = plt.subplots(3,1)
+		fig10.suptitle('End effector compliant and model based desired rotational velocity')
+		
+		x_dot_rob = np.array(self.log_x_dot_rob)
+		x_dot_compl_rob = np.array(self.log_x_dot_compl_rob)
+		x_dot_des_rob = np.array(self.log_x_dot_des_rob)
+		
+		ax9_1.plot(t, x_dot_des_rob[:,0], label=r"$v^{model, des}_{B, ee}$")
+		ax9_1.plot(t, x_dot_compl_rob[:,0], label=r"$v^{compl}_{B, ee}$")
+		ax9_1.plot(t, x_dot_rob[:,0], label=r"$v_{B, ee}$")
+		ax9_1.legend(shadow=True)
+		
+		ax9_1.set_ylabel(r"$v^{des}_{x,B}$")
+		ax9_1.grid('both','both')
+		ax9_1.set_xlim(t[0], t[-1])
+		
+		ax9_2.plot(t, x_dot_des_rob[:,1], label=r"$v^{model, des}_{B, ee}$")
+		ax9_2.plot(t, x_dot_compl_rob[:,1], label=r"$v^{compl}_{B, ee}$")
+		ax9_2.plot(t, x_dot_rob[:,1], label=r"$v_{B, ee}$")
+		ax9_2.legend(shadow=True)
+		
+		ax9_2.set_ylabel(r"$v^{des}_{y,B}$")
+		ax9_2.grid('both','both')
+		ax9_2.set_xlim(t[0], t[-1])		
+		
+		ax9_3.plot(t, x_dot_des_rob[:,2], label=r"$v^{model, des}_{B, ee}$")
+		ax9_3.plot(t, x_dot_compl_rob[:,2], label=r"$v^{compl}_{B, ee}$")
+		ax9_3.plot(t, x_dot_rob[:,2], label=r"$v_{B, ee}$")
+		ax9_3.legend(shadow=True)
+		
+		ax9_3.set_ylabel(r"$v^{des}_{z,B}$")
+		ax9_3.grid('both','both')
+		ax9_3.set_xlim(t[0], t[-1])
+		
+		#-------------------------------------------------------------
+		
+		ax10_1.plot(t, x_dot_des_rob[:,3], label=r'$\omega^{model, des}_{B, ee}$')
+		ax10_1.plot(t, x_dot_compl_rob[:,3], label=r'$\omega^{compl}_{B, ee}$')
+		ax10_1.plot(t, x_dot_rob[:,3], label=r'$\omega_{B, ee}$')
+		ax10_1.legend(shadow=True)
+		
+		ax10_1.set_ylabel(r'$\omega^{des}_{x,B}$')
+		ax10_1.grid('both','both')
+		ax10_1.set_xlim(t[0], t[-1])
+		
+		ax10_2.plot(t, x_dot_des_rob[:,4], label=r'$\omega^{model, des}_{B, ee}$')
+		ax10_2.plot(t, x_dot_compl_rob[:,4], label=r'$\omega^{compl}_{B, ee}$')
+		ax10_2.plot(t, x_dot_rob[:,4], label=r'$\omega_{B, ee}$')
+		ax10_2.legend(shadow=True)
+		
+		ax10_2.set_ylabel(r'$\omega^{des}_{y,B}$')
+		ax10_2.grid('both','both')
+		ax10_2.set_xlim(t[0], t[-1])		
+		
+		ax10_3.plot(t, x_dot_des_rob[:,5], label=r'$\omega^{model, des}_{B, ee}$')
+		ax10_3.plot(t, x_dot_compl_rob[:,5], label=r'$\omega^{compl}_{B, ee}$')
+		ax10_3.plot(t, x_dot_rob[:,5], label=r'$\omega_{B, ee}$')
+		ax10_3.legend(shadow=True)
+		
+		ax10_3.set_ylabel(r'$\omega^{des}_{z,B}$')
+		ax10_3.grid('both','both')
+		ax10_3.set_xlim(t[0], t[-1])		
+		
+		#----------------------------------------------------------------
+		
+		fig11, (ax11_1, ax11_2, ax11_3) = plt.subplots(3,1)
+		fig11.suptitle('Desired end measured effector translational velocity in the world frame')
+		fig12, (ax12_1, ax12_2, ax12_3) = plt.subplots(3,1)
+		fig12.suptitle('Desired end measured effector rotational velocity in the world frame')
+		
+		v_O_ee = np.array(self.log_v_O_ee)
+		v_meas_O_ee = np.array(self.log_v_meas_O_ee)
+		w_O_ee = np.array(self.log_w_O_ee)
+		w_meas_O_ee = np.array(self.log_w_meas_O_ee)	
+		
+		ax11_1.plot(t, v_O_ee[:,0], label=r"$v^{des}_{I, ee}$")
+		ax11_1.plot(t, v_meas_O_ee[:,0], label=r"$v^{meas}_{I, ee}$")
+		ax11_1.legend(shadow=True)
+		
+		ax11_1.set_ylabel(r"$v_{x,I,ee}$")
+		ax11_1.grid('both','both')
+		ax11_1.set_xlim(t[0], t[-1])
+		
+		ax11_2.plot(t, v_O_ee[:,1], label=r"$v^{des}_{I, ee}$")
+		ax11_2.plot(t, v_meas_O_ee[:,1], label=r"$v^{meas}_{I, ee}$")
+		ax11_2.legend(shadow=True)
+		
+		ax11_2.set_ylabel(r"$v_{y,I,ee}$")
+		ax11_2.grid('both','both')
+		ax11_2.set_xlim(t[0], t[-1])		
+		
+		ax11_3.plot(t, v_O_ee[:,2], label=r"$v^{des}_{I, ee}$")
+		ax11_3.plot(t, v_meas_O_ee[:,2], label=r"$v^{meas}_{I, ee}$")
+		ax11_3.legend(shadow=True)
+		
+		ax11_3.set_ylabel(r"$v_{z,I,ee}$")
+		ax11_3.grid('both','both')
+		ax11_3.set_xlim(t[0], t[-1])		
+
+		#--------------------------------------------------------------
+		
+		ax12_1.plot(t, w_O_ee[:,0], label=r"$\omega^{des}_{I, ee}$")
+		ax12_1.plot(t, w_meas_O_ee[:,0], label=r"$\omega^{meas}_{I, ee}$")
+		ax12_1.legend(shadow=True)
+		
+		ax12_1.set_ylabel(r"$\omega_{x,I,ee}$")
+		ax12_1.grid('both','both')
+		ax12_1.set_xlim(t[0], t[-1])
+		
+		ax12_2.plot(t, w_O_ee[:,1], label=r"$\omega^{des}_{I, ee}$")
+		ax12_2.plot(t, w_meas_O_ee[:,1], label=r"$\omega^{meas}_{I, ee}$")
+		ax12_2.legend(shadow=True)
+		
+		ax12_2.set_ylabel(r"$\omega_{y,I,ee}$")
+		ax12_2.grid('both','both')
+		ax12_2.set_xlim(t[0], t[-1])		
+		
+		ax12_3.plot(t, w_O_ee[:,2], label=r"$\omega^{des}_{I, ee}$")
+		ax12_3.plot(t, w_meas_O_ee[:,2], label=r"$\omega^{meas}_{I, ee}$")
+		ax12_3.legend(shadow=True)
+		
+		ax12_3.set_ylabel(r"$\omega_{z,I,ee}$")
+		ax12_3.grid('both','both')
+		ax12_3.set_xlim(t[0], t[-1])	
+		
+		#------------------------------------------------------------------
+		
+		fig13, (ax13_1, ax13_2, ax13_3) = plt.subplots(3,1)
+		fig13.suptitle('Base and arm desired translational velocities after splitting up')
+		fig14, (ax14_1, ax14_2, ax14_3) = plt.subplots(3,1)
+		fig14.suptitle('Base and arm desired rotational velocities after splitting up')
+		
+		x_dot_arm_rob = np.array(self.log_x_dot_arm_rob)
+		x_dot_base_rob = np.array(self.log_x_dot_base_rob)
+		
+		ax13_1.plot(t, x_dot_arm_rob[:,0], label=r"$v^{arm}_{B, ee}$")
+		ax13_1.plot(t, x_dot_base_rob[:,0], label=r"$v^{base}_{B}$")
+		ax13_1.legend(shadow=True)
+		
+		ax13_1.set_ylabel(r"$v_{x,B}$")
+		ax13_1.grid('both','both')
+		ax13_1.set_xlim(t[0], t[-1])
+		
+		ax13_2.plot(t, x_dot_arm_rob[:,1], label=r"$v^{arm}_{B, ee}$")
+		ax13_2.plot(t, x_dot_base_rob[:,1], label=r"$v^{base}_{B}$")
+		ax13_2.legend(shadow=True)
+		
+		ax13_2.set_ylabel(r"$v_{y,B}$")
+		ax13_2.grid('both','both')
+		ax13_2.set_xlim(t[0], t[-1])	
+		
+		ax13_3.plot(t, x_dot_arm_rob[:,2], label=r"$v^{arm}_{B, ee}$")
+		ax13_3.plot(t, x_dot_base_rob[:,2], label=r"$v^{base}_{B}$")
+		ax13_3.legend(shadow=True)
+		
+		ax13_3.set_ylabel(r"$v_{z,B}$")
+		ax13_3.grid('both','both')
+		ax13_3.set_xlim(t[0], t[-1])
+		
+		#--------------------------------------------------------------------------
+		
+		ax14_1.plot(t, x_dot_arm_rob[:,3], label=r"$\omega^{arm}_{B, ee}$")
+		ax14_1.plot(t, x_dot_base_rob[:,3], label=r"$\omega^{base}_{B}$")
+		ax14_1.legend(shadow=True)
+		
+		ax14_1.set_ylabel(r"$\omega_{x,B}$")
+		ax14_1.grid('both','both')
+		ax14_1.set_xlim(t[0], t[-1])
+		
+		ax14_2.plot(t, x_dot_arm_rob[:,4], label=r"$\omega^{arm}_{B, ee}$")
+		ax14_2.plot(t, x_dot_base_rob[:,4], label=r"$\omega^{base}_{B}$")
+		ax14_2.legend(shadow=True)
+		
+		ax14_2.set_ylabel(r"$\omega_{y,B}$")
+		ax14_2.grid('both','both')
+		ax14_2.set_xlim(t[0], t[-1])	
+		
+		ax14_3.plot(t, x_dot_arm_rob[:,5], label=r"$\omega^{arm}_{B, ee}$")
+		ax14_3.plot(t, x_dot_base_rob[:,5], label=r"$\omega^{base}_{B}$")
+		ax14_3.legend(shadow=True)
+		
+		ax14_3.set_ylabel(r"$\omega_{z,B}$")
+		ax14_3.grid('both','both')
+		ax14_3.set_xlim(t[0], t[-1])
+		
+		
 		plt.show()
 				
 	def examine_robot_in_pinnochio(self, q_curr):

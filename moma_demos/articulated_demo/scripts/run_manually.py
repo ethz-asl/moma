@@ -90,7 +90,7 @@ def trajectory_generation_example(sk_mID, sk_traj, sk_grasp_, sk_nav_, robot, sc
     	print(" Model type : ", model_type)
     	
     	sk_traj.perform_one_step_torque_control(v=0.2)
-    	model_type,_ = sk_mID.PickModel() #This is redundant! Just need it so that I can print the model_type
+    	model_type,_ = sk_mID.PickModel() 				#This is redundant! Just need it so that I can print the model_type
     
     	
     sk_grasp_.release_object()
@@ -127,7 +127,7 @@ def main():
     # drawer_example(sk_grasp, sk_nav, robot, scene, world)
     #model_id_example(sk_mID, sk_grasp, sk_nav, robot, scene)
     #drawer_example_auto(sk_grasp, sk_nav, sk_move, robot, scene)
-    trajectory_generation_example(sk_mID, sk_traj, sk_grasp, sk_nav, robot, scene, 50)
+    trajectory_generation_example(sk_mID, sk_traj, sk_grasp, sk_nav, robot, scene, 500)
 
     # -----------------------------------
 
