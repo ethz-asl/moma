@@ -32,6 +32,34 @@ def ortho_projection(direction):
 	projection = np.matmul(direction, direction.T)
 	
 	return np.eye(3) - projection
+	
+def ortho_projection(direction):
+
+	assert np.abs(np.linalg.norm(direction) - 1.0) < EPS
+	projection = np.matmul(direction, direction.T)
+	
+	return np.eye(3) - projection
+
+def getJointStates(robot):
+
+	joint_states = p.getJointStates(robot, range(p.getNumJoints(robot)))
+	joint_positions = [state[0] for state in joint_states]
+	joint_velocities = [state[1] for state in joint_states]
+	joint_torques = [state[3] for state in joint_states]
+	
+	return joint_positions, joint_velocities, joint_torques
+
+
+def getMotorJointStates(robot):
+
+	joint_states = p.getJointStates(robot, range(p.getNumJoints(robot)))
+	joint_infos = [p.getJointInfo(robot, i) for i in range(p.getNumJoints(robot))]
+	joint_states = [j for j, i in zip(joint_states, joint_infos) if i[3] > -1]
+	joint_positions = [state[0] for state in joint_states]
+	joint_velocities = [state[1] for state in joint_states]
+	joint_torques = [state[3] for state in joint_states]
+	
+	return joint_positions, joint_velocities, joint_torques
 
 class SkillTrajectoryPlanning:
 
