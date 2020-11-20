@@ -15,4 +15,7 @@ sudo apt-get install \
 	ros-$ROS_DISTRO-libfranka \
 	ros-$ROS_DISTRO-joint-state-publisher-gui \
 	ros-$ROS_DISTRO-ddynamic-reconfigure \
+	ros-$ROS_DISTRO-eigen-conversions \
+	ros-$ROS_DISTRO-robot-state-publisher \
+	ros-$ROS_DISTRO-rviz \
 	qtbase5-dev
