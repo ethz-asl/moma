@@ -25,3 +25,9 @@
 [submodule "submodules/vpp_msgs"]
 	path = submodules/vpp_msgs
 	url = git@github.com:ethz-asl/vpp_msgs.git
+[submodule "submodules/ridgeback_simulator"]
+	path = submodules/ridgeback_simulator
+	url = git@github.com:ridgeback/ridgeback_simulator.git
+[submodule "submodules/ridgeback_desktop"]
+	path = submodules/ridgeback_desktop
+	url = git@github.com:ridgeback/ridgeback_desktop.git
