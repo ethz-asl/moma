@@ -18,4 +18,5 @@ sudo apt-get install \
 	ros-$ROS_DISTRO-eigen-conversions \
 	ros-$ROS_DISTRO-robot-state-publisher \
 	ros-$ROS_DISTRO-rviz \
+	ros-$ROS_DISTRO-moveit \
 	qtbase5-dev

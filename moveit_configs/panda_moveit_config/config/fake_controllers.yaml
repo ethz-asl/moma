@@ -8,3 +8,6 @@ controller_list:
       - panda_joint5
       - panda_joint6
       - panda_joint7
+initial:  # Define initial robot poses.
+  - group: panda_arm
+    pose: ready
