@@ -36,3 +36,15 @@ controller_list:
       - panda_joint5
       - panda_joint6
       - panda_joint7
+  - name: panda_arm_controller
+    action_ns: follow_joint_trajectory
+    default: True
+    type: FollowJointTrajectory
+    joints:
+      - panda_joint1
+      - panda_joint2
+      - panda_joint3
+      - panda_joint4
+      - panda_joint5
+      - panda_joint6
+      - panda_joint7

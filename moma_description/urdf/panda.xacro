@@ -18,15 +18,9 @@
       <origin rpy="0.0 0.0 -0.785" xyz="0.0 0.0 0.103"/>
     </joint>
 
-    <!-- gazebo plugin to mimic finger joints -->
-    <gazebo>
-      <plugin name="panda_hand_mimic_joint_plugin" filename="libroboticsgroup_gazebo_mimic_joint_plugin.so">
-        <joint>panda_finger_joint1</joint>
-        <mimicJoint>panda_finger_joint2</mimicJoint>
-        <hasPID></hasPID>
-        <multiplier>2.0</multiplier>
-      </plugin>
-    </gazebo>
+    <!-- Gazebo Tags -->
+    <xacro:include filename="$(find franka_description)/robots/panda_arm.gazebo.xacro"/>
+    <xacro:panda_gazebo arm_id="panda"/>
 
     <!-- wrist realsense -->
     <xacro:include filename="$(find realsense2_description)/urdf/_d435.urdf.xacro" />
