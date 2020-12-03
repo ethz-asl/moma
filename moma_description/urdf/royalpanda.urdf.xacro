@@ -13,6 +13,6 @@
     <link name="franka_mount_link" />
 
     <xacro:include filename="$(find moma_description)/urdf/panda.xacro"/>
-    <xacro:panda connected_to="franka_mount_link"/>
+    <xacro:panda connected_to="franka_mount_link" include_gazebo_control="false"/>
 
 </robot>

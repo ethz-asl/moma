@@ -15,25 +15,6 @@
     <arg name="joystick" value="$(arg joystick)"/>
   </include>
 
-  <rosparam param="/gazebo_ros_control/pid_gains">
-    front_left_wheel:
-      p: 1
-      i: 0.1
-      d: 0
-    front_right_wheel:
-      p: 1
-      i: 0.1
-      d: 0
-    rear_left_wheel:
-      p: 1
-      i: 0.1
-      d: 0
-    rear_right_wheel:
-      p: 1
-      i: 0.1
-      d: 0
-  </rosparam>
-
   <!-- spawn robot in gazebo -->
   <node name="spawn_royalpanda" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen" args="-urdf -param robot_description -model royalpanda
       -x $(arg x)
