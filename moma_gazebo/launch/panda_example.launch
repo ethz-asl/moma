@@ -30,6 +30,9 @@
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="true" output="screen" />
 
   <!-- start moveit -->
+  <include file="$(find panda_moveit_config)/launch/planning_context.launch">
+    <arg name="load_robot_description" value="false" />
+  </include>
   <include if="$(arg moveit)" file="$(find panda_moveit_config)/launch/move_group.launch">
     <arg name="load_robot_description" value="false" />
   </include>

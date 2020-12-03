@@ -12,10 +12,4 @@
   </joint>
   <xacro:panda connected_to="base_link" use_fixed_realsense="$(arg use_fixed_realsense)"/>
 
-  <gazebo>
-    <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
-      <robotNamespace>/</robotNamespace>
-    </plugin>
-  </gazebo>
-
 </robot>
