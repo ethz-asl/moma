@@ -25,3 +25,6 @@
 [submodule "submodules/vpp_msgs"]
 	path = submodules/vpp_msgs
 	url = git@github.com:ethz-asl/vpp_msgs.git
+[submodule "submodules/gazebo_models"]
+	path = submodules/gazebo_models
+	url = git@github.com:osrf/gazebo_models.git

@@ -11,7 +11,7 @@
   <arg name="joystick" default="false" />
 
   <env name="GAZEBO_MODEL_PATH" value="${GAZEBO_MODEL_PATH}:$(find moma_gazebo)/models"/>
-  <env name="GAZEBO_MODEL_PATH" value="${GAZEBO_MODEL_PATH}:/home/fjulian/.gazebo/models/gazebo_models"/>
+  <env name="GAZEBO_MODEL_PATH" value="${GAZEBO_MODEL_PATH}:$(find moma_gazebo)/../submodules/gazebo_models"/>
 
   <!-- start gazebo -->
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
