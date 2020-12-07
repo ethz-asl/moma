@@ -1,16 +1,13 @@
 from highlevel_planning.sim.world import WorldPybullet
 
-import pybullet as p
-
 import os
 
 
 def main():
+    
     # Create world
     world = WorldPybullet(style="gui", sleep=True)
     world.add_plane()
-
-    print(os.getcwd())
 
     # ======== Cupboard ====================================
 
@@ -35,14 +32,16 @@ def main():
     # ======== Container ======================================
     
     #container_mdl = world.add_model("data/models/container/container_no_lid.urdf", position=[0.0, 0.0, 0.0], orientation=[0.0, 0.0, 0.0,1.0])
+    
     container_mdl = world.add_model(os.path.join(os.getcwd(), "moma/moma_demos/articulated_demo/data/models/container/container_no_lid.urdf"), position=[0.0, 0.0, 0.0], orientation=[0.0, 0.0, 0.0,1.0])
+    
     #lid_mdl = world.add_model("data/models/container/lid.urdf", position=[0.0, 0.0, 0.0], orientation=[0.0, 0.0, 0.0,1.0])
+    
     lid_mdl = world.add_model(os.path.join(os.getcwd(), "moma/moma_demos/articulated_demo/data/models/container/lid.urdf"), position=[0.0, 0.0, 0.0], orientation=[0.0, 0.0, 0.0,1.0])
 
     #container_sliding_mdl = world.add_model("data/models/container/container_sliding_lid.urdf", position=[0.0, 0.5, 0.0], 	orientation=[0.0, 0.0, 0.0,1.0])
+    
     container_sliding_mdl = world.add_model(os.path.join(os.getcwd(), "moma/moma_demos/articulated_demo/data/models/container/container_sliding_lid.urdf"), position=[0.0, 0.5, 0.0], 	orientation=[0.0, 0.0, 0.0,1.0])
-
-    # =========================================================
     
     door_mdl = world.add_model(os.path.join(os.getcwd(), "moma/moma_demos/articulated_demo/data/models/door/door.urdf"), position=[1, 0.0, 0.0], orientation=[0.0, 0.0, 0.0,1.0])
     

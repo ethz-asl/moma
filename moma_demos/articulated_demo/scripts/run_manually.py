@@ -5,15 +5,6 @@ from highlevel_planning.skills.move import SkillMove
 from highlevel_planning.tools.config import ConfigYaml
 from highlevel_planning.tools import run_util
 
-from highlevel_planning.skills.model_fitting import SkillModelIdentification
-#from highlevel_planning.skills.model_based_planning import SkillTrajectoryPlanning
-#from highlevel_planning.skills.model_based_planning import getMotorJointStates
-from highlevel_planning.skills.New_model_based_control import SkillTrajectoryPlanning
-from highlevel_planning.skills.New_model_based_control import getMotorJointStates
-
-from collections import deque
-
-import pybullet as p
 import numpy as np
 import os
 
@@ -35,8 +26,6 @@ def drawer_example(sk_grasp, sk_nav, robot, scene, world):
 
     # Drive back
     robot.update_velocity([-0.1, 0.0, 0.0], 0.0)
-    world.step_seconds(2)
-    print(robot.get_wrist_force_torque())
     world.step_seconds(2)
     robot.stop_driving()
 
@@ -62,34 +51,6 @@ def drawer_example_auto(sk_grasp, sk_nav, sk_move, robot, scene):
     # Release
     sk_grasp.release_object()
     robot.to_start()
-    
-def model_id_example(sk_mID, sk_grasp_, sk_nav_, robot, scene):
-    sk_nav_.move_to_object("cupboard", nav_min_dist=1.0)
-    sk_mID.init_trajectory(desired_velocity=0.02, desired_force=np.zeros((3, 1)), init_direction=np.array([-1.0, 0.0, -0.5]), sk_grasp=sk_grasp_, sk_nav=sk_nav_, target_name="cupboard", link_idx=3)
-    model_type, parameters = sk_mID.PickModel()
-    
-    print(model_type)
-    print(parameters)
-    sk_grasp_.release_object()
-    robot.to_start()
-
-def trajectory_generation_example(sk_mID, sk_traj, sk_grasp_, sk_nav_, robot, scene, num_steps):
-
-    sk_nav_.move_to_object("cupboard", nav_min_dist=1.0)
-    sk_mID.init_trajectory(desired_velocity=0.02, desired_force=np.zeros((3, 1)), init_direction=np.array([-1.0, 0.0, -0.5]), sk_grasp=sk_grasp_, sk_nav=sk_nav_, target_name="cupboard", link_idx=3)
-    
-    sk_traj.ResetRobotJointDampings()
-    
-    for i in range(num_steps):
-
-    	print(30*"*")
-    	print("Iteration i: ", i)
-    	sk_traj.PerformOneStep(mode="PlanJointAcc", v=0.1)
-    	#sk_traj.PerformOneStep(mode="PlanJointAccAndBaseVel", v=0.1, modeBase='NoSelfCollision')
-    	#sk_traj.PerformOneStep(mode="PlanJointAccAndBaseVel", v=0.1, modeBase='NoSelfCollisionAndMaxMobility')
-    	
-    sk_grasp_.release_object()
-    robot.to_start()
 
 def main():
     # Command line arguments
@@ -112,15 +73,10 @@ def main():
     sk_nav = SkillNavigate(scene, robot)
     sk_move = SkillMove(scene, robot, 0.02, robot._world.T_s)
     
-    sk_mID = SkillModelIdentification(scene, robot, 30, robot._world.T_s)
-    sk_traj = SkillTrajectoryPlanning(scene, robot, sk_mID, robot._world.T_s)
-    
     # ---------- Run examples -----------
 	
     # drawer_example(sk_grasp, sk_nav, robot, scene, world)
-    #model_id_example(sk_mID, sk_grasp, sk_nav, robot, scene)
     drawer_example_auto(sk_grasp, sk_nav, sk_move, robot, scene)
-    #trajectory_generation_example(sk_mID, sk_traj, sk_grasp, sk_nav, robot, scene, 1500)
 
     # -----------------------------------
 

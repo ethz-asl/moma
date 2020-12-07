@@ -1,12 +1,49 @@
-import argparse
 import os
 import pybullet as p
-import pickle
+
 import numpy as np
 from datetime import datetime
 from numpy import linalg as LA
 
 EPS = 1e-6
+
+#----- General utils -----
+
+def prepare_global_dir():
+
+	date_and_time = datetime.now()
+	curr = date_and_time.strftime("%d_%m_%Y_%H_%M_%S")
+	
+	results_folder = os.getcwd()+'/moma/moma_demos/articulated_demo/runs'
+	
+	if not os.path.isdir(results_folder):
+		os.makedirs(results_folder)
+              	 		
+	if not os.path.isdir(results_folder + '/' + curr):
+		os.makedirs(results_folder + '/' + curr)
+	
+	global_folder = results_folder + '/' + curr
+                	
+	return global_folder
+	
+#-------
+def prepare_dir(global_folder, postfix=None):
+        
+	if postfix is not None:
+        
+		if not os.path.isdir(global_folder + '/' + postfix):
+			os.makedirs(global_folder + '/' + postfix)
+		curr_folder = global_folder + '/' + postfix 
+	
+	else:
+	       	 		
+		if not os.path.isdir(global_folder):
+			os.makedirs(global_folder)
+		curr_folder = global_folder
+                	
+	return curr_folder
+
+#----- Robot and planning related util
 
 def OrthoProjection(direction):
 	
@@ -71,7 +108,7 @@ def AngularVelocityObjective(x, *args):
 	
 	return -np.dot(temp, u1_ang)
 	
-def O1(x, *args):
+def Objective1(x, *args):
 
 	vdesEE = args[0]
 	vmean = args[1]
@@ -79,7 +116,7 @@ def O1(x, *args):
 	
 	return LA.norm(vdesEE - s*x) + LA.norm(vmean - x)
 	
-def C1(x, *args):
+def Constraint1(x, *args):
 
 	v = args[0]
 	

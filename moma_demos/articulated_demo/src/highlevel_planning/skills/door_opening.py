@@ -7,10 +7,6 @@ import time
 from scipy.spatial.transform import Rotation as R
 
 from highlevel_planning.tools.door_opening_util import *
-from highlevel_planning.tools.plot_util import *
-
-from highlevel_planning.tools.util import IKError
-from collections import deque
 
 import math
 import matplotlib.pyplot as plt
@@ -143,9 +139,7 @@ class SkillTrajectoryPlanning:
                 
         for i in range(len(joint_positions)):
             p.resetJointState(self.robot.model.uid, i, joint_positions[i], joint_velocities[i])
-            
-        
-                    
+
 #-------
     def ObjectConfiguration(self, mode, target_name, joint_positions=None, joint_velocities=None):
         
@@ -269,7 +263,7 @@ class SkillTrajectoryPlanning:
                 
         e_ee = sk_dir.GetCurrEstimate()
         e_O = C_O_ee.apply(e_ee)
-        #print(e_O)    
+  
         vLinDesEE_O = C_O_ee.apply(veldesEE_ee[:3])
         vAngDesEE_O = C_O_ee.apply(veldesEE_ee[3:])
                 

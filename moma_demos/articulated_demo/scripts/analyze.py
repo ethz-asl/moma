@@ -1,41 +1,6 @@
-#----- Standard Skills -----
-
-from highlevel_planning.sim.scene_move_skill_test import SceneMoveSkill					#THIS IS CHANGED!
-from highlevel_planning.skills.navigate_with_offset import SkillNavigate					#THIS IS CHANGED!
-from highlevel_planning.skills.grasping import SkillGrasping
-from highlevel_planning.skills.move import SkillMove
-from highlevel_planning.tools.config import ConfigYaml
-from highlevel_planning.tools import run_util_test								#THIS IS CHANGED!
-from highlevel_planning.tools import run_util
-
-#----- Controllers -----
-
-from highlevel_planning.skills.fixed_base_vel_control import Controller as controller1
-from highlevel_planning.skills.fixed_base_torque_control import Controller as controller2
-#from highlevel_planning.skills.moving_base_no_collision_vel_control import Controller as controller3
-from highlevel_planning.skills.moving_base_no_collision_vel_control_v3 import Controller as controller3
-
-#----- New Skills -----
-
-from highlevel_planning.skills.direction_estimation import SkillUnconstrainedDirectionEstimation
-from highlevel_planning.skills.door_opening import SkillTrajectoryPlanning
-from highlevel_planning.skills.model_fitting import SkillModelIdentification
-
-#----- Utils -----
-
-from highlevel_planning.tools.door_opening_util import *
-from highlevel_planning.tools.plot_util import *
-
-#----- Other -----
-
-from scipy.spatial.transform import Rotation as R
-from highlevel_planning.tools.util import IKError
-from collections import deque
-
-import pybullet as p
 import numpy as np
 import os
-import math
+import matplotlib.pyplot as plt
 
 #-----------------
 
@@ -43,8 +8,6 @@ EPS = 1e-6
 BASEDIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 def analyze(global_folder, list_of_mode_names, Nx, Ny, Nang, Noff, initL, list_of_removed):
-
-	N = len(list_of_mode_names)
 
 	folder = os.getcwd()+'/moma/moma_demos/articulated_demo/runs'
 	folder = folder + '/' + global_folder
