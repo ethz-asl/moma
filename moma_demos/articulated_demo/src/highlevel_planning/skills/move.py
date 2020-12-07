@@ -41,11 +41,11 @@ class SkillMove:
         self.gamma_direction = 2.0
         self.gamma_hinge = 0.2
 
-        self.orthogonal_correction = False
+        self.orthogonal_correction = True
 
         self.f_desired = np.zeros((3, 1))
-        self.k_p_f = 0.8
-        self.k_i_f = 0.0
+        self.k_p_f = 0.5
+        self.k_i_f = 0.2
 
         self.t_desired = np.zeros((3, 1))
         self.k_p_t = 0.0
@@ -128,16 +128,16 @@ class SkillMove:
             plot_direction_data = np.append(plot_direction_data, direction, axis=1)
 
             # Compute new translation velocity reference
-            velocity_translation = self.desired_velocity * direction  # - np.matmul(
+            velocity_translation = self.desired_velocity * direction   #- np.matmul(
             #     projection_matrix, v_f
-            # )
+            #)
 
             # ---- Rotation -----
 
             # Torque reaction
             torque_error = t_wristframe - self.t_desired
             torque_integral += self.dt * torque_error
-            w_t = self.k_i_t * torque_error + self.k_i_t * torque_integral
+            w_t = self.k_p_t * torque_error + self.k_i_t * torque_integral
 
             # Update hinge estimate
             hinge_vector -= self.dt * self.gamma_hinge * self.desired_velocity * w_t
@@ -153,6 +153,7 @@ class SkillMove:
 
             # Update travelled distance
             new_position, _ = self.robot.get_link_pose("panda_default_EE")
+            print(direction)
             travelled_distance += np.linalg.norm(new_position - last_position)
             last_position = new_position
 

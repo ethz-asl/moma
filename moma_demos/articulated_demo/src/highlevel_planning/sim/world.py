@@ -60,6 +60,7 @@ class _Model:
             position,
             orientation,
             globalScaling=scale,
+            useFixedBase=True,						#CHANGE BACK !!!!!!!
             physicsClientId=self._physics_client,
         )
         self.name = p.getBodyInfo(self.uid)

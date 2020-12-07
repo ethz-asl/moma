@@ -30,104 +30,86 @@ class SkillModelIdentification:
 		self.buffer_length = buffer_length
 		self.dt = time_step
 		
+		self.direction_vector = None
+		
 		self.obj_pose_buffer = deque(maxlen=buffer_length)
 		
-	def init_trajectory(self, desired_velocity, desired_force, init_direction, sk_grasp, sk_nav, target_name, link_idx=0, grasp_id=0):
-		
+	def init_trajectory(self, desired_velocity, sk_grasp, sk_nav, observation_available=True, approached=True, target_name="cupboard", link_idx=0, grasp_id=0):
+
+
 		if self.buffer_length>5000:
 			it_max = self.buffer_length
+			
 		else:
 			it_max = 5000
 		
-		sk_nav.move_to_object("cupboard", nav_min_dist=1.0)
-
-		res = sk_grasp.grasp_object(target_name, link_idx)
-		if not res:
-			print('Initial grasping failed')
-			return
+		if not approached:
+		
+			sk_nav.move_to_object("cupboard", nav_min_dist=1.0)
 			
-		obj_info = self.scene.objects[target_name]
-		target_id = obj_info.model.uid
-		if len(obj_info.grasp_links) == 0:
-			raise SkillExecutionError("No grasps defined for this object")
-		link_id = obj_info.grasp_links[link_idx]
-
-		num_grasps = len(obj_info.grasp_pos[link_id])
-		if num_grasps == 0:
-			raise SkillExecutionError("No grasps defined for this object")
-		if grasp_id >= num_grasps:
-			raise SkillExecutionError("Invalid grasp ID")
-
-        	# Get the object pose
-		if link_id == -1:
-			temp = p.getBasePositionAndOrientation(target_id)
-			target_pos_prev  = np.array(temp[0]).reshape((-1, 1))
-			target_ori_prev = R.from_quat(np.array(temp[1]))
-		else:
-			temp = p.getLinkState(target_id, link_id)
-			target_pos_prev = np.array(temp[4]).reshape((-1, 1))
-			target_ori_prev= R.from_quat(np.array(temp[5]))
-		
-		self.obj_pose_buffer.append(target_pos_prev)
-		
-		current_time = 0.0
-		plot_time = np.array([0.0])
 		it = 0
-		n = np.array([-1, 0, -1]) 
-		Kp_f = 0.8	
 		
-		force_integral = np.zeros((3, 1))
-		
-		direction = np.copy(init_direction)
-		direction /= np.linalg.norm(init_direction)
-		direction = direction.reshape(3, 1)
-
 		while len(self.obj_pose_buffer)<self.buffer_length and it<it_max:
-						
-			f_wristframe, t_wristframe = self.robot.get_wrist_force_torque()
-			f_wristframe = f_wristframe.reshape(3, 1)
-			t_wristframe = t_wristframe.reshape(3, 1)
 			
-			force_error = f_wristframe - desired_force
-			v_f = 2*Kp_f*force_error
+			if observation_available:
+		
+				obj_info = self.scene.objects[target_name]
+				target_id = obj_info.model.uid
 			
-			direction -= self.dt*desired_velocity*v_f
-			direction /= np.linalg.norm(direction)
-			
-			velocity_translation = desired_velocity*direction
-			velocity_rotation = np.array([0,0,0]).reshape(3,1)
+				if len(obj_info.grasp_links) == 0:
+					raise SkillExecutionError("No grasps defined for this object")
+				link_id = obj_info.grasp_links[link_idx]
 
-			self.robot.task_space_velocity_control(np.squeeze(velocity_translation), np.squeeze(velocity_rotation), 1)
-			if link_id == -1:
-				temp = p.getBasePositionAndOrientation(target_id)
-				target_pos  = np.array(temp[0]).reshape((-1, 1))
-				target_ori = R.from_quat(np.array(temp[1]))
+				num_grasps = len(obj_info.grasp_pos[link_id])
+				if num_grasps == 0:
+					raise SkillExecutionError("No grasps defined for this object")
+				if grasp_id >= num_grasps:
+					raise SkillExecutionError("Invalid grasp ID")
+
+        			# Get the object pose
+				if link_id == -1:
+					temp = p.getBasePositionAndOrientation(target_id)
+					target_pos = np.array(temp[0]).reshape((-1, 1))
+
+				else:
+					temp = p.getLinkState(target_id, link_id)
+					target_pos = np.array(temp[4]).reshape((-1, 1))
+					
 			else:
-				temp = p.getLinkState(target_id, link_id)
-				target_pos = np.array(temp[4]).reshape((-1, 1))
-				target_ori = R.from_quat(np.array(temp[5]))
 			
-			if np.linalg.norm(target_pos_prev - target_pos)>EPS:
-				self.obj_pose_buffer.append(target_pos_prev)
-				
-				
-			target_pos_prev = target_pos
-			target_ori_prev = target_ori
-			it = it+1
+				link_pos_and_vel = p.getLinkState(self.robot.model.uid, linkIndex=self.robot.link_name_to_index["panda_default_EE"])	
+				target_pos = link_pos_and_vel[4]		
 			
-		print("Initial trajectory finished")
+			if len(self.obj_pose_buffer)>0:
+			
+				if np.linalg.norm(np.array(self.obj_pose_buffer[len(self.obj_pose_buffer)-1])- np.array(target_pos))>EPS:
+					self.obj_pose_buffer.append(np.array(target_pos))	
+					
+			else:
+				self.obj_pose_buffer.append(np.array(target_pos))
+				
+			velocity_rotation = np.array([0.0, 0.0, 0.0])
+			self.robot.task_space_velocity_control(np.squeeze(desired_velocity*np.array([0, 0, -1])), np.squeeze(velocity_rotation), 1)
+				
+			it +=1 
+
+		start_pose = np.copy(self.obj_pose_buffer[0].reshape(1,3))
+		stop_pose = np.copy(self.obj_pose_buffer[len(self.obj_pose_buffer)-1].reshape(1,3))
+		self.direction_vector = stop_pose - start_pose
+			
+		print("Initial trajectory finished")	
 		
 	def FitPrismaticModel(self):
 	
 		N_samples = len(self.obj_pose_buffer)
 		
-		sample = self.obj_pose_buffer[0].reshape(1,3)
+		sample = np.copy(self.obj_pose_buffer[0].reshape(1,3))
 		
 		X = np.copy(sample)
 		
 		for i in range(1,len(self.obj_pose_buffer)):
 			
-			sample = self.obj_pose_buffer[i].reshape(1,3)
+			sample = np.copy(self.obj_pose_buffer[i].reshape(1,3))
 			X = np.concatenate((X, sample), axis=0)
 		
 		data_mean = np.mean(X, axis=0)	
@@ -136,10 +118,9 @@ class SkillModelIdentification:
 		vh = vh.T
 		
 		v1 = vh[:,0]
-		direction_vector = -X[0, :] + X[X.shape[0]-1, :]
 		
-		e = np.sign(np.dot(v1, direction_vector))*v1
-		 
+		e = np.sign(np.dot(v1, np.squeeze(self.direction_vector)))*v1
+		
 		X_projected = np.matmul(X_centered, e)
 		
 		return e, X_projected, data_mean, X
@@ -148,7 +129,7 @@ class SkillModelIdentification:
 	
 		N_samples = len(self.obj_pose_buffer)
 		
-		sample = self.obj_pose_buffer[0].reshape(3,1)
+		sample = np.copy(self.obj_pose_buffer[0].reshape(3,1))
 		
 		A = np.zeros([2,7])
 		A[0,0] = sample[0,0]
@@ -167,7 +148,7 @@ class SkillModelIdentification:
 
 		for i in range(1,len(self.obj_pose_buffer)):
 			
-			sample = self.obj_pose_buffer[i].reshape(3,1)
+			sample = np.copy(self.obj_pose_buffer[i].reshape(3,1))
 			
 			A = np.zeros([2,7])
 			A[0,0] = sample[0,0]
@@ -202,7 +183,11 @@ class SkillModelIdentification:
 		
 		mse_r = mean_squared_error(B_r, B_pred_r)
 		mse_p = mean_squared_error(X, X_pred_p)
-
+		
+		print("Revolute: ", mse_r)
+		print("Prismatic: ", mse_p)
+		print(e)
+		
 		if mse_r<mse_p:
 			
 			model_type = 'revolute'

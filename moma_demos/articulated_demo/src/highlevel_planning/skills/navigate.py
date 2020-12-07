@@ -34,7 +34,7 @@ class SkillNavigate:
 
         # Get the object position
         temp = p.getBasePositionAndOrientation(target_id)
-        target_pos = np.array(temp[0])
+        target_pos = np.array(temp[0]) #+ np.array([-0.2, 0.0, 0.0])			# CHANGE THIS BACK!!
 
         # Get valid nav angles
         nav_angle = self.scene_.objects[target_name].nav_angle
@@ -78,7 +78,7 @@ class SkillNavigate:
                 direction_vec = np.array([np.cos(alpha), np.sin(alpha), 0])
                 robot_pos[:2] = target_pos[:2] + r * direction_vec[:2]
                 rotation = R.from_euler("z", np.pi + alpha, degrees=False)
-                robot_orient = rotation.as_quat()
+                robot_orient = rotation.as_quat()						# THIS CAN BE CHANGED IN ORDER TO DO DIFFERENT ORIENTATIONS
 
                 # Put robot into this position
                 self._move(robot_pos, robot_orient)

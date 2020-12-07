@@ -48,6 +48,6 @@ class Cupboard:
             },
             model_=self.model,
             nav_angle_=self.nav_angle,
-            nav_min_dist_=0.9,
+            nav_min_dist_=0.9,			#CHANGE BACK TO 0.9
             grasp_links_=self.handle_link_idx,
         )
