@@ -16,4 +16,6 @@ sudo apt-get install \
 	ros-$ROS_DISTRO-libfranka \
 	ros-$ROS_DISTRO-joint-state-publisher-gui \
 	ros-$ROS_DISTRO-ddynamic-reconfigure \
+	ros-$ROS_DISTRO-lms1xx \
+	ros-$ROS_DISTRO-interactive-marker-twist-server \
 	qtbase5-dev
