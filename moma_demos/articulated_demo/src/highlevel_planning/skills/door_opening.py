@@ -257,7 +257,7 @@ class SkillTrajectoryPlanning:
         return v    
         
 #-------
-    def LogDataForPlotting(self, sk_dir, interval, q, q_dot, nObj_O, C_O_ee, veldesEE_ee, J_b_ee, mtorq, vLinEE_O, vAngEE_O, vLinBase_O, vAngBase_O, f_wristframe, t_wristframe, q_dot_optimal,             r_O_obj):
+    def LogDataForPlotting(self, sk_dir, interval, q, q_dot, nObj_O, C_O_ee, veldesEE_ee, J_b_ee, mtorq, vLinEE_O, vAngEE_O, vLinBase_O, vAngBase_O, f_wristframe, t_wristframe, q_dot_optimal, r_O_obj):
 
         #----- Calculate Data for logging -----
                 
@@ -267,7 +267,8 @@ class SkillTrajectoryPlanning:
         vLinDesEE_O = C_O_ee.apply(veldesEE_ee[:3])
         vAngDesEE_O = C_O_ee.apply(veldesEE_ee[3:])
                 
-        theta = LA.norm(np.array(veldesEE_ee[3:]))
+        #theta = LA.norm(np.array(veldesEE_ee[3:]))
+        theta = np.arccos(np.dot(e_O.squeeze(), nObj_O.squeeze()))
         manipulabilityMeasure = LA.det(np.matmul(J_b_ee, np.transpose(J_b_ee)))**0.5
                 
         #----- Log Data -----
@@ -286,7 +287,7 @@ class SkillTrajectoryPlanning:
         
         self.log_lin_vBase_O_meas.append(vLinBase_O)
         self.log_ang_vBase_O_meas.append(vAngBase_O)
-        
+
         self.log_f_wristframe.append(f_wristframe)
         self.log_t_wristframe.append(t_wristframe)
         
@@ -550,7 +551,7 @@ class SkillTrajectoryPlanning:
         
             ax9_1.plot(t, list_of_model_fitting_metrics)
             ax9_1.grid('both', 'both')
-            ax9_1.set_ylabel(r"$<n_{est}, n_{true}>$")
+            ax9_1.set_ylabel(r"$\overrightarrow{n_{est}} \cdot \overrightarrow{n_{true}}$")
             ax9_1.set_xlim(t[0], t[-1])
         
             ax9_2.plot(t, theta)
@@ -684,7 +685,6 @@ class SkillTrajectoryPlanning:
                 #arrow_2_id = self.draw_arrow([0.1, 0.0, 0.0], "red")
                 
                 totalPlanningTime = 0.0
-                
                 for it in range(num_steps):
             
                     print(5*'-'+' Iteration '+str(it)+' '+5*'-')
@@ -698,12 +698,11 @@ class SkillTrajectoryPlanning:
                     #self.draw_arrow(f_wristframe, "red", arrow_id=None, length=LA.norm(f_wristframe)/22.0)
                 
                     sk_dir.UpdateEstimate(f_wristframe, 0.1, C_O_ee, False)
-                
                     #self.draw_arrow(sk_dir.GetCurrEstimate(), "green")
-                
+                    
                     velProfile = self.VelocityProfile2(it, self.vInit, self.vRegular, 0.5, 0.5, np.floor(self.initLength/3), self.initLength)
                 
-                    veldesEE_ee = sk_dir.GetPlannedVelocities(v=velProfile, calcAng=False, kAng=1)        
+                    veldesEE_ee = sk_dir.GetPlannedVelocities(v=velProfile, calcAng=True, kAng=0.05)        
                 
                     infoTuple = (M, b, J_b_ee, q, q_dot, C_O_b, C_O_ee, r_O_ee, velProfile)
                                 
@@ -713,10 +712,10 @@ class SkillTrajectoryPlanning:
                 
                     interval = stopTime - startTime
                     totalPlanningTime += interval
-                    
+
                     sk_dir.UpdateBuffers(f_wristframe, r_O_ee)
                     
-                    print("Drawer position: ", r_O_obj)
+                    print("Object position: ", r_O_obj)
                     #----- Log Data -----
                 
                     self.LogDataForPlotting(sk_dir, interval, q, q_dot, nObj_O, C_O_ee, veldesEE_ee, J_b_ee, mtorq, vLinEE_O, vAngEE_O, vLinBase_O, vAngBase_O, f_wristframe, 

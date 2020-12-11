@@ -88,9 +88,9 @@ def main(name_of_the_object = "cupboard"):
     c4 = controller4(scene, robot, robot._world.T_s, noCollision=True, Npolygon=256)
     
     #list_of_controllers.append(c1)
-    #list_of_controllers.append(c2)
-    #list_of_controllers.append(c3)
-    list_of_controllers.append(c4)
+    list_of_controllers.append(c2)
+    list_of_controllers.append(c3)
+    #list_of_controllers.append(c4)
     
     sk_traj = SkillTrajectoryPlanning(scene, robot, cfg, list_of_controllers, robot._world.T_s, initLen, vInit, vRegular)
     

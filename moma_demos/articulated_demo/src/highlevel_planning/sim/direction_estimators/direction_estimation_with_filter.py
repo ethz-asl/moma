@@ -72,7 +72,7 @@ class Estimator(SkillUnconstrainedDirectionEstimation):
         return e
         
 #-------
-    def UpdateEstimate(self, f_wristframe, alpha, C_O_ee, smooth=False, mixCoeff=0.1):
+    def UpdateEstimate(self, f_wristframe, alpha, C_O_ee, smooth=False, mixCoeff=0.5):
     
         self.counter +=1
         f_wristframe = f_wristframe.reshape(3,1)
@@ -86,7 +86,7 @@ class Estimator(SkillUnconstrainedDirectionEstimation):
         error = np.matmul(orthoProjMat, f_wristframe) - self.fDesired
         error = error/LA.norm(error)
                 
-        if self.counter>self.initN*1000:
+        if self.counter>self.initN:
             
             eFromPoses = self.GetDirectionFromPoses()
             eFromPoses = np.array(C_O_ee.inv().apply(eFromPoses))
@@ -122,7 +122,7 @@ class Estimator(SkillUnconstrainedDirectionEstimation):
     
         vdesEE_ee = v * self.directionVector
         
-        if calcAng:
+        if calcAng and self.counter>self.initN:
             theta_des = 0.0
             
             nObj_ee = np.squeeze(self.directionVector)
