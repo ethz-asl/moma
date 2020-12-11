@@ -1,0 +1,4 @@
+constrained_joint_velocity_controller:
+    type: panda_control_v2/ConstrainedJointVelocityController
+    arm_id: panda
+    max_duration_between_commands: 0.1  # velocity is set to 0 if no new command is received within this time
