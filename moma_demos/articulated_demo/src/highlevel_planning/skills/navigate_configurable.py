@@ -50,6 +50,18 @@ class SkillNavigate:
             
             nav_min_dist = nav_min_dist - 0.2875
             
+        if target_name == 'slidingdoor':
+            
+            nav_min_dist = nav_min_dist - 0.2875
+            
+        if target_name == 'slidinglid':
+            
+            nav_min_dist = nav_min_dist - 0.7
+            
+        if target_name == 'removablelid':
+            
+            nav_min_dist = nav_min_dist - 0.7
+            
         # Move there
         return self.move_to_pos(target_pos, nav_angle, nav_min_dist)
 

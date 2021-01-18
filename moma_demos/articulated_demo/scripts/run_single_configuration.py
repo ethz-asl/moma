@@ -57,6 +57,20 @@ def main(name_of_the_object = "cupboard"):
         link_index = 0
         offsetPos = [0.0, 0.0, 0.0]
         
+    elif name_of_the_object == "slidingdoor":
+
+        link_index = 0
+        offsetPos = [0.0, 0.0, 0.0]
+        
+    elif name_of_the_object == "slidinglid":
+
+        link_index = 0
+        offsetPos = [0.0, 0.0, 0.0]
+
+    elif name_of_the_object == "removablelid":
+
+        link_index = 0
+        offsetPos = [0.0, 0.0, 0.0]        
     # Command line arguments
     
     args = run_util_configurable.parse_arguments()
@@ -80,15 +94,15 @@ def main(name_of_the_object = "cupboard"):
                   
     sk_grasp = SkillGrasping(scene, robot, cfg)
     sk_nav = SkillNavigate(scene, robot, offsetPos, offsetAng)
-    sk_dir = Estimator(scene, robot, robot._world.T_s, 100, np.array([0.0, 0.0, -1.0]).reshape(3,1), initLen, fd1)    
+    sk_dir = Estimator(scene, robot, robot._world.T_s, 100, np.array([-0.5/1.5**0.5, -0.5/1.5**0.5, -1.0/1.5**0.5]).reshape(3,1), initLen, fd1)    
 
     c1 = controller1(scene, robot, robot._world.T_s)
     c2 = controller2(scene, robot, robot._world.T_s)
     c3 = controller3(scene, robot, robot._world.T_s, noCollision=True)
     c4 = controller4(scene, robot, robot._world.T_s, noCollision=True, Npolygon=256)
     
-    #list_of_controllers.append(c1)
-    list_of_controllers.append(c2)
+    list_of_controllers.append(c1)
+    #list_of_controllers.append(c2)
     list_of_controllers.append(c3)
     #list_of_controllers.append(c4)
     
@@ -108,6 +122,6 @@ if __name__ == "__main__":
     
 # 1) Import the appropriate direction estimator
 # 2) Import all desired controllers
-# 3) Set desired object name: "cupboard/roomdoor"
+# 3) Set desired object name: "cupboard/roomdoor/slidingdoor/slidinglid/removable/lid"
     
-    main(name_of_the_object = "cupboard")
+    main(name_of_the_object = "removablelid")

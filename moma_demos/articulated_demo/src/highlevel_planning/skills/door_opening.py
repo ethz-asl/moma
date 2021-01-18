@@ -690,6 +690,7 @@ class SkillTrajectoryPlanning:
                     print(5*'-'+' Iteration '+str(it)+' '+5*'-')
                 
                     r_O_obj,_,_,nObj_O = self.GetGraspedObjActualInfo(target_name, link_idx, grasp_id)
+                    print(nObj_O)
                 
                     startTime = time.time()
                 
@@ -702,7 +703,7 @@ class SkillTrajectoryPlanning:
                     
                     velProfile = self.VelocityProfile2(it, self.vInit, self.vRegular, 0.5, 0.5, np.floor(self.initLength/3), self.initLength)
                 
-                    veldesEE_ee = sk_dir.GetPlannedVelocities(v=velProfile, calcAng=True, kAng=0.05)        
+                    veldesEE_ee = sk_dir.GetPlannedVelocities(v=velProfile, calcAng=False, kAng=0.05)        
                 
                     infoTuple = (M, b, J_b_ee, q, q_dot, C_O_b, C_O_ee, r_O_ee, velProfile)
                                 
