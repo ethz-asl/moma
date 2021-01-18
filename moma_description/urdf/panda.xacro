@@ -22,6 +22,19 @@
     <xacro:include filename="$(find moma_description)/urdf/panda_arm.gazebo.xacro"/>
     <xacro:panda_gazebo arm_id="panda" include_gazebo_control="${include_gazebo_control}"/>
 
+    <gazebo reference="panda_joint7">
+      <provideFeedback>true</provideFeedback>
+    </gazebo>
+
+    <gazebo>
+      <plugin name="ft_sensor" filename="libgazebo_ros_ft_sensor.so">
+        <alwaysOn>true</alwaysOn>
+        <jointName>panda_joint7</jointName>
+        <topicName>/eeforce</topicName>
+        <updateRate>100.0</updateRate>
+      </plugin>
+    </gazebo>
+
     <!-- wrist realsense -->
     <xacro:include filename="$(find realsense2_description)/urdf/_d435.urdf.xacro" />
     <xacro:include filename="$(find moma_description)/urdf/realsense.gazebo.xacro" />

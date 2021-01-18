@@ -19,10 +19,10 @@
       <transmission name="${arm_id}_joint${joint_num}_trans">
         <type>transmission_interface/SimpleTransmission</type>
         <joint name="${arm_id}_joint${joint_num}">
-          <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+          <hardwareInterface>VelocityJointInterface</hardwareInterface>
         </joint>
         <actuator name="${arm_id}_joint${joint_num}_motor">
-          <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+          <hardwareInterface>VelocityJointInterface</hardwareInterface>
           <mechanicalReduction>1</mechanicalReduction>
         </actuator>
       </transmission>
@@ -72,5 +72,6 @@
         <multiplier>2.0</multiplier>
       </plugin>
     </gazebo>
+
   </xacro:macro>
 </robot>

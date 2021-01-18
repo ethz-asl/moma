@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(moma_gazebo)
+project(panda_control_door_opening)
 
 set(CMAKE_BUILD_TYPE Release)
 
@@ -8,19 +8,21 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(catkin REQUIRED COMPONENTS
   controller_interface
+  franka_control
+  franka_description
+  franka_hw
   hardware_interface
   pluginlib
+  realtime_tools
   roscpp
   rospy
   std_msgs
-  sensor_msgs
-  geometry_msgs
   message_generation
 )
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
-find_package(catkin_simple REQUIRED)
+find_package(Franka 0.5.0 REQUIRED)
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
@@ -54,7 +56,8 @@ catkin_python_setup()
 ## Generate messages in the 'msg' folder
  add_message_files(
    FILES
-   command.msg
+   command_msg.msg
+   model_state_msg.msg
  )
 
 ## Generate services in the 'srv' folder
@@ -108,8 +111,9 @@ catkin_python_setup()
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
 #  INCLUDE_DIRS include
-  LIBRARIES moma_gazebo
-  CATKIN_DEPENDS controller_interface hardware_interface pluginlib roscpp rospy std_msgs message_runtime sensor_msgs geometry_msgs
+  LIBRARIES franka_example_controllers panda_control_door_opening
+  CATKIN_DEPENDS controller_interface franka_control franka_description franka_hw hardware_interface libfranka pluginlib realtime_tools roscpp rospy std_msgs message_runtime
+  DEPENDS Franka
 )
 
 ###########
@@ -124,23 +128,25 @@ include_directories(
 )
 
 ## Declare a C++ library
- add_library(moma_gazebo
-   src/gazebo_door_opening_joint_velocity_controller.cpp       ##Compile src/door_opening_joint_velocity_controller.cpp file and create a panda_control_door_opening library
+ add_library(panda_control_door_opening
+   src/door_opening_joint_velocity_controller.cpp       ##Compile src/door_opening_joint_velocity_controller.cpp file and create a panda_control_door_opening library
  )
 
- add_dependencies(moma_gazebo
+ add_dependencies(panda_control_door_opening
   ${${PROJECT_NAME}_EXPORTED_TARGETS}
   ${catkin_EXPORTED_TARGETS}
 )
 
-target_link_libraries(moma_gazebo PUBLIC
+target_link_libraries(panda_control_door_opening PUBLIC
+  ${Franka_LIBRARIES}
   ${catkin_LIBRARIES}
 )
 
-target_include_directories(moma_gazebo SYSTEM PUBLIC
+target_include_directories(panda_control_door_opening SYSTEM PUBLIC
+  ${Franka_INCLUDE_DIRS}
   ${catkin_INCLUDE_DIRS}
 )
-target_include_directories(moma_gazebo PUBLIC
+target_include_directories(panda_control_door_opening PUBLIC
   include
 )
 
@@ -153,7 +159,7 @@ target_link_libraries(panda_state_service ${catkin_LIBRARIES})
 add_dependencies(panda_state_service panda_control_door_opening_gencpp)
 
 ## Installation
-install(TARGETS moma_gazebo
+install(TARGETS panda_control_door_opening
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
@@ -164,7 +170,7 @@ install(DIRECTORY launch
 install(DIRECTORY config
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
-install(FILES moma_gazebo.xml
+install(FILES panda_control_door_opening.xml
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
 ## Add cmake target dependencies of the library

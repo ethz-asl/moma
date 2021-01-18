@@ -26,7 +26,7 @@
 
   <!-- start joint position trajectory controller -->
   <rosparam file="$(find moma_gazebo)/config/panda_controllers.yaml" command="load" />
-  <node name="controller_spawner_panda" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="joint_state_controller position_joint_trajectory_controller franka_gripper" />
+  <node name="controller_spawner_panda" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="joint_state_controller door_opening_joint_velocity_controller franka_gripper" />
 
   <!-- start a robot state publisher -->
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="true" output="screen" />

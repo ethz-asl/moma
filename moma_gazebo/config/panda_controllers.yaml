@@ -2,18 +2,21 @@ joint_state_controller:
   type: joint_state_controller/JointStateController
   publish_rate: 100
 
-position_joint_trajectory_controller:
-  type: position_controllers/JointTrajectoryController
-  joints:
-    - panda_joint1
-    - panda_joint2
-    - panda_joint3
-    - panda_joint4
-    - panda_joint5
-    - panda_joint6
-    - panda_joint7
-  constraints:
-    goal_time: 0.5
+door_opening_joint_velocity_controller:
+    type: moma_gazebo/DoorOpeningJointVelocityController
+    arm_id: panda
+    joint_names:
+        - panda_joint1
+        - panda_joint2
+        - panda_joint3
+        - panda_joint4
+        - panda_joint5
+        - panda_joint6
+        - panda_joint7
+    max_duration_between_commands: 0.1
+    max_velocity: [2.1750, 2.1750, 2.1750, 2.1750, 2.6100, 2.6100, 2.6100]
+    max_acceleration: [15, 7.5, 10, 12.5, 15, 20, 20]
+    max_jerk: [7500, 3750, 5000, 6250, 7500, 10000, 10000]
 
 franka_gripper:
   type: position_controllers/GripperActionController
@@ -27,3 +30,4 @@ gazebo_ros_control:
     front_right_wheel: {p: 1, i: 0.1, d: 0, i_clamp: 0.2}
     rear_left_wheel: {p: 1, i: 0.1, d: 0, i_clamp: 0.2}
     rear_right_wheel: {p: 1, i: 0.1, d: 0, i_clamp: 0.2}
+

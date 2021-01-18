@@ -1,0 +1,7 @@
+<library path="lib/libpanda_control_door_opening">
+  <class name="panda_control_door_opening/DoorOpeningJointVelocityController" type="panda_control_door_opening::DoorOpeningJointVelocityController" base_class_type="controller_interface::ControllerBase">
+    <description>
+      A controller that executes cartesian velocities set via ROS messages.
+    </description>
+  </class>
+</library>

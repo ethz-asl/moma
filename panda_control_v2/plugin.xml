@@ -1,4 +1,0 @@
-<library path="lib/libpanda_control_v2">
-  <class name="panda_control_v2/ConstrainedJointVelocityController" type="panda_control_v2::ConstrainedJointVelocityController" base_class_type="controller_interface::ControllerBase">
-  </class>
-</library>
