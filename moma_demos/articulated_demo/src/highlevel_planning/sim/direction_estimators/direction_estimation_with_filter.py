@@ -133,7 +133,7 @@ class Estimator(SkillUnconstrainedDirectionEstimation):
         else:
             
             wdesEE_ee = np.array([0.0]*3)
-            
+        print("wdesEE_ee: ", wdesEE_ee)    
         veldesEE_ee = np.concatenate((np.squeeze(vdesEE_ee), np.squeeze(wdesEE_ee)), axis=0)
         
         return veldesEE_ee

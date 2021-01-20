@@ -48,11 +48,11 @@ class SkillNavigate:
         
         if target_name == 'roomdoor':
             
-            nav_min_dist = nav_min_dist - 0.2875
+            nav_min_dist = nav_min_dist - 0.25
             
         if target_name == 'slidingdoor':
             
-            nav_min_dist = nav_min_dist - 0.2875
+            nav_min_dist = nav_min_dist - 0.25
             
         if target_name == 'slidinglid':
             
@@ -62,15 +62,21 @@ class SkillNavigate:
             
             nav_min_dist = nav_min_dist - 0.7
             
+        if target_name == 'dishwasher':
+            
+            nav_min_dist = nav_min_dist - 0.25
+            
         # Move there
-        return self.move_to_pos(target_pos, nav_angle, nav_min_dist)
+        return self.move_to_pos(target_name, target_id, target_pos, nav_angle, nav_min_dist)
 
-    def move_to_pos(self, target_pos, nav_angle=None, nav_min_dist=None):
+    def move_to_pos(self, target_name, target_id, target_pos, nav_angle=None, nav_min_dist=None):
         assert len(target_pos) == 3
         assert type(target_pos) is np.ndarray
-
+        
+        nj = p.getNumJoints(target_id)
+        
         self.robot_.to_start()
-
+               
         # Get robot position
         temp = p.getBasePositionAndOrientation(self.robot_uid_)
         robot_pos = np.array(temp[0])
@@ -97,6 +103,9 @@ class SkillNavigate:
 
             # Then vary the angle
             for alpha in alphas:
+                
+                for counter in range(nj):
+                    p.resetJointState(target_id, counter, -0.0, 0.0) 
 
                 direction_vec = np.array([np.cos(alpha), np.sin(alpha), 0])
                 robot_pos[:2] = target_pos[:2] + r * direction_vec[:2]

@@ -191,8 +191,14 @@ class SkillTrajectoryPlanning:
         quat = np.squeeze(ori_obj)
         C_O_obj = R.from_quat(ori_obj)
         
-        nobj_O = np.squeeze(np.array(C_O_obj.as_matrix())[:, 0])    
+        if target_name in ["cupboard", "roomdoor", "dishwasher"]:
         
+            nobj_O = np.squeeze(np.array(C_O_obj.as_matrix())[:, 0])    
+        
+        elif target_name in ["slidingdoor", "slidinglid"]:
+            
+            nobj_O = np.squeeze(np.array(C_O_obj.as_matrix())[:, 1]) 
+            
         return r_O_obj, quat, C_O_obj, nobj_O    
         
 #-------
@@ -263,12 +269,15 @@ class SkillTrajectoryPlanning:
                 
         e_ee = sk_dir.GetCurrEstimate()
         e_O = C_O_ee.apply(e_ee)
-  
+
+        z_ee = np.array([0.0, 0.0, 1.0])
+        z_O = C_O_ee.apply(z_ee)
+        
         vLinDesEE_O = C_O_ee.apply(veldesEE_ee[:3])
         vAngDesEE_O = C_O_ee.apply(veldesEE_ee[3:])
                 
         #theta = LA.norm(np.array(veldesEE_ee[3:]))
-        theta = np.arccos(np.dot(e_O.squeeze(), nObj_O.squeeze()))
+        theta = np.arccos(np.dot(z_O.squeeze(), -nObj_O.squeeze()))
         manipulabilityMeasure = LA.det(np.matmul(J_b_ee, np.transpose(J_b_ee)))**0.5
                 
         #----- Log Data -----
@@ -703,7 +712,7 @@ class SkillTrajectoryPlanning:
                     
                     velProfile = self.VelocityProfile2(it, self.vInit, self.vRegular, 0.5, 0.5, np.floor(self.initLength/3), self.initLength)
                 
-                    veldesEE_ee = sk_dir.GetPlannedVelocities(v=velProfile, calcAng=False, kAng=0.05)        
+                    veldesEE_ee = sk_dir.GetPlannedVelocities(v=velProfile, calcAng=True, kAng=1)        
                 
                     infoTuple = (M, b, J_b_ee, q, q_dot, C_O_b, C_O_ee, r_O_ee, velProfile)
                                 

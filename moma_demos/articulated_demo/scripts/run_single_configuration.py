@@ -31,6 +31,7 @@ from highlevel_planning.tools.door_opening_util import *
 
 import numpy as np
 import os
+import pybullet as p
 
 #-----------------
 
@@ -55,22 +56,23 @@ def main(name_of_the_object = "cupboard"):
     elif name_of_the_object == "roomdoor":
         
         link_index = 0
-        offsetPos = [0.0, 0.0, 0.0]
         
     elif name_of_the_object == "slidingdoor":
 
         link_index = 0
-        offsetPos = [0.0, 0.0, 0.0]
         
     elif name_of_the_object == "slidinglid":
 
         link_index = 0
-        offsetPos = [0.0, 0.0, 0.0]
 
     elif name_of_the_object == "removablelid":
 
         link_index = 0
-        offsetPos = [0.0, 0.0, 0.0]        
+        
+    elif name_of_the_object == "dishwasher":
+        
+        link_index = 0
+        
     # Command line arguments
     
     args = run_util_configurable.parse_arguments()
@@ -87,6 +89,14 @@ def main(name_of_the_object = "cupboard"):
     robot, scene = run_util_configurable.setup_pybullet_world(
         SceneMoveSkill, BASEDIR, savedir, objects, args, cfg, robot_mdl, offsetGr, name_of_the_object
     )
+           
+    if name_of_the_object == 'dishwasher':
+        
+        target_id = scene.objects[name_of_the_object].model.uid
+        nj = p.getNumJoints(target_id)          
+        for counter in range(nj):
+            p.resetJointState(target_id, counter, -0.01, 0.0) 
+                
     list_of_controllers = []    
     fd1 = 1/(50*robot._world.T_s)
        
@@ -94,17 +104,17 @@ def main(name_of_the_object = "cupboard"):
                   
     sk_grasp = SkillGrasping(scene, robot, cfg)
     sk_nav = SkillNavigate(scene, robot, offsetPos, offsetAng)
-    sk_dir = Estimator(scene, robot, robot._world.T_s, 100, np.array([-0.5/1.5**0.5, -0.5/1.5**0.5, -1.0/1.5**0.5]).reshape(3,1), initLen, fd1)    
+    sk_dir = Estimator(scene, robot, robot._world.T_s, 100, np.array([0.0, 0.0, -1.0]).reshape(3,1), initLen, fd1)    
 
     c1 = controller1(scene, robot, robot._world.T_s)
     c2 = controller2(scene, robot, robot._world.T_s)
     c3 = controller3(scene, robot, robot._world.T_s, noCollision=True)
     c4 = controller4(scene, robot, robot._world.T_s, noCollision=True, Npolygon=256)
     
-    list_of_controllers.append(c1)
-    #list_of_controllers.append(c2)
+    #list_of_controllers.append(c1)
+    list_of_controllers.append(c2)
     list_of_controllers.append(c3)
-    #list_of_controllers.append(c4)
+    list_of_controllers.append(c4)
     
     sk_traj = SkillTrajectoryPlanning(scene, robot, cfg, list_of_controllers, robot._world.T_s, initLen, vInit, vRegular)
     
@@ -122,6 +132,6 @@ if __name__ == "__main__":
     
 # 1) Import the appropriate direction estimator
 # 2) Import all desired controllers
-# 3) Set desired object name: "cupboard/roomdoor/slidingdoor/slidinglid/removable/lid"
+# 3) Set desired object name: "cupboard/roomdoor/slidingdoor/slidinglid/removablelid/dishwasher"
     
-    main(name_of_the_object = "removablelid")
+    main(name_of_the_object = "dishwasher")

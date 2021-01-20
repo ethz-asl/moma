@@ -27,7 +27,7 @@
             <geometry>
                 <box size="0.1 0.1 2"/>
             </geometry>
-            <material name="framemat0"/>	 
+            <material name="framemat0"/>
         </visual>
         <visual>
             <origin rpy="0 0 0" xyz="0.5 0 1.95"/>
@@ -62,7 +62,7 @@
              </geometry>
         </collision>
     </link>
-    
+
     <link name="doorLink">
         <inertial>
             <origin rpy="0 0 0" xyz="0.4 0 0.0"/>
@@ -85,16 +85,16 @@
             </geometry>
         </collision>
     </link>
-    
+
     <joint name="joint_doorFrameLink_doorLink" type="revolute">
         <parent link="doorFrameLink"/>
         <child link="doorLink"/>
-        <dynamics damping="1.0" friction="0.0001"/>
+        <dynamics damping="1.0" friction="4.0"/>
         <origin xyz="0.05 0 0.95"/>
 	<axis xyz="0 0 1"/>
-	<limit lower="-1.5708" upper="-0.1" />
+	<limit lower="-1.5708" upper="0.1" />
     </joint>
-    
+
     <link name="handleLink">
         <inertial>
             <origin rpy="0 0 0" xyz="0 0 0"/>
@@ -121,10 +121,10 @@
     <joint name="handle_joint" type="fixed">
         <parent link="doorLink"/>
         <child link="handleLink"/>
-        <origin xyz="0.7 -0.05 -0.15" rpy="4.7124 0 -1.5708"/>
+        <origin xyz="0.7 -0.1 -0.15" rpy="4.7124 0 -1.5708"/>
         <axis xyz="1 0 0"/>
     </joint>
-    
+
     <link name="door_handle_dummy_link">
         <!-- This dummy link is added s.t. the handle is the parent of some link and we can find the handle's index. -->
         <inertial>
@@ -133,11 +133,11 @@
             <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
         </inertial>
     </link>
-    
+
     <joint name="door_handle_dummy_joint" type="fixed">
         <origin xyz="0 0 0" rpy="0 0 0"/>
         <parent link="handleLink"/>
         <child link="door_handle_dummy_link"/>
     </joint>
-    
+
 </robot>

@@ -52,7 +52,7 @@ class SkillGrasping:
             (-1, 1)
         )
         r_R_R_grasp = self.robot.convert_pos_to_robot_frame(r_O_O_grasp)
-        print("r_O_grasp: ", r_O_O_grasp)
+
         # self.robot._world.draw_cross(np.squeeze(r_O_O_grasp))
 
         # Compute desired orientation
@@ -62,30 +62,27 @@ class SkillGrasping:
         C_rob_ee = (
             C_rob_grasp * C_rob_ee_default
         )  # Apply standard EE orientation. EE will be in default orientation if robot and grasp orientation are equal
-        print("r_R_R_grasp: ", r_R_R_grasp[:3])
-        print("C_obj_grasp: ", C_obj_grasp.as_matrix())
-        print("C_rob_ee_default: ", C_rob_ee_default.as_matrix())
-        print("C_O_rob.inv(): ", C_O_rob.inv().as_matrix())
-        print("C_O_obj: ", C_O_obj.as_matrix())
-
         return r_R_R_grasp[:3], C_rob_ee.as_quat()
 
     def grasp_object(self, target_name, link_idx=0, grasp_id=0, lock=None):
         if lock is not None:
             lock.acquire()
         pos, orient = self.compute_grasp(target_name, link_idx, grasp_id)
+        
+        if target_name == 'dishwasher':
+        
+            target_id = self.scene.objects[target_name].model.uid
+            nj = p.getNumJoints(target_id)          
+            for counter in range(nj):
+                p.resetJointState(target_id, counter, -0.01, 0.0) 
 
         self.robot.open_gripper()
-        print("POS 1: ", pos)
-        print("R: ", R.from_quat(orient).as_matrix())
-        print("POS 2: ", np.matmul(
-            R.from_quat(orient).as_dcm(), np.array([0.0, 0.0, self._pregrasp_z_offset])
-        ))
+ 
         # Go to pre-grasp pose
         pos_pre = pos - np.matmul(
             R.from_quat(orient).as_dcm(), np.array([0.0, 0.0, self._pregrasp_z_offset])
         )
-        print("POS RES: ", pos_pre)
+
         pos_pre_joints = self.robot.ik(pos_pre, orient)
         if pos_pre_joints.tolist() is None:
             if lock is not None:

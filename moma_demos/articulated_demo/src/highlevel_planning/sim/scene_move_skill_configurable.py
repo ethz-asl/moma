@@ -5,6 +5,7 @@ from highlevel_planning.sim.room_door_configurable import RoomDoor
 from highlevel_planning.sim.sliding_door_configurable import SlidingDoor
 from highlevel_planning.sim.sliding_lid_configurable import SlidingLid
 from highlevel_planning.sim.removable_lid_configurable import RemovableLid
+from highlevel_planning.sim.dishwasher_configurable import DishwasherDoor
 
 class SceneMoveSkill(SceneBase):
     def __init__(self, world, base_dir, graspOffset, elementToAdd, restored_objects=None):
@@ -63,5 +64,15 @@ class SceneMoveSkill(SceneBase):
                         grasp_offset = graspOffset
                         )
                 self.objects["removablelid"] = removablelid.get_info()
+
+            if elementToAdd == "dishwasher":
+                dishwasher = DishwasherDoor(
+                        world,
+                        pos_=[0.0, 2.0, 0.0],
+                        orient_=[0.0, 0.0, 0.0, 1.0],
+                        base_dir=base_dir,
+                        grasp_offset = graspOffset
+                        )
+                self.objects["dishwasher"] = dishwasher.get_info()
                 
             self.add_objects()
