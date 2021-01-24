@@ -95,10 +95,10 @@ class PandaCommander(object):
         return self.gripper_client.wait_for_result(timeout=rospy.Duration(1.0))
 
     def grasp(self):
-        self.move_gripper(0.01)
+        self.move_gripper(0.0)
 
     def release(self):
-        self.move_gripper(0.1)
+        self.move_gripper(0.04)
 
     def check_object_grasped(self):
         # raise NotImplementedError

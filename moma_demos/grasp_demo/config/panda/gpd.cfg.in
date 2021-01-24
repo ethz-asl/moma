@@ -16,7 +16,7 @@ weights_file = @CMAKE_CURRENT_SOURCE_DIR@/../../submodules/gpd/models/lenet/15ch
 voxelize = 1
 voxel_size = 0.005
 remove_outliers = 1
-workspace = 0 1 -0.5 0.5 -0.5 1
+workspace = 0 1 -0.5 0.5 0 1
 camera_position = 0.5 0 0.5
 sample_above_plane = 1
 
@@ -47,7 +47,7 @@ min_viable = 6
 #   workspace_grasps: dimensions of a cube centered at origin of point cloud; should be smaller than <workspace>
 min_aperture = 0.0
 max_aperture = 0.08
-workspace_grasps = 0.2 0.6 -0.4 0.4 0.035 0.61
+workspace_grasps = 0.2 0.8 -0.4 0.4 0.22 1
 
 # Filtering of candidates based on their approach direction
 #   filter_approach_direction: turn filtering on/off
@@ -63,7 +63,7 @@ min_inliers = 3
 
 # Grasp selection
 #   num_selected: number of selected grasps (sorted by score)
-num_selected = 8
+num_selected = 12
 
 # Visualization
 #   plot_normals: plot the surface normals
