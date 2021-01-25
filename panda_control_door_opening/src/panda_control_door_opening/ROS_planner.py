@@ -74,7 +74,7 @@ class RobotPlanner:
         self.set_frames_srv = rospy.ServiceProxy('/panda_init_srv', PandaInitSrv)
         self.robot_gripper_srv = rospy.ServiceProxy('/robot_gripper_srv', PandaGripperSrv)
 
-        self.subscriber_base_state = rospy.Subscriber('/odom', Odometry , self.baseState_cb)
+        self.subscriber_base_state = rospy.Subscriber('/ridgeback_velocity_controller/odom', Odometry , self.baseState_cb)
 
         #----- Publishers -----
 
@@ -412,5 +412,5 @@ class RobotPlanner:
 
     def prepare_for_stop(self):
 
-        self.publishArmAndBase([0.0]*7, linVelBase = [0.0, 0.0, 0.0], angVelBase = 0.0)
+        self.publishArmAndBaseVelocityControl([0.0]*7, linVelBase = [0.0, 0.0, 0.0], angVelBase = 0.0)
 

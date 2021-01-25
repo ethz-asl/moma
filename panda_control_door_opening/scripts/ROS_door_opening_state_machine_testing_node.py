@@ -1,10 +1,11 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 """
-Created on Sat Jan  2 13:42:10 2021
+Created on Mon Jan 25 13:11:26 2021
 
 @author: marko
 """
+
 import rospy
 
 #----- Skills -----
@@ -73,9 +74,12 @@ class StartState(State):
         rospy.sleep(1.0)
 
         rospy.wait_for_service('/get_panda_state_srv')
+        print("PANDA_STATE_SRV initiated")
         rospy.wait_for_service('/panda_init_srv')
+        print("PANDA_INIT_SRV initiated")
         rospy.wait_for_service('/robot_gripper_srv')
-
+        print("PANDA_GRIPPER_SRV initiated")
+        
         print(10*'*'+" All services started! "+10*'*')
 
         while(waiting):
@@ -119,9 +123,9 @@ class StartState(State):
 
         if temp1 in ['y', 'Y']:
             
-            grasping_width = 0.04
-            grasping_vel = 0.1
-            grasping_force = 60            
+            grasping_width = 0.03
+            grasping_vel = 0.01
+            grasping_force = 2            
 
             succ = self.robot.close_gripper(grasping_width, grasping_vel, grasping_force)
             
@@ -188,50 +192,8 @@ class ObjectGraspedState(State):
 
         if event == 'stop':
             return StopState(self.direction_estimator, self.controller, self.robot)
-
-#----- State when the control loop is running -----
-
-class RunningState(State):
-
-    def run(self):
-
-        time_step = 0.05
-
-        freq = rospy.Rate(1/time_step)
-
-        vFinal = 0.1
-        vInit = vFinal/4
-        alphaInit = 0.5
-        alphaFinal = 0.5
-
-        initN = 100
-
-        tConv = initN
-        t0 = np.ceil(tConv/3)
-
-        counter = 0
-        N_steps = 1200
-
-        print("")
-        try:
-
-            while counter <= N_steps and not rospy.is_shutdown():
-                print("Iteration: " + str(counter) )
-                self.robot.run_once(counter, vInit, vFinal, alphaInit, alphaFinal, t0, tConv, alpha=0.1, smooth=False, mixCoeff=0.1)
-                #freq.sleep()
-                counter += 1
-
-        except rospy.ROSInterruptException:  pass
-
-        return 'stop'
-
-    def transition(self, event):
-
-        if event == 'stop':
-            return StopState(self.direction_estimator, self.controller, self.robot)
-
-#----- Finishing state -----
-
+        
+        
 class StopState(State):
 
     def run(self):
@@ -284,12 +246,6 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-
-
-
-
 
 
 

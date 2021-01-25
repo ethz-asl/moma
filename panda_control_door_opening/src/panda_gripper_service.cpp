@@ -50,10 +50,16 @@ class PandaGripperService {
                     ROS_INFO("Object is too big for the current finger configuration");
                     return false;
                 }
-                if (!gripper_ptr->grasp(req.grasping_width, req.grasping_speed, req.grasping_force)) {
-                    ROS_INFO("Failed to grasp object");
+//                if (!gripper_ptr->grasp(req.grasping_width, req.grasping_speed, req.grasping_force)) {
+//                    ROS_INFO("Failed to grasp object");
+//                    return false;
+//                }
+
+                if (!gripper_ptr->move(req.grasping_width, req.grasping_speed)) {
+                    ROS_INFO("Failed to gmove properly");
                     return false;
                 }
+
                 gripper_closed = true;
             }
 
