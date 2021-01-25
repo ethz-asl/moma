@@ -17,6 +17,10 @@ from panda_control_door_opening.ROS_direction_estimation import SkillUnconstrain
 
 from panda_control_door_opening.ROS_planner import RobotPlanner
 
+from panda_control_door_opening.msg import *
+
+from panda_control_door_opening.srv import *
+
 #----- Other -----
 
 import numpy as np
@@ -192,6 +196,49 @@ class ObjectGraspedState(State):
 
         if event == 'stop':
             return StopState(self.direction_estimator, self.controller, self.robot)
+        
+#----- Simplified Running State -----
+            
+class RunningState(State):
+    
+    def run(self):
+        
+        counter = 0
+        N_steps = 100
+        
+        
+        try:
+
+            while counter <= N_steps and not rospy.is_shutdown():
+                print("Iteration: " + str(counter) )
+                
+                req = PandaStateSrvRequest()
+                panda_model = self.robot.get_panda_model_state_srv(req)
+                
+                print("q: ", panda_model.q)
+                print("dq: ", panda_model.dq)
+                print("q_d: ", panda_model.q_d)
+                print("dq_d: ", panda_model.dq_d)
+                print("ddq_d: ", panda_model.ddq_d)
+                print("tau: ", panda_model.tau)
+                print("tau_ext: ", panda_model.tau_ext)
+                print("tau_d_no_gravity: ", panda_model.tau_d_no_gravity)
+                print("coriolis: ", panda_model.coriolis)
+                print("gravity: ", panda_model.gravity)
+                print("jacobian: ", panda_model.jacobian)
+                print("mass_matrix: ", panda_model.mass_matrix)
+                print("EE_T_K: ", panda_model.EE_T_K)
+                print("O_T_EE: ", panda_model.O_T_EE)
+                print("K_F_ext_hat_K: ", panda_model.K_F_ext_hat_K)
+                
+                
+                counter += 1
+
+        except rospy.ROSInterruptException:  pass
+
+        return 'stop'
+    
+    def transition(self, event):
         
         
 class StopState(State):
