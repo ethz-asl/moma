@@ -2,13 +2,6 @@
 
 import rospy
 
-#----- Skills -----
-
-from moma_gazebo.ROS_optimizer1 import Controller as controller1
-from moma_gazebo.ROS_optimizer2 import Controller as controller2
-
-from moma_gazebo.ROS_direction_estimation import SkillUnconstrainedDirectionEstimation
-
 #----- ROS Msgs ------
 
 from nav_msgs.msg import Odometry                                                # used to recieve info from the base
@@ -37,7 +30,6 @@ class RobotPlanner:
 
     def __init__(self, controller, direction_estimatior, time_step):
         
-        self.dt = time_step
         self.controller = controller
         self.direction_estimator = direction_estimatior
         
@@ -79,6 +71,7 @@ class RobotPlanner:
         
         self.get_panda_model_state_srv = rospy.ServiceProxy('/get_panda_state_srv', PandaStateSrv)
         self.set_frames_srv = rospy.ServiceProxy('/panda_init_srv', PandaInitSrv)
+        self.robot_gripper_srv = rospy.ServiceProxy('/robot_gripper_srv', PandaGripperSrv)
         
         self.subscriber_arm_state = rospy.Subscriber('/joint_states', JointState, self.armState_cb)
         self.subscriber_base_state = rospy.Subscriber('/odom', Odometry , self.baseState_cb)
@@ -126,14 +119,6 @@ class RobotPlanner:
 
     def publishArmAndBaseVelocityControl(self, q_dot_des, linVelBase, angVelBase):
 
-        joint1_des = q_dot_des[0]
-        joint2_des = q_dot_des[1]
-        joint3_des = q_dot_des[2]
-        joint4_des = q_dot_des[3]
-        joint5_des = q_dot_des[4]
-        joint6_des = q_dot_des[5]
-        joint7_des = q_dot_des[6]
-        
         base_des = Twist()
         base_des.linear.x = linVelBase[0]
         base_des.linear.y = linVelBase[1]
@@ -164,6 +149,20 @@ class RobotPlanner:
             req.EE_T_K[i] = EE_T_K[i]
             
         res = self.set_frames_srv(req)
+        
+        return res.success
+    
+    def close_gripper(self, grasping_width, grasping_vel, grasping_force):
+        
+        req = PandaGripperSrvRequest()
+        
+        req.gripper_homing = True
+        req.gripper_close = True
+        req.grasping_width = grasping_width
+        req.grasping_speed = grasping_vel
+        req.grasping_force = grasping_force
+        
+        res = self.robot_gripper_srv(req)
         
         return res.success
         
@@ -255,9 +254,9 @@ class RobotPlanner:
         self.q = np.array(q)
         self.q_dot = np.array(q_dot)
         self.tau = np.array(tau)
-        print(q)
-        print(q_dot)
-        print(tau)
+        #print(q)
+        #print(q_dot)
+        #print(tau)
         #----- CHECK OTHER DUMMY VALUES -----
         
         #self.test_dummy_state_values(panda_model)
@@ -305,7 +304,7 @@ class RobotPlanner:
         
         ext_wrench = np.array(panda_model.K_F_ext_hat_K)
         self.force = ext_wrench[:3] 
-        print(self.force)
+        #print(self.force)
         #print("FORCE: ", self.force)    
         #----- INFO FROM BASE ODOM -----
             
@@ -338,7 +337,7 @@ class RobotPlanner:
         
         print("T_ee_k: ", self.T_ee_k)
         
-        self.T_b_ee = np.matmul(self.T_b_ee, self.T_ee_k)                        # Stiffness frame is the actualy the EE frame we used in the simulation
+        self.T_b_ee = np.matmul(self.T_b_ee, self.T_ee_k)                        # Stiffness frame is actualy the EE frame we used in the simulation
         
         print("T_b_ee: ", self.T_b_ee)
         
@@ -362,10 +361,6 @@ class RobotPlanner:
         print("b: ", self.b)
 
         #=====
-            
-    def close_gripper(self):
-        
-        pass
     
     def run_once(self, t, vInit, vFinal, alphaInit, alphaFinal, t0, tConv, model, arm_ee_link_idx, arm_base_link_idx, link_name_to_index, joint_idx_arm, alpha=0.1, smooth=False, mixCoeff=0.1):
         
@@ -378,7 +373,9 @@ class RobotPlanner:
             self.processing = True
             
             base_state_msg = self.baseState_msg
-            panda_model = self.get_panda_model_state_srv()
+            
+            req = PandaStateSrvRequest()
+            panda_model = self.get_panda_model_state_srv(req)
             
             self.processing = False
             

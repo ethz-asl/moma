@@ -9,4 +9,14 @@
         <arg name="load_gripper" value="$(arg load_gripper)" />
         <arg name="robot_description_xacro" value="$(arg robot_description)"/>
     </include>
+
+    <!-- PandaInitService node -->
+    <node name="panda_init_service_node" pkg="panda_control_door_opening" type="panda_init_service" respawn="true" output="screen" args="$(arg robot_ip)" />
+
+    <!-- PandaStateService node -->
+    <node name="panda_state_service_node" pkg="panda_control_door_opening" type="panda_state_service" respawn="true" output="screen" args="$(arg robot_ip)" />
+
+    <!-- PandaGripperService node -->
+    <node name="panda_gripper_service_node" pkg="panda_control_door_opening" type="panda_gripper_service" respawn="true" output="screen" arg="$(arg robot_ip)">
+
 </launch>

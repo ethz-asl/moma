@@ -71,10 +71,11 @@ class StartState(State):
         print("")
         print("Waiting for all the subscribed topics and services to be initiated...")
         waiting = True 
-        rospy.sleep(2.0)
+        rospy.sleep(1.0)
         
         rospy.wait_for_service('/get_panda_state_srv')
         rospy.wait_for_service('/panda_init_srv')
+        rospy.wait_for_service('/robot_gripper_srv')
         
         while(waiting):
             
@@ -122,7 +123,25 @@ class StartState(State):
         
         if temp1 in ['y', 'Y']:
             
-            self.robot.close_gripper()            
+            grasping_width = 0.04
+            grasping_vel = 0.1
+            grasping_force = 60
+            
+            succ = self.robot.close_gripper(grasping_width, grasping_vel, grasping_force)
+
+            if not succ:
+                
+                print("")
+                print("Failed to grasp!")
+                temp2 = input("Abort? [y/n]: ")
+                if temp2 in ['Y', 'y']:
+                    
+                    return 'stop'
+                
+                else:
+                
+                    return 'hold'
+            
             return 'gripper_closed'
         
         else:
@@ -211,7 +230,7 @@ class RunningState(State):
             while counter <= N_steps and not rospy.is_shutdown():
                 print("Iteration: " + str(counter) )
                 self.robot.run_once(counter, vInit, vFinal, alphaInit, alphaFinal, t0, tConv, id_robot, arm_ee_link_idx, arm_base_link_idx, link_name_to_index, joint_idx_arm, alpha=0.1, smooth=False, mixCoeff=0.1)  
-                freq.sleep()
+                #freq.sleep()
                 counter += 1
                 
         except rospy.ROSInterruptException:  pass

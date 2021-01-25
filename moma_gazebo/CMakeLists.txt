@@ -62,6 +62,7 @@ catkin_python_setup()
    FILES
    PandaInitSrv.srv
    PandaStateSrv.srv
+   PandaGripperSrv.srv
  )
 
 ## Generate actions in the 'action' folder
@@ -151,6 +152,10 @@ add_dependencies(panda_init_service panda_control_door_opening_gencpp)
 add_executable(panda_state_service src/panda_state_service.cpp)
 target_link_libraries(panda_state_service ${catkin_LIBRARIES})
 add_dependencies(panda_state_service panda_control_door_opening_gencpp)
+
+add_executable(panda_gripper_service src/panda_gripper_service.cpp)
+target_link_libraries(panda_gripper_service ${catkin_LIBRARIES})
+add_dependencies(panda_gripper_service panda_control_door_opening_gencpp)
 
 ## Installation
 install(TARGETS moma_gazebo

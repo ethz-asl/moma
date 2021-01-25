@@ -42,4 +42,13 @@
   <!-- start rviz -->
   <node if="$(arg rviz)" name="rviz" pkg="rviz" type="rviz" args="-d $(find moma_gazebo)/config/royalpanda_example.rviz" />
 
+  <!-- PandaInitService node -->
+  <node name="panda_init_service_node" pkg="moma_gazebo" type="panda_init_service" respawn="true" output="screen" />
+
+  <!-- PandaStateService node -->
+  <node name="panda_state_service_node" pkg="moma_gazebo" type="panda_state_service" respawn="true" output="screen" />
+
+  <!-- PandaGripperService node -->
+  <node name="panda_gripper_service_node" pkg="moma_gazebo" type="panda_gripper_service" respawn="true" output="screen" />
+
 </launch>

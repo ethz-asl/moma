@@ -97,8 +97,14 @@ class Controller:
             G1, a1, C1, b1 = self.PrepareTask1(J_b_ee, vdesEE_b[:J_b_ee.shape[0]], M, b, q, q_dot, tau_prev)
         
             sol1,_,_,_,_,_ = solve_qp(G1, a1, C1, b1)
+            
+            if sol1 is None:
+                
+                return self.q_dot_optimal
+            
+            else:
         
-            q_dot_optimal = np.array(sol1)
+                q_dot_optimal = np.array(sol1)
         
             if minTorque:
         
@@ -107,10 +113,13 @@ class Controller:
                     G2, a2, C2, b2 = self.PrepareTask2(M, b, q, q_dot, tau_prev, sol1, Null1)
                 
                     sol2,_,_,_,_,_ = solve_qp(G2, a2, C2, b2)
-                    q_dot_optimal += np.squeeze(np.matmul(Null1, np.array(sol2))) 
+                    
+                    if sol2 is not None:
+                        
+                        q_dot_optimal += np.squeeze(np.matmul(Null1, np.array(sol2))) 
             
                 except Exception as e:
-                
+                    
                     print("FAILED TORQUE MINIMIZATION")
                     print(e)
             
@@ -122,6 +131,8 @@ class Controller:
             print(e)
             print("Optimization failed: Keeping the previous commanded values")
             print(30*"*")
+            
+            return self.q_dot_optimal
         
 #-------
     def GetCurrOptSol(self):

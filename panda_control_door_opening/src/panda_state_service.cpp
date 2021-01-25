@@ -24,8 +24,8 @@ class PandaStateService {
 
     PandaStateService(franka::Robot* r, franka::Model* m, ros::NodeHandle *nh){
 
-	robot_ptr = r;
-	robot_model_ptr =m ;
+        robot_ptr = r;
+        robot_model_ptr = m;
         get_robot_state_srv = nh->advertiseService("/get_panda_state_srv", &PandaStateService::state_clb, this);
         ROS_INFO("Panda state service is ready!");
     }

@@ -21,7 +21,7 @@ DEBUG = True
 
 class Controller:
     
-    def __init__(self, time_step, noCollision):
+    def __init__(self, time_step, noCollision=True):
         
         self.dt = time_step
         self.noCollision = noCollision
@@ -50,8 +50,8 @@ class Controller:
         
         #----- Init Values -----
         
-        self.q_dot_optimal = None
-        self.q_dot_dot_optimal = None
+        self.q_dot_optimal = np.array(7*[0.0]) 
+        self.q_dot_dot_optimal = np.array(7*[0.0]) 
         self.tau_optimal = None
         
         self.vLinBase_b = [0.0, 0.0, 0.0]
@@ -115,7 +115,13 @@ class Controller:
         
             sol1,_,_,_,_,_ = solve_qp(G1, a1, C1, b1)
         
-            q_dot_optimal = np.array(sol1)
+            if sol1 is None:
+                
+                return self.q_dot_optimal
+            
+            else:
+        
+                q_dot_optimal = np.array(sol1)
         
             if minTorque:
         
@@ -124,7 +130,9 @@ class Controller:
                     G2, a2, C2, b2 = self.PrepareTask2(M, b, q, q_dot, tau_prev, sol1, Null1)
                 
                     sol2,_,_,_,_,_ = solve_qp(G2, a2, C2, b2)
-                    q_dot_optimal += np.squeeze(np.matmul(Null1, np.array(sol2))) 
+                    
+                    if sol2 is not None:
+                        q_dot_optimal += np.squeeze(np.matmul(Null1, np.array(sol2))) 
             
                 except Exception as e:
                 
@@ -136,6 +144,7 @@ class Controller:
         except:
             
             print("Optimization failed: Keeping the previous commanded values")
+            return self.q_dot_optimal
     
 #-------
     def SplitVelocity(self, veldesEE_ee, J_b_ee, C_O_b, C_O_ee, r_b_ee, v, q, Rlim=0.1, alphaR=2.0):
@@ -144,7 +153,9 @@ class Controller:
         vAngdesEE_O = np.array(C_O_ee.apply(veldesEE_ee[3:]))
         
         vLindesEE_b = C_O_b.inv().apply(vLindesEE_O)
-        vAngdesEE_b = C_O_b.inv().apply(vAngdesEE_O)        
+        vAngdesEE_b = C_O_b.inv().apply(vAngdesEE_O)
+
+        vLindesEE_b = np.array([0.0, 0.1, 0.0])
         
         R_curr = LA.norm(r_b_ee[:2])
         
@@ -177,6 +188,9 @@ class Controller:
         q_dot_des = np.array(q_dot_des)
         
         vmean = np.matmul(J_b_ee[:2, :7], q_dot_des)
+        
+        print("vEE_ee: ", vmean)
+        print(scaleFactor)
         
         if abs(scaleFactor)>0:
             
@@ -219,6 +233,8 @@ class Controller:
                         
             vLinBase_b = vLindesEE_b - vLinEE_b            
             vAngBase_b = np.array([0.0]*3)
+            
+            
                 
         return vLinBase_b, vAngBase_b, vEE_ee                    
     
@@ -248,6 +264,7 @@ class Controller:
         
         try:
             vLinBase_b, vAngBase_b, vEE_ee = self.SplitVelocity(veldesEE_ee, J_b_ee, C_O_b, C_O_ee, r_b_ee, v, q)
+            
         
             self.q_dot_optimal = self.CalculateDesiredJointVel(vEE_ee, J_b_ee, M, b, q, q_dot, C_b_ee, tau_prev, False)
         
