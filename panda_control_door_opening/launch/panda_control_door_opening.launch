@@ -17,6 +17,6 @@
     <node name="panda_state_service_node" pkg="panda_control_door_opening" type="panda_state_service" respawn="true" output="screen" args="$(arg robot_ip)" />
 
     <!-- PandaGripperService node -->
-    <node name="panda_gripper_service_node" pkg="panda_control_door_opening" type="panda_gripper_service" respawn="true" output="screen" arg="$(arg robot_ip)" />
+    <node name="panda_gripper_service_node" pkg="panda_control_door_opening" type="panda_gripper_service" respawn="true" output="screen" args="$(arg robot_ip)" />
 
 </launch>
