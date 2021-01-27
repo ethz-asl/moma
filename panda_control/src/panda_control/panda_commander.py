@@ -1,9 +1,5 @@
 import actionlib
-from control_msgs.msg import (
-    GripperCommand,
-    GripperCommandAction,
-    GripperCommandGoal,
-)
+from control_msgs.msg import GripperCommand, GripperCommandAction, GripperCommandGoal
 import moveit_commander
 from moveit_commander.conversions import list_to_pose
 from moveit_msgs.msg import MoveGroupAction
@@ -30,7 +26,8 @@ class PandaCommander(object):
         self.move_group = moveit_commander.MoveGroupCommander("panda_arm")
 
     def _setup_gripper_action_client(self):
-        name = "gripper_cmd" if rospy.get_param("use_sim_time") else "gripper_action"
+        # name = "gripper_cmd" if rospy.get_param("use_sim_time") else "gripper_action"
+        name = "gripper_action"
         name = "franka_gripper/" + name
         self.gripper_client = actionlib.SimpleActionClient(name, GripperCommandAction)
         self.gripper_client.wait_for_server()

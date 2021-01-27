@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import sys
 import actionlib
 from fetch_demo.msg import DropMoveAction, DropMoveResult
 import rospy
@@ -17,6 +18,7 @@ class DropActionServer(MovingActionServer):
 
     def __init__(self):
         action_name = "drop_move_action"
+        self.robot_name = sys.argv[1]
         super(DropActionServer, self).__init__(action_name, DropMoveAction)
         self._read_joint_configurations()
         self._connect_ridgeback()
@@ -32,7 +34,10 @@ class DropActionServer(MovingActionServer):
         self._robot_arm_names = rospy.get_param("robot_arm_names")
         self._home_joints = rospy.get_param("home_joints_" + self._robot_arm_names[0])
         self._drop_joints = rospy.get_param("drop_joints_" + self._robot_arm_names[0])
-        self._search_joints = rospy.get_param("drop_joints_" + self._robot_arm_names[1])
+        if len(self._robot_arm_names) > 1:
+            self._search_joints = rospy.get_param(
+                "drop_joints_" + self._robot_arm_names[1]
+            )
         self._arm_velocity_scaling = rospy.get_param("arm_velocity_scaling_drop")
 
     def _connect_robot_arm(self):

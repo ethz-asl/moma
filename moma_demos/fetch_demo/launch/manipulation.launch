@@ -3,28 +3,29 @@
     <!-- ======== Arguments ======== -->
 
     <!-- Select a robot setup. -->
-    <arg name="robot_arm_name" default="yumi"/>   <!-- Can be "yumi" or "panda". -->
-    <arg name="robot_base_name" default="none"/>    <!-- Can be "none" or "royal" (stands for ridgeback). -->
+    <arg name="robot_arm_name" default="panda"/>
+    <!-- Can be "yumi" or "panda". -->
+    <arg name="robot_base_name" default="royal"/>
+    <!-- Can be "none" or "royal" (stands for ridgeback). -->
 
     <!-- Choose whether to use voxblox++ for scanning. If set to false, will fall back to point cloud stitching. -->
-    <arg name="scan_using_voxbloxpp" default="true"/>
+    <arg name="scan_using_voxbloxpp" default="false"/>
 
     <arg name="semantic_grasping" default="false" />
 
     <!-- ======== Launch everything ======== -->
 
     <!-- Load parameteres -->
-    <rosparam command="load" file="$(find fetch_demo)/config/fetch_demo.yaml" ns="moma_demo" />
-    <rosparam command="load" file="$(find fetch_demo)/config/$(arg robot_arm_name)/joint_configurations.yaml" ns="moma_demo" />
-    <rosparam command="load" file="$(find grasp_demo)/config/$(arg robot_arm_name)/grasp_demo.yaml" ns="moma_demo" />
+    <rosparam command="load" file="$(find fetch_demo)/config/fetch_demo.yaml" />
+    <rosparam command="load" file="$(find grasp_demo)/config/$(arg robot_arm_name)/grasp_demo.yaml" />
 
     <!-- Load map onto map server -->
     <node pkg="map_server" name="asl_map_server_node" type="map_server" ns="approach_module" args="$(find fetch_demo)/maps/lasermap_new_table.yaml" output="screen"/>
 
     <!-- Launch camera -->
-    <include file="$(find realsense2_camera)/launch/rs_camera.launch">
+    <!-- <include file="$(find realsense2_camera)/launch/rs_camera.launch">
         <arg name="enable_pointcloud" value="true"/>
-    </include>
+    </include> -->
 
     <!-- Bringup robot -->
     <group if="$(eval robot_arm_name == 'panda')">
@@ -34,35 +35,31 @@
             </include>
         </group>
     </group>
-    <group if="$(eval robot_arm_name == 'yumi')">
+    <!-- <group if="$(eval robot_arm_name == 'yumi')">
         <group if="$(eval robot_base_name == 'royal')">
             <include file="$(find moma_bringup)/launch/mobmi_control_moveit_rviz.launch">
                 <arg name="launch_rviz" value="false"/>
             </include>
         </group>
-    </group>
-    
+    </group> -->
+
     <!-- Launch GPD -->
-    <node name="detect_grasps" pkg="gpd_ros" type="detect_grasps" output="screen">
+    <!-- <node name="detect_grasps" pkg="gpd_ros" type="detect_grasps" output="screen">
         <param name="cloud_type" value="0" />
         <param name="cloud_topic" value="/cloud_stitched" />
         <param name="samples_topic" value="" />
         <param name="config_file" value="$(find grasp_demo)/config/$(arg robot_arm_name)/gpd.cfg" />
         <param name="rviz_topic" value="plot_grasps" />
-    </node>
+    </node> -->
 
     <!-- Launch the action nodes -->
-    <node pkg="fetch_demo" type="search_node.py" name="search_action_node" args="$(arg robot_name)" output="screen"/>
+    <node pkg="fetch_demo" type="search_node.py" name="search_action_node" args="$(arg robot_arm_name)" output="screen"/>
     <node pkg="fetch_demo" type="approach_node.py" name="approach_action_node" output="screen"/>
-    <node pkg="grasp_demo" type="simple_scan.py" name="scan_action_node" args="$(arg robot_name)"
-            unless="$(arg scan_using_voxbloxpp)" output="screen"/>
-    <node pkg="grasp_demo" type="voxbloxpp_scan.py" name="scan_action_node" args="$(arg robot_name)"
-            if="$(arg scan_using_voxbloxpp)" output="screen"/>
-    <node pkg="grasp_demo" type="semantic_grasp_selection.py" name="semantic_grasp_selection_action_node"
-            if="$(arg semantic_grasping)" output="screen" />
-    <node pkg="grasp_demo" type="grasp_selection.py" name="grasp_selection_action_node"
-            unless="$(arg semantic_grasping)" args="$(arg robot_name)" output="screen"/>
-    <node pkg="grasp_demo" type="grasp_execution.py" name="grasp_execution_action_node" args="$(arg robot_name)" output="screen" />
-    <node pkg="fetch_demo" type="drop_move_node.py" name="drop_action_node" args="$(arg robot_name)" output="screen"/>
+    <node pkg="grasp_demo" type="simple_scan.py" name="scan_action_node" args="$(arg robot_arm_name)" unless="$(arg scan_using_voxbloxpp)" output="screen"/>
+    <node pkg="grasp_demo" type="voxbloxpp_scan.py" name="scan_action_node" args="$(arg robot_arm_name)" if="$(arg scan_using_voxbloxpp)" output="screen"/>
+    <node pkg="grasp_demo" type="semantic_grasp_selection.py" name="semantic_grasp_selection_action_node" if="$(arg semantic_grasping)" output="screen" />
+    <node pkg="grasp_demo" type="grasp_selection.py" name="grasp_selection_action_node" unless="$(arg semantic_grasping)" args="$(arg robot_arm_name)" output="screen"/>
+    <node pkg="grasp_demo" type="grasp_execution.py" name="grasp_execution_action_node" args="$(arg robot_arm_name)" output="screen" />
+    <node pkg="fetch_demo" type="drop_move_node.py" name="drop_action_node" args="$(arg robot_arm_name)" output="screen"/>
 
 </launch>
