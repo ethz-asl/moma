@@ -18,12 +18,12 @@
   <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="position_joint_trajectory_controller"/>
 
   <!-- Launch MoveIt -->
-  <include file="$(find panda_moveit_config)/launch/move_group.launch">
+  <include file="$(find royalpanda_moveit_config)/launch/move_group.launch">
     <arg name="load_robot_description" value="false"/>
   </include>
 
   <!-- If desired, launch a preconfigured Rviz -->
-  <include if="$(arg launch_rviz)" file="$(find panda_moveit_config)/launch/moveit_rviz.launch">
-    <arg name="rviz_config" value="$(find panda_moveit_config)/launch/moveit.rviz" />
+  <include if="$(arg launch_rviz)" file="$(find royalpanda_moveit_config)/launch/moveit_rviz.launch">
+    <arg name="rviz_config" value="$(find royalpanda_moveit_config)/launch/moveit.rviz" />
   </include>
 </launch>
