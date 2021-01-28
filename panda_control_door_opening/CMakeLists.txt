@@ -109,7 +109,7 @@ catkin_python_setup()
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
+  INCLUDE_DIRS include
   LIBRARIES franka_example_controllers panda_control_door_opening
   CATKIN_DEPENDS controller_interface franka_control franka_description franka_hw hardware_interface libfranka pluginlib realtime_tools roscpp rospy std_msgs message_runtime
   DEPENDS Franka
@@ -169,7 +169,7 @@ install(DIRECTORY launch
 install(DIRECTORY config
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
-install(FILES panda_control_door_opening.xml
+install(FILES panda_control_door_openining_plugin.xml
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
 ## Add cmake target dependencies of the library

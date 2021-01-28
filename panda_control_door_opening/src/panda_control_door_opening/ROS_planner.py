@@ -108,7 +108,7 @@ class RobotPlanner:
         base_des.angular.y = 0.0
         base_des.angular.z = angVelBase
 
-        self.publisher_base_velocity.publish(base_des)
+        #self.publisher_base_velocity.publish(base_des)
         self.publisher_joints.publish(joints_des)
 
 
@@ -125,7 +125,8 @@ class RobotPlanner:
         print("Sending request...")
         res = self.panda_model_state_srv(req)
         print("Received")
-        return res.success
+        
+        return True
     
     def close_gripper(self, grasping_width, grasping_vel, grasping_force):
         

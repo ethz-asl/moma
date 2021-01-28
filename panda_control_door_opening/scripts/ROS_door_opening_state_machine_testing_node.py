@@ -77,12 +77,10 @@ class StartState(State):
         waiting = True
         rospy.sleep(1.0)
 
-        rospy.wait_for_service('/panda_init_srv')
-        print("PANDA_INIT_SRV initiated")
-#        rospy.wait_for_service('/get_panda_state_srv')
-#        print("PANDA_STATE_SRV initiated")
-#        rospy.wait_for_service('/robot_gripper_srv')
-#        print("PANDA_GRIPPER_SRV initiated")
+        rospy.wait_for_service('/panda_state_srv')
+        print("PANDA_STATE_SRV initiated")
+        rospy.wait_for_service('/robot_gripper_srv')
+        print("PANDA_GRIPPER_SRV initiated")
         
         print(10*'*'+" All services started! "+10*'*')
 
@@ -207,7 +205,7 @@ class RunningState(State):
         print("Iteration: " + str(counter) )
         
         req = PandaStateSrvRequest()
-        panda_model = self.robot.get_panda_model_state_srv(req)
+        panda_model = self.robot.panda_model_state_srv(req)
         
         print("q: ", panda_model.q)
         print("dq: ", panda_model.dq)
@@ -224,25 +222,28 @@ class RunningState(State):
         print("K_F_ext_hat_K: ", panda_model.K_F_ext_hat_K)
         print("EE_T_K: ", panda_model.EE_T_K)
         print("O_T_EE: ", panda_model.O_T_EE)
+        print(100*"=")
         
     def test2(self, counter):
 
         req = PandaStateSrvRequest()
-        panda_model = self.robot.get_panda_model_state_srv(req)        
-        self.robot.publishArmAndBaseVelocityControl([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.01], 3*[0.0], 3*[0.0])
+        panda_model = self.robot.panda_model_state_srv(req)        
+        self.robot.publishArmAndBaseVelocityControl([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.001], 3*[0.0], 3*[0.0])
         
     def run(self):
         
         counter = 0
         N_steps = 100
-                
+        freq = rospy.Rate(2)   
+        
         try:
 
             while counter <= N_steps and not rospy.is_shutdown():
 
-                self.test1(counter)
+                self.test2(counter)
                 counter += 1
-
+                #freq.sleep()
+                
         except rospy.ROSInterruptException:  pass
 
         return 'stop'
