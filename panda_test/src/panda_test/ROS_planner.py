@@ -77,7 +77,7 @@ class RobotPlanner:
 
         #----- Publishers -----
 
-        self.publisher_joints = rospy.Publisher('/arm_joint_command', command_msg, latch=True, queue_size=10)
+        self.publisher_joints = rospy.Publisher('/arm_joint_command', desired_vel_msg, latch=True, queue_size=10)
         self.publisher_base_velocity = rospy.Publisher('/cmd_vel', Twist,  latch=True, queue_size=10)
 
         #----- Gripper client -----

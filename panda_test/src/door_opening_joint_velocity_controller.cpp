@@ -153,7 +153,7 @@ void DoorOpeningJointVelocityController::starting(const ros::Time & /* time */)
 
 //----- Callback function -----
 
-void DoorOpeningJointVelocityController::command_cb(const panda_test::command_msg::ConstPtr& msg)
+void DoorOpeningJointVelocityController::command_cb(const panda_test::desired_vel_msg::ConstPtr& msg)
 {
 
     desired_joint_velocity_command_[0] = msg->dq_arm[0];

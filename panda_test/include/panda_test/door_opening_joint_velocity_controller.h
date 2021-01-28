@@ -16,7 +16,7 @@
 #include <ros/time.h>
 #include <ros/ros.h>
 
-#include <panda_test/command_msg.h>
+#include <panda_test/desired_vel_msg.h>
 
 namespace panda_test{
 
@@ -31,7 +31,7 @@ public:
     void starting(const ros::Time&) override;
     void stopping(const ros::Time&) override;
 
-    void command_cb(const panda_test::command_msg::ConstPtr& msg);
+    void command_cb(const panda_test::desired_vel_msg::ConstPtr& msg);
 
 private:
 
