@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 2.8.3)
 project(panda_control_door_opening)
 
 set(CMAKE_BUILD_TYPE Release)
-
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -11,6 +10,7 @@ find_package(catkin REQUIRED COMPONENTS
   franka_control
   franka_description
   franka_hw
+  franka_gripper
   hardware_interface
   pluginlib
   realtime_tools
@@ -111,7 +111,7 @@ catkin_python_setup()
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES franka_example_controllers panda_control_door_opening
-  CATKIN_DEPENDS controller_interface franka_control franka_description franka_hw hardware_interface libfranka pluginlib realtime_tools roscpp rospy std_msgs message_runtime
+  CATKIN_DEPENDS controller_interface franka_control franka_gripper franka_description franka_hw hardware_interface libfranka pluginlib realtime_tools roscpp rospy std_msgs message_runtime
   DEPENDS Franka
 )
 
@@ -136,7 +136,7 @@ include_directories(
   ${catkin_EXPORTED_TARGETS}
 )
 
-target_link_libraries(panda_control_door_opening PUBLIC
+target_link_libraries(panda_control_door_opening
   ${Franka_LIBRARIES}
   ${catkin_LIBRARIES}
 )
