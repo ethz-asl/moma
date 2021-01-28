@@ -45,8 +45,8 @@ class PandaStateService {
                     EE_T_K[i] = req.EE_T_K[i];
                 }
 
-                robot.setEE(NE_T_EE);
-                robot.setK(EE_T_K);
+                robot_ptr->setEE(NE_T_EE);
+                robot_ptr->setK(EE_T_K);
 
             }
 
