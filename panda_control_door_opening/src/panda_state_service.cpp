@@ -26,13 +26,29 @@ class PandaStateService {
 
         robot_ptr = r;
         robot_model_ptr = m;
-        get_robot_state_srv = nh->advertiseService("/get_panda_state_srv", &PandaStateService::state_clb, this);
+        get_robot_state_srv = nh->advertiseService("/panda_state_srv", &PandaStateService::state_clb, this);
         ROS_INFO("Panda state service is ready!");
     }
 
     bool state_clb(panda_control_door_opening::PandaStateSrv::Request &req, panda_control_door_opening::PandaStateSrv::Response &res){
 
         try{
+
+            if (req.set_frames){
+
+                std::array<double, 16> NE_T_EE;
+                std::array<double, 16> EE_T_K;
+
+                for (size_t i=0; i<16; ++i){
+
+                    NE_T_EE[i] = req.NE_T_EE[i];
+                    EE_T_K[i] = req.EE_T_K[i];
+                }
+
+                robot.setEE(NE_T_EE);
+                robot.setK(EE_T_K);
+
+            }
 
             franka::RobotState current_state = robot_ptr->readOnce();
 

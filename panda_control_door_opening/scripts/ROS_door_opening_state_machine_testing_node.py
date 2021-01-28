@@ -77,12 +77,12 @@ class StartState(State):
         waiting = True
         rospy.sleep(1.0)
 
-        rospy.wait_for_service('/get_panda_state_srv')
-        print("PANDA_STATE_SRV initiated")
         rospy.wait_for_service('/panda_init_srv')
         print("PANDA_INIT_SRV initiated")
-        rospy.wait_for_service('/robot_gripper_srv')
-        print("PANDA_GRIPPER_SRV initiated")
+#        rospy.wait_for_service('/get_panda_state_srv')
+#        print("PANDA_STATE_SRV initiated")
+#        rospy.wait_for_service('/robot_gripper_srv')
+#        print("PANDA_GRIPPER_SRV initiated")
         
         print(10*'*'+" All services started! "+10*'*')
 
@@ -105,11 +105,12 @@ class StartState(State):
 
         print("Setting EE and K referance frames...")
 
-        NE_T_EE = [1.0, 0.0, 0.0 ,0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.15, 1.0]
+        NE_T_EE = [1.0, 0.0, 0.0 ,0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.015, 1.0]
         EE_T_K  = [1.0, 0.0, 0.0 ,0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0]
 
         succ = self.robot.set_frames(NE_T_EE, EE_T_K)
-
+        #succ = True
+        
         if not succ:
 
             print("")
@@ -201,37 +202,45 @@ class ObjectGraspedState(State):
             
 class RunningState(State):
     
+    def test1(self, counter):
+        
+        print("Iteration: " + str(counter) )
+        
+        req = PandaStateSrvRequest()
+        panda_model = self.robot.get_panda_model_state_srv(req)
+        
+        print("q: ", panda_model.q)
+        print("dq: ", panda_model.dq)
+        print("q_d: ", panda_model.q_d)
+        print("dq_d: ", panda_model.dq_d)
+        print("ddq_d: ", panda_model.ddq_d)
+        print("tau: ", panda_model.tau)
+        print("tau_ext: ", panda_model.tau_ext)
+        print("tau_d_no_gravity: ", panda_model.tau_d_no_gravity)
+        print("coriolis: ", panda_model.coriolis)
+        print("gravity: ", panda_model.gravity)
+        #print("jacobian: ", panda_model.jacobian)
+        #print("mass_matrix: ", panda_model.mass_matrix)
+        print("K_F_ext_hat_K: ", panda_model.K_F_ext_hat_K)
+        print("EE_T_K: ", panda_model.EE_T_K)
+        print("O_T_EE: ", panda_model.O_T_EE)
+        
+    def test2(self, counter):
+
+        req = PandaStateSrvRequest()
+        panda_model = self.robot.get_panda_model_state_srv(req)        
+        self.robot.publishArmAndBaseVelocityControl([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.01], 3*[0.0], 3*[0.0])
+        
     def run(self):
         
         counter = 0
         N_steps = 100
-        
-        
+                
         try:
 
             while counter <= N_steps and not rospy.is_shutdown():
-                print("Iteration: " + str(counter) )
-                
-                req = PandaStateSrvRequest()
-                panda_model = self.robot.get_panda_model_state_srv(req)
-                
-                print("q: ", panda_model.q)
-                print("dq: ", panda_model.dq)
-                print("q_d: ", panda_model.q_d)
-                print("dq_d: ", panda_model.dq_d)
-                print("ddq_d: ", panda_model.ddq_d)
-                print("tau: ", panda_model.tau)
-                print("tau_ext: ", panda_model.tau_ext)
-                print("tau_d_no_gravity: ", panda_model.tau_d_no_gravity)
-                print("coriolis: ", panda_model.coriolis)
-                print("gravity: ", panda_model.gravity)
-                print("jacobian: ", panda_model.jacobian)
-                print("mass_matrix: ", panda_model.mass_matrix)
-                print("EE_T_K: ", panda_model.EE_T_K)
-                print("O_T_EE: ", panda_model.O_T_EE)
-                print("K_F_ext_hat_K: ", panda_model.K_F_ext_hat_K)
-                
-                
+
+                self.test1(counter)
                 counter += 1
 
         except rospy.ROSInterruptException:  pass
@@ -239,7 +248,9 @@ class RunningState(State):
         return 'stop'
     
     def transition(self, event):
-        
+
+        if event == 'stop':
+            return StopState(self.direction_estimator, self.controller, self.robot)        
         
 class StopState(State):
 

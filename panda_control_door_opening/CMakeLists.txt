@@ -62,7 +62,6 @@ catkin_python_setup()
 ## Generate services in the 'srv' folder
  add_service_files(
    FILES
-   PandaInitSrv.srv
    PandaStateSrv.srv
    PandaGripperSrv.srv
  )
@@ -149,10 +148,6 @@ target_include_directories(panda_control_door_opening SYSTEM PUBLIC
 target_include_directories(panda_control_door_opening PUBLIC
   include
 )
-
-add_executable(panda_init_service src/panda_init_service.cpp)
-target_link_libraries(panda_init_service ${catkin_LIBRARIES})
-add_dependencies(panda_init_service panda_control_door_opening_gencpp)
 
 add_executable(panda_state_service src/panda_state_service.cpp)
 target_link_libraries(panda_state_service ${catkin_LIBRARIES})

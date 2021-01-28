@@ -70,8 +70,7 @@ class RobotPlanner:
 
         #----- Subsrcribers and services -----
 
-        self.get_panda_model_state_srv = rospy.ServiceProxy('/get_panda_state_srv', PandaStateSrv)
-        self.set_frames_srv = rospy.ServiceProxy('/panda_init_srv', PandaInitSrv)
+        self.panda_model_state_srv = rospy.ServiceProxy('/panda_state_srv', PandaStateSrv)
         self.robot_gripper_srv = rospy.ServiceProxy('/robot_gripper_srv', PandaGripperSrv)
 
         self.subscriber_base_state = rospy.Subscriber('/ridgeback_velocity_controller/odom', Odometry , self.baseState_cb)
@@ -115,15 +114,17 @@ class RobotPlanner:
 
     def set_frames(self, NE_T_EE, EE_T_K):
 
-        req = PandaInitSrvRequest()
+        req = PandaStateSrvRequest()
 
         for i in range(16):
-
+            
+            req.set_frames = True
             req.NE_T_EE[i] = NE_T_EE[i]
             req.EE_T_K[i] = EE_T_K[i]
-
-        res = self.set_frames_srv(req)
-
+            
+        print("Sending request...")
+        res = self.panda_model_state_srv(req)
+        print("Received")
         return res.success
     
     def close_gripper(self, grasping_width, grasping_vel, grasping_force):
@@ -366,7 +367,12 @@ class RobotPlanner:
             base_state_msg = self.baseState_msg
             
             req = PandaStateSrvRequest()
-            panda_model = self.get_panda_model_state_srv(req)
+            
+            req.set_frames = False
+            req.NE_T_EE = (0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+            req.EE_T_K = (0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+            
+            panda_model = self.panda_model_state_srv(req)
 
             self.processing = False
 

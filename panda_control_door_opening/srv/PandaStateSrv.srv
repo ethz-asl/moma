@@ -1,3 +1,6 @@
+bool set_frames
+float64[16] NE_T_EE
+float64[16] EE_T_K
 ---
 float64[7] q
 float64[7] dq
