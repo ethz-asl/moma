@@ -10,16 +10,16 @@ import rospy
 
 #----- Skills -----
 
-from panda_control_door_opening.ROS_optimizer1 import Controller as controller1
-from panda_control_door_opening.ROS_optimizer2 import Controller as controller2
+from panda_test.ROS_optimizer1 import Controller as controller1
+from panda_test.ROS_optimizer2 import Controller as controller2
 
-from panda_control_door_opening.ROS_direction_estimation import SkillUnconstrainedDirectionEstimation
+from panda_test.ROS_direction_estimation import SkillUnconstrainedDirectionEstimation
 
-from panda_control_door_opening.ROS_planner import RobotPlanner
+from panda_test.ROS_planner import RobotPlanner
 
-from panda_control_door_opening.msg import *
+from panda_test.msg import *
 
-from panda_control_door_opening.srv import *
+from panda_test.srv import *
 
 #----- Other -----
 
@@ -229,12 +229,12 @@ class RunningState(State):
         print("---test---")
         req = PandaStateSrvRequest()
         panda_model = self.robot.panda_model_state_srv(req)        
-        self.robot.publishArmAndBaseVelocityControl([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.01], 3*[0.0], 3*[0.0])
+        self.robot.publishArmAndBaseVelocityControl([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.1], 3*[0.0], 3*[0.0])
         
     def run(self):
         
         counter = 0
-        N_steps = 1000
+        N_steps = 2000
         freq = rospy.Rate(2)   
         
         try:
@@ -243,7 +243,7 @@ class RunningState(State):
 
                 self.test2(counter)
                 counter += 1
-                freq.sleep()
+                #freq.sleep()
                 
         except rospy.ROSInterruptException:  pass
 

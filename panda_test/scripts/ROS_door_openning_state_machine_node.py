@@ -9,12 +9,12 @@ import rospy
 
 #----- Skills -----
 
-from panda_control_door_opening.ROS_optimizer1 import Controller as controller1
-from panda_control_door_opening.ROS_optimizer2 import Controller as controller2
+from panda_test.ROS_optimizer1 import Controller as controller1
+from panda_test.ROS_optimizer2 import Controller as controller2
 
-from panda_control_door_opening.ROS_direction_estimation import SkillUnconstrainedDirectionEstimation
+from panda_test.ROS_direction_estimation import SkillUnconstrainedDirectionEstimation
 
-from panda_control_door_opening.ROS_planner import RobotPlanner
+from panda_test.ROS_planner import RobotPlanner
 
 #----- Other -----
 

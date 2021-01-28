@@ -77,7 +77,7 @@ class RobotPlanner:
 
         #----- Publishers -----
 
-        self.publisher_joints = rospy.Publisher('/arm_joint_command', desired_vel_msg, latch=True, queue_size=10)
+        self.publisher_joints = rospy.Publisher('/arm_command', desired_vel_msg, latch=True, queue_size=10)
         self.publisher_base_velocity = rospy.Publisher('/cmd_vel', Twist,  latch=True, queue_size=10)
 
         #----- Gripper client -----
@@ -94,7 +94,7 @@ class RobotPlanner:
 
     def publishArmAndBaseVelocityControl(self, q_dot_des, linVelBase, angVelBase):
 
-        joints_des = command_msg()
+        joints_des = desired_vel_msg()
 
         for i in range(7):
             joints_des.dq_arm[i] = q_dot_des[i]

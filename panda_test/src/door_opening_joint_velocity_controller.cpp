@@ -155,7 +155,7 @@ void DoorOpeningJointVelocityController::starting(const ros::Time & /* time */)
 
 void DoorOpeningJointVelocityController::command_cb(const panda_test::desired_vel_msg::ConstPtr& msg)
 {
-
+    ROS_INFO("MSG received")
     desired_joint_velocity_command_[0] = msg->dq_arm[0];
     desired_joint_velocity_command_[1] = msg->dq_arm[1];
     desired_joint_velocity_command_[2] = msg->dq_arm[2];
@@ -194,6 +194,7 @@ void DoorOpeningJointVelocityController::update(const ros::Time & /* time */, co
     {
         velocity_joint_handles_[i].setCommand(velocity_command[i]);
     }
+
 
 }
 
