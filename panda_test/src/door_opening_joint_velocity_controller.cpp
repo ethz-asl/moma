@@ -207,7 +207,7 @@ void DoorOpeningJointVelocityController::stopping(const ros::Time & /*time*/)
 }
 
 
-} //namespace panda_control_door_opening
+} //namespace panda_test
 
 PLUGINLIB_EXPORT_CLASS(panda_test::DoorOpeningJointVelocityController, controller_interface::ControllerBase)
 

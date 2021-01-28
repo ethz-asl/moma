@@ -9,4 +9,10 @@
 
   <rosparam command="load" file="$(find panda_test)/config/controllers.yaml" />
   <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen"  args="door_opening_joint_velocity_controller"/>
+
+  <!-- PandaStateService node -->
+  <node name="panda_state_service_node" pkg="panda_test" type="panda_state_service" respawn="true" output="screen" args="$(arg robot_ip)" />
+
+  <!-- PandaGripperService node -->
+  <node name="panda_gripper_service_node" pkg="panda_test" type="panda_gripper_service" respawn="true" output="screen" args="$(arg robot_ip)" />
 </launch>
