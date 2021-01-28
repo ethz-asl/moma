@@ -18,9 +18,9 @@ from control_msgs.msg import (
     GripperCommandGoal,
 )
 
-from panda_control_door_opening.msg import *
+from panda_test.msg import *
 
-from panda_control_door_opening.srv import *
+from panda_test.srv import *
 
 #----- Other -----
 

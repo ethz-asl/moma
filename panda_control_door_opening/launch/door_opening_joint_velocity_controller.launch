@@ -1,9 +1,0 @@
-<?xml version="1.0" ?>
-<launch>
-    <!-- Launch the panda control door opening node -->
-    <include file="$(find panda_control_door_opening)/launch/panda_control_door_opening.launch"/>
-
-    <!-- Start our door opening joint velocity controller -->
-    <rosparam command="load" file="$(find panda_control_door_opening)/config/controllers.yaml" />
-    <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="door_opening_joint_velocity_controller"/>
-</launch>

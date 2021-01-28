@@ -225,15 +225,16 @@ class RunningState(State):
         print(100*"=")
         
     def test2(self, counter):
-
+        
+        print("---test---")
         req = PandaStateSrvRequest()
         panda_model = self.robot.panda_model_state_srv(req)        
-        self.robot.publishArmAndBaseVelocityControl([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.001], 3*[0.0], 3*[0.0])
+        self.robot.publishArmAndBaseVelocityControl([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.01], 3*[0.0], 3*[0.0])
         
     def run(self):
         
         counter = 0
-        N_steps = 100
+        N_steps = 1000
         freq = rospy.Rate(2)   
         
         try:
@@ -242,7 +243,7 @@ class RunningState(State):
 
                 self.test2(counter)
                 counter += 1
-                #freq.sleep()
+                freq.sleep()
                 
         except rospy.ROSInterruptException:  pass
 

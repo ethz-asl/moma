@@ -2,7 +2,7 @@ import numpy as np
 from numpy import linalg as LA
 import math
 
-from panda_control_door_opening.ROS_door_opening_util import *
+from panda_test.ROS_door_opening_util import *
 
 from collections import deque
 
