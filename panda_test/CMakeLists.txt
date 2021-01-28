@@ -21,6 +21,7 @@ find_package(catkin REQUIRED COMPONENTS
 )
 
 find_package(Franka 0.7.0 REQUIRED)
+catkin_python_setup()
 
 add_message_files(FILES
   command_msg.msg
