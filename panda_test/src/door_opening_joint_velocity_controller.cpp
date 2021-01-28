@@ -135,7 +135,7 @@ bool DoorOpeningJointVelocityController::init(hardware_interface::RobotHW *robot
     }
     //----- Subscribers -----
 
-    joint_velocity_command_subscriber_ = node_handle.subscribe("/arm_joint_command", 10, &DoorOpeningJointVelocityController::command_cb, this);
+    joint_velocity_command_subscriber_ = node_handle.subscribe("/arm_command", 10, &DoorOpeningJointVelocityController::command_cb, this);
 
     return true;
 
