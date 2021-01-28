@@ -190,7 +190,7 @@ void DoorOpeningJointVelocityController::update(const ros::Time & /* time */, co
         state.dq_d,
         state.ddq_d);
 
-
+    ROS_INFO("VELOCITY COMMANDED: %f", velocity_command[6]);
     for(size_t i=0; i<7; i++)
     {
         velocity_joint_handles_[i].setCommand(velocity_command[i]);
