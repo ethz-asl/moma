@@ -77,9 +77,9 @@ class StartState(State):
         waiting = True
         rospy.sleep(1.0)
 
-        rospy.wait_for_service('/panda_state_srv')
+        #rospy.wait_for_service('/panda_state_srv')
         print("PANDA_STATE_SRV initiated")
-        rospy.wait_for_service('/robot_gripper_srv')
+        #rospy.wait_for_service('/robot_gripper_srv')
         print("PANDA_GRIPPER_SRV initiated")
         
         print(10*'*'+" All services started! "+10*'*')
@@ -106,8 +106,8 @@ class StartState(State):
         NE_T_EE = [1.0, 0.0, 0.0 ,0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.015, 1.0]
         EE_T_K  = [1.0, 0.0, 0.0 ,0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0]
 
-        succ = self.robot.set_frames(NE_T_EE, EE_T_K)
-        #succ = True
+        #succ = self.robot.set_frames(NE_T_EE, EE_T_K)
+        succ = True
         
         if not succ:
 
@@ -127,10 +127,10 @@ class StartState(State):
         if temp1 in ['y', 'Y']:
             
             grasping_width = 0.03
-            grasping_vel = 0.01
+            grasping_vel = 0.1
             grasping_force = 2            
 
-            succ = self.robot.close_gripper(grasping_width, grasping_vel, grasping_force)
+            #succ = self.robot.close_gripper(grasping_width, grasping_vel, grasping_force)
             
             if not succ:
                 
@@ -227,14 +227,14 @@ class RunningState(State):
     def test2(self, counter):
         
         print("---test---")
-        req = PandaStateSrvRequest()
-        panda_model = self.robot.panda_model_state_srv(req)        
-        self.robot.publishArmAndBaseVelocityControl([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.1], 3*[0.0], 3*[0.0])
+        #req = PandaStateSrvRequest()
+        #panda_model = self.robot.panda_model_state_srv(req)        
+        self.robot.publishArmAndBaseVelocityControl([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -0.1], 3*[0.0], 3*[0.0])
         
     def run(self):
         
         counter = 0
-        N_steps = 2000
+        N_steps = 200000000000
         freq = rospy.Rate(2)   
         
         try:
