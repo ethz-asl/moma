@@ -6,6 +6,8 @@ import math
 from highlevel_planning.tools.door_opening_util import *
 
 from highlevel_planning.sim.direction_estimators.direction_estimation import SkillUnconstrainedDirectionEstimation
+from sklearn.gaussian_process import GaussianProcessRegressor
+from scipy.stats import norm
 
 EPS = 1e-6
 DEBUG = True
@@ -133,10 +135,73 @@ class Estimator(SkillUnconstrainedDirectionEstimation):
         else:
             
             wdesEE_ee = np.array([0.0]*3)
-        print("wdesEE_ee: ", wdesEE_ee)    
+        #print("wdesEE_ee: ", wdesEE_ee)    
         veldesEE_ee = np.concatenate((np.squeeze(vdesEE_ee), np.squeeze(wdesEE_ee)), axis=0)
         
         return veldesEE_ee
+    
+#-------
+    def CalculateInitialDirections(self, Nx=5, Ny=5):
+        
+        list_n = []
+        
+        list_of_x = list(np.linspace(-1.0, 1.0, num=Nx))
+        list_of_y = list(np.linspace(-1.0, 1.0, num=Ny))
+        
+        for x in list_of_x:
+            for y in list_of_y:
+                
+                if x**2 + y**2 <=1:
+                    
+                    n = [x, y, -(1.0 - x**2 - y**2)**0.5]
+                    list_n.append(n)
+        
+        return list_n
+    
+#-------    
+    def EstimateBestInitialDirection(self, X_data, Y_data):
+        
+        X_data = np.array(X_data).reshape(len(X_data), -1)
+        Y_data = np.array(Y_data)
+        
+        print("X_data: ", X_data)
+        print("Y_data: ", Y_data)
+        
+        Z = np.sum(Y_data)
+        Y_data = Y_data/Z
+        
+        for i in range(X_data.shape[0]):
+            
+            X_data[i, :] = Y_data[i]*X_data[i, :]
+        
+        X_data = np.sum(X_data, axis=0)
+        X_data = np.squeeze(X_data)
+        
+        estimated_direction = np.array([X_data[0], X_data[1], -(1.0 - X_data[0]**2 - X_data[1]**2)**0.5])
+        
+        id_min = np.argmin(np.abs(estimated_direction))
+        estimated_direction[id_min] = 0.0
+        
+        estimated_direction = estimated_direction/LA.norm(estimated_direction)
+        
+        print("ESTIMATED DIR: ", estimated_direction)
+        
+        self.y_k_1 = estimated_direction.reshape(3,1)
+        self.y_k_2 = estimated_direction.reshape(3,1)
+        self.x_k_1 = estimated_direction.reshape(3,1)
+        self.x_k_2 = estimated_direction.reshape(3,1)
+        
+        self.initDir = estimated_direction.reshape(3,1)
+        self.directionVector = estimated_direction.reshape(3,1)
+
+        
+        
+        
+        
+        
+                
+            
+                
         
         
             

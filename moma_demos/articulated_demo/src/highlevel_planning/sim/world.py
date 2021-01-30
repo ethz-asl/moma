@@ -53,16 +53,28 @@ class _Model:
         self.name = ""
         self.link_name_to_index = dict()
 
-    def load(self, path, position, orientation, scale):
+    def load(self, path, position, orientation, scale, elementToAdd):
         model_path = os.path.expanduser(path)
-        self.uid = p.loadURDF(
-            model_path,
-            position,
-            orientation,
-            globalScaling=scale,
-            useFixedBase=True,						#CHANGE BACK !!!!!!!
-            physicsClientId=self._physics_client,
-        )
+        
+        if elementToAdd == "lid":
+            self.uid = p.loadURDF(
+                    model_path,
+                    position,
+                    orientation,
+                    globalScaling=scale,
+                    useFixedBase=False,						#CHANGE BACK !!!!!!!
+                    physicsClientId=self._physics_client,
+            )            
+        else:
+            self.uid = p.loadURDF(
+                    model_path,
+                    position,
+                    orientation,
+                    globalScaling=scale,
+                    useFixedBase=True,						#CHANGE BACK !!!!!!!
+                    physicsClientId=self._physics_client,
+            )
+            
         self.name = p.getBodyInfo(self.uid)
 
         for i in range(p.getNumJoints(self.uid)):
@@ -98,9 +110,9 @@ class WorldPybullet(World):
         p.setGravity(0, 0, -9.81, self.physics_client)
         p.setAdditionalSearchPath(pybullet_data.getDataPath())
 
-    def add_model(self, path, position, orientation, scale=1.0):
+    def add_model(self, path, position, orientation, scale=1.0, elementToAdd=None):
         model = _Model(self.physics_client)
-        model.load(path, position, orientation, scale)
+        model.load(path, position, orientation, scale, elementToAdd)
         return model
 
     def del_model(self, model):

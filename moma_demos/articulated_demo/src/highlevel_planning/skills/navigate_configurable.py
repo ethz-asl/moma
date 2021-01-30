@@ -48,11 +48,11 @@ class SkillNavigate:
         
         if target_name == 'roomdoor':
             
-            nav_min_dist = nav_min_dist - 0.25
+            nav_min_dist = nav_min_dist - 0.2
             
         if target_name == 'slidingdoor':
             
-            nav_min_dist = nav_min_dist - 0.25
+            nav_min_dist = nav_min_dist - 0.3
             
         if target_name == 'slidinglid':
             

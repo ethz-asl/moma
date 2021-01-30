@@ -4,6 +4,7 @@ from numpy import linalg as LA
 
 from highlevel_planning.tools.door_opening_util import *
 
+from cvxopt import matrix, solvers
 from quadprog import solve_qp
 
 from scipy.optimize import minimize
@@ -22,9 +23,9 @@ class Controller(ControllerTemplate):
         self.noCollision = noCollision
         
         if self.noCollision:
-            self.mode_name = 'moving_base_no_collision_max_mob_control_QCQP'
+            self.mode_name = 'moving_base_no_collision_max_mob_control_SOCP'
         else:
-            self.mode_name = 'moving_base_max_mob_control_QCQP'
+            self.mode_name = 'moving_base_max_mob_control_SOCP'
         
         self.vLinBase_b = None
         self.vAngBase_b = None
@@ -99,10 +100,23 @@ class Controller(ControllerTemplate):
                 print(e)
             
         return np.squeeze(q_dot_optimal)
+    
+#-------
+    def PrepareTask3(self, scaleFactor, vdes, vmean, scaledV):
+    
+        c3 = matrix([1.0, 1.0, 0.0, 0.0])
+        
+        G3 =  [ matrix( [[-1., 0., 0.], [0., 0., 0.], [0., -scaleFactor, 0.], [0., 0., -scaleFactor]] ) ]       
+        G3 += [ matrix( [[0., 0., 0.], [-1., 0., 0.], [0., -1., 0.], [0., 0., -1.]] ) ]
+        G3 += [ matrix( [[0., 0., 0.], [0., 0., 0.], [0., -1., 0.], [0., 0., -1.]] ) ] 
+        
+        h3 = [ matrix( [0., -vdes[0], -vdes[1]] ),  matrix( [0., -vmean[0], -vmean[1]] ), matrix( [scaledV, 0., 0.] ) ]
+                
+        return G3, c3, h3
         
 #-------
     def SplitVelocity(self, veldesEE_ee, J_b_ee, C_O_b, C_O_ee, r_O_ee, v, q, Rlim=0.1, alpha=2.0):
-        print(veldesEE_ee)
+
         vLindesEE_O = np.array(C_O_ee.apply(veldesEE_ee[:3]))
         vAngdesEE_O = np.array(C_O_ee.apply(veldesEE_ee[3:]))
         
@@ -147,17 +161,19 @@ class Controller(ControllerTemplate):
             vmean = 1/scaleFactor * vmean        
             vdes = vLindesEE_b[:2]
             
-            opt = {'maxiter': 100, 'disp': False}
+            scaledV = 0.5*v
             
-            x0_lin = [0.0, 0.0]
-            
-            arguments = (0.5*v, )
-            cons = ({'type': 'ineq', 'fun':Constraint1, 'args':arguments})
+            if scaledV <= 0:
                 
-            sol_lin = minimize(Objective1, np.array(x0_lin), args = (vdes, vmean, scaleFactor), method='SLSQP', constraints=cons, options=opt)
+                scaledV = 0.001
                 
+            G3, c3, h3 = self.PrepareTask3(scaleFactor, vdes, vmean, scaledV)
             
-            vLinEE_b = np.array([scaleFactor*sol_lin.x[0], scaleFactor*sol_lin.x[1], vLindesEE_b[2]])
+            sol = solvers.socp(c3, Gq=G3, hq=h3)
+            sol = sol['x']
+            sol_lin = [sol[2], sol[3]]
+            
+            vLinEE_b = np.array([scaleFactor*sol_lin[0], scaleFactor*sol_lin[1], vLindesEE_b[2]])
 
             vLinEE_ee = np.array((C_O_ee.inv() * C_O_b).apply(vLinEE_b))
             vAngEE_ee = np.array((C_O_ee.inv() * C_O_b).apply(vAngdesEE_b))             

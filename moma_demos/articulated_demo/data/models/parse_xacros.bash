@@ -11,6 +11,7 @@ xacro "$DIR"/box_panda_hand.urdf.xacro > "$DIR"/box_panda_hand_pb.urdf
 xacro "$DIR"/container/container_removable_lid.urdf.xacro > "$DIR"/container/container_removable_lid.urdf
 xacro "$DIR"/container/container_sliding_lid_on_table.urdf.xacro > "$DIR"/container/container_sliding_lid_on_table.urdf
 xacro "$DIR"/container/container_removable_lid_on_table.urdf.xacro > "$DIR"/container/container_removable_lid_on_table.urdf
+xacro "$DIR"/container/lid_for_container_on_table.urdf.xacro > "$DIR"/container/lid_for_container_on_table.urdf
 
 FRANKA_DESCR_PATH="$(rospack find franka_description | sed 's./.\\\/.g')"
 sed -i "s/package:\/\/franka_description/$FRANKA_DESCR_PATH/g" "$DIR"/box_panda_hand_pb.urdf

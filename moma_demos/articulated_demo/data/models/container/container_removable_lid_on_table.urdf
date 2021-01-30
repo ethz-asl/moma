@@ -86,7 +86,7 @@
     </contact>
     <inertial>
       <origin rpy="0 0 0" xyz="0 0 0"/>
-      <mass value="0.2"/>
+      <mass value="0.02"/>
       <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
     </inertial>
     <visual>
@@ -109,7 +109,7 @@
     </contact>
     <inertial>
       <origin rpy="0 0 0" xyz="0 0 0"/>
-      <mass value="0.2"/>
+      <mass value="0.02"/>
       <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
     </inertial>
     <visual>
@@ -137,7 +137,7 @@
     </contact>
     <inertial>
       <origin rpy="0 0 0" xyz="0 0 0"/>
-      <mass value="0.2"/>
+      <mass value="0.02"/>
       <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
     </inertial>
     <visual>
@@ -165,7 +165,7 @@
     </contact>
     <inertial>
       <origin rpy="0 0 0" xyz="0 0 0"/>
-      <mass value="0.2"/>
+      <mass value="0.02"/>
       <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
     </inertial>
     <visual>
@@ -193,7 +193,7 @@
     </contact>
     <inertial>
       <origin rpy="0 0 0" xyz="0 0 0"/>
-      <mass value="0.2"/>
+      <mass value="0.02"/>
       <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
     </inertial>
     <visual>
@@ -219,75 +219,6 @@
     <origin rpy="0 0 0" xyz="0 0 0.63"/>
     <parent link="table_link"/>
     <child link="frame_bottom_plane"/>
-  </joint>
-  <link name="lid_plane">
-    <contact>
-      <lateral_friction value="1.0"/>
-    </contact>
-    <inertial>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
-      <mass value="0.2"/>
-      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
-    </inertial>
-    <visual>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
-      <geometry>
-        <box size="0.315 0.21000000000000002 0.01"/>
-      </geometry>
-      <material name="white"/>
-    </visual>
-    <collision>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
-      <geometry>
-        <box size="0.315 0.21000000000000002 0.01"/>
-      </geometry>
-    </collision>
-  </link>
-  <joint name="lid_joint" type="prismatic">
-    <origin rpy="0 0 0" xyz="0 0 0.09000000000000001"/>
-    <parent link="frame_bottom_plane"/>
-    <child link="lid_plane"/>
-    <axis xyz="0 0 1"/>
-    <dynamics damping="8.0"/>
-    <limit effort="10.0" lower="0.0" upper="0.27" velocity="1.5"/>
-  </joint>
-  <link name="handle">
-    <inertial>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
-      <mass value="0.2"/>
-      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
-    </inertial>
-    <collision>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
-      <geometry>
-        <cylinder length="0.16000000000000003" radius="0.01"/>
-      </geometry>
-    </collision>
-    <visual>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
-      <geometry>
-        <cylinder length="0.16000000000000003" radius="0.01"/>
-      </geometry>
-      <material name="silver"/>
-    </visual>
-  </link>
-  <joint name="handle_joint" type="fixed">
-    <origin rpy="1.5707963267948966 4.71238898038469 0" xyz="0 0 0.025"/>
-    <parent link="lid_plane"/>
-    <child link="handle"/>
-  </joint>
-  <link name="door_handle_dummy_link">
-    <!-- This dummy link is added s.t. the handle is the parent of some link and we can find the handle's index. -->
-    <inertial>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
-      <mass value="0.1"/>
-      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
-    </inertial>
-  </link>
-  <joint name="door_handle_dummy_joint" type="fixed">
-    <origin rpy="0 0 0" xyz="0 0 0"/>
-    <parent link="handle"/>
-    <child link="door_handle_dummy_link"/>
   </joint>
 </robot>
 

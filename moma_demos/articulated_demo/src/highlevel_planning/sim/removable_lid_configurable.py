@@ -7,11 +7,17 @@ import os
 
 class RemovableLid:
     def __init__(self, world, pos_, orient_, base_dir, grasp_offset):
-        self.urdf = os.path.join(
+        self.urdf_base = os.path.join(
             base_dir, "data/models/container/container_removable_lid_on_table.urdf"
         )
-        self.model = world.add_model(self.urdf, position=pos_, orientation=orient_)
-        self.pos = pos_
+        self.urdf = os.path.join(
+            base_dir, "data/models/container/lid_for_container_on_table.urdf"
+        )
+        
+        self.base_model = world.add_model(self.urdf_base, position=pos_, orientation=orient_)
+        self.model = world.add_model(self.urdf, position=[pos_[0], pos_[1], pos_[2] + 0.725] , orientation=orient_, elementToAdd="lid")
+        
+        self.pos = [pos_[0], pos_[1], pos_[2] + 0.725]
         self.orient = orient_
         self.grasp_offset = grasp_offset				# Added additional argument
 

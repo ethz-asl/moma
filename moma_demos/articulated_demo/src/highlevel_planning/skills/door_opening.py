@@ -10,6 +10,7 @@ from highlevel_planning.tools.door_opening_util import *
 
 import math
 import matplotlib.pyplot as plt
+from numpy import linalg as LA
 
 EPS = 1e-6
 DEBUG = True
@@ -19,7 +20,7 @@ BASEDIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 class SkillTrajectoryPlanning:
 
-    def __init__(self, scene, robot, cfg, list_of_controllers, time_step, initLength, vInit, vRegular):
+    def __init__(self, scene, robot, cfg, list_of_controllers, cinit, time_step, initLength, vInit, vRegular):
     
         self.scene = scene
         self.robot = robot
@@ -32,6 +33,8 @@ class SkillTrajectoryPlanning:
         self.vRegular = vRegular
         
         self.listOfControllers = list_of_controllers
+        self.cinit = cinit
+        self.q_dot_prev = np.array(7*[0.0]).reshape(-1, 1)
         
         #----- Log data for plotting -----
         
@@ -62,7 +65,7 @@ class SkillTrajectoryPlanning:
         
         #----- -----
         
-        #self.PrintRobotJointInfo()
+        self.PrintRobotJointInfo()
         
 #-------
     def reset(self):
@@ -195,9 +198,17 @@ class SkillTrajectoryPlanning:
         
             nobj_O = np.squeeze(np.array(C_O_obj.as_matrix())[:, 0])    
         
-        elif target_name in ["slidingdoor", "slidinglid"]:
+        elif target_name in ["slidingdoor"]:
             
-            nobj_O = np.squeeze(np.array(C_O_obj.as_matrix())[:, 1]) 
+            nobj_O = -np.squeeze(np.array(C_O_obj.as_matrix())[:, 2])
+            
+        elif target_name in ["slidinglid"]:
+            
+            nobj_O = -np.squeeze(np.array(C_O_obj.as_matrix())[:, 1])
+            
+        elif target_name in ["removablelid"]:
+            
+            nobj_O = np.squeeze(np.array(C_O_obj.as_matrix())[:, 0]) 
             
         return r_O_obj, quat, C_O_obj, nobj_O    
         
@@ -640,6 +651,111 @@ class SkillTrajectoryPlanning:
             print(5*'*' + ' Plots prepared '+ 5*'*')
             
 #-------
+    def InitProgram(self, sk_dir, target_name, link_idx, grasp_id):
+        
+                print(5*"-"+' Init procedure '+5*'-')
+                
+                direction_list = sk_dir.CalculateInitialDirections()
+                
+                try_velocity = 0.005
+                N_steps_per_dir = 3
+                
+                totalInitTime = 0.0
+                X_data = []
+                Y_data = []
+                
+                startTime = time.time()
+                
+                for idx in range(len(direction_list)):
+                    
+                    d = direction_list[idx]
+                    direction = np.array(d).reshape(-1, 1)
+                    
+                    print("Trying the direction n: "+str(d))
+                    
+                    if idx == 0:
+                        
+                        M, b, J_b_ee, q, q_dot, C_O_b, r_O_b, C_O_ee, r_O_ee, mtorq, vLinEE_O, vAngEE_O, vLinBase_O, vAngBase_O, f_wristframe, t_wristframe = self.GetMeasurements()
+                        
+                        veldesEE_ee = 0*np.array(d + 3*[0.0])
+    
+                        infoTuple = (M, b, J_b_ee, q, q_dot, C_O_b, C_O_ee, r_O_ee, try_velocity)
+                        
+                        self.q_dot_prev = np.array(q_dot[:7]).reshape(-1, 1)
+                        
+                        self.cinit.PerformOneStep(veldesEE_ee, infoTuple)
+                        
+                        M, b, J_b_ee, q, q_dot, C_O_b, r_O_b, C_O_ee, r_O_ee, mtorq, vLinEE_O, vAngEE_O, vLinBase_O, vAngBase_O, f_wristframe, t_wristframe = self.GetMeasurements()
+                        sf = f_wristframe
+                        sy_proj = LA.norm(np.matmul((np.eye(3) - np.matmul(direction, np.transpose(direction))), f_wristframe))
+                  
+                    print("Starting force: "+str(np.squeeze(sf)))
+                    print("sf: "+str(LA.norm(sf)))
+                    print("sy: "+str(sy_proj))
+                    
+                    for temp_it in range(N_steps_per_dir):
+                    
+                        r_O_obj,_,_,nObj_O = self.GetGraspedObjActualInfo(target_name, link_idx, grasp_id)
+                        
+                        M, b, J_b_ee, q, q_dot, C_O_b, r_O_b, C_O_ee, r_O_ee, mtorq, vLinEE_O, vAngEE_O, vLinBase_O, vAngBase_O, f_wristframe, t_wristframe = self.GetMeasurements()
+                        
+                        veldesEE_ee = try_velocity*np.array(d + 3*[0.0])
+    
+                        infoTuple = (M, b, J_b_ee, q, q_dot, C_O_b, C_O_ee, r_O_ee, try_velocity)
+                        
+                        self.q_dot_prev = np.array(q_dot[:7]).reshape(-1, 1)
+                        
+                        self.cinit.PerformOneStep(veldesEE_ee, infoTuple)
+                                               
+                    M, b, J_b_ee, q, q_dot, C_O_b, r_O_b, C_O_ee, r_O_ee, mtorq, vLinEE_O, vAngEE_O, vLinBase_O, vAngBase_O, f_wristframe, t_wristframe = self.GetMeasurements()
+                    
+                    f_wristframe = np.array(f_wristframe).reshape(-1, 1)
+                    
+                    y = 1 - LA.norm(f_wristframe)/LA.norm(sf)
+
+                    y_proj = LA.norm(np.matmul((np.eye(3) - np.matmul(direction, np.transpose(direction))), f_wristframe))
+                    
+                    if y>0:
+                        
+                        X_data.append(d[:2])
+                        Y_data.append(y)                        
+                    
+                    print("y: ", y)
+                    print("f: ", LA.norm(f_wristframe))
+                    print("force direction: "+str(np.squeeze(f_wristframe)))
+                    print("y_proj: "+str(y_proj))
+                    print(100*"*")
+                    
+                    for temp_it in range(N_steps_per_dir):
+                    
+                        r_O_obj,_,_,nObj_O = self.GetGraspedObjActualInfo(target_name, link_idx, grasp_id)
+                        
+                        M, b, J_b_ee, q, q_dot, C_O_b, r_O_b, C_O_ee, r_O_ee, mtorq, vLinEE_O, vAngEE_O, vLinBase_O, vAngBase_O, f_wristframe, t_wristframe = self.GetMeasurements()
+                        
+                        veldesEE_ee = -try_velocity*np.array(d + 3*[0.0])
+    
+                        infoTuple = (M, b, J_b_ee, q, q_dot, C_O_b, C_O_ee, r_O_ee, try_velocity)
+                        
+                        self.q_dot_prev = np.array(q_dot[:7]).reshape(-1, 1)
+                        
+                        self.cinit.PerformOneStep(veldesEE_ee, infoTuple)
+                                               
+                    M, b, J_b_ee, q, q_dot, C_O_b, r_O_b, C_O_ee, r_O_ee, mtorq, vLinEE_O, vAngEE_O, vLinBase_O, vAngBase_O, f_wristframe, t_wristframe = self.GetMeasurements()
+                    
+                    f_wristframe = np.array(f_wristframe).reshape(-1, 1)
+                    
+                    sf = f_wristframe
+                    sy_proj = LA.norm(np.matmul((np.eye(3) - np.matmul(direction, np.transpose(direction))), f_wristframe))                    
+                   
+                sk_dir.EstimateBestInitialDirection(X_data, Y_data)
+                print(LA.det(np.matmul(J_b_ee, np.transpose(J_b_ee))))
+
+                stopTime = time.time()
+                    
+                totalInitTime = stopTime - startTime
+                print("Total init time: "+str(totalInitTime))
+            
+#-------
     def Run(self, num_steps, sk_grasp, sk_dir, sk_nav, target_name, link_idx, grasp_id, global_folder, postfix=None):
         
         currFolder = prepare_dir(global_folder, postfix)
@@ -689,9 +805,16 @@ class SkillTrajectoryPlanning:
                     self.ApplyRobotConfiguration(initJointPositions, initJointVelocities, initBasePos, initBaseOri, [0.0, 0.0, 0.0], [0.0, 0.0, 0.0])
                             
                 controller.ResetDampings()
+                self.cinit.ResetDampings()
             
                 #arrow_1_id = self.draw_arrow(sk_dir.GetCurrEstimate(), "green")
                 #arrow_2_id = self.draw_arrow([0.1, 0.0, 0.0], "red")
+                
+                #----- Perform Initial Trajectory -----
+                
+                self.InitProgram(sk_dir, target_name, link_idx, grasp_id)
+                
+                #----- Start Control -----
                 
                 totalPlanningTime = 0.0
                 for it in range(num_steps):
@@ -699,20 +822,20 @@ class SkillTrajectoryPlanning:
                     print(5*'-'+' Iteration '+str(it)+' '+5*'-')
                 
                     r_O_obj,_,_,nObj_O = self.GetGraspedObjActualInfo(target_name, link_idx, grasp_id)
-                    print(nObj_O)
-                
+                                   
                     startTime = time.time()
                 
                     M, b, J_b_ee, q, q_dot, C_O_b, r_O_b, C_O_ee, r_O_ee, mtorq, vLinEE_O, vAngEE_O, vLinBase_O, vAngBase_O, f_wristframe, t_wristframe = self.GetMeasurements()
-                
+
                     #self.draw_arrow(f_wristframe, "red", arrow_id=None, length=LA.norm(f_wristframe)/22.0)
                 
-                    sk_dir.UpdateEstimate(f_wristframe, 0.1, C_O_ee, False)
+                    sk_dir.UpdateEstimate(f_wristframe, 0.2, C_O_ee, False)
+                    
                     #self.draw_arrow(sk_dir.GetCurrEstimate(), "green")
                     
                     velProfile = self.VelocityProfile2(it, self.vInit, self.vRegular, 0.5, 0.5, np.floor(self.initLength/3), self.initLength)
                 
-                    veldesEE_ee = sk_dir.GetPlannedVelocities(v=velProfile, calcAng=True, kAng=1)        
+                    veldesEE_ee = sk_dir.GetPlannedVelocities(v=velProfile, calcAng=False, kAng=0.5)        
                 
                     infoTuple = (M, b, J_b_ee, q, q_dot, C_O_b, C_O_ee, r_O_ee, velProfile)
                                 
