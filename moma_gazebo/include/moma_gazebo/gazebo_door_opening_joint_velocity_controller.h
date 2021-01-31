@@ -16,6 +16,10 @@
 #include <pluginlib/class_list_macros.h>
 
 #include <moma_gazebo/command.h>
+#include <moma_gazebo/PandaStateSrv.h>
+
+#include <sensor_msgs/JointState.h>
+#include <geometry_msgs/WrenchStamped.h>
 
 
 namespace moma_gazebo{
@@ -31,6 +35,14 @@ public:
     void stopping(const ros::Time&) override;
 
     void command_cb(const moma_gazebo::command::ConstPtr& msg);
+
+    bool state_clb(moma_gazebo::PandaStateSrv::Request &req, moma_gazebo::PandaStateSrv::Response &res);
+
+    //----- Subscribers to the gazebo topics -----
+
+    void joint_state_clb(const sensor_msgs::JointState& msg);
+
+    void eeforce_clb(const geometry_msgs::WrenchStamped& msg);
 
 private:
 
@@ -53,6 +65,34 @@ private:
     std::array<double, 7> max_velocity_;
     std::array<double, 7> max_acceleration_;
     std::array<double, 7> max_jerk_;
+
+    //----- Params for the state service -----
+
+    ros::ServiceServer get_robot_state_srv;
+
+    ros::Subscriber joint_state_subscriber;
+    ros::Subscriber eeforce_subscriber;
+
+    std::array<double, 7> q_d;
+    std::array<double, 7> dq_d;
+    std::array<double, 7> ddq_d;
+    std::array<double, 7> q;
+    std::array<double, 7> dq;
+    std::array<double, 7> tau_J_d;
+    std::array<double, 7> tau_J;
+    std::array<double, 7> tau_ext_hat_filtered;
+
+    std::array<double, 42> jacobian;
+    std::array<double, 49> mass_matrix;
+    std::array<double, 7> coriolis;
+    std::array<double, 7> gravity;
+
+    std::array<double, 16> EE_T_K;
+    std::array<double, 16> O_T_EE;
+
+    std::array<double, 6> K_F_ext_hat_K;
+
+    bool processing = false;
 
 };
 
