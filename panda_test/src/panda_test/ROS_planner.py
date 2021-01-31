@@ -22,6 +22,8 @@ from panda_test.msg import *
 
 from panda_test.srv import *
 
+from franka_msgs.srv import *
+
 #----- Other -----
 
 from scipy.spatial.transform import Rotation as R
@@ -72,6 +74,9 @@ class RobotPlanner:
 
         self.panda_model_state_srv = rospy.ServiceProxy('/panda_state_srv', PandaStateSrv)
         self.robot_gripper_srv = rospy.ServiceProxy('/robot_gripper_srv', PandaGripperSrv)
+        
+        self.panda_EE_frame_srv = rospy.ServiceProxy('set_EE_frame', SetEEFrame)
+        self.panda_K_frame_srv = rospy.ServiceProxy('set_K_frame', SetKFrame)
 
         self.subscriber_base_state = rospy.Subscriber('/ridgeback_velocity_controller/odom', Odometry , self.baseState_cb)
 
@@ -112,21 +117,32 @@ class RobotPlanner:
         self.publisher_joints.publish(joints_des)
 
 
-    def set_frames(self, NE_T_EE, EE_T_K):
+    def set_frames(self, F_T_EE, EE_T_K):
 
-        req = PandaStateSrvRequest()
+        EE_frame_req = SetEEFrameRequest()
+        K_frame_req = SetKFrameRequest()
 
         for i in range(16):
             
-            req.set_frames = True
-            req.NE_T_EE[i] = NE_T_EE[i]
-            req.EE_T_K[i] = EE_T_K[i]
+            EE_frame_req.F_T_EE[i] = F_T_EE[i]
+            K_frame_req.EE_T_K[i] = EE_T_K[i]
             
-        print("Sending request...")
-        res = self.panda_model_state_srv(req)
+        print("Sending EE_frame request...")
+        
+        res1 = self.panda_EE_frame_srv(EE_frame_req)
+        
         print("Received")
         
-        return True
+        print("Sending K_frame request...")
+
+        res2 = self.panda_K_frame_srv(K_frame_req)  
+        
+        if res1.success and res2.success:
+            return True
+        
+        else:
+            return False
+        
     
     def close_gripper(self, grasping_width, grasping_vel, grasping_force):
         
@@ -367,12 +383,7 @@ class RobotPlanner:
 
             base_state_msg = self.baseState_msg
             
-            req = PandaStateSrvRequest()
-            
-            req.set_frames = False
-            req.NE_T_EE = (0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
-            req.EE_T_K = (0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
-            
+            req = PandaStateSrvRequest()          
             panda_model = self.panda_model_state_srv(req)
 
             self.processing = False

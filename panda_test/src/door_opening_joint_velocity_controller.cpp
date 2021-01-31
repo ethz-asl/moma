@@ -11,6 +11,7 @@
 #include <pluginlib/class_list_macros.h>
 #include <ros/ros.h>
 #include <ros/console.h>
+#include <franka/exception.h>
 
 namespace panda_test{
 
@@ -43,17 +44,16 @@ bool DoorOpeningJointVelocityController::init(hardware_interface::RobotHW *robot
 
     //----- Get Hardware Limit Params -----
 
-
     if (!node_handle.getParam("max_duration_between_commands", max_duration_between_commands_))
     {
-        ROS_ERROR("ConstrainedJointVelocityController: Could not get parameter max_duration_between_commands");
+        ROS_ERROR("DoorOpeningJointVelocityController: Could not get parameter max_duration_between_commands");
         return false;
     }
 
     std::vector<double> temp_max_vel;
     if (!node_handle.getParam("max_velocity", temp_max_vel))
     {
-        ROS_ERROR("ConstrainedJointVelocityController: Could not get parameter max_velocity");
+        ROS_ERROR("DoorOpeningJointVelocityController: Could not get parameter max_velocity");
         return false;
     }
 
@@ -66,7 +66,7 @@ bool DoorOpeningJointVelocityController::init(hardware_interface::RobotHW *robot
     std::vector<double> temp_max_acc;
     if (!node_handle.getParam("max_acceleration", temp_max_acc))
     {
-        ROS_ERROR("ConstrainedJointVelocityController: Could not get parameter max_acceleration");
+        ROS_ERROR("DoorOpeningJointVelocityController: Could not get parameter max_acceleration");
         return false;
     }
 
@@ -79,7 +79,7 @@ bool DoorOpeningJointVelocityController::init(hardware_interface::RobotHW *robot
     std::vector<double> temp_max_jerk;
     if (!node_handle.getParam("max_jerk", temp_max_jerk))
     {
-        ROS_ERROR("ConstrainedJointVelocityController: Could not get parameter max_jerk");
+        ROS_ERROR("DoorOpeningJointVelocityController: Could not get parameter max_jerk");
         return false;
     }
 
@@ -94,7 +94,7 @@ bool DoorOpeningJointVelocityController::init(hardware_interface::RobotHW *robot
     auto state_interface = robot_hw->get<franka_hw::FrankaStateInterface>();
     if (state_interface == nullptr)
     {
-        ROS_ERROR("CartesianVelocityExampleController: Could not get state interface from hardware");
+        ROS_ERROR("DoorOpeningJointVelocityController: Could not get state interface from hardware");
         return false;
     }
 
@@ -104,7 +104,26 @@ bool DoorOpeningJointVelocityController::init(hardware_interface::RobotHW *robot
     }
     catch (const hardware_interface::HardwareInterfaceException &e)
     {
-        ROS_ERROR_STREAM("CartesianVelocityController: Exception getting state handle: " << e.what());
+        ROS_ERROR_STREAM("DoorOpeningJointVelocityController: Exception getting state handle: " << e.what());
+        return false;
+    }
+
+    //----- Get Franka Model Interface and Handle -----
+
+    auto model_interface = robot_hw->get<franka_hw::FrankaModelInterface>();
+    if (model_interface == nullptr)
+    {
+        ROS_ERROR_STREAM("DoorOpeningJointVelocityController: Error getting model interface from hardware");
+        return false;
+    }
+
+    try
+    {
+        model_handle_ = std::make_unique<franka_hw::FrankaModelHandle>(model_interface->getHandle(arm_id + "_model"));
+    }
+    catch (hardware_interface::HardwareInterfaceException& ex)
+    {
+        ROS_ERROR_STREAM("DoorOpeningJointVelocityController: Exception getting model handle from interface: " << ex.what());
         return false;
     }
 
@@ -137,6 +156,11 @@ bool DoorOpeningJointVelocityController::init(hardware_interface::RobotHW *robot
 
     joint_velocity_command_subscriber_ = node_handle.subscribe("/arm_command", 10, &DoorOpeningJointVelocityController::command_cb, this);
 
+    //----- Services -----
+
+    get_robot_state_srv = node_handle.advertiseService("/panda_state_srv", &DoorOpeningJointVelocityController::state_clb, this);
+    ROS_INFO("Panda state service is ready!");
+
     return true;
 
 }
@@ -155,7 +179,7 @@ void DoorOpeningJointVelocityController::starting(const ros::Time & /* time */)
 
 void DoorOpeningJointVelocityController::command_cb(const panda_test::desired_vel_msg::ConstPtr& msg)
 {
-   
+
     desired_joint_velocity_command_[0] = msg->dq_arm[0];
     desired_joint_velocity_command_[1] = msg->dq_arm[1];
     desired_joint_velocity_command_[2] = msg->dq_arm[2];
@@ -180,15 +204,15 @@ void DoorOpeningJointVelocityController::update(const ros::Time & /* time */, co
         desired_joint_velocity_command_ = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
     }
 
-    auto state = state_handle_->getRobotState();
+    robot_state_ = state_handle_->getRobotState();
 
     auto velocity_command = franka::limitRate(
         max_velocity_,
         max_acceleration_,
         max_jerk_,
         desired_joint_velocity_command_,
-        state.dq_d,
-        state.ddq_d);
+        robot_state_.dq_d,
+        robot_state_.ddq_d);
 
     ROS_INFO("VELOCITY COMMANDED: %f", velocity_command[6]);
     for(size_t i=0; i<7; i++)
@@ -196,7 +220,65 @@ void DoorOpeningJointVelocityController::update(const ros::Time & /* time */, co
         velocity_joint_handles_[i].setCommand(velocity_command[i]);
     }
 
+}
 
+//----- State callback -----
+
+bool DoorOpeningJointVelocityController::state_clb(panda_test::PandaStateSrv::Request &req, panda_test::PandaStateSrv::Response &res)
+{
+
+    try{
+
+        auto current_state = robot_state_;
+
+        std::array<double, 7> coriolis = model_handle_->getCoriolis();
+        std::array<double, 7> gravity = model_handle_->getGravity();
+        std::array<double, 42> jacobian = model_handle_->getZeroJacobian(franka::Frame::kEndEffector);
+        std::array<double, 49> mass_matrix = model_handle_->getMass();
+
+        for (size_t i=0; i<7; ++i){
+
+            res.q_d[i] = current_state.q_d[i];
+            res.dq_d[i] = current_state.dq_d[i];
+            res.ddq_d[i] = current_state.ddq_d[i];
+            res.q[i] = current_state.q[i];
+            res.dq[i] = current_state.dq[i];
+
+            res.tau_d_no_gravity[i] = current_state.tau_J_d[i];
+            res.tau[i] = current_state.tau_J[i];
+            res.tau_ext[i] = current_state.tau_ext_hat_filtered[i];
+
+            res.coriolis[i] = coriolis[i];
+            res.gravity[i] = gravity[i];
+        }
+
+        for (size_t i=0; i<42; ++i){
+
+            res.jacobian[i] = jacobian[i];
+        }
+
+        for (size_t i=0; i<49; ++i){
+
+            res.mass_matrix[i] = mass_matrix[i];
+        }
+
+        for (size_t i=0; i<16; ++i){
+
+            res.EE_T_K[i] = current_state.EE_T_K[i];
+            res.O_T_EE[i] = current_state.O_T_EE[i];
+        }
+
+        for (size_t i=0; i<6; ++i){
+
+            res.K_F_ext_hat_K[i] = current_state.K_F_ext_hat_K[i];
+        }
+
+    } catch (const franka::Exception& ex){
+
+        ROS_ERROR_STREAM("Failed to get the robot state with error: "<<ex.what());
+        return false;
+    }
+    return true;
 }
 
 //----- Stopping Function -----

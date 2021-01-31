@@ -7,6 +7,7 @@
 #include <controller_interface/multi_interface_controller.h>
 
 #include <franka_hw/franka_state_interface.h>
+#include <franka_hw/franka_model_interface.h>
 #include <franka/rate_limiting.h>
 
 #include <hardware_interface/joint_command_interface.h>
@@ -17,12 +18,14 @@
 #include <ros/ros.h>
 
 #include <panda_test/desired_vel_msg.h>
+#include <panda_test/PandaStateSrv.h>
 
 namespace panda_test{
 
 class DoorOpeningJointVelocityController : public controller_interface::MultiInterfaceController<
                                                     hardware_interface::VelocityJointInterface,
-                                                    franka_hw::FrankaStateInterface> {
+                                                    franka_hw::FrankaStateInterface,
+                                                    franka_hw::FrankaModelInterface> {
 
 public:
 
@@ -33,16 +36,24 @@ public:
 
     void command_cb(const panda_test::desired_vel_msg::ConstPtr& msg);
 
+    bool state_clb(panda_test::PandaStateSrv::Request &req, panda_test::PandaStateSrv::Response &res);
+
 private:
+
+    franka::RobotState robot_state_;
 
     //----- Interface for joint velocity control of the hw -----
 
     hardware_interface::VelocityJointInterface* velocity_joint_interface_;
     std::vector<hardware_interface::JointHandle> velocity_joint_handles_;
 
-    //----- Franka State hande used for rate limiting -----
+    //----- Franka State handle used for rate limiting -----
 
     std::unique_ptr<franka_hw::FrankaStateHandle> state_handle_;
+
+    //----- Franka Model handle -----
+
+    std::unique_ptr<franka_hw::FrankaModelHandle> model_handle_;
 
     //----- Subscriber for joint velocity commands -----
 
@@ -58,6 +69,11 @@ private:
     std::array<double, 7> max_velocity_;
     std::array<double, 7> max_acceleration_;
     std::array<double, 7> max_jerk_;
+
+    //----- State service -----
+
+    ros::ServiceServer get_robot_state_srv;
+
 
 };
 

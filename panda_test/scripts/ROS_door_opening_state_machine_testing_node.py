@@ -21,6 +21,8 @@ from panda_test.msg import *
 
 from panda_test.srv import *
 
+from franka_msgs.srv import *
+
 #----- Other -----
 
 import numpy as np
@@ -76,10 +78,15 @@ class StartState(State):
         print("Waiting for all the subscribed topics and services to be initiated...")
         waiting = True
         rospy.sleep(1.0)
-
-        #rospy.wait_for_service('/panda_state_srv')
+        
+        
+        rospy.wait_for_service('set_EE_frame')
+        print("SET_EE_FRAME initiated")
+        rospy.wait_for_service('set_K_frame')
+        print("SET_K_FRAME inititated")
+        rospy.wait_for_service('/panda_state_srv')
         print("PANDA_STATE_SRV initiated")
-        #rospy.wait_for_service('/robot_gripper_srv')
+        rospy.wait_for_service('/robot_gripper_srv')
         print("PANDA_GRIPPER_SRV initiated")
         
         print(10*'*'+" All services started! "+10*'*')
@@ -103,11 +110,10 @@ class StartState(State):
 
         print("Setting EE and K referance frames...")
 
-        NE_T_EE = [1.0, 0.0, 0.0 ,0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.015, 1.0]
+        F_T_EE = [1.0, 0.0, 0.0 ,0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.15, 1.0]
         EE_T_K  = [1.0, 0.0, 0.0 ,0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0]
 
-        #succ = self.robot.set_frames(NE_T_EE, EE_T_K)
-        succ = True
+        succ = self.robot.set_frames(F_T_EE, EE_T_K)
         
         if not succ:
 
@@ -130,7 +136,7 @@ class StartState(State):
             grasping_vel = 0.1
             grasping_force = 2            
 
-            #succ = self.robot.close_gripper(grasping_width, grasping_vel, grasping_force)
+            succ = self.robot.close_gripper(grasping_width, grasping_vel, grasping_force)
             
             if not succ:
                 
@@ -226,16 +232,35 @@ class RunningState(State):
         
     def test2(self, counter):
         
-        print("---test---")
-        #req = PandaStateSrvRequest()
-        #panda_model = self.robot.panda_model_state_srv(req)        
+        print("Iteration: " + str(counter) )
+        
+        req = PandaStateSrvRequest()
+        panda_model = self.robot.panda_model_state_srv(req)        
         self.robot.publishArmAndBaseVelocityControl([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -0.1], 3*[0.0], 3*[0.0])
+        
+    def test3(self, counter):
+
+        vFinal = 0.01
+        vInit = vFinal/4
+        alphaInit = 0.5
+        alphaFinal = 0.5
+
+        initN = 100
+
+        tConv = initN
+        t0 = np.ceil(tConv/3)
+
+        
+        print("Iteration: " + str(counter) )
+        
+        self.robot.run_once(counter, vInit, vFinal, alphaInit, alphaFinal, t0, tConv, alpha=0.1, smooth=False, mixCoeff=0.1)
         
     def run(self):
         
         counter = 0
-        N_steps = 200000000000
-        freq = rospy.Rate(2)   
+        N_steps = 1000
+        freq = rospy.Rate(2) 
+        
         
         try:
 

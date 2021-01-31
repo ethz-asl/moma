@@ -9,6 +9,7 @@ find_package(catkin REQUIRED COMPONENTS
   controller_interface
   franka_hw
   franka_gripper
+  franka_msgs
   geometry_msgs
   hardware_interface
   tf
@@ -41,6 +42,7 @@ catkin_package(
     controller_interface
     franka_hw
     franka_gripper
+    franka_msgs
     geometry_msgs
     hardware_interface
     tf
