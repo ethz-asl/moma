@@ -111,11 +111,11 @@ class StartState(State):
 
         print("Setting EE and K referance frames...")
 
-        F_T_EE = [1.0, 0.0, 0.0 ,0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.15, 1.0]
+        F_T_EE = [1.0, 0.0, 0.0 ,0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0]
         EE_T_K  = [1.0, 0.0, 0.0 ,0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0]
 
-        succ = self.robot.set_frames(F_T_EE, EE_T_K)
-        #succ = True
+        #succ = self.robot.set_frames(F_T_EE, EE_T_K)
+        succ = True
         
         if not succ:
 
@@ -134,11 +134,14 @@ class StartState(State):
 
         if temp1 in ['y', 'Y']:
             
-            grasping_width = 0.03
-            grasping_vel = 0.1
-            grasping_force = 2            
+            grasping_width = 0.01
+            grasping_vel = 0.01
+            grasping_force = 2  
+            grasping_homing = True
+            grasping_close = True
 
-            succ = self.robot.close_gripper(grasping_width, grasping_vel, grasping_force)
+            succ = self.robot.close_gripper(grasping_width, grasping_vel, grasping_force, grasping_homing, grasping_close)
+            #succ = True
             
             if not succ:
                 
@@ -252,7 +255,7 @@ class RunningState(State):
             
             req = PandaStateSrvRequest()
             panda_model = self.robot.panda_model_state_srv(req)        
-            self.robot.publishArmAndBaseVelocityControl([0.05, 0.0, 0.0, 0.0, 0.0, 0.0, 0.1], 3*[0.0], 3*[0.0])
+            self.robot.publishArmAndBaseVelocityControl([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.1], 3*[0.0], 0.0)
             print("RECEIVED: "+str(panda_model.K_F_ext_hat_K))
             
             counter += 1
@@ -264,7 +267,7 @@ class RunningState(State):
         alphaInit = 0.5
         alphaFinal = 0.5
 
-        initN = 100
+        initN = 1000
 
         tConv = initN
         t0 = np.ceil(tConv/3)
@@ -284,7 +287,7 @@ class RunningState(State):
     def test4(self):
 
         counter = 0
-        N_steps = 1000
+        N_steps = 100
         freq = rospy.Rate(2) 
         
         force_x = []
@@ -299,6 +302,9 @@ class RunningState(State):
             panda_model = self.robot.panda_model_state_srv(req)        
             
             ext_wrench = np.array(panda_model.K_F_ext_hat_K)
+            
+            print("EE_T_K: "+str(panda_model.EE_T_K))
+            print("O_T_EE: "+str(panda_model.O_T_EE))
             force = ext_wrench[:3]
 
             force_x.append(force[0])
@@ -335,6 +341,14 @@ class RunningState(State):
         try:
 
             self.test4()
+            
+            grasping_width = 0.05
+            grasping_vel = 0.01
+            grasping_force = 2  
+            grasping_homing = False
+            grasping_close = True
+
+            succ = self.robot.close_gripper(grasping_width, grasping_vel, grasping_force, grasping_homing, grasping_close)
                 
         except rospy.ROSInterruptException:  pass
 

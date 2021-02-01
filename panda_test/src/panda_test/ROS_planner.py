@@ -146,12 +146,12 @@ class RobotPlanner:
             return False
         
     
-    def close_gripper(self, grasping_width, grasping_vel, grasping_force):
+    def close_gripper(self, grasping_width, grasping_vel, grasping_force, grasping_homing, grasping_close):
         
         req = PandaGripperSrvRequest()
         
-        req.gripper_homing = True
-        req.gripper_close = True
+        req.gripper_homing = grasping_homing
+        req.gripper_close = grasping_close
         req.grasping_width = grasping_width
         req.grasping_speed = grasping_vel
         req.grasping_force = grasping_force
