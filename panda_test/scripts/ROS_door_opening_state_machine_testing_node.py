@@ -7,11 +7,12 @@ Created on Mon Jan 25 13:11:26 2021
 """
 
 import rospy
+from matplotlib import pyplot as plt
 
 #----- Skills -----
 
 from panda_test.ROS_optimizer1 import Controller as controller1
-from panda_test.ROS_optimizer2 import Controller as controller2
+#from panda_test.ROS_optimizer2 import Controller as controller2
 
 from panda_test.ROS_direction_estimation import SkillUnconstrainedDirectionEstimation
 
@@ -206,39 +207,55 @@ class ObjectGraspedState(State):
             
 class RunningState(State):
     
-    def test1(self, counter):
+    def test1(self):
         
-        print("Iteration: " + str(counter) )
+        counter = 0
+        N_steps = 1000
+        freq = rospy.Rate(2) 
         
-        req = PandaStateSrvRequest()
-        panda_model = self.robot.panda_model_state_srv(req)
+        while counter <= N_steps and not rospy.is_shutdown():
         
-        print("q: ", panda_model.q)
-        print("dq: ", panda_model.dq)
-        print("q_d: ", panda_model.q_d)
-        print("dq_d: ", panda_model.dq_d)
-        print("ddq_d: ", panda_model.ddq_d)
-        print("tau: ", panda_model.tau)
-        print("tau_ext: ", panda_model.tau_ext)
-        print("tau_d_no_gravity: ", panda_model.tau_d_no_gravity)
-        print("coriolis: ", panda_model.coriolis)
-        print("gravity: ", panda_model.gravity)
-        #print("jacobian: ", panda_model.jacobian)
-        #print("mass_matrix: ", panda_model.mass_matrix)
-        print("K_F_ext_hat_K: ", panda_model.K_F_ext_hat_K)
-        print("EE_T_K: ", panda_model.EE_T_K)
-        print("O_T_EE: ", panda_model.O_T_EE)
-        print(100*"=")
+            print("Iteration: " + str(counter) )
+            
+            req = PandaStateSrvRequest()
+            panda_model = self.robot.panda_model_state_srv(req)
+            
+            print("q: ", panda_model.q)
+            print("dq: ", panda_model.dq)
+            print("q_d: ", panda_model.q_d)
+            print("dq_d: ", panda_model.dq_d)
+            print("ddq_d: ", panda_model.ddq_d)
+            print("tau: ", panda_model.tau)
+            print("tau_ext: ", panda_model.tau_ext)
+            print("tau_d_no_gravity: ", panda_model.tau_d_no_gravity)
+            print("coriolis: ", panda_model.coriolis)
+            print("gravity: ", panda_model.gravity)
+            #print("jacobian: ", panda_model.jacobian)
+            #print("mass_matrix: ", panda_model.mass_matrix)
+            print("K_F_ext_hat_K: ", panda_model.K_F_ext_hat_K)
+            print("EE_T_K: ", panda_model.EE_T_K)
+            print("O_T_EE: ", panda_model.O_T_EE)
+            print(100*"=")
+            
+            counter += 1
         
-    def test2(self, counter):
+    def test2(self):
         
-        print("Iteration: " + str(counter) )
+        counter = 0
+        N_steps = 1000
+        freq = rospy.Rate(2) 
         
-        req = PandaStateSrvRequest()
-        panda_model = self.robot.panda_model_state_srv(req)        
-        self.robot.publishArmAndBaseVelocityControl([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -0.1], 3*[0.0], 3*[0.0])
+        while counter <= N_steps and not rospy.is_shutdown():
         
-    def test3(self, counter):
+            print("Iteration: " + str(counter) )
+            
+            req = PandaStateSrvRequest()
+            panda_model = self.robot.panda_model_state_srv(req)        
+            self.robot.publishArmAndBaseVelocityControl([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -0.1], 3*[0.0], 3*[0.0])
+            
+            counter += 1
+        
+    def test3(self):
 
         vFinal = 0.01
         vInit = vFinal/4
@@ -250,25 +267,72 @@ class RunningState(State):
         tConv = initN
         t0 = np.ceil(tConv/3)
 
+        counter = 0
+        N_steps = 1000
+        freq = rospy.Rate(2)         
         
-        print("Iteration: " + str(counter) )
+        while counter <= N_steps and not rospy.is_shutdown():
         
-        self.robot.run_once(counter, vInit, vFinal, alphaInit, alphaFinal, t0, tConv, alpha=0.1, smooth=False, mixCoeff=0.1)
+            print("Iteration: " + str(counter) )
         
-    def run(self):
+            self.robot.run_once(counter, vInit, vFinal, alphaInit, alphaFinal, t0, tConv, alpha=0.1, smooth=False, mixCoeff=0.1)
+            
+            counter += 1
         
+    def test4(self):
+
         counter = 0
         N_steps = 1000
         freq = rospy.Rate(2) 
         
+        force_x = []
+        force_y = []
+        force_z = []
         
+        while counter <= N_steps and not rospy.is_shutdown():
+        
+            print("Iteration: " + str(counter) )
+            
+            req = PandaStateSrvRequest()
+            panda_model = self.robot.panda_model_state_srv(req)        
+            
+            ext_wrench = np.array(panda_model.K_F_ext_hat_K)
+            force = ext_wrench[:3]
+
+            force_x.append(force[0])
+            force_y.append(force[1])
+            force_z.append(force[2])
+            
+            counter += 1
+            
+        N = len(N_steps)
+        t = np.arange(1, N+1)
+        
+        fig1, (ax1_1, ax1_2, ax1_3) = plt.subplots(3,1,figsize=(10,10), constrained_layout=True)
+        
+        ax1_1.plot(t, force_x)
+        ax1_1.set_ylabel('x force')
+        ax1_1.grid('both', 'both')
+        ax1_1.set_xlim(t[0], t[-1])
+        
+        ax1_2.plot(t, force_y)
+        ax1_2.set_ylabel('y force')
+        ax1_2.grid('both', 'both')
+        ax1_2.set_xlim(t[0], t[-1])
+        
+        ax1_3.plot(t, force_z)
+        ax1_3.set_ylabel('z force')
+        ax1_3.grid('both', 'both')
+        ax1_3.set_xlim(t[0], t[-1])
+        
+        plt.show()
+
+       
+    def run(self):
+                
         try:
 
-            while counter <= N_steps and not rospy.is_shutdown():
-
-                self.test2(counter)
-                counter += 1
-                #freq.sleep()
+            self.test2()
                 
         except rospy.ROSInterruptException:  pass
 
