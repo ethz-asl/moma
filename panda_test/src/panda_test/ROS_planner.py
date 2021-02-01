@@ -75,8 +75,8 @@ class RobotPlanner:
         self.panda_model_state_srv = rospy.ServiceProxy('/panda_state_srv', PandaStateSrv)
         self.robot_gripper_srv = rospy.ServiceProxy('/robot_gripper_srv', PandaGripperSrv)
         
-        self.panda_EE_frame_srv = rospy.ServiceProxy('set_EE_frame', SetEEFrame)
-        self.panda_K_frame_srv = rospy.ServiceProxy('set_K_frame', SetKFrame)
+        self.panda_EE_frame_srv = rospy.ServiceProxy('/franka_control/set_EE_frame', SetEEFrame)
+        self.panda_K_frame_srv = rospy.ServiceProxy('/franka_control/set_K_frame', SetKFrame)
 
         self.subscriber_base_state = rospy.Subscriber('/ridgeback_velocity_controller/odom', Odometry , self.baseState_cb)
 
@@ -113,7 +113,7 @@ class RobotPlanner:
         base_des.angular.y = 0.0
         base_des.angular.z = angVelBase
 
-        #self.publisher_base_velocity.publish(base_des)
+        self.publisher_base_velocity.publish(base_des)
         self.publisher_joints.publish(joints_des)
 
 
@@ -131,11 +131,13 @@ class RobotPlanner:
         
         res1 = self.panda_EE_frame_srv(EE_frame_req)
         
-        print("Received")
+        print("Received: "+str(res1.success))
         
         print("Sending K_frame request...")
 
         res2 = self.panda_K_frame_srv(K_frame_req)  
+        
+        print("Received: "+str(res2.success))
         
         if res1.success and res2.success:
             return True

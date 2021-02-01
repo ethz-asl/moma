@@ -81,9 +81,9 @@ class StartState(State):
         rospy.sleep(1.0)
         
         
-        rospy.wait_for_service('set_EE_frame')
+        rospy.wait_for_service('/franka_control/set_EE_frame')
         print("SET_EE_FRAME initiated")
-        rospy.wait_for_service('set_K_frame')
+        rospy.wait_for_service('/franka_control/set_K_frame')
         print("SET_K_FRAME inititated")
         rospy.wait_for_service('/panda_state_srv')
         print("PANDA_STATE_SRV initiated")
@@ -115,6 +115,7 @@ class StartState(State):
         EE_T_K  = [1.0, 0.0, 0.0 ,0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0]
 
         succ = self.robot.set_frames(F_T_EE, EE_T_K)
+        #succ = True
         
         if not succ:
 
@@ -251,7 +252,8 @@ class RunningState(State):
             
             req = PandaStateSrvRequest()
             panda_model = self.robot.panda_model_state_srv(req)        
-            self.robot.publishArmAndBaseVelocityControl([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -0.1], 3*[0.0], 3*[0.0])
+            self.robot.publishArmAndBaseVelocityControl([0.05, 0.0, 0.0, 0.0, 0.0, 0.0, 0.1], 3*[0.0], 3*[0.0])
+            print("RECEIVED: "+str(panda_model.K_F_ext_hat_K))
             
             counter += 1
         
@@ -289,7 +291,7 @@ class RunningState(State):
         force_y = []
         force_z = []
         
-        while counter <= N_steps and not rospy.is_shutdown():
+        while counter < N_steps and not rospy.is_shutdown():
         
             print("Iteration: " + str(counter) )
             
@@ -305,24 +307,24 @@ class RunningState(State):
             
             counter += 1
             
-        N = len(N_steps)
+        N = N_steps
         t = np.arange(1, N+1)
         
-        fig1, (ax1_1, ax1_2, ax1_3) = plt.subplots(3,1,figsize=(10,10), constrained_layout=True)
+        fig1, (ax1_1, ax1_2, ax1_3) = plt.subplots(3,1,figsize=(10,10))
         
         ax1_1.plot(t, force_x)
         ax1_1.set_ylabel('x force')
-        ax1_1.grid('both', 'both')
+        ax1_1.grid('on')
         ax1_1.set_xlim(t[0], t[-1])
         
         ax1_2.plot(t, force_y)
         ax1_2.set_ylabel('y force')
-        ax1_2.grid('both', 'both')
+        ax1_2.grid('on')
         ax1_2.set_xlim(t[0], t[-1])
         
         ax1_3.plot(t, force_z)
         ax1_3.set_ylabel('z force')
-        ax1_3.grid('both', 'both')
+        ax1_3.grid('on')
         ax1_3.set_xlim(t[0], t[-1])
         
         plt.show()
@@ -332,7 +334,7 @@ class RunningState(State):
                 
         try:
 
-            self.test2()
+            self.test4()
                 
         except rospy.ROSInterruptException:  pass
 

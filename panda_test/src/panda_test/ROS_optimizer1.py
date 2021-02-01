@@ -36,7 +36,7 @@ class Controller:
         self.tau_optimal = None
         
         self.vLinBase_b = [0.0, 0.0, 0.0]
-        self.vAngBase_b = [0.0, 0.0, 0.0]
+        self.vAngBase_b = [0.0, 0.0, 0.01]
         
         self.sol_lin_previous = [0.0]*7
 #-------
@@ -90,7 +90,7 @@ class Controller:
         
         vdesEE_b = np.concatenate((vLindesEE_b, vAngdesEE_b), axis=0)
         
-        vdesEE_b = np.array([0.0, -0.01, 0.0, 0.0, 0.0, 0.0])
+        vdesEE_b = np.array([0.0, -0.005, 0.0, 0.0, 0.0, 0.0])
         
         try:
         
