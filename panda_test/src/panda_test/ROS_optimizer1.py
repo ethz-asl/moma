@@ -93,7 +93,7 @@ class Controller:
         
         vdesEE_b = np.concatenate((vLindesEE_b, vAngdesEE_b), axis=0)
         
-        vdesEE_b = np.array([-0.01, 0.0, 0.0, 0.0, 0.0, 0.0])
+        vdesEE_b = np.array([-0.02, 0.0, 0.0, 0.0, 0.0, 0.0])
         
         try:
         

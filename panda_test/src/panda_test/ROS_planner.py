@@ -150,7 +150,7 @@ class RobotPlanner:
         
         req = PandaGripperSrvRequest()
         
-        req.grasping_move = grasping_move
+        req.gripper_move = grasping_move
         req.gripper_homing = grasping_homing
         req.gripper_close = grasping_close
         req.grasping_width = grasping_width

@@ -187,7 +187,7 @@ class ObjectGraspedState(State):
         temp1 = input("Inititate door opening procedure? [y/n]: ")
         if temp1 in ['Y','y']:
                 
-            grasping_width = 0.038
+            grasping_width = 0.008
             grasping_vel = 0.01
             grasping_force = 10  
             grasping_homing = False
@@ -283,7 +283,7 @@ class RunningState(State):
         t0 = np.ceil(tConv/3)
 
         counter = 0
-        N_steps = 1000
+        N_steps = 200
         freq = rospy.Rate(2)         
         
         while counter <= N_steps and not rospy.is_shutdown():
@@ -344,13 +344,75 @@ class RunningState(State):
         ax1_3.set_xlim(t[0], t[-1])
         
         plt.show()
+        
+    def test5(self):
 
-       
+        vFinal = 0.01
+        vInit = vFinal/4
+        alphaInit = 0.5
+        alphaFinal = 0.5
+
+        initN = 100
+
+        tConv = initN
+        t0 = np.ceil(tConv/3)
+
+        counter = 0
+        N_steps = 400
+        freq = rospy.Rate(2)         
+        
+        force_x = []
+        force_y = []
+        force_z = []
+        
+        while counter <= N_steps and not rospy.is_shutdown():
+        
+            print("Iteration: " + str(counter) )
+        
+            self.robot.run_once(counter, vInit, vFinal, alphaInit, alphaFinal, t0, tConv, alpha=0.1, smooth=False, mixCoeff=0.1)
+            
+            req = PandaStateSrvRequest()
+            panda_model = self.robot.panda_model_state_srv(req)        
+            
+            ext_wrench = np.array(panda_model.K_F_ext_hat_K)
+            
+            print("EE_T_K: "+str(panda_model.EE_T_K))
+            print("O_T_EE: "+str(panda_model.O_T_EE))
+            force = ext_wrench[:3]
+
+            force_x.append(force[0])
+            force_y.append(force[1])
+            force_z.append(force[2])
+            
+            counter += 1   
+            
+        N = N_steps
+        t = np.arange(1, N+1)
+        
+        fig1, (ax1_1, ax1_2, ax1_3) = plt.subplots(3,1,figsize=(10,10))
+        
+        ax1_1.plot(t, force_x)
+        ax1_1.set_ylabel('x force')
+        ax1_1.grid('on')
+        ax1_1.set_xlim(t[0], t[-1])
+        
+        ax1_2.plot(t, force_y)
+        ax1_2.set_ylabel('y force')
+        ax1_2.grid('on')
+        ax1_2.set_xlim(t[0], t[-1])
+        
+        ax1_3.plot(t, force_z)
+        ax1_3.set_ylabel('z force')
+        ax1_3.grid('on')
+        ax1_3.set_xlim(t[0], t[-1])
+        
+        plt.show()
+              
     def run(self):
                 
         try:
 
-            self.test4()
+            self.test5()
             
             grasping_width = 0.05
             grasping_vel = 0.01
