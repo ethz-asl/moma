@@ -146,10 +146,11 @@ class RobotPlanner:
             return False
         
     
-    def close_gripper(self, grasping_width, grasping_vel, grasping_force, grasping_homing, grasping_close):
+    def close_gripper(self, grasping_width, grasping_vel, grasping_force, grasping_homing, grasping_close, grasping_move):
         
         req = PandaGripperSrvRequest()
         
+        req.grasping_move = grasping_move
         req.gripper_homing = grasping_homing
         req.gripper_close = grasping_close
         req.grasping_width = grasping_width
@@ -405,6 +406,8 @@ class RobotPlanner:
             r_O_ee = np.squeeze(np.copy(T_O_ee[:3, 3]))
 
             #----- Update Buffers in direction_estimator class -----
+            
+            print("FORCE: "+str(self.force))
 
             self.direction_estimator.UpdateBuffers(self.force, r_O_ee)
 

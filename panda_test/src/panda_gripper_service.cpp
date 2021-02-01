@@ -40,11 +40,8 @@ class PandaGripperService {
                     ROS_INFO("Failed to perform homing");
                     return false;
                 }
-            }
 
-            //----- Move the gripper to a specific width with specified velocity and force -----
-
-            if (req.gripper_close){
+            } else if (req.gripper_close){
                 franka::GripperState gripper_state = gripper_ptr->readOnce();
                 if (gripper_state.max_width < req.grasping_width) {
                     ROS_INFO("Object is too big for the current finger configuration");
@@ -55,24 +52,25 @@ class PandaGripperService {
                     return false;
                 }
 
-//                if (!gripper_ptr->move(req.grasping_width, req.grasping_speed)) {
-//                    ROS_INFO("Failed to gmove properly");
-//                    return false;
-//                }
-
                 gripper_closed = true;
-            }
 
-            //----- Release the object -----
-
-            if (!req.gripper_close && gripper_closed){
+            } else if (!req.gripper_close){
                 gripper_ptr->stop();
                 gripper_closed = false;
+
+            } else if (req.gripper_move){
+
+                if (!gripper_ptr->move(req.grasping_width, req.grasping_speed)) {
+                    ROS_INFO("Failed to gmove properly");
+                    return false;
+                }
             }
 
             res.success = true;
 
         } catch (const franka::Exception& ex){
+
+            res.success = false;
 
             ROS_ERROR_STREAM("Failed to perform gripper request: "<<ex.what());
             return false;

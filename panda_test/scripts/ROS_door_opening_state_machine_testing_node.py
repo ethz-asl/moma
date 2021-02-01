@@ -111,11 +111,11 @@ class StartState(State):
 
         print("Setting EE and K referance frames...")
 
-        F_T_EE = [1.0, 0.0, 0.0 ,0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0]
+        F_T_EE = [1.0, 0.0, 0.0 ,0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.15, 1.0]
         EE_T_K  = [1.0, 0.0, 0.0 ,0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0]
 
-        #succ = self.robot.set_frames(F_T_EE, EE_T_K)
-        succ = True
+        succ = self.robot.set_frames(F_T_EE, EE_T_K)
+        #succ = True
         
         if not succ:
 
@@ -130,17 +130,18 @@ class StartState(State):
 
                 return 'hold'
 
-        temp1 = input('Close the gripper? [y/n]: ')
+        temp1 = input('Homing the gripper? [y/n]: ')
 
         if temp1 in ['y', 'Y']:
             
-            grasping_width = 0.01
+            grasping_width = 0.03
             grasping_vel = 0.01
             grasping_force = 2  
             grasping_homing = True
-            grasping_close = True
+            grasping_close = False
+            grasping_move = False
 
-            succ = self.robot.close_gripper(grasping_width, grasping_vel, grasping_force, grasping_homing, grasping_close)
+            succ = self.robot.close_gripper(grasping_width, grasping_vel, grasping_force, grasping_homing, grasping_close, grasping_move)
             #succ = True
             
             if not succ:
@@ -185,6 +186,15 @@ class ObjectGraspedState(State):
 
         temp1 = input("Inititate door opening procedure? [y/n]: ")
         if temp1 in ['Y','y']:
+                
+            grasping_width = 0.038
+            grasping_vel = 0.01
+            grasping_force = 10  
+            grasping_homing = False
+            grasping_close = True
+            grasping_move = False
+    
+            succ = self.robot.close_gripper(grasping_width, grasping_vel, grasping_force, grasping_homing, grasping_close, grasping_move)
 
             return 'start_control'
 
@@ -267,7 +277,7 @@ class RunningState(State):
         alphaInit = 0.5
         alphaFinal = 0.5
 
-        initN = 1000
+        initN = 100
 
         tConv = initN
         t0 = np.ceil(tConv/3)
@@ -287,7 +297,7 @@ class RunningState(State):
     def test4(self):
 
         counter = 0
-        N_steps = 100
+        N_steps = 1000
         freq = rospy.Rate(2) 
         
         force_x = []
@@ -345,10 +355,11 @@ class RunningState(State):
             grasping_width = 0.05
             grasping_vel = 0.01
             grasping_force = 2  
-            grasping_homing = False
+            grasping_homing = False 
             grasping_close = True
+            grasping_move = False
 
-            succ = self.robot.close_gripper(grasping_width, grasping_vel, grasping_force, grasping_homing, grasping_close)
+            succ = self.robot.close_gripper(grasping_width, grasping_vel, grasping_force, grasping_homing, grasping_close, grasping_move)
                 
         except rospy.ROSInterruptException:  pass
 
