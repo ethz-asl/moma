@@ -85,11 +85,13 @@ class PandaCommander(object):
 
         return success
 
-    def move_gripper(self, width, max_effort=10):
+    def move_gripper(self, width, max_effort=20):
         command = GripperCommand(width, max_effort)
         goal = GripperCommandGoal(command)
         self.gripper_client.send_goal(goal)
-        return self.gripper_client.wait_for_result(timeout=rospy.Duration(1.0))
+        self.gripper_client.wait_for_result(timeout=rospy.Duration(5.0))
+        res = self.gripper_client.get_result()
+        rospy.loginfo("Gripper res: {}".format(res.reached_goal))
 
     def grasp(self):
         self.move_gripper(0.0)

@@ -25,7 +25,7 @@
         <arg name="enable_pointcloud" value="true"/>
         <arg name="filters" value="temporal"/>
         <arg name="tf_prefix" value="wrist_camera"/>
-        <arg name="publish_tf" value="false"/>
+        <arg name="publish_tf" value="true"/>
     </include>
 
     <!-- Bringup robot -->
@@ -51,7 +51,7 @@
     <!-- Launch action scripts -->
     <node pkg="grasp_demo" type="simple_scan.py" name="scan_action_node" args="$(arg robot_name)" unless="$(arg scan_using_voxbloxpp)" output="screen"/>
     <node pkg="grasp_demo" type="voxbloxpp_scan.py" name="scan_action_node" args="$(arg robot_name)" if="$(arg scan_using_voxbloxpp)" output="screen"/>
-    <!-- <node pkg="grasp_demo" type="grasp_execution.py" name="grasp_execution_action_node" args="$(arg robot_name)" output="screen"/> -->
+    <node pkg="grasp_demo" type="grasp_execution.py" name="grasp_execution_action_node" args="$(arg robot_name)" output="screen"/>
     <node pkg="grasp_demo" type="drop_node.py" name="drop_action_node" args="$(arg robot_name)" output="screen"/>
 
     <group if="$(arg semantic_grasping)">

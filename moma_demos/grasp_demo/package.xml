@@ -20,6 +20,7 @@
   <depend>vpp_msgs</depend>
   <depend>std_srvs</depend>
   <depend>tf2_ros</depend>
+  <depend>realsense2_camera</depend>
 
   <build_depend>message_generation</build_depend>
 
@@ -32,7 +33,7 @@
   <exec_depend>message_runtime</exec_depend>
   <exec_depend>rviz</exec_depend>
   <exec_depend>panda_moveit_config</exec_depend>
-  
+
   <export>
     <rviz plugin="${prefix}/plugin_description.xml" />
   </export>
