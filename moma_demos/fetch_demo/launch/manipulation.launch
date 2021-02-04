@@ -23,9 +23,11 @@
     <node pkg="map_server" name="asl_map_server_node" type="map_server" ns="approach_module" args="$(find fetch_demo)/maps/lasermap_new_table.yaml" output="screen"/>
 
     <!-- Launch camera -->
-    <!-- <include file="$(find realsense2_camera)/launch/rs_camera.launch">
+    <include file="$(find realsense2_camera)/launch/rs_camera.launch">
         <arg name="enable_pointcloud" value="true"/>
-    </include> -->
+        <arg name="tf_prefix" value="wrist_camera"/>
+        <arg name="publish_tf" value="false"/>
+    </include>
 
     <!-- Bringup robot -->
     <group if="$(eval robot_arm_name == 'panda')">
