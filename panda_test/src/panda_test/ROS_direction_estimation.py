@@ -124,7 +124,7 @@ class SkillUnconstrainedDirectionEstimation:
             
         else:
 
-            newDirVec = self.directionVector - alpha*error 
+            newDirVec = self.directionVector - alpha*error # CHANGE TO + FOR THE FORCE ACTING IN THE EE
             
             newDirVec = newDirVec/LA.norm(newDirVec)
    

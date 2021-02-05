@@ -24,6 +24,9 @@ from panda_test.srv import *
 
 from franka_msgs.srv import *
 
+import os
+import numpy.linalg as LA
+
 #----- Other -----
 
 import numpy as np
@@ -365,7 +368,7 @@ class RunningState(State):
         force_y = []
         force_z = []
         
-        while counter <= N_steps and not rospy.is_shutdown():
+        while counter < N_steps and not rospy.is_shutdown():
         
             print("Iteration: " + str(counter) )
         
@@ -407,7 +410,318 @@ class RunningState(State):
         ax1_3.set_xlim(t[0], t[-1])
         
         plt.show()
-              
+        
+    def test6(self):
+        
+        counter = 0
+        N_steps = 20
+        freq = rospy.Rate(2) 
+        
+        force_x = []
+        force_y = []
+        force_z = []
+        
+        torque_x = []
+        torque_y = []
+        torque_z = []
+        
+        list_of_C = []
+        
+        list_of_C_mat = []
+        
+        while counter < N_steps and not rospy.is_shutdown():
+        
+            print("Iteration: " + str(counter) )
+            
+            temp1 = input("Press enter to read the force value: ")
+            
+            req = PandaStateSrvRequest()
+            panda_model = self.robot.panda_model_state_srv(req)        
+            
+            ext_wrench = np.array(panda_model.K_F_ext_hat_K)
+            
+            force = ext_wrench[:3]
+            torque = ext_wrench[3:]
+
+            force_x.append(force[0])
+            force_y.append(force[1])
+            force_z.append(force[2])
+            
+            torque_x.append(torque[0])
+            torque_y.append(torque[1])
+            torque_z.append(torque[2])
+            
+            
+            T_b_ee = np.array(panda_model.O_T_EE)
+            T_b_ee = np.transpose(T_b_ee.reshape(4, 4))
+
+            T_ee_k = np.array(panda_model.EE_T_K)
+            T_ee_k = np.transpose(T_ee_k.reshape(4, 4))
+
+            T_b_ee = np.matmul(T_b_ee, T_ee_k) 
+            
+            C_b_ee = T_b_ee[:3, :3]
+            
+            list_of_C_mat.append(C_b_ee)
+            
+            list_of_C.append(list(np.squeeze(C_b_ee.reshape(-1, 1))))
+                       
+            counter += 1
+            
+        folder_name = os.getcwd()
+        
+        np.save(folder_name +'/forcex.npy', np.array(force_x))
+        np.save(folder_name +'/forcey.npy', np.array(force_y))
+        np.save(folder_name +'/forcez.npy', np.array(force_z))
+        
+        np.save(folder_name +'/torquex.npy', np.array(torque_x))
+        np.save(folder_name +'/torquey.npy', np.array(torque_y))
+        np.save(folder_name +'/torquez.npy', np.array(torque_z))
+        
+        np.save(folder_name +'/C_b_ee.npy', np.array(list_of_C))
+        
+        b_force_est1, b_torque_est1 = self.calibrate1(force_x, force_y, force_z, torque_x, torque_y, torque_z, list_of_C_mat, inv_sigma = (1/0.035**2)*np.eye(3))
+        
+        b_force_est2, b_torque_est2 = self.calibrate2(force_x, force_y, force_z, torque_x, torque_y, torque_z)
+        
+        print('b_force1: ' + str(b_force_est1))
+        print('b_torque1: ' + str(b_torque_est1))
+        
+        print('b_force2: ' + str(b_force_est2))
+        print('b_torque2: ' + str(b_torque_est2))
+        
+        np.save(folder_name +'/b_force1.npy', b_force_est1)
+        np.save(folder_name +'/b_torque1.npy', b_torque_est1)
+
+        np.save(folder_name +'/b_force2.npy', b_force_est2)
+        np.save(folder_name +'/b_torque2.npy', b_torque_est2)
+        
+        N = N_steps
+        t = np.arange(1, N+1)
+        
+        fig1, (ax1_1, ax1_2, ax1_3) = plt.subplots(3,1,figsize=(10,10))
+        
+        ax1_1.plot(t, force_x)
+        ax1_1.set_ylabel('x force')
+        ax1_1.grid('on')
+        ax1_1.set_xlim(t[0], t[-1])
+        
+        ax1_2.plot(t, force_y)
+        ax1_2.set_ylabel('y force')
+        ax1_2.grid('on')
+        ax1_2.set_xlim(t[0], t[-1])
+        
+        ax1_3.plot(t, force_z)
+        ax1_3.set_ylabel('z force')
+        ax1_3.grid('on')
+        ax1_3.set_xlim(t[0], t[-1])
+        
+        plt.show() 
+        
+    def calibrate1(self, force_x, force_y, force_z, torque_x, torque_y, torque_z, list_of_C_mat, inv_sigma = np.eye(3)):
+        
+        A = np.zeros((3,3))
+        B = np.zeros((3,1))
+        C = np.zeros((3,1))
+        
+        N = len(force_x)
+        
+        for i in range(N):
+            
+            Ci = list_of_C_mat[i]
+            Fi = np.array([force_x[i], force_y[i], force_z[i]]).reshape(-1, 1)
+            Ti = np.array([torque_x[i], torque_y[i], torque_z[i]]).reshape(-1, 1)
+            
+            A = A + np.matmul(np.matmul(np.transpose(Ci), inv_sigma), Ci)
+            B = B + np.matmul(np.matmul(np.transpose(Ci), inv_sigma), Fi)
+            C = C + np.matmul(np.matmul(np.transpose(Ci), inv_sigma), Ti)
+            
+        b_force = np.matmul(LA.pinv(A), B)
+        b_torque = np.matmul(LA.pinv(A), C)
+        
+        return np.squeeze(b_force), np.squeeze(b_torque)
+    
+    def calibrate2(self, force_x, force_y, force_z, torque_x, torque_y, torque_z):
+        
+        N = len(force_x)
+        
+        b_force = np.array([0.0, 0.0, 0.0])
+        b_torque = np.array([0.0, 0.0, 0.0])
+        
+        for i in range(N):
+            
+            Fi = np.array([force_x[i], force_y[i], force_z[i]])
+            Ti = np.array([torque_x[i], torque_y[i], torque_z[i]])
+            
+            b_force = b_force + Fi
+            b_torque = b_torque + Ti
+            
+        b_force = (1/N)*b_force
+        b_torque = (1/N)*b_torque
+        
+        return b_force, b_torque
+    
+    def test7(self):
+        
+        folder_name = os.getcwd()
+        
+        b_torque1 = np.load(folder_name +'/b_torque1.npy')
+        b_force1 = np.load(folder_name + '/b_force1.npy')
+        
+        b_torque2 = np.load(folder_name +'/b_torque2.npy')
+        b_force2 = np.load(folder_name + '/b_force2.npy')
+        
+        b_force1 = b_force1.reshape(-1, 1)
+        b_force2 = b_force2.reshape(-1, 1)
+        
+        counter = 0
+        N_steps = 1000
+        freq = rospy.Rate(2) 
+        
+        force_x = []
+        force_y = []
+        force_z = []
+        
+        force_xub = []
+        force_yub = []
+        force_zub = []
+        
+        force_xub2 = []
+        force_yub2 = []
+        force_zub2 = []
+        
+        while counter < N_steps and not rospy.is_shutdown():
+        
+            print("Iteration: " + str(counter) )
+            
+            req = PandaStateSrvRequest()
+            panda_model = self.robot.panda_model_state_srv(req)        
+            
+            ext_wrench = np.array(panda_model.K_F_ext_hat_K)
+            
+            print("EE_T_K: "+str(panda_model.EE_T_K))
+            print("O_T_EE: "+str(panda_model.O_T_EE))
+            force = ext_wrench[:3]
+            
+            T_b_ee = np.array(panda_model.O_T_EE)
+            T_b_ee = np.transpose(T_b_ee.reshape(4, 4))
+
+            T_ee_k = np.array(panda_model.EE_T_K)
+            T_ee_k = np.transpose(T_ee_k.reshape(4, 4))
+
+            T_b_ee = np.matmul(T_b_ee, T_ee_k) 
+            
+            C_b_ee = T_b_ee[:3, :3]
+            
+            forceub = np.squeeze(force) - np.squeeze(np.matmul(np.transpose(C_b_ee), b_force1))
+            forceub2 = np.squeeze(force) - np.squeeze(b_force2)
+
+            force_x.append(force[0])
+            force_y.append(force[1])
+            force_z.append(force[2])
+            
+            force_xub.append(forceub[0])
+            force_yub.append(forceub[1])
+            force_zub.append(forceub[2])
+
+            force_xub2.append(forceub2[0])
+            force_yub2.append(forceub2[1])
+            force_zub2.append(forceub2[2])
+            
+            counter += 1
+            
+        N = N_steps
+        t = np.arange(1, N+1)
+        
+        fig1, (ax1_1, ax1_2, ax1_3) = plt.subplots(3,1,figsize=(10,10))
+        
+        ax1_1.plot(t, force_x, color='b')
+        ax1_1.plot(t, force_xub, color='r')
+        ax1_1.plot(t, force_xub2, color='g')
+        ax1_1.set_ylabel('x force')
+        ax1_1.grid('on')
+        ax1_1.set_xlim(t[0], t[-1])
+        
+        ax1_2.plot(t, force_y, color='b')
+        ax1_2.plot(t, force_yub, color='r')
+        ax1_2.plot(t, force_yub2, color='g')
+        ax1_2.set_ylabel('y force')
+        ax1_2.grid('on')
+        ax1_2.set_xlim(t[0], t[-1])
+        
+        ax1_3.plot(t, force_z, color='b')
+        ax1_3.plot(t, force_zub, color='r')
+        ax1_3.plot(t, force_zub2, color='g')
+        ax1_3.set_ylabel('z force')
+        ax1_3.grid('on')
+        ax1_3.set_xlim(t[0], t[-1])
+        
+        plt.show()
+        
+    def test8(self):
+        
+       vFinal = 0.01
+        vInit = vFinal/4
+        alphaInit = 0.5
+        alphaFinal = 0.5
+
+        initN = 100
+
+        tConv = initN
+        t0 = np.ceil(tConv/3)
+
+        counter = 0
+        N_steps = 400
+        freq = rospy.Rate(2)         
+        
+        force_x = []
+        force_y = []
+        force_z = []
+        
+        while counter < N_steps and not rospy.is_shutdown():
+        
+            print("Iteration: " + str(counter) )
+        
+            self.robot.run_once(counter, vInit, vFinal, alphaInit, alphaFinal, t0, tConv, alpha=0.1, smooth=False, mixCoeff=0.1)
+            
+            req = PandaStateSrvRequest()
+            panda_model = self.robot.panda_model_state_srv(req)        
+            
+            ext_wrench = np.array(panda_model.K_F_ext_hat_K)
+            
+            print("EE_T_K: "+str(panda_model.EE_T_K))
+            print("O_T_EE: "+str(panda_model.O_T_EE))
+            force = ext_wrench[:3]
+
+            force_x.append(force[0])
+            force_y.append(force[1])
+            force_z.append(force[2])
+            
+            counter += 1   
+            
+        N = N_steps
+        t = np.arange(1, N+1)
+        
+        fig1, (ax1_1, ax1_2, ax1_3) = plt.subplots(3,1,figsize=(10,10))
+        
+        ax1_1.plot(t, force_x)
+        ax1_1.set_ylabel('x force')
+        ax1_1.grid('on')
+        ax1_1.set_xlim(t[0], t[-1])
+        
+        ax1_2.plot(t, force_y)
+        ax1_2.set_ylabel('y force')
+        ax1_2.grid('on')
+        ax1_2.set_xlim(t[0], t[-1])
+        
+        ax1_3.plot(t, force_z)
+        ax1_3.set_ylabel('z force')
+        ax1_3.grid('on')
+        ax1_3.set_xlim(t[0], t[-1])
+        
+        plt.show()        
+            
+             
     def run(self):
                 
         try:
