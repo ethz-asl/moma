@@ -145,7 +145,7 @@ class StartState(State):
             grasping_move = False
 
             succ = self.robot.close_gripper(grasping_width, grasping_vel, grasping_force, grasping_homing, grasping_close, grasping_move)
-            #succ = True
+            succ = True
             
             if not succ:
                 
@@ -192,12 +192,12 @@ class ObjectGraspedState(State):
                 
             grasping_width = 0.008
             grasping_vel = 0.01
-            grasping_force = 10  
+            grasping_force = 0.1 
             grasping_homing = False
             grasping_close = True
-            grasping_move = False
+            grasping_move = True
     
-            succ = self.robot.close_gripper(grasping_width, grasping_vel, grasping_force, grasping_homing, grasping_close, grasping_move)
+            #succ = self.robot.close_gripper(grasping_width, grasping_vel, grasping_force, grasping_homing, grasping_close, grasping_move)
 
             return 'start_control'
 
@@ -275,7 +275,7 @@ class RunningState(State):
         
     def test3(self):
 
-        vFinal = 0.01
+        vFinal = 0.02
         vInit = vFinal/4
         alphaInit = 0.5
         alphaFinal = 0.5
@@ -286,7 +286,7 @@ class RunningState(State):
         t0 = np.ceil(tConv/3)
 
         counter = 0
-        N_steps = 200
+        N_steps = 150
         freq = rospy.Rate(2)         
         
         while counter <= N_steps and not rospy.is_shutdown():
@@ -361,7 +361,7 @@ class RunningState(State):
         t0 = np.ceil(tConv/3)
 
         counter = 0
-        N_steps = 400
+        N_steps = 50
         freq = rospy.Rate(2)         
         
         force_x = []
@@ -369,7 +369,8 @@ class RunningState(State):
         force_z = []
         
         while counter < N_steps and not rospy.is_shutdown():
-        
+            
+            print(50*'*')
             print("Iteration: " + str(counter) )
         
             self.robot.run_once(counter, vInit, vFinal, alphaInit, alphaFinal, t0, tConv, alpha=0.1, smooth=False, mixCoeff=0.1)
@@ -379,8 +380,8 @@ class RunningState(State):
             
             ext_wrench = np.array(panda_model.K_F_ext_hat_K)
             
-            print("EE_T_K: "+str(panda_model.EE_T_K))
-            print("O_T_EE: "+str(panda_model.O_T_EE))
+            #print("EE_T_K: "+str(panda_model.EE_T_K))
+            #print("O_T_EE: "+str(panda_model.O_T_EE))
             force = ext_wrench[:3]
 
             force_x.append(force[0])
@@ -394,17 +395,17 @@ class RunningState(State):
         
         fig1, (ax1_1, ax1_2, ax1_3) = plt.subplots(3,1,figsize=(10,10))
         
-        ax1_1.plot(t, force_x)
+        ax1_1.plot(t, force_x, 'bo')
         ax1_1.set_ylabel('x force')
         ax1_1.grid('on')
         ax1_1.set_xlim(t[0], t[-1])
         
-        ax1_2.plot(t, force_y)
+        ax1_2.plot(t, force_y, 'bo')
         ax1_2.set_ylabel('y force')
         ax1_2.grid('on')
         ax1_2.set_xlim(t[0], t[-1])
         
-        ax1_3.plot(t, force_z)
+        ax1_3.plot(t, force_z, 'bo')
         ax1_3.set_ylabel('z force')
         ax1_3.grid('on')
         ax1_3.set_xlim(t[0], t[-1])
@@ -414,7 +415,7 @@ class RunningState(State):
     def test6(self):
         
         counter = 0
-        N_steps = 20
+        N_steps = 30
         freq = rospy.Rate(2) 
         
         force_x = []
@@ -442,6 +443,7 @@ class RunningState(State):
             
             force = ext_wrench[:3]
             torque = ext_wrench[3:]
+            print('Force: '+str(force))
 
             force_x.append(force[0])
             force_y.append(force[1])
@@ -487,8 +489,8 @@ class RunningState(State):
         print('b_force1: ' + str(b_force_est1))
         print('b_torque1: ' + str(b_torque_est1))
         
-        print('b_force2: ' + str(b_force_est2))
-        print('b_torque2: ' + str(b_torque_est2))
+        print('b_force2: ',b_force_est2)
+        print('b_torque2: ',b_torque_est2)
         
         np.save(folder_name +'/b_force1.npy', b_force_est1)
         np.save(folder_name +'/b_torque1.npy', b_torque_est1)
@@ -552,13 +554,16 @@ class RunningState(State):
             
             Fi = np.array([force_x[i], force_y[i], force_z[i]])
             Ti = np.array([torque_x[i], torque_y[i], torque_z[i]])
+            print("Fi ",Fi)
+            print("Ti ", Ti)
             
             b_force = b_force + Fi
-            b_torque = b_torque + Ti
             
-        b_force = (1/N)*b_force
-        b_torque = (1/N)*b_torque
-        
+            b_torque = b_torque + Ti
+        print("bforce ",b_force)   
+        b_force = (1/20.0)*b_force
+        b_torque = (1/20.0)*b_torque
+        print("bforce ",b_force)
         return b_force, b_torque
     
     def test7(self):
@@ -660,7 +665,7 @@ class RunningState(State):
         
     def test8(self):
         
-       vFinal = 0.01
+        vFinal = 0.01
         vInit = vFinal/4
         alphaInit = 0.5
         alphaFinal = 0.5
@@ -726,7 +731,7 @@ class RunningState(State):
                 
         try:
 
-            self.test5()
+            self.test7()
             
             grasping_width = 0.05
             grasping_vel = 0.01
@@ -751,6 +756,14 @@ class StopState(State):
     def run(self):
 
         self.robot.prepare_for_stop()
+        grasping_width = 0.05
+        grasping_vel = 0.01
+        grasping_force = 2  
+        grasping_homing = False 
+        grasping_close = True
+        grasping_move = False
+
+        succ = self.robot.close_gripper(grasping_width, grasping_vel, grasping_force, grasping_homing, grasping_close, grasping_move)
 
         temp1 = input("Restart? [y/n]: ")
 

@@ -2,6 +2,7 @@
 
 import rospy
 import actionlib
+import numpy.linalg as LA
 
 #----- ROS Msgs ------
 
@@ -406,8 +407,6 @@ class RobotPlanner:
             r_O_ee = np.squeeze(np.copy(T_O_ee[:3, 3]))
 
             #----- Update Buffers in direction_estimator class -----
-            
-            print("FORCE: "+str(self.force))
 
             self.direction_estimator.UpdateBuffers(self.force, r_O_ee)
 
@@ -420,6 +419,7 @@ class RobotPlanner:
             velProfile = self.VelocityProfile(t, vInit, vFinal, alphaInit, alphaFinal, t0, tConv)
 
             veldesEE_ee = self.direction_estimator.GetPlannedVelocities(v=velProfile, calcAng=True, kAng=0.05)
+            #print("Current estiamte: "+str(np.array(veldesEE_ee)/LA.norm(np.array(veldesEE_ee))))
 
             r_b_ee = self.T_b_ee[:3, 3]
 

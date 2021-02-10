@@ -98,14 +98,17 @@ class SkillUnconstrainedDirectionEstimation:
         self.counter +=1
         f_wristframe = f_wristframe.reshape(3,1)
         
-        orthoProjMat = OrthoProjection(self.directionVector)    
-                
+        gravity_dir = np.array(C_O_ee.inv().apply(np.array([0.0, 0.0, 1.0]))).reshape(-1, 1)
+        
+        orthoProjMatGravity = OrthoProjection(gravity_dir)
+        orthoProjMat = OrthoProjection(self.directionVector) 
+                       
         if self.counter > self.initN and len(self.objPoseBuffer)>1 and not(self.sufficiently_filled):
         
             self.vec = - np.array(self.objPoseBuffer[0]) + np.array(self.objPoseBuffer[len(self.objPoseBuffer) - 1])
             self.sufficiently_filled = True
         
-        error = np.matmul(orthoProjMat, f_wristframe) - self.fDesired
+        error = np.matmul(orthoProjMatGravity, np.matmul(orthoProjMat, f_wristframe)) - self.fDesired
         error = error/LA.norm(error)
                 
         if self.sufficiently_filled:
