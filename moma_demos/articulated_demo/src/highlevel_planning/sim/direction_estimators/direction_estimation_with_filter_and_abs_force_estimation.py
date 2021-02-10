@@ -34,6 +34,8 @@ class Estimator(SkillUnconstrainedDirectionEstimation):
         self.y_k_1_coeff = None
         self.y_k_2_coeff = None
         
+        self.z_k_previous = 0.0
+        
         self.SetupButterworthFilter()
         
 #-------
@@ -69,7 +71,6 @@ class Estimator(SkillUnconstrainedDirectionEstimation):
         v1 = vh[:,0]
         
         e = np.sign(np.dot(v1, self.vec))*v1
-        #X_projected = np.matmul(X_centered, e)
         
         return e
         
@@ -79,22 +80,41 @@ class Estimator(SkillUnconstrainedDirectionEstimation):
         self.counter +=1
         f_wristframe = f_wristframe.reshape(3,1)
         
+        gravity_dir = np.array(C_O_ee.inv().apply(np.array([0.0, 0.0, 1.0]))).reshape(-1, 1)
+        
+        orthoProjMatGravity = OrthoProjection(gravity_dir)
         orthoProjMat = OrthoProjection(self.directionVector)    
               
         if self.counter == self.initN:
         
             self.vec = - np.array(self.objPoseBuffer[0]) + np.array(self.objPoseBuffer[len(self.objPoseBuffer) - 1])
         
-        error = np.matmul(orthoProjMat, f_wristframe) - self.fDesired
+        error = np.matmul(orthoProjMatGravity, np.matmul(orthoProjMat, f_wristframe)) - self.fDesired
         error = error/LA.norm(error)
-        print("error: ",error)
+        
+#        if len(self.objPoseBuffer)>1:
+#            z_k = 0.0
+#            for aux1 in range(len(self.objPoseBuffer)):
+#                
+#                z_k += self.objPoseBuffer[aux1][2]
+#            z_k = z_k/len(self.objPoseBuffer)
+#            
+#        else:
+#            
+#            z_k = 0.0
+#        
+#        error2 = (z_k - self.z_k_previous) * gravity_dir
+#        self.z_k_previous = z_k
+#        
+#        alpha2 = 0.1
+#        
         if self.counter>self.initN:
             
             eFromPoses = self.GetDirectionFromPoses()
             eFromPoses = np.array(C_O_ee.inv().apply(eFromPoses))
             eFromPoses = eFromPoses.reshape(3,1)
             
-            eFromForces = self.directionVector - alpha*error
+            eFromForces = self.directionVector - alpha*error #+ alpha2*error2
             eFromForces = eFromForces/LA.norm(eFromForces)
             eFromForces = eFromForces.reshape(3,1)
             
@@ -103,7 +123,7 @@ class Estimator(SkillUnconstrainedDirectionEstimation):
             
         else:
 
-            newDirVec = self.directionVector - alpha*error
+            newDirVec = self.directionVector - alpha*error #+ alpha2*error2
             newDirVec = newDirVec/LA.norm(newDirVec)
         
         if self.counter>3:            
@@ -118,14 +138,14 @@ class Estimator(SkillUnconstrainedDirectionEstimation):
         self.y_k_1 = self.directionVector
                     
         self.directionVector = self.directionVector/LA.norm(self.directionVector)
-        print("dir: ",self.directionVector)
+        #print("dir: ",self.directionVector)
         
 #-------
     def GetPlannedVelocities(self, v, calcAng=False, kAng=1):
     
         vdesEE_ee = v * self.directionVector
         
-        if calcAng and self.counter>self.initN:
+        if calcAng and self.counter>self.initN*2:
             theta_des = 0.0
             
             nObj_ee = np.squeeze(self.directionVector)
@@ -136,7 +156,7 @@ class Estimator(SkillUnconstrainedDirectionEstimation):
         else:
             
             wdesEE_ee = np.array([0.0]*3)
-        #print("wdesEE_ee: ", wdesEE_ee)    
+   
         veldesEE_ee = np.concatenate((np.squeeze(vdesEE_ee), np.squeeze(wdesEE_ee)), axis=0)
         
         return veldesEE_ee
@@ -160,7 +180,7 @@ class Estimator(SkillUnconstrainedDirectionEstimation):
         return list_n
     
 #-------    
-    def EstimateBestInitialDirection(self, X_data, Y_data):
+    def EstimateBestInitialDirection(self, X_data, Y_data, C_O_ee):
         
         X_data = np.array(X_data).reshape(len(X_data), -1)
         Y_data = np.array(Y_data)
@@ -180,8 +200,11 @@ class Estimator(SkillUnconstrainedDirectionEstimation):
         
         estimated_direction = np.array([X_data[0], X_data[1], -(1.0 - X_data[0]**2 - X_data[1]**2)**0.5])
         
-        id_min = np.argmin(np.abs(estimated_direction))
-        estimated_direction[id_min] = 0.0
+        gravity_dir = np.array(C_O_ee.inv().apply(np.array([0.0, 0.0, 1.0]))).reshape(-1, 1)
+        
+        orthoProjMatGravity = OrthoProjection(gravity_dir)        
+        
+        estimated_direction = np.squeeze(np.matmul(orthoProjMatGravity, estimated_direction.reshape(-1,1)))
         
         estimated_direction = estimated_direction/LA.norm(estimated_direction)
         

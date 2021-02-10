@@ -15,18 +15,26 @@ class ControllerTemplate:
         self.mode_name = None
         
         #----- Constraints -----
-
-        self.torque_max = []
-        self.q_max = []
-        self.q_min = []
-        self.q_dot_max = []
-        self.q_dot_min = []
-        self.q_mean = []
         
+        self.torque_max = np.array([87.0, 87.0, 87.0, 87.0, 12.0, 12.0, 12.0])
+        self.torque_dot_max = np.array([1000.0]*7)
+        self.torque_dot_min = np.array([-1000.0]*7)
+        
+        self.q_max = np.array([2.8973, 1.7628, 2.8973, -0.0698, 2.8973, 3.7525, 2.8973])
+        self.q_min = np.array([-2.8973, -1.7628, -2.8973, -3.0718, -2.8973, -0.0175, -2.8973])
+        
+        self.q_dot_max = np.array([2.1750, 2.1750, 2.1750, 2.1750, 2.6100, 2.6100, 2.6100])
+        self.q_dot_min = np.array([-2.1750, -2.1750, -2.1750, -2.1750, -2.6100, -2.6100, -2.6100])
+
+        self.q_dot_dot_max = np.array([15.0, 7.5, 10.0, 12.5, 15.0, 20.0, 20.0])
+        self.q_dot_dot_min = -np.array([15.0, 7.5, 10.0, 12.5, 15.0, 20.0, 20.0])
+        
+        self.q_mean = np.copy(0.5*(self.q_max+self.q_min))
+
         #----- Init Values -----
         
         self.q_dot_optimal = None
-        self.SetupController()
+        #self.SetupController()
                         
 #-------
     def SetupController(self):

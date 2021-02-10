@@ -90,7 +90,7 @@ class SkillUnconstrainedDirectionEstimation:
         
 #-------
     def UpdateBuffers(self, f_wristframe, pose):
-        
+        print("Pose: "+str(pose))
         self.objPoseBuffer.append(pose)
         self.measuredForcesBuffer.append(np.array(f_wristframe).reshape(3,1))
             

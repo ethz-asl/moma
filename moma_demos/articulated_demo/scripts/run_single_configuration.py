@@ -19,7 +19,8 @@ from highlevel_planning.sim.controllers.moving_base_SOCP_vel_control import Cont
 #----- Direction Estimators -----
 
 #from highlevel_planning.sim.direction_estimators.direction_estimation_no_filter import Estimator 
-from highlevel_planning.sim.direction_estimators.direction_estimation_with_filter import Estimator       
+#from highlevel_planning.sim.direction_estimators.direction_estimation_with_filter import Estimator 
+from highlevel_planning.sim.direction_estimators.direction_estimation_with_filter_and_abs_force_estimation import Estimator       
 
 #----- Additional skills -----
 
@@ -71,8 +72,8 @@ def main(name_of_the_object = "cupboard"):
     elif name_of_the_object == "slidinglid":
 
         link_index = 0
-        init_direction = np.array([0.0, -1.0, 0.0]).reshape(3,1)
-        N_steps = 700
+        init_direction = np.array([0.0, -1.0/2**0.5, -1.0/2**0.5]).reshape(3,1)
+        N_steps = 600
 
     elif name_of_the_object == "removablelid":
 
@@ -83,7 +84,7 @@ def main(name_of_the_object = "cupboard"):
         
         link_index = 0
         init_direction = np.array([0.0, 0.0, -1.0]).reshape(3,1)
-        N_steps =600
+        N_steps = 600
         
     # Command line arguments
     
@@ -129,7 +130,7 @@ def main(name_of_the_object = "cupboard"):
     #list_of_controllers.append(c1)
     list_of_controllers.append(c2)
     list_of_controllers.append(c3)
-    #list_of_controllers.append(c4)
+    list_of_controllers.append(c4)
     list_of_controllers.append(c5)
     
     sk_traj = SkillTrajectoryPlanning(scene, robot, cfg, list_of_controllers, cinit, robot._world.T_s, initLen, vInit, vRegular)

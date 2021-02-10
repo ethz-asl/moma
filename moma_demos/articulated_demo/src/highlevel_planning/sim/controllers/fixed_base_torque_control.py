@@ -19,7 +19,7 @@ class Controller(ControllerTemplate):
         self.mode_name = 'fixed_base_torque_control'
 
 #-------
-    def PrepareTask1(self, J_b_ee, vdesEE_b, M, b, q, q_dot):
+    def PrepareTask1(self, J_b_ee, vdesEE_b, M, b, q, q_dot, tau_prev):
     
         A = J_b_ee
         y = vdesEE_b
@@ -31,15 +31,15 @@ class Controller(ControllerTemplate):
         
         ineq1 = self.dt * (-self.torque_max[:len(q)] - b) + np.matmul(M, q_dot)
         ineq2 = self.dt * (b - self.torque_max[:len(q)]) - np.matmul(M, q_dot)
-        ineq3 = np.maximum(self.q_dot_min[:len(q)], (1/self.dt)*(self.q_min[:len(q)] - q))
-        ineq4 = -np.minimum(self.q_dot_max[:len(q)], (1/self.dt)*(self.q_max[:len(q)] - q))
+        ineq3 = np.maximum(np.maximum(self.q_dot_min[:len(q)], (1/self.dt)*(self.q_min[:len(q)] - q)), self.dt*self.q_dot_dot_min + q_dot)
+        ineq4 = -np.minimum(np.minimum(self.q_dot_max[:len(q)], (1/self.dt)*(self.q_max[:len(q)] - q)), self.dt*self.q_dot_dot_max +q_dot)
         
         b1 = np.concatenate((ineq1, ineq2, ineq3, ineq4), axis=0)
         
         return G1, a1, C1, b1
         
 #-------
-    def PrepareTask2(self, M, b, q, q_dot, sol1, Null1):
+    def PrepareTask2(self, M, b, q, q_dot, tau_prev, sol1, Null1):
     
         A = np.matmul(M, Null1)
         y = np.matmul(M, q_dot - sol1) - self.dt * b
@@ -47,17 +47,19 @@ class Controller(ControllerTemplate):
         G2 = np.matmul(np.transpose(A), A) + 0.0001**2*np.eye(len(q))
         a2 = np.matmul(np.transpose(A), y)
         
-        C2 = np.transpose(np.concatenate((np.matmul(M, Null1), -np.matmul(M, Null1)), axis=0))
+        C2 = np.transpose(np.concatenate((np.matmul(M, Null1), -np.matmul(M, Null1), Null1, -Null1), axis=0))
         
         ineq1 = self.dt * (-self.torque_max[:len(q)] - b) - np.matmul(M, sol1 - q_dot)
         ineq2 = self.dt * (b - self.torque_max[:len(q)]) + np.matmul(M, sol1 - q_dot)
+        ineq3 = np.maximum(self.q_dot_min[:len(q)], (1/self.dt)*(self.q_min[:len(q)] - q)) - sol1
+        ineq4 = -np.minimum(self.q_dot_max[:len(q)], (1/self.dt)*(self.q_max[:len(q)] - q)) + sol1
         
-        b2 = np.concatenate((ineq1, ineq2), axis=0)
+        b2 = np.concatenate((ineq1, ineq2, ineq3, ineq4), axis=0)
         
         return G2, a2, C2, b2
         
 #-------
-    def CalculateDesiredJointVel(self, veldesEE_ee, J_b_ee, M, b, q, q_dot, C_O_b, C_O_ee, minTorque):
+    def CalculateDesiredJointVel(self, veldesEE_ee, J_b_ee, M, b, q, q_dot, C_O_b, C_O_ee, tau_prev, minTorque):
     
         vLindesEE_ee = np.squeeze(veldesEE_ee[:3])
         vAngdesEE_ee = np.squeeze(veldesEE_ee[3:])
@@ -67,7 +69,7 @@ class Controller(ControllerTemplate):
         
         vdesEE_b = np.concatenate((vLindesEE_b, vAngdesEE_b), axis=0)
         
-        G1, a1, C1, b1 = self.PrepareTask1(J_b_ee, vdesEE_b[:J_b_ee.shape[0]], M, b, q, q_dot)
+        G1, a1, C1, b1 = self.PrepareTask1(J_b_ee, vdesEE_b[:J_b_ee.shape[0]], M, b, q, q_dot, tau_prev)
         
         sol1,_,_,_,_,_ = solve_qp(G1, a1, C1, b1)
         
@@ -77,7 +79,7 @@ class Controller(ControllerTemplate):
         
             try:
                 Null1 = NullProjection(J_b_ee)
-                G2, a2, C2, b2 = self.PrepareTask2(M, b, q, q_dot, sol1, Null1)
+                G2, a2, C2, b2 = self.PrepareTask2(M, b, q, q_dot, tau_prev, sol1, Null1)
                 
                 sol2,_,_,_,_,_ = solve_qp(G2, a2, C2, b2)
                 q_dot_optimal += np.squeeze(np.matmul(Null1, np.array(sol2))) 
@@ -99,8 +101,15 @@ class Controller(ControllerTemplate):
         q_dot = infoTuple[4]
         C_O_b = infoTuple[5]
         C_O_ee = infoTuple[6]
+        tau_prev = infoTuple[9]
         
-        self.q_dot_optimal = self.CalculateDesiredJointVel(veldesEE_ee, J_b_ee, M, b, q, q_dot, C_O_b, C_O_ee, False)
+        q = q[:7]
+        q_dot = q_dot[:7]
+        M = M[:7, :7]
+        b = b[:7]
+        J_b_ee = J_b_ee[:, :7]
+        
+        self.q_dot_optimal = self.CalculateDesiredJointVel(veldesEE_ee, J_b_ee, M, b, q, q_dot, C_O_b, C_O_ee, tau_prev, False)
         
         p.setJointMotorControlArray(self.robot.model.uid, self.robot.joint_idx_fingers, p.TORQUE_CONTROL, forces=[-25.0]*2)
         

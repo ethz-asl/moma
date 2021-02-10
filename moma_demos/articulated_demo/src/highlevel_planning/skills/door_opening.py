@@ -747,8 +747,7 @@ class SkillTrajectoryPlanning:
                     sf = f_wristframe
                     sy_proj = LA.norm(np.matmul((np.eye(3) - np.matmul(direction, np.transpose(direction))), f_wristframe))                    
                    
-                sk_dir.EstimateBestInitialDirection(X_data, Y_data)
-                print(LA.det(np.matmul(J_b_ee, np.transpose(J_b_ee))))
+                sk_dir.EstimateBestInitialDirection(X_data, Y_data, C_O_ee)
 
                 stopTime = time.time()
                     
@@ -829,7 +828,7 @@ class SkillTrajectoryPlanning:
 
                     #self.draw_arrow(f_wristframe, "red", arrow_id=None, length=LA.norm(f_wristframe)/22.0)
                 
-                    sk_dir.UpdateEstimate(f_wristframe, 0.2, C_O_ee, False)
+                    sk_dir.UpdateEstimate(f_wristframe, 0.1, C_O_ee, False)
                     
                     #self.draw_arrow(sk_dir.GetCurrEstimate(), "green")
                     
@@ -837,7 +836,7 @@ class SkillTrajectoryPlanning:
                 
                     veldesEE_ee = sk_dir.GetPlannedVelocities(v=velProfile, calcAng=False, kAng=0.5)        
                 
-                    infoTuple = (M, b, J_b_ee, q, q_dot, C_O_b, C_O_ee, r_O_ee, velProfile)
+                    infoTuple = (M, b, J_b_ee, q, q_dot, C_O_b, C_O_ee, r_O_ee, velProfile, mtorq[:7])
                                 
                     controller.PerformOneStep(veldesEE_ee, infoTuple)
                 
