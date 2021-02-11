@@ -118,7 +118,6 @@ class StartState(State):
         EE_T_K  = [1.0, 0.0, 0.0 ,0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0]
 
         succ = self.robot.set_frames(F_T_EE, EE_T_K)
-        #succ = True
         
         if not succ:
 
@@ -137,15 +136,15 @@ class StartState(State):
 
         if temp1 in ['y', 'Y']:
             
-            grasping_width = 0.03
+            grasping_width = 0.01
             grasping_vel = 0.01
-            grasping_force = 2  
-            grasping_homing = True
-            grasping_close = False
+            grasping_force = 10  
+            grasping_homing = False
+            grasping_close = True
             grasping_move = False
 
             succ = self.robot.close_gripper(grasping_width, grasping_vel, grasping_force, grasping_homing, grasping_close, grasping_move)
-            succ = True
+            #succ = True
             
             if not succ:
                 
@@ -192,12 +191,12 @@ class ObjectGraspedState(State):
                 
             grasping_width = 0.008
             grasping_vel = 0.01
-            grasping_force = 0.1 
+            grasping_force = 10 
             grasping_homing = False
             grasping_close = True
-            grasping_move = True
+            grasping_move = False
     
-            #succ = self.robot.close_gripper(grasping_width, grasping_vel, grasping_force, grasping_homing, grasping_close, grasping_move)
+            succ = self.robot.close_gripper(grasping_width, grasping_vel, grasping_force, grasping_homing, grasping_close, grasping_move)
 
             return 'start_control'
 
@@ -361,7 +360,7 @@ class RunningState(State):
         t0 = np.ceil(tConv/3)
 
         counter = 0
-        N_steps = 50
+        N_steps = 500
         freq = rospy.Rate(2)         
         
         force_x = []
@@ -731,14 +730,14 @@ class RunningState(State):
                 
         try:
 
-            self.test7()
+            self.test5()
             
             grasping_width = 0.05
             grasping_vel = 0.01
             grasping_force = 2  
             grasping_homing = False 
-            grasping_close = True
-            grasping_move = False
+            grasping_close = False
+            grasping_move = True
 
             succ = self.robot.close_gripper(grasping_width, grasping_vel, grasping_force, grasping_homing, grasping_close, grasping_move)
                 

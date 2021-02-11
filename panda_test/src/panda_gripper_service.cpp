@@ -54,13 +54,6 @@ class PandaGripperService {
 
                 gripper_closed = true;
 
-            } else if (req.gripper_move){
-
-                if (!gripper_ptr->move(req.grasping_width, req.grasping_speed)) {
-                    ROS_INFO("Failed to gmove properly");
-                    return false;
-                }
-
             } else if (!req.gripper_close){
                 gripper_ptr->stop();
                 gripper_closed = false;
