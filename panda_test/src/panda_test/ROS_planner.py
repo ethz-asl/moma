@@ -78,6 +78,7 @@ class RobotPlanner:
         
         self.panda_EE_frame_srv = rospy.ServiceProxy('/franka_control/set_EE_frame', SetEEFrame)
         self.panda_K_frame_srv = rospy.ServiceProxy('/franka_control/set_K_frame', SetKFrame)
+        self.panda_set_collision_behaviour = rospy.ServiceProxy('/franka_control/set_force_torque_collision_behavior', SetForceTorqueCollisionBehavior)
 
         self.subscriber_base_state = rospy.Subscriber('/ridgeback_velocity_controller/odom', Odometry , self.baseState_cb)
 
@@ -145,6 +146,22 @@ class RobotPlanner:
         
         else:
             return False
+        
+    def set_force_torque_collision(self, lower_torque, higher_torque, lower_force, higher_force):
+        
+        SetForceTorqueCollisionBehavior_req = SetForceTorqueCollisionBehaviorRequest()
+        
+        for i in range(7):
+            SetForceTorqueCollisionBehavior_req.lower_torque_thresholds_nominal[i] = lower_torque[i]
+            SetForceTorqueCollisionBehavior_req.upper_torque_thresholds_nominal[i] = higher_torque[i]
+            
+        for i in range(6):
+            SetForceTorqueCollisionBehavior_req.lower_force_thresholds_nominal[i] = lower_force[i]
+            SetForceTorqueCollisionBehavior_req.upper_force_thresholds_nominal[i] = higher_force[i]            
+        
+        res = self.panda_set_collision_behaviour(SetForceTorqueCollisionBehavior_req)
+        
+        return res
         
     
     def close_gripper(self, grasping_width, grasping_vel, grasping_force, grasping_homing, grasping_close, grasping_move):
@@ -355,7 +372,8 @@ class RobotPlanner:
         #----- GET FORCE INFO -----
 
         ext_wrench = np.array(panda_model.K_F_ext_hat_K)
-        self.force = ext_wrench[:3]
+        self.force = -ext_wrench[:3]
+        print("force: "+str(self.force))
 
         #print("FORCE: ", self.force)
 
@@ -407,18 +425,25 @@ class RobotPlanner:
             r_O_ee = np.squeeze(np.copy(T_O_ee[:3, 3]))
 
             #----- Update Buffers in direction_estimator class -----
+            
+            if len(self.direction_estimator.measuredForcesBuffer)>0:
 
-            self.direction_estimator.UpdateBuffers(self.force, r_O_ee)
-
+                self.direction_estimator.UpdateBuffers(self.force - np.squeeze(self.direction_estimator.measuredForcesBuffer[0]), r_O_ee)
+                self.direction_estimator.UpdateEstimate(self.force, alpha, C_O_ee, smooth, mixCoeff)
+            
+            else:
+                
+                self.direction_estimator.UpdateBuffers(self.force, r_O_ee)
+                
             #----- Update Unconstrained direction estimate -----
 
-            self.direction_estimator.UpdateEstimate(self.force, alpha, C_O_ee, smooth, mixCoeff)
+
 
             #----- Get linear velocity magnitude from the velocity profile -----
 
             velProfile = self.VelocityProfile(t, vInit, vFinal, alphaInit, alphaFinal, t0, tConv)
 
-            veldesEE_ee = self.direction_estimator.GetPlannedVelocities(v=velProfile, calcAng=True, kAng=0.05)
+            veldesEE_ee = self.direction_estimator.GetPlannedVelocities(v=velProfile, calcAng=True, kAng=0.2)   #Change to 0.05 or false
             #print("Current estiamte: "+str(np.array(veldesEE_ee)/LA.norm(np.array(veldesEE_ee))))
 
             r_b_ee = self.T_b_ee[:3, 3]

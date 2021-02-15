@@ -8,6 +8,8 @@ Created on Mon Jan 25 13:11:26 2021
 
 import rospy
 from matplotlib import pyplot as plt
+import time 
+from datetime import datetime
 
 #----- Skills -----
 
@@ -33,7 +35,7 @@ import numpy as np
 
 class State(object):
 
-    def __init__(self, direction_estimator=None, controller=None, robot=None):
+    def __init__(self, direction_estimator=None, controller=None, robot=None, folder_name=None):
 
         print(50*'-')
         print('Processing current state: ', str(self))
@@ -41,6 +43,8 @@ class State(object):
         self.direction_estimator = direction_estimator
         self.controller = controller
         self.robot = robot
+        
+        self.folder_name = folder_name
 
     def run(self):
 
@@ -92,6 +96,8 @@ class StartState(State):
         print("PANDA_STATE_SRV initiated")
         rospy.wait_for_service('/robot_gripper_srv')
         print("PANDA_GRIPPER_SRV initiated")
+        rospy.wait_for_service('/franka_control/set_force_torque_collision_behavior')
+        print("PANDA_SET_FORCE_COLLISION initiated")
         
         print(10*'*'+" All services started! "+10*'*')
 
@@ -131,7 +137,27 @@ class StartState(State):
             else:
 
                 return 'hold'
-
+        
+#        lower_torque = []
+#        higher_torque = []
+#        lower_force = []
+#        higher_force = []
+#        
+#        succ2 = self.set_force_torque_collision( lower_torque, higher_torque, lower_force, higher_force)
+        
+#        if not succ2:
+#
+#            print("")
+#            print("Failed to set collision behaviour!")
+#            temp1 = input("Abort? [y/n]: ")
+#            if temp1 in ['Y', 'y']:
+#
+#                return 'stop'
+#
+#            else:
+#
+#                return 'hold'
+            
         temp1 = input('Homing the gripper? [y/n]: ')
 
         if temp1 in ['y', 'Y']:
@@ -139,8 +165,8 @@ class StartState(State):
             grasping_width = 0.01
             grasping_vel = 0.01
             grasping_force = 10  
-            grasping_homing = False
-            grasping_close = True
+            grasping_homing = True
+            grasping_close = False
             grasping_move = False
 
             succ = self.robot.close_gripper(grasping_width, grasping_vel, grasping_force, grasping_homing, grasping_close, grasping_move)
@@ -191,7 +217,7 @@ class ObjectGraspedState(State):
                 
             grasping_width = 0.008
             grasping_vel = 0.01
-            grasping_force = 10 
+            grasping_force = 40
             grasping_homing = False
             grasping_close = True
             grasping_move = False
@@ -350,66 +376,108 @@ class RunningState(State):
     def test5(self):
 
         vFinal = 0.01
-        vInit = vFinal/4
+        vInit = vFinal
         alphaInit = 0.5
         alphaFinal = 0.5
 
-        initN = 100
+        initN = 30
 
         tConv = initN
         t0 = np.ceil(tConv/3)
 
         counter = 0
-        N_steps = 500
-        freq = rospy.Rate(2)         
+        N_steps = 400        
         
-        force_x = []
-        force_y = []
-        force_z = []
+        robot_force = []
         
+        iteration_times = []
+        
+        robot_q = []
+        robot_q_d = []
+        robot_dq = []
+        robot_dq_d = []
+        robot_tau_d_no_g = []
+        robot_g = []
+        robot_b = []
+        robot_manip = []
+        robot_EE_T_K = []
+        robot_O_T_EE = []
+        
+        robot_dir_estimate = []
+        
+        folder_name = os.getcwd()
+        
+        date_and_time = datetime.now()
+        curr = date_and_time.strftime("%d_%m_%Y_%H_%M_%S")
+        
+        folder_name = folder_name + '/runs'
+        
+        if not os.path.isdir(folder_name):
+            os.makedirs(folder_name)
+            
+        if not os.path.isdir(folder_name + '/' + curr):
+            os.makedirs(folder_name + '/' + curr)
+            
+        self.folder_name = folder_name + '/' + curr
+               
         while counter < N_steps and not rospy.is_shutdown():
             
             print(50*'*')
             print("Iteration: " + str(counter) )
+            
+            startTime = time.time()
         
-            self.robot.run_once(counter, vInit, vFinal, alphaInit, alphaFinal, t0, tConv, alpha=0.1, smooth=False, mixCoeff=0.1)
+            self.robot.run_once(counter, vInit, vFinal, alphaInit, alphaFinal, t0, tConv, alpha=0.05, smooth=False, mixCoeff=0.1)
             
             req = PandaStateSrvRequest()
-            panda_model = self.robot.panda_model_state_srv(req)        
+            panda_model = self.robot.panda_model_state_srv(req) 
+            
+            stopTime = time.time()
+            interval = stopTime - startTime
             
             ext_wrench = np.array(panda_model.K_F_ext_hat_K)
             
-            #print("EE_T_K: "+str(panda_model.EE_T_K))
-            #print("O_T_EE: "+str(panda_model.O_T_EE))
             force = ext_wrench[:3]
 
-            force_x.append(force[0])
-            force_y.append(force[1])
-            force_z.append(force[2])
+            robot_force.append(force)
+            iteration_times.append(interval)
             
-            counter += 1   
+            robot_q.append(panda_model.q)
+            robot_q_d.append(panda_model.q_d)
+            robot_dq.append(panda_model.dq)
+            robot_dq_d.append(panda_model.dq_d)
+            robot_g.append(panda_model.gravity)
+            robot_b.append(panda_model.coriolis)
+
+            J_b_ee = np.array(panda_model.jacobian)                     # It is saved as column major but python does everyhing row major
+            J_b_ee = np.transpose(J_b_ee.reshape(7, 6))
+            manipulabilityMeasure = LA.det(np.matmul(J_b_ee, np.transpose(J_b_ee)))**0.5
             
-        N = N_steps
-        t = np.arange(1, N+1)
+            robot_manip.append(manipulabilityMeasure)
+            
+            robot_tau_d_no_g.append(panda_model.tau_d_no_gravity)
+            robot_EE_T_K.append(panda_model.EE_T_K)
+            robot_O_T_EE.append(panda_model.O_T_EE)
+            
+            direction = list(np.squeeze(np.array(self.robot.direction_estimator.GetCurrEstimate())))
+            robot_dir_estimate.append(direction)
+            
+            counter += 1 
+            
+        np.save(self.folder_name +'/force.npy', np.array(force))
+        np.save(self.folder_name +'/iteration_times.npy', np.array(iteration_times))           
+        np.save(self.folder_name +'/robot_q.npy', np.array(robot_q))  
+        np.save(self.folder_name +'/robot_q_d.npy', np.array(robot_q_d))
+        np.save(self.folder_name +'/robot_dq.npy', np.array(robot_dq))
+        np.save(self.folder_name +'/robot_dq_d.npy', np.array(robot_dq_d))
+        np.save(self.folder_name +'/robot_g.npy', np.array(robot_g))
+        np.save(self.folder_name +'/robot_b.npy', np.array(robot_b))
+        np.save(self.folder_name +'/robot_manip.npy', np.array(robot_manip))
+        np.save(self.folder_name +'/robot_tau_d_no_g.npy', np.array(robot_tau_d_no_g))
+        np.save(self.folder_name +'/robot_EE_T_K.npy', np.array(robot_EE_T_K))
+        np.save(self.folder_name +'/robot_O_T_EE.npy', np.array(robot_O_T_EE))
+        np.save(self.folder_name +'/robot_dir_estimate.npy', np.array(robot_dir_estimate))    
         
-        fig1, (ax1_1, ax1_2, ax1_3) = plt.subplots(3,1,figsize=(10,10))
-        
-        ax1_1.plot(t, force_x, 'bo')
-        ax1_1.set_ylabel('x force')
-        ax1_1.grid('on')
-        ax1_1.set_xlim(t[0], t[-1])
-        
-        ax1_2.plot(t, force_y, 'bo')
-        ax1_2.set_ylabel('y force')
-        ax1_2.grid('on')
-        ax1_2.set_xlim(t[0], t[-1])
-        
-        ax1_3.plot(t, force_z, 'bo')
-        ax1_3.set_ylabel('z force')
-        ax1_3.grid('on')
-        ax1_3.set_xlim(t[0], t[-1])
-        
-        plt.show()
         
     def test6(self):
         
@@ -564,168 +632,8 @@ class RunningState(State):
         b_torque = (1/20.0)*b_torque
         print("bforce ",b_force)
         return b_force, b_torque
-    
-    def test7(self):
-        
-        folder_name = os.getcwd()
-        
-        b_torque1 = np.load(folder_name +'/b_torque1.npy')
-        b_force1 = np.load(folder_name + '/b_force1.npy')
-        
-        b_torque2 = np.load(folder_name +'/b_torque2.npy')
-        b_force2 = np.load(folder_name + '/b_force2.npy')
-        
-        b_force1 = b_force1.reshape(-1, 1)
-        b_force2 = b_force2.reshape(-1, 1)
-        
-        counter = 0
-        N_steps = 1000
-        freq = rospy.Rate(2) 
-        
-        force_x = []
-        force_y = []
-        force_z = []
-        
-        force_xub = []
-        force_yub = []
-        force_zub = []
-        
-        force_xub2 = []
-        force_yub2 = []
-        force_zub2 = []
-        
-        while counter < N_steps and not rospy.is_shutdown():
-        
-            print("Iteration: " + str(counter) )
-            
-            req = PandaStateSrvRequest()
-            panda_model = self.robot.panda_model_state_srv(req)        
-            
-            ext_wrench = np.array(panda_model.K_F_ext_hat_K)
-            
-            print("EE_T_K: "+str(panda_model.EE_T_K))
-            print("O_T_EE: "+str(panda_model.O_T_EE))
-            force = ext_wrench[:3]
-            
-            T_b_ee = np.array(panda_model.O_T_EE)
-            T_b_ee = np.transpose(T_b_ee.reshape(4, 4))
-
-            T_ee_k = np.array(panda_model.EE_T_K)
-            T_ee_k = np.transpose(T_ee_k.reshape(4, 4))
-
-            T_b_ee = np.matmul(T_b_ee, T_ee_k) 
-            
-            C_b_ee = T_b_ee[:3, :3]
-            
-            forceub = np.squeeze(force) - np.squeeze(np.matmul(np.transpose(C_b_ee), b_force1))
-            forceub2 = np.squeeze(force) - np.squeeze(b_force2)
-
-            force_x.append(force[0])
-            force_y.append(force[1])
-            force_z.append(force[2])
-            
-            force_xub.append(forceub[0])
-            force_yub.append(forceub[1])
-            force_zub.append(forceub[2])
-
-            force_xub2.append(forceub2[0])
-            force_yub2.append(forceub2[1])
-            force_zub2.append(forceub2[2])
-            
-            counter += 1
-            
-        N = N_steps
-        t = np.arange(1, N+1)
-        
-        fig1, (ax1_1, ax1_2, ax1_3) = plt.subplots(3,1,figsize=(10,10))
-        
-        ax1_1.plot(t, force_x, color='b')
-        ax1_1.plot(t, force_xub, color='r')
-        ax1_1.plot(t, force_xub2, color='g')
-        ax1_1.set_ylabel('x force')
-        ax1_1.grid('on')
-        ax1_1.set_xlim(t[0], t[-1])
-        
-        ax1_2.plot(t, force_y, color='b')
-        ax1_2.plot(t, force_yub, color='r')
-        ax1_2.plot(t, force_yub2, color='g')
-        ax1_2.set_ylabel('y force')
-        ax1_2.grid('on')
-        ax1_2.set_xlim(t[0], t[-1])
-        
-        ax1_3.plot(t, force_z, color='b')
-        ax1_3.plot(t, force_zub, color='r')
-        ax1_3.plot(t, force_zub2, color='g')
-        ax1_3.set_ylabel('z force')
-        ax1_3.grid('on')
-        ax1_3.set_xlim(t[0], t[-1])
-        
-        plt.show()
-        
-    def test8(self):
-        
-        vFinal = 0.01
-        vInit = vFinal/4
-        alphaInit = 0.5
-        alphaFinal = 0.5
-
-        initN = 100
-
-        tConv = initN
-        t0 = np.ceil(tConv/3)
-
-        counter = 0
-        N_steps = 400
-        freq = rospy.Rate(2)         
-        
-        force_x = []
-        force_y = []
-        force_z = []
-        
-        while counter < N_steps and not rospy.is_shutdown():
-        
-            print("Iteration: " + str(counter) )
-        
-            self.robot.run_once(counter, vInit, vFinal, alphaInit, alphaFinal, t0, tConv, alpha=0.1, smooth=False, mixCoeff=0.1)
-            
-            req = PandaStateSrvRequest()
-            panda_model = self.robot.panda_model_state_srv(req)        
-            
-            ext_wrench = np.array(panda_model.K_F_ext_hat_K)
-            
-            print("EE_T_K: "+str(panda_model.EE_T_K))
-            print("O_T_EE: "+str(panda_model.O_T_EE))
-            force = ext_wrench[:3]
-
-            force_x.append(force[0])
-            force_y.append(force[1])
-            force_z.append(force[2])
-            
-            counter += 1   
-            
-        N = N_steps
-        t = np.arange(1, N+1)
-        
-        fig1, (ax1_1, ax1_2, ax1_3) = plt.subplots(3,1,figsize=(10,10))
-        
-        ax1_1.plot(t, force_x)
-        ax1_1.set_ylabel('x force')
-        ax1_1.grid('on')
-        ax1_1.set_xlim(t[0], t[-1])
-        
-        ax1_2.plot(t, force_y)
-        ax1_2.set_ylabel('y force')
-        ax1_2.grid('on')
-        ax1_2.set_xlim(t[0], t[-1])
-        
-        ax1_3.plot(t, force_z)
-        ax1_3.set_ylabel('z force')
-        ax1_3.grid('on')
-        ax1_3.set_xlim(t[0], t[-1])
-        
-        plt.show()        
-            
-             
+     
+                         
     def run(self):
                 
         try:
@@ -748,13 +656,97 @@ class RunningState(State):
     def transition(self, event):
 
         if event == 'stop':
-            return StopState(self.direction_estimator, self.controller, self.robot)        
+            return StopState(self.direction_estimator, self.controller, self.robot, self.folder_name)        
         
 class StopState(State):
+    
+    def plot_run(self):
+        
+        folder_name = self.folder_name
+        
+        force = np.load(self.folder_name +'/force.npy')
+        iteration_times = np.load(self.folder_name +'/iteration_times.npy')           
+        robot_q = np.load(self.folder_name +'/robot_q.npy')  
+        robot_q_d = np.load(self.folder_name +'/robot_q_d.npy')
+        robot_dq = np.load(self.folder_name +'/robot_dq.npy')
+        robot_dq_d = np.load(self.folder_name +'/robot_dq_d.npy')
+        robot_g = np.load(self.folder_name +'/robot_g.npy')
+        robot_b = np.load(self.folder_name +'/robot_b.npy')
+        robot_manip = np.load(self.folder_name +'/robot_manip.npy')
+        robot_tau_d_no_g = np.load(self.folder_name +'/robot_tau_d_no_g.npy')
+        robot_EE_T_K = np.load(self.folder_name +'/robot_EE_T_K.npy')
+        robot_O_T_EE = np.load(self.folder_name +'/robot_O_T_EE.npy')
+        robot_dir_estimate = np.load(self.folder_name +'/robot_dir_estimate.npy')         
 
+        N = len(force)
+        t = np.arange(1, N+1)
+        
+        fig1, (ax1_1, ax1_2, ax1_3) = plt.subplots(3,1,figsize=(10,10))
+        
+        force_x = force[:, 0]
+        force_y = force[:, 1]
+        force_z = force[:, 2]
+        
+        ax1_1.plot(t, force_x, color='b')
+        ax1_1.set_ylabel('x force')
+        ax1_1.grid('on')
+        ax1_1.set_xlim(t[0], t[-1])
+        
+        ax1_2.plot(t, force_y, color='b')
+        ax1_2.set_ylabel('y force')
+        ax1_2.grid('on')
+        ax1_2.set_xlim(t[0], t[-1])
+        
+        ax1_3.plot(t, force_z, color='b')
+        ax1_3.set_ylabel('z force')
+        ax1_3.grid('on')
+        ax1_3.set_xlim(t[0], t[-1])
+        
+        fig2, (ax2_1, ax2_2, ax2_3) = plt.subplots(3,1,figsize=(10,10))
+        
+        ax2_1.plot(t, iteration_times, color='b')
+        ax2_1.set_ylabel('planning interval')
+        ax2_1.grid('on')
+        ax2_1.set_xlim(t[0], t[-1])
+        
+        ax2_2.plot(t, robot_manip, color='b')
+        ax2_2.set_ylabel('manipulability index')
+        ax2_2.grid('on')
+        ax2_2.set_xlim(t[0], t[-1])
+        
+        robot_dot = []
+        
+        for i in range(N):
+            
+            EE_T_K = robot_EE_T_K[i, :]
+            EE_T_K = np.transpose(EE_T_K.reshape(4, 4))
+            
+            O_T_EE = robot_O_T_EE[i, :]
+            O_T_EE = np.transpose(O_T_EE.reshape(4, 4))
+            
+            O_T_K = np.matmul(O_T_EE, EE_T_K) 
+            
+            O_C_K = O_T_K[:3, :3]
+            K_C_O = np.transpose(O_C_K)
+            
+            true_dir = np.squeeze(K_C_O[:, 0])
+            estimated_dir = np.squeeze(robot_dir_estimate[i, :])
+            robot_dot.append(np.dot(true_dir, estimated_dir))
+            
+        ax2_3.plot(t, robot_dot, color='b')
+        ax2_3.set_ylabel('dot product')
+        ax2_3.grid('on')
+        ax2_3.set_xlim(t[0], t[-1])        
+
+        fig1.savefig(self.folder_name + '//' + 'forces.jpg')
+        fig2.savefig(self.folder_name + '//' + 'metrics.jpg')
+        
+        plt.close('all')
+        
     def run(self):
 
         self.robot.prepare_for_stop()
+        
         grasping_width = 0.05
         grasping_vel = 0.01
         grasping_force = 2  

@@ -110,6 +110,8 @@ class SkillUnconstrainedDirectionEstimation:
         
         error = np.matmul(orthoProjMatGravity, np.matmul(orthoProjMat, f_wristframe)) - self.fDesired
         error = error/LA.norm(error)
+        
+        print("alpha*error: "+str(np.squeeze(alpha*error)))
                 
         if self.sufficiently_filled:
             
@@ -117,7 +119,7 @@ class SkillUnconstrainedDirectionEstimation:
             dirFromPoses = np.array(C_O_ee.inv().apply(dirFromPoses))
             dirFromPoses = dirFromPoses.reshape(3,1)
             
-            dirFromForces = self.directionVector - alpha*error
+            dirFromForces = self.directionVector + alpha*error  # CHANGE TO + FOR THE FORCE ACTING IN THE EE
             dirFromForces = dirFromForces/LA.norm(dirFromForces)
             dirFromForces = dirFromForces.reshape(3,1)
             
@@ -127,7 +129,7 @@ class SkillUnconstrainedDirectionEstimation:
             
         else:
 
-            newDirVec = self.directionVector - alpha*error # CHANGE TO + FOR THE FORCE ACTING IN THE EE
+            newDirVec = self.directionVector + alpha*error # CHANGE TO + FOR THE FORCE ACTING IN THE EE
             
             newDirVec = newDirVec/LA.norm(newDirVec)
    
@@ -144,7 +146,7 @@ class SkillUnconstrainedDirectionEstimation:
         self.y_k_1 = self.directionVector
                     
         self.directionVector = self.directionVector/LA.norm(self.directionVector)
-        
+        print("dir: "+str(np.squeeze(self.directionVector)))
 #-------
     def GetPlannedVelocities(self, v, calcAng=False, kAng=1):
     
@@ -187,10 +189,7 @@ class SkillUnconstrainedDirectionEstimation:
             self.objPoseBuffer.append(pose)
             self.measuredForcesBuffer.append(np.array(f_wristframe).reshape(3,1))
             
-        
-            
-        
-        
+
         
         
         

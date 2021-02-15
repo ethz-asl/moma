@@ -185,7 +185,7 @@ class Controller:
 
         q_dot_des = np.array(q_dot_des)
 
-        vmean = np.matmul(J_b_ee[:2, :7], q_dot_des)
+        vmean = np.matmul(J_b_ee[:2, :6], q_dot_des)
 
         if abs(scaleFactor)>0:
 
