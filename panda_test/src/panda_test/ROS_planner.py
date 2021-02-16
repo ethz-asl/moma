@@ -445,14 +445,14 @@ class RobotPlanner:
 
             infoTuple = (self.M, self.b, self.J_b_ee, self.q, self.q_dot, C_O_b, C_O_ee, C_b_ee, r_b_ee, velProfile, self.tau)
             
-            #try:
-            temp = self.controller.PerformOneStep(veldesEE_ee, infoTuple)
+            try:
+                temp = self.controller.PerformOneStep(veldesEE_ee, infoTuple)
 
-            self.publishArmAndBaseVelocityControl(self.controller.GetCurrOptSol(), linVelBase = self.controller.vLinBase_b, angVelBase = self.controller.vAngBase_b[2])
+                self.publishArmAndBaseVelocityControl(self.controller.GetCurrOptSol(), linVelBase = self.controller.vLinBase_b, angVelBase = self.controller.vAngBase_b[2])
             
-            #except:
+            except:
                 
-                #self.publishArmAndBaseVelocityControl([0.0]*7, linVelBase = [0.0, 0.0, 0.0], angVelBase = 0.0)
+                self.publishArmAndBaseVelocityControl([0.0]*7, linVelBase = [0.0, 0.0, 0.0], angVelBase = 0.0)
                 
         except rospy.ServiceException as e:
 

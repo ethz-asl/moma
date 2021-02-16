@@ -417,8 +417,13 @@ class RunningState(State):
             
         if not os.path.isdir(folder_name + '/' + curr):
             os.makedirs(folder_name + '/' + curr)
+        
+        folder_name = folder_name + '/' + curr + '/' + self.robot.controller.mode_name
+        
+        if not os.path.isdir(folder_name):
+            os.makedirs(folder_name) 
             
-        self.folder_name = folder_name + '/' + curr
+        self.folder_name = folder_name 
                
         while counter < N_steps and not rospy.is_shutdown():
             
@@ -761,7 +766,7 @@ class StopState(State):
             
             self.plot_run()
             
-            
+        self.plot_run()     
 
         temp1 = input("Restart? [y/n]: ")
 

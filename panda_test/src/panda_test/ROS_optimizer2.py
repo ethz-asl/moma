@@ -42,6 +42,9 @@ class Controller:
 
         self.q_dot_max = np.array([2.1750, 2.1750, 2.1750, 2.1750, 2.6100, 2.6100, 2.6100])
         self.q_dot_min = np.array([-2.1750, -2.1750, -2.1750, -2.1750, -2.6100, -2.6100, -2.6100])
+        
+        self.q_dot_dot_max = np.array([15.0, 7.5, 10.0, 12.5, 15.0, 20.0, 20.0])
+        self.q_dot_dot_min = -np.array([15.0, 7.5, 10.0, 12.5, 15.0, 20.0, 20.0])
 
         self.q_mean = np.copy(0.5*(self.q_max+self.q_min))
 
@@ -208,7 +211,7 @@ class Controller:
             scaleFactor = 1.0
 
         q_dot_des = []
-        gamma = 0.1
+        gamma = 0.2
 
         for i in range(len(self.q_mean)):
 
@@ -227,9 +230,10 @@ class Controller:
 
             q_dot_des.append(sign*q_dot_abs)
 
+        q_dot_des[6] = 0.0
         q_dot_des = np.array(q_dot_des)
 
-        vmean = np.matmul(J_b_ee[:2, :6], q_dot_des[:6])
+        vmean = np.matmul(J_b_ee[:2, :7], q_dot_des)
 
         if abs(scaleFactor)>0:
 
@@ -240,7 +244,7 @@ class Controller:
 
             x0_lin = [0.0, 0.0]
 
-            arguments = (0.5*v, )
+            arguments = (0.25*v, )
             cons = ({'type': 'ineq', 'fun':C1, 'args':arguments})
 
             try:
