@@ -424,7 +424,7 @@ class RobotPlanner:
 
             r_O_ee = np.squeeze(np.copy(T_O_ee[:3, 3]))
 
-            #----- Update Buffers in direction_estimator class -----
+            #----- Update Buffers and estimatein direction_estimator class -----
             
             if len(self.direction_estimator.measuredForcesBuffer)>0:
 
@@ -434,26 +434,26 @@ class RobotPlanner:
             else:
                 
                 self.direction_estimator.UpdateBuffers(self.force, r_O_ee)
-                
-            #----- Update Unconstrained direction estimate -----
-
-
 
             #----- Get linear velocity magnitude from the velocity profile -----
 
             velProfile = self.VelocityProfile(t, vInit, vFinal, alphaInit, alphaFinal, t0, tConv)
 
             veldesEE_ee = self.direction_estimator.GetPlannedVelocities(v=velProfile, calcAng=True, kAng=0.2)   #Change to 0.05 or false
-            #print("Current estiamte: "+str(np.array(veldesEE_ee)/LA.norm(np.array(veldesEE_ee))))
 
             r_b_ee = self.T_b_ee[:3, 3]
 
             infoTuple = (self.M, self.b, self.J_b_ee, self.q, self.q_dot, C_O_b, C_O_ee, C_b_ee, r_b_ee, velProfile, self.tau)
-
+            
+            #try:
             temp = self.controller.PerformOneStep(veldesEE_ee, infoTuple)
 
             self.publishArmAndBaseVelocityControl(self.controller.GetCurrOptSol(), linVelBase = self.controller.vLinBase_b, angVelBase = self.controller.vAngBase_b[2])
-
+            
+            #except:
+                
+                #self.publishArmAndBaseVelocityControl([0.0]*7, linVelBase = [0.0, 0.0, 0.0], angVelBase = 0.0)
+                
         except rospy.ServiceException as e:
 
             print("Service failed: " + str(e))

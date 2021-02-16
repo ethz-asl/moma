@@ -14,7 +14,7 @@ from datetime import datetime
 #----- Skills -----
 
 from panda_test.ROS_optimizer1 import Controller as controller1
-#from panda_test.ROS_optimizer2 import Controller as controller2
+from panda_test.ROS_optimizer2 import Controller as controller2
 
 from panda_test.ROS_direction_estimation import SkillUnconstrainedDirectionEstimation
 
@@ -76,7 +76,7 @@ class StartState(State):
 
         self.direction_estimator = SkillUnconstrainedDirectionEstimation(time_step, buffer_length, init_direction, initN, fd1)
 
-        self.controller = controller1(time_step)
+        self.controller = controller2(time_step)
 
         self.robot = RobotPlanner(self.controller, self.direction_estimator)
 
@@ -437,7 +437,7 @@ class RunningState(State):
             
             ext_wrench = np.array(panda_model.K_F_ext_hat_K)
             
-            force = ext_wrench[:3]
+            force = list(np.squeeze(ext_wrench[:3]))
 
             robot_force.append(force)
             iteration_times.append(interval)
@@ -464,7 +464,7 @@ class RunningState(State):
             
             counter += 1 
             
-        np.save(self.folder_name +'/force.npy', np.array(force))
+        np.save(self.folder_name +'/force.npy', np.array(robot_force))
         np.save(self.folder_name +'/iteration_times.npy', np.array(iteration_times))           
         np.save(self.folder_name +'/robot_q.npy', np.array(robot_q))  
         np.save(self.folder_name +'/robot_q_d.npy', np.array(robot_q_d))
@@ -753,8 +753,15 @@ class StopState(State):
         grasping_homing = False 
         grasping_close = True
         grasping_move = False
-
-        succ = self.robot.close_gripper(grasping_width, grasping_vel, grasping_force, grasping_homing, grasping_close, grasping_move)
+        
+        try:
+            succ = self.robot.close_gripper(grasping_width, grasping_vel, grasping_force, grasping_homing, grasping_close, grasping_move)
+            
+        except:
+            
+            self.plot_run()
+            
+            
 
         temp1 = input("Restart? [y/n]: ")
 

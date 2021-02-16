@@ -110,8 +110,7 @@ class SkillUnconstrainedDirectionEstimation:
         
         error = np.matmul(orthoProjMatGravity, np.matmul(orthoProjMat, f_wristframe)) - self.fDesired
         error = error/LA.norm(error)
-        
-        print("alpha*error: "+str(np.squeeze(alpha*error)))
+    
                 
         if self.sufficiently_filled:
             
