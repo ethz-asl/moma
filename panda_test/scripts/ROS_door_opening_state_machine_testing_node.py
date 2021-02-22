@@ -35,7 +35,7 @@ import numpy as np
 
 class State(object):
 
-    def __init__(self, direction_estimator=None, controller=None, robot=None, folder_name=None):
+    def __init__(self, direction_estimator=None, controller=None, controller_init=None, robot=None, folder_name=None):
 
         print(50*'-')
         print('Processing current state: ', str(self))
@@ -43,6 +43,7 @@ class State(object):
         self.direction_estimator = direction_estimator
         self.controller = controller
         self.robot = robot
+        self.cinit = controller_init
         
         self.folder_name = folder_name
 
@@ -77,6 +78,7 @@ class StartState(State):
         self.direction_estimator = SkillUnconstrainedDirectionEstimation(time_step, buffer_length, init_direction, initN, fd1)
 
         self.controller = controller2(time_step)
+        self.cinit = controller1(time_step)
 
         self.robot = RobotPlanner(self.controller, self.direction_estimator)
 
@@ -170,7 +172,6 @@ class StartState(State):
             grasping_move = False
 
             succ = self.robot.close_gripper(grasping_width, grasping_vel, grasping_force, grasping_homing, grasping_close, grasping_move)
-            #succ = True
             
             if not succ:
                 
@@ -201,10 +202,10 @@ class StartState(State):
             return self
 
         if event == 'gripper_closed':
-            return ObjectGraspedState(self.direction_estimator, self.controller, self.robot)
+            return ObjectGraspedState(self.direction_estimator, self.controller, self.cinit, self.robot)
 
         if event == 'stop':
-            return StopState(self.direction_estimator, self.controller, self.robot)
+            return StopState(self.direction_estimator, self.controller, self.cinit, self.robot)
 
 #----- State after the object has been grasped -----
 
@@ -240,10 +241,10 @@ class ObjectGraspedState(State):
             return self
 
         if event == 'start_control':
-            return RunningState(self.direction_estimator, self.controller, self.robot)
+            return RunningState(self.direction_estimator, self.controller, self.cinit, self.robot)
 
         if event == 'stop':
-            return StopState(self.direction_estimator, self.controller, self.robot)
+            return StopState(self.direction_estimator, self.controller, self.cinit, self.robot)
         
 #----- Simplified Running State -----
             
@@ -376,7 +377,7 @@ class RunningState(State):
     def test5(self):
 
         vFinal = 0.01
-        vInit = vFinal
+        vInit = vFinal/4
         alphaInit = 0.5
         alphaFinal = 0.5
 
@@ -637,8 +638,11 @@ class RunningState(State):
         b_torque = (1/20.0)*b_torque
         print("bforce ",b_force)
         return b_force, b_torque
-     
-                         
+    
+    def test7(self):
+        
+        self.robot.InitProgram()
+                             
     def run(self):
                 
         try:
@@ -661,7 +665,7 @@ class RunningState(State):
     def transition(self, event):
 
         if event == 'stop':
-            return StopState(self.direction_estimator, self.controller, self.robot, self.folder_name)        
+            return StopState(self.direction_estimator, self.controller, self.cinit, self.robot, self.folder_name)        
         
 class StopState(State):
     

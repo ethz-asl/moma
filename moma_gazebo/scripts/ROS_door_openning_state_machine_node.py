@@ -20,10 +20,14 @@ from moma_gazebo.ROS_planner import RobotPlanner
 
 import numpy as np
 import os
+from datetime import datetime
+import time
+from scipy.spatial.transform import Rotation as R
+import matplotlib.pyplot as plt
 
 class State(object):
     
-    def __init__(self, direction_estimator=None, controller=None, robot=None):
+    def __init__(self, direction_estimator=None, controller=None, robot=None, folder_name=None):
         
         print(50*'-')
         print('Processing current state: ', str(self))
@@ -31,6 +35,8 @@ class State(object):
         self.direction_estimator = direction_estimator
         self.controller = controller
         self.robot = robot
+        
+        self.folder_name = folder_name
         
     def run(self):
         
@@ -222,16 +228,58 @@ class RunningState(State):
         id_simulator, id_robot, joint_idx_arm, joint_idx_fingers, joint_idx_hand, arm_base_link_idx, arm_ee_link_idx, link_name_to_index = self.robot.InitURDF(time_step, urdf_filename, robot_base, robot_orientation)                
         
         counter = 0
-        N_steps = 12000
+        N_steps = 400
+        
+        robot_dq = []
+        robot_v = []
+        
+        iteration_times = []
+        
+        folder_name = os.getcwd()
+        
+        date_and_time = datetime.now()
+        curr = date_and_time.strftime("%d_%m_%Y_%H_%M_%S")
+        
+        folder_name = folder_name + '/runs'
+        
+        if not os.path.isdir(folder_name):
+            os.makedirs(folder_name)
+            
+        if not os.path.isdir(folder_name + '/' + curr):
+            os.makedirs(folder_name + '/' + curr)
+        
+        folder_name = folder_name + '/' + curr + '/' + self.robot.controller.mode_name
+        
+        if not os.path.isdir(folder_name):
+            os.makedirs(folder_name) 
+            
+        self.folder_name = folder_name
         
         print("")
         try:
             
             while counter <= N_steps and not rospy.is_shutdown():
                 print("Iteration: " + str(counter) )
+                
+                startTime = time.time()
+                
                 self.robot.run_once(counter, vInit, vFinal, alphaInit, alphaFinal, t0, tConv, id_robot, arm_ee_link_idx, arm_base_link_idx, link_name_to_index, joint_idx_arm, alpha=0.1, smooth=False, mixCoeff=0.1)  
-                #freq.sleep()
+            
+                stopTime = time.time()
+                interval = stopTime - startTime
+                
+                iteration_times.append(interval)
+                robot_dq.append(self.robot.q_dot)
+
+                v_total = list(np.squeeze(np.array(self.robot.linVelBase) + np.squeeze(np.matmul(self.robot.J_b_ee[:3,:7], self.robot.q_dot))))
+                C_O_b = R.from_dcm(self.robot.T_O_b[:3, :3])
+                robot_v.append(C_O_b.apply(v_total[:3]))
+                
                 counter += 1
+
+            np.save(self.folder_name +'/robot_dq.npy', np.array(robot_dq))
+            np.save(self.folder_name +'/iteration_times.npy', np.array(iteration_times))
+            np.save(self.folder_name +'/robot_v.npy', np.array(robot_v))
                 
         except rospy.ROSInterruptException:  pass
         
@@ -240,15 +288,62 @@ class RunningState(State):
     def transition(self, event):
         
         if event == 'stop':            
-            return StopState(self.direction_estimator, self.controller, self.robot) 
+            return StopState(self.direction_estimator, self.controller, self.robot, self.folder_name) 
             
 #----- Finishing state -----
             
 class StopState(State):
+    
+    def plot_run(self):
+        
+        folder_name = self.folder_name
+        
+        iteration_times = np.load(self.folder_name +'/iteration_times.npy')           
+        robot_dq = np.load(self.folder_name +'/robot_dq.npy')
+        robot_v = np.load(self.folder_name +'/robot_v.npy')
+
+        N = len(iteration_times)
+        t = np.arange(1, N+1)
+        
+        fig1, (ax1_1, ax1_2, ax1_3) = plt.subplots(3,1,figsize=(10,10))
+        
+        v_x = robot_v[:, 0]
+        v_y = robot_v[:, 1]
+        v_z = robot_v[:, 2]
+        
+        ax1_1.plot(t, v_x, color='b')
+        ax1_1.set_ylabel('x velocity')
+        ax1_1.grid('on')
+        ax1_1.set_xlim(t[0], t[-1])
+        
+        ax1_2.plot(t, v_y, color='b')
+        ax1_2.set_ylabel('y velocity')
+        ax1_2.grid('on')
+        ax1_2.set_xlim(t[0], t[-1])
+        
+        ax1_3.plot(t, v_z, color='b')
+        ax1_3.set_ylabel('z velocity')
+        ax1_3.grid('on')
+        ax1_3.set_xlim(t[0], t[-1])
+        
+        fig2 = plt.figure(2)
+        
+        plt.plot(t, iteration_times, color='b')
+        plt.ylabel('iteration time')
+        plt.grid('on')
+        plt.xlim(t[0], t[-1])
+        plt.ylim(0.0, 0.03)
+        
+        fig1.savefig(self.folder_name + '//' + 'velocities.jpg')
+        fig2.savefig(self.folder_name + '//' + 'iteration_times.jpg')
+        
+        plt.close('all')      
 
     def run(self):
         
         self.robot.prepare_for_stop()
+        
+        self.plot_run()
         
         temp1 = input("Restart? [y/n]: ")
         

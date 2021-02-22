@@ -3,6 +3,7 @@
 import rospy
 import actionlib
 import numpy.linalg as LA
+import time
 
 #----- ROS Msgs ------
 
@@ -38,10 +39,12 @@ import math
 
 class RobotPlanner:
 
-    def __init__(self, controller, direction_estimatior):
+    def __init__(self, controller, direction_estimatior, controller_init):
 
         self.controller = controller
         self.direction_estimator = direction_estimatior
+        
+        self.cinit = controller_init
 
         self.processing = False
 
@@ -461,4 +464,116 @@ class RobotPlanner:
     def prepare_for_stop(self):
 
         self.publishArmAndBaseVelocityControl([0.0]*7, linVelBase = [0.0, 0.0, 0.0], angVelBase = 0.0)
+        
+    def InitProgram(self):
+        
+        print(5*"-"+' Init procedure '+5*'-')
+        
+        direction_list = self.direction_estimator.CalculateInitialDirections()
+        
+        try_velocity = 0.005
+        N_steps_per_dir = 3
+        
+        totalInitTime = 0.0
+        X_data = []
+        Y_data = []
 
+        startTime = time.time()
+        
+        for idx in range(len(direction_list)):
+            
+            d = direction_list[idx]
+            
+            print("Trying the direction n: "+str(d))
+            
+            if idx==0:
+
+                req = PandaStateSrvRequest()          
+                panda_model = self.panda_model_state_srv(req)  
+                
+                sf = np.array(panda_model.K_F_ext_hat_K)
+                
+            for temp_it in range(N_steps_per_dir):
+                
+                req = PandaStateSrvRequest()          
+                panda_model = self.panda_model_state_srv(req)                 
+                base_state_msg = self.baseState_msg
+                
+                self.CalculateVars_usingPanda(panda_model, base_state_msg)
+
+                T_O_ee = np.matmul(self.T_O_b, self.T_b_ee)
+
+                C_O_ee = R.from_dcm(T_O_ee[:3, :3])
+                C_O_b = R.from_dcm(self.T_O_b[:3, :3])
+                C_b_ee = R.from_dcm(self.T_b_ee[:3, :3])
+
+                r_O_ee = np.squeeze(np.copy(T_O_ee[:3, 3]))
+                r_b_ee = self.T_b_ee[:3, 3]
+                
+                infoTuple = (self.M, self.b, self.J_b_ee, self.q, self.q_dot, C_O_b, C_O_ee, C_b_ee, r_b_ee, try_velocity, self.tau)
+                
+                veldesEE_ee = try_velocity*np.array(d + 3*[0.0])
+                
+                try:
+                    temp = self.cinit.PerformOneStep(veldesEE_ee, infoTuple)
+
+                    self.publishArmAndBaseVelocityControl(self.cinit.GetCurrOptSol(), linVelBase = [0.0, 0.0, 0.0], angVelBase = 0.0)
+            
+                except:
+                
+                    self.publishArmAndBaseVelocityControl([0.0]*7, linVelBase = [0.0, 0.0, 0.0], angVelBase = 0.0)
+                    
+            req = PandaStateSrvRequest()          
+            panda_model = self.panda_model_state_srv(req)  
+            
+            f = np.array(panda_model.K_F_ext_hat_K)
+            
+            y = 1 - LA.norm(f)/LA.norm(sf)
+        
+            if y>0:
+                        
+                X_data.append(d[:2])
+                Y_data.append(y)         
+
+            for temp_it in range(N_steps_per_dir):
+                
+                req = PandaStateSrvRequest()          
+                panda_model = self.panda_model_state_srv(req)                 
+                base_state_msg = self.baseState_msg
+                
+                self.CalculateVars_usingPanda(panda_model, base_state_msg)
+
+                T_O_ee = np.matmul(self.T_O_b, self.T_b_ee)
+
+                C_O_ee = R.from_dcm(T_O_ee[:3, :3])
+                C_O_b = R.from_dcm(self.T_O_b[:3, :3])
+                C_b_ee = R.from_dcm(self.T_b_ee[:3, :3])
+
+                r_O_ee = np.squeeze(np.copy(T_O_ee[:3, 3]))
+                r_b_ee = self.T_b_ee[:3, 3]
+                
+                infoTuple = (self.M, self.b, self.J_b_ee, self.q, self.q_dot, C_O_b, C_O_ee, C_b_ee, r_b_ee, try_velocity, self.tau)
+                
+                veldesEE_ee = -try_velocity*np.array(d + 3*[0.0])
+                
+                try:
+                    temp = self.cinit.PerformOneStep(veldesEE_ee, infoTuple)
+
+                    self.publishArmAndBaseVelocityControl(self.cinit.GetCurrOptSol(), linVelBase = [0.0, 0.0, 0.0], angVelBase = 0.0)
+            
+                except:
+                
+                    self.publishArmAndBaseVelocityControl([0.0]*7, linVelBase = [0.0, 0.0, 0.0], angVelBase = 0.0)
+                    
+            req = PandaStateSrvRequest()          
+            panda_model = self.panda_model_state_srv(req)  
+            
+            sf = np.array(panda_model.K_F_ext_hat_K)
+            
+        self.direction_estimator.EstimateBestInitialDirection(X_data, Y_data, C_O_ee)
+        
+        stopTime = time.time()
+        totalInitTime = stopTime - startTime
+        print("Total init time: "+str(totalInitTime))
+            
+        

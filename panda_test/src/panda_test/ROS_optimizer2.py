@@ -128,8 +128,8 @@ class Controller:
         
         C2 = np.transpose(np.concatenate((Aux, -Aux, Null1, -Null1), axis=0))
         
-        ineq1 = -self.torque_max[:len(q)] - b + np.matmul(Kd, q_dot - sol1) - self.dt*np.matmul(Kp, np.array(sol1).reshape(-1, 1))
-        ineq2 = -self.torque_max[:len(q)] + b - np.matmul(Kd, q_dot - sol1) + self.dt*np.matmul(Kp, np.array(sol1).reshape(-1, 1))
+        ineq1 = -self.torque_max[:len(q)] - b + np.matmul(Kd, q_dot - sol1) - self.dt*np.matmul(Kp, np.array(sol1))
+        ineq2 = -self.torque_max[:len(q)] + b - np.matmul(Kd, q_dot - sol1) + self.dt*np.matmul(Kp, np.array(sol1))
         ineq3 = np.maximum(np.maximum(self.q_dot_min[:len(q)], (1/self.dt)*(self.q_min[:len(q)] - q)), self.dt*self.q_dot_dot_min + q_dot) - sol1
         ineq4 = -np.minimum(np.minimum(self.q_dot_max[:len(q)], (1/self.dt)*(self.q_max[:len(q)] - q)), self.dt*self.q_dot_dot_max + q_dot) + sol1
         
