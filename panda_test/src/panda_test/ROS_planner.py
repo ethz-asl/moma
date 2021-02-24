@@ -26,6 +26,8 @@ from panda_test.srv import *
 
 from franka_msgs.srv import *
 
+from panda_test.ROS_door_opening_util import *
+
 #----- Other -----
 
 from scipy.spatial.transform import Rotation as R
@@ -90,10 +92,7 @@ class RobotPlanner:
         self.publisher_joints = rospy.Publisher('/arm_command', desired_vel_msg, latch=True, queue_size=10)
         self.publisher_base_velocity = rospy.Publisher('/cmd_vel', Twist,  latch=True, queue_size=10)
 
-        #----- Gripper client -----
-
-        self.gripper_client = None
-
+#------- 
     def baseState_cb(self, msg):
 
         if not self.processing:
@@ -101,7 +100,8 @@ class RobotPlanner:
             self.baseState_msg = msg
             if not self.base_state_topic_initiated:
                 self.base_state_topic_initiated = True
-
+                
+#------- 
     def publishArmAndBaseVelocityControl(self, q_dot_des, linVelBase, angVelBase):
 
         joints_des = desired_vel_msg()
@@ -121,7 +121,7 @@ class RobotPlanner:
         self.publisher_base_velocity.publish(base_des)
         self.publisher_joints.publish(joints_des)
 
-
+#------- 
     def set_frames(self, F_T_EE, EE_T_K):
 
         EE_frame_req = SetEEFrameRequest()
@@ -150,6 +150,7 @@ class RobotPlanner:
         else:
             return False
         
+#-------         
     def set_force_torque_collision(self, lower_torque, higher_torque, lower_force, higher_force):
         
         SetForceTorqueCollisionBehavior_req = SetForceTorqueCollisionBehaviorRequest()
@@ -166,7 +167,7 @@ class RobotPlanner:
         
         return res
         
-    
+#-------     
     def close_gripper(self, grasping_width, grasping_vel, grasping_force, grasping_homing, grasping_close, grasping_move):
         
         req = PandaGripperSrvRequest()
@@ -182,6 +183,7 @@ class RobotPlanner:
         
         return res.success
 
+#------- 
     def VelocityProfile(self, t, vInit, vFinal, alphaInit, alphaFinal, t0, tConv):
 
         if t<t0:
@@ -197,6 +199,7 @@ class RobotPlanner:
 
         return v
 
+#------- 
     def InitURDF(self, time_step, urdf_filename, robot_base, robot_orientation):
 
         id_simulator = p.connect(p.DIRECT)
@@ -252,7 +255,7 @@ class RobotPlanner:
 
         return id_simulator, id_robot, joint_idx_arm, joint_idx_fingers, joint_idx_hand, arm_base_link_idx, arm_ee_link_idx, link_name_to_index
 
-
+#------- 
     def CalculateVars_usingSimulator(self, arm_state_msg, base_state_msg, force_msg, ee_state_msg, joint_idx_arm, model, arm_ee_link_idx, arm_base_link_idx, link_name_to_index):
 
         #----- INFO FROM JOINT STATE -----
@@ -332,7 +335,7 @@ class RobotPlanner:
                                [C_O_b_mat[1, 0], C_O_b_mat[1, 1], C_O_b_mat[1, 2], base_state_msg.pose.pose.position.y],
                                [C_O_b_mat[2, 0], C_O_b_mat[2, 1], C_O_b_mat[2, 2], base_state_msg.pose.pose.position.z],
                                [0.0            , 0.0            , 0.0            , 1.0                                ]])
-
+#------- 
     def CalculateVars_usingPanda(self, panda_model, base_state_msg):
 
         #----- INFO FROM JOINT STATE -----
@@ -397,6 +400,7 @@ class RobotPlanner:
                                [C_O_b_mat[2, 0], C_O_b_mat[2, 1], C_O_b_mat[2, 2], base_state_msg.pose.pose.position.z],
                                [0.0            , 0.0            , 0.0            , 1.0                                ]])
 
+#------- 
     def run_once(self, t, vInit, vFinal, alphaInit, alphaFinal, t0, tConv, alpha=0.1, smooth=False, mixCoeff=0.1):
 
         #----- Copying -----
@@ -461,10 +465,59 @@ class RobotPlanner:
 
             print("Service failed: " + str(e))
 
+#------- 
     def prepare_for_stop(self):
 
         self.publishArmAndBaseVelocityControl([0.0]*7, linVelBase = [0.0, 0.0, 0.0], angVelBase = 0.0)
         
+#-------         
+    def AlignZAxis(self):
+        
+        N_align = 30
+        theta_des = 0
+        kAng=0.2
+        
+        for i in range(N_align):
+            
+            print("Iteration: "+str(i))
+            
+            req = PandaStateSrvRequest()
+            panda_model = self.panda_model_state_srv(req)
+            base_state_msg = self.baseState_msg
+            
+            self.CalculateVars_usingPanda(panda_model, base_state_msg)
+            
+            C_b_ee = R.from_dcm(self.T_b_ee[:3, :3])
+            
+            g_ee = C_b_ee.inv().apply([0.0, 0.0, -1.0])
+            
+            theta = np.arccos(np.dot(np.array(g_ee), np.array[0.0, 0.0, 1.0]))
+            
+            if theta>np.pi/4 and theta<3*np.pi/4:
+                
+                orthoProjMat = OrthoProjection(g_ee)
+                z_proj = np.matmul(orthoProjMat, np.array([0.0, 0.0, 1.0]))
+                n_ee = np.cross(np.array([0.0, 0.0, 1.0]), z_proj)
+                wdesEE_ee = kAng*(np.pi/2-theta - theta_des)*n_ee
+                
+                vdesEE_ee = np.array(3*[0.0])
+                veldesEE_ee = np.concatenate((np.squeeze(vdesEE_ee), np.squeeze(wdesEE_ee)), axis=0)
+            
+                T_O_ee = np.matmul(self.T_O_b, self.T_b_ee)
+
+                C_O_ee = R.from_dcm(T_O_ee[:3, :3])
+                C_O_b = R.from_dcm(self.T_O_b[:3, :3])
+                C_b_ee = R.from_dcm(self.T_b_ee[:3, :3])
+
+                r_O_ee = np.squeeze(np.copy(T_O_ee[:3, 3]))
+                r_b_ee = self.T_b_ee[:3, 3]
+                
+                infoTuple = (self.M, self.b, self.J_b_ee, self.q, self.q_dot, C_O_b, C_O_ee, C_b_ee, r_b_ee, 0.0, self.tau)
+            
+                temp = self.cinit.PerformOneStep(veldesEE_ee, infoTuple)
+                self.publishArmAndBaseVelocityControl(self.cinit.GetCurrOptSol(), linVelBase = [0.0, 0.0, 0.0], angVelBase = 0.0)
+            
+#-------        
     def InitProgram(self):
         
         print(5*"-"+' Init procedure '+5*'-')

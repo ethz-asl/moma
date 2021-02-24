@@ -254,7 +254,6 @@ class RunningState(State):
         
         counter = 0
         N_steps = 1000
-        freq = rospy.Rate(2) 
         
         while counter <= N_steps and not rospy.is_shutdown():
         
@@ -286,7 +285,6 @@ class RunningState(State):
         
         counter = 0
         N_steps = 1000
-        freq = rospy.Rate(2) 
         
         while counter <= N_steps and not rospy.is_shutdown():
         
@@ -312,8 +310,7 @@ class RunningState(State):
         t0 = np.ceil(tConv/3)
 
         counter = 0
-        N_steps = 150
-        freq = rospy.Rate(2)         
+        N_steps = 150  
         
         while counter <= N_steps and not rospy.is_shutdown():
         
@@ -327,7 +324,6 @@ class RunningState(State):
 
         counter = 0
         N_steps = 1000
-        freq = rospy.Rate(2) 
         
         force_x = []
         force_y = []
@@ -489,7 +485,6 @@ class RunningState(State):
         
         counter = 0
         N_steps = 30
-        freq = rospy.Rate(2) 
         
         force_x = []
         force_y = []
@@ -642,6 +637,10 @@ class RunningState(State):
     def test7(self):
         
         self.robot.InitProgram()
+        
+    def test8(self):
+        
+        self.robot.AlignZAxis()
                              
     def run(self):
                 
@@ -740,7 +739,7 @@ class StopState(State):
             
             true_dir = np.squeeze(K_C_O[:, 0])
             estimated_dir = np.squeeze(robot_dir_estimate[i, :])
-            robot_dot.append(np.dot(true_dir, estimated_dir))
+            robot_dot.append(np.dot(-true_dir, estimated_dir))
             
         ax2_3.plot(t, robot_dot, color='b')
         ax2_3.set_ylabel('dot product')
