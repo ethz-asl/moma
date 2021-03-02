@@ -70,9 +70,9 @@ class StartState(State):
     def run(self):
 
         time_step = 0.05
-        buffer_length = 100
+        buffer_length = 50
         init_direction = np.array([0.0, 0.0, -1.0]).reshape(3,1)
-        initN = 100
+        initN = 50
         fd1 = 1/(50*time_step)
 
         self.direction_estimator = SkillUnconstrainedDirectionEstimation(time_step, buffer_length, init_direction, initN, fd1)
@@ -80,7 +80,7 @@ class StartState(State):
         self.controller = controller2(time_step)
         self.cinit = controller1(time_step)
 
-        self.robot = RobotPlanner(self.controller, self.direction_estimator)
+        self.robot = RobotPlanner(self.controller, self.direction_estimator, self.cinit)
 
         #----- Waiting for all the topics to start publishing -----
 
@@ -126,6 +126,7 @@ class StartState(State):
         EE_T_K  = [1.0, 0.0, 0.0 ,0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0]
 
         succ = self.robot.set_frames(F_T_EE, EE_T_K)
+        #succ = True
         
         if not succ:
 
@@ -139,26 +140,6 @@ class StartState(State):
             else:
 
                 return 'hold'
-        
-#        lower_torque = []
-#        higher_torque = []
-#        lower_force = []
-#        higher_force = []
-#        
-#        succ2 = self.set_force_torque_collision( lower_torque, higher_torque, lower_force, higher_force)
-        
-#        if not succ2:
-#
-#            print("")
-#            print("Failed to set collision behaviour!")
-#            temp1 = input("Abort? [y/n]: ")
-#            if temp1 in ['Y', 'y']:
-#
-#                return 'stop'
-#
-#            else:
-#
-#                return 'hold'
             
         temp1 = input('Homing the gripper? [y/n]: ')
 
@@ -166,12 +147,13 @@ class StartState(State):
             
             grasping_width = 0.01
             grasping_vel = 0.01
-            grasping_force = 10  
+            grasping_force = 20  
             grasping_homing = True
             grasping_close = False
             grasping_move = False
 
             succ = self.robot.close_gripper(grasping_width, grasping_vel, grasping_force, grasping_homing, grasping_close, grasping_move)
+            #succ = True
             
             if not succ:
                 
@@ -216,9 +198,9 @@ class ObjectGraspedState(State):
         temp1 = input("Inititate door opening procedure? [y/n]: ")
         if temp1 in ['Y','y']:
                 
-            grasping_width = 0.008
+            grasping_width = 0.007
             grasping_vel = 0.01
-            grasping_force = 40
+            grasping_force = 50
             grasping_homing = False
             grasping_close = True
             grasping_move = False
@@ -284,7 +266,7 @@ class RunningState(State):
     def test2(self):
         
         counter = 0
-        N_steps = 1000
+        N_steps = 100
         
         while counter <= N_steps and not rospy.is_shutdown():
         
@@ -292,7 +274,7 @@ class RunningState(State):
             
             req = PandaStateSrvRequest()
             panda_model = self.robot.panda_model_state_srv(req)        
-            self.robot.publishArmAndBaseVelocityControl([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.1], 3*[0.0], 0.0)
+            self.robot.publishArmAndBaseVelocityControl([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [-0.05, 0.0, 0.0], 0.0)
             print("RECEIVED: "+str(panda_model.K_F_ext_hat_K))
             
             counter += 1
@@ -373,17 +355,17 @@ class RunningState(State):
     def test5(self):
 
         vFinal = 0.01
-        vInit = vFinal/4
+        vInit = vFinal/2
         alphaInit = 0.5
         alphaFinal = 0.5
 
-        initN = 30
+        initN = 50
 
         tConv = initN
         t0 = np.ceil(tConv/3)
 
         counter = 0
-        N_steps = 400        
+        N_steps = 500        
         
         robot_force = []
         
@@ -646,7 +628,7 @@ class RunningState(State):
                 
         try:
 
-            self.test5()
+            self.test7()
             
             grasping_width = 0.05
             grasping_vel = 0.01

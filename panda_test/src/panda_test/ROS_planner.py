@@ -379,7 +379,7 @@ class RobotPlanner:
 
         ext_wrench = np.array(panda_model.K_F_ext_hat_K)
         self.force = -ext_wrench[:3]
-        print("force: "+str(self.force))
+        #print("force: "+str(self.force))
 
         #print("FORCE: ", self.force)
 
@@ -446,7 +446,7 @@ class RobotPlanner:
 
             velProfile = self.VelocityProfile(t, vInit, vFinal, alphaInit, alphaFinal, t0, tConv)
 
-            veldesEE_ee = self.direction_estimator.GetPlannedVelocities(v=velProfile, calcAng=True, kAng=0.2)   #Change to 0.05 or false
+            veldesEE_ee = self.direction_estimator.GetPlannedVelocities(v=velProfile, calcAng=True, kAng=0.1)   #Change to 0.05 or false
 
             r_b_ee = self.T_b_ee[:3, 3]
 
@@ -473,7 +473,7 @@ class RobotPlanner:
 #-------         
     def AlignZAxis(self):
         
-        N_align = 30
+        N_align = 1000
         theta_des = 0
         kAng=0.2
         
@@ -491,7 +491,7 @@ class RobotPlanner:
             
             g_ee = C_b_ee.inv().apply([0.0, 0.0, -1.0])
             
-            theta = np.arccos(np.dot(np.array(g_ee), np.array[0.0, 0.0, 1.0]))
+            theta = np.arccos(np.dot(np.array(g_ee), np.array([0.0, 0.0, 1.0])))
             
             if theta>np.pi/4 and theta<3*np.pi/4:
                 
@@ -544,7 +544,7 @@ class RobotPlanner:
                 req = PandaStateSrvRequest()          
                 panda_model = self.panda_model_state_srv(req)  
                 
-                sf = np.array(panda_model.K_F_ext_hat_K)
+                sf = np.array(panda_model.K_F_ext_hat_K[:3])
                 
             for temp_it in range(N_steps_per_dir):
                 
@@ -579,7 +579,7 @@ class RobotPlanner:
             req = PandaStateSrvRequest()          
             panda_model = self.panda_model_state_srv(req)  
             
-            f = np.array(panda_model.K_F_ext_hat_K)
+            f = np.array(panda_model.K_F_ext_hat_K[:3])
             
             y = 1 - LA.norm(f)/LA.norm(sf)
         
@@ -617,13 +617,15 @@ class RobotPlanner:
                 except:
                 
                     self.publishArmAndBaseVelocityControl([0.0]*7, linVelBase = [0.0, 0.0, 0.0], angVelBase = 0.0)
-                    
+            print("f: "+str(LA.norm(f)))
+            print("sf: "+str(LA.norm(sf)))
+            
             req = PandaStateSrvRequest()          
             panda_model = self.panda_model_state_srv(req)  
             
-            sf = np.array(panda_model.K_F_ext_hat_K)
+            sf = np.array(panda_model.K_F_ext_hat_K[:3])
             
-        self.direction_estimator.EstimateBestInitialDirection(X_data, Y_data, C_O_ee)
+        self.direction_estimator.EstimateBestInitialDirection(X_data, Y_data, C_O_ee, C_b_ee)
         
         stopTime = time.time()
         totalInitTime = stopTime - startTime

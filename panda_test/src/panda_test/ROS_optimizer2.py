@@ -157,7 +157,6 @@ class Controller:
             G1, a1, C1, b1 = self.PrepareTask1(J_b_ee, vdesEE_b[:J_b_ee.shape[0]], M, b, q, q_dot, tau_prev)
         
             sol1,_,_,_,_,_ = solve_qp(G1, a1, C1, b1)
-            print("Ovde")
             print(sol1)
             if sol1 is None:
                 
@@ -211,7 +210,7 @@ class Controller:
             scaleFactor = 1.0
 
         q_dot_des = []
-        gamma = 0.2
+        gamma = 0.5
 
         for i in range(len(self.q_mean)):
 

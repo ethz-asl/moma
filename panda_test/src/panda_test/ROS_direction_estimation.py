@@ -207,13 +207,13 @@ class SkillUnconstrainedDirectionEstimation:
         return list_n            
 
 #-------    
-    def EstimateBestInitialDirection(self, X_data, Y_data, C_O_ee):
+    def EstimateBestInitialDirection(self, X_data, Y_data, C_O_ee, C_b_ee):
         
         X_data = np.array(X_data).reshape(len(X_data), -1)
         Y_data = np.array(Y_data)
         
-        #print("X_data: ", X_data)
-        #print("Y_data: ", Y_data)
+        print("X_data: ", X_data)
+        print("Y_data: ", Y_data)
         
         Z = np.sum(Y_data)
         Y_data = Y_data/Z
@@ -228,14 +228,16 @@ class SkillUnconstrainedDirectionEstimation:
         estimated_direction = np.array([X_data[0], X_data[1], -(1.0 - X_data[0]**2 - X_data[1]**2)**0.5])
         
         gravity_dir = np.array(C_O_ee.inv().apply(np.array([0.0, 0.0, 1.0]))).reshape(-1, 1)
+        actual_dir = np.array(C_b_ee.inv().apply(np.array([-1.0, 0.0, 0.0]))).reshape(-1, 1)
         
         orthoProjMatGravity = OrthoProjection(gravity_dir)        
         
         estimated_direction = np.squeeze(np.matmul(orthoProjMatGravity, estimated_direction.reshape(-1,1)))
         
         estimated_direction = estimated_direction/LA.norm(estimated_direction)
-        
+        print("ACTUAL DIR: ", actual_dir)
         print("ESTIMATED DIR: ", estimated_direction)
+        print("DOT PRODUCT: ", np.dot(np.squeeze(estimated_direction), np.squeeze(actual_dir)))
         
         self.y_k_1 = estimated_direction.reshape(3,1)
         self.y_k_2 = estimated_direction.reshape(3,1)
