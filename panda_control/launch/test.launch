@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+<launch>
+    <node type="test.py" name="dsahflkjahfds" pkg="panda_control" ns="manipulator" output="screen"/>
+</launch>

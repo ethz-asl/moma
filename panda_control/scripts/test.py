@@ -1,10 +1,11 @@
+#!/usr/bin/env python
 from panda_control.panda_commander import PandaCommander
 import rospy
 
 rospy.init_node("jlfkjaskldfjlk")
 pc = PandaCommander()
 
-print("Got a commander")
+rospy.loginfo("Got a commander")
 
 raw_input("Press enter to continue")
 
