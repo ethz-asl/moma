@@ -7,10 +7,13 @@ pc = PandaCommander()
 
 rospy.loginfo("Got a commander")
 
-raw_input("Press enter to continue")
-
-pc.grasp()
-
-raw_input("Press enter to continue")
-
-pc.release()
+while True:
+    res = raw_input("a: close, b: open")
+    if res == "a":
+        pc.grasp()
+    elif res == "b":
+        pc.release()
+    elif res == "s":
+        pc.stop()
+    else:
+        break

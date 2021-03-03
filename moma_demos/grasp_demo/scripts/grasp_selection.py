@@ -70,21 +70,21 @@ class GraspSelectionAction(object):
             auto_start=False,
         )
 
-        self.base_frame_id = rospy.get_param("/moma_demo/base_frame_id")
+        self.base_frame_id = rospy.get_param("moma_demo/base_frame_id")
         self.grasp_selection_method = rospy.get_param(
-            "/moma_demo/grasp_selection_method"
+            "moma_demo/grasp_selection_method"
         )
 
         self.gpd_cloud_pub = rospy.Publisher(
-            "/cloud_stitched", PointCloud2, queue_size=10
+            "detect_grasps/cloud_stitched", PointCloud2, queue_size=10
         )  # publishing a cloud to this topic triggers GPD
 
         self.detected_grasps_pub = rospy.Publisher(
-            "/grasp_candidates", PoseArray, queue_size=10
+            "grasp_candidates", PoseArray, queue_size=10
         )
 
         self.selected_grasp_pub = rospy.Publisher(
-            "/grasp_pose", PoseStamped, queue_size=10
+            "grasp_pose", PoseStamped, queue_size=10
         )
 
         self.listener = tf.TransformListener()
@@ -138,7 +138,7 @@ class GraspSelectionAction(object):
 
         try:
             grasp_config_list = rospy.wait_for_message(
-                "/detect_grasps/clustered_grasps", GraspConfigList, timeout=120
+                "detect_grasps/clustered_grasps", GraspConfigList, timeout=120
             )
         except rospy.ROSException:
             return []

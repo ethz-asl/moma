@@ -33,15 +33,15 @@ class DropActionNode(object):
         self._robot_arm = create_robot_connection(full_robot_name)
 
     def _load_parameters(self):
-        self._robot_arm_names = rospy.get_param("/moma_demo/robot_arm_names")
+        self._robot_arm_names = rospy.get_param("moma_demo/robot_arm_names")
         self._home_joints = rospy.get_param(
-            "/moma_demo/home_joints_" + self._robot_arm_names[0]
+            "moma_demo/home_joints_" + self._robot_arm_names[0]
         )
         self._drop_joints = rospy.get_param(
-            "/moma_demo/drop_joints_" + self._robot_arm_names[0]
+            "moma_demo/drop_joints_" + self._robot_arm_names[0]
         )
         self._arm_velocity_scaling = rospy.get_param(
-            "/moma_demo/arm_velocity_scaling_drop"
+            "moma_demo/arm_velocity_scaling_drop"
         )
 
     def execute_cb(self, goal):

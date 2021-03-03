@@ -38,14 +38,14 @@ class ScanAction(object):
         )
 
     def _read_joint_configurations(self):
-        self._robot_arm_names = rospy.get_param("/moma_demo/robot_arm_names")
+        self._robot_arm_names = rospy.get_param("moma_demo/robot_arm_names")
         if len(self._robot_arm_names) > 1:
             self._scan_joints = rospy.get_param(
-                "/moma_demo/scan_joints_" + self._robot_arm_names[1]
+                "moma_demo/scan_joints_" + self._robot_arm_names[1]
             )
         else:
             self._scan_joints = rospy.get_param(
-                "/moma_demo/scan_joints_" + self._robot_arm_names[0]
+                "moma_demo/scan_joints_" + self._robot_arm_names[0]
             )
 
     def _connect_robot(self):

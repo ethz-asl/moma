@@ -33,7 +33,7 @@ def get_bt_reset(condition_variable_names, reset_all):
 
     button_reset = py_trees_ros.subscribers.WaitForData(
         name="Button reset?",
-        topic_name="/manipulation_actions/" + action_name,
+        topic_name="manipulation_actions/" + action_name,
         topic_type=std_msgs.msg.Empty,
     )
     var_reset = py_trees.blackboard.SetBlackboardVariable(
@@ -52,7 +52,7 @@ def get_bt_reset(condition_variable_names, reset_all):
         variable_name="do_" + action_name
     )
     reset_action = RepeatAction(
-        name=action_name, variable_names=condition_variable_names, repeat_all=reset_all,
+        name=action_name, variable_names=condition_variable_names, repeat_all=reset_all
     )
     reset_exec_root = py_trees.composites.Sequence(
         name="Do " + action_name,
@@ -65,7 +65,7 @@ def get_bt_reset(condition_variable_names, reset_all):
 def get_bt_repeat(condition_variable_names):
     button_repeat = py_trees_ros.subscribers.WaitForData(
         name="Button repeat?",
-        topic_name="/manipulation_actions/repeat",
+        topic_name="manipulation_actions/repeat",
         topic_type=std_msgs.msg.Empty,
     )
     var_repeat = py_trees.blackboard.SetBlackboardVariable(
@@ -96,7 +96,7 @@ def get_bt_repeat(condition_variable_names):
 def get_bt_topics2bb():
     button_next_2bb = py_trees_ros.subscribers.EventToBlackboard(
         name="Next button listener",
-        topic_name="/manipulation_actions/next",
+        topic_name="manipulation_actions/next",
         variable_name="button_pressed",
     )
     topics2bb = py_trees.composites.Sequence("Topics2BB", children=[button_next_2bb])
@@ -113,7 +113,7 @@ def get_button_next_check():
             name=var,
             children=[
                 py_trees.blackboard.WaitForBlackboardVariable(
-                    name="Check " + var, variable_name=var, expected_value=True,
+                    name="Check " + var, variable_name=var, expected_value=True
                 ),
                 py_trees.blackboard.ClearBlackboardVariable(
                     name="Clear " + var, variable_name=var
