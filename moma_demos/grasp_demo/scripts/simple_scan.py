@@ -38,11 +38,10 @@ class SimpleScanAction(ScanAction):
         self.latest_cloud_data = copy.deepcopy(data)
 
     def execute_cb(self, goal):
-        """Move to each scan pose, capture a point cloud and stitch them together."""
         rospy.loginfo("Scanning action was triggered")
 
+        # Capture clouds from multiple viewpoints
         captured_clouds = []
-
         for joints in self._scan_joints:
             if self._as.is_preempt_requested():
                 rospy.loginfo("Got preempted")
@@ -56,16 +55,16 @@ class SimpleScanAction(ScanAction):
             cloud = self.capture_point_cloud()
             captured_clouds.append(cloud)
 
+        # Move home
+        self._robot_arm.goto_joint_target(
+            self._ready_joint_values, max_velocity_scaling=0.4
+        )
+
         # Stitch the cloud
         cloud = self.stitch_point_clouds(captured_clouds)
 
         # Publish stitched cloud for visualization only
         self.cloud_pub.publish(cloud)
-
-        # Move home
-        self._robot_arm.goto_joint_target(
-            self._scan_joints[0], max_velocity_scaling=0.4
-        )
 
         result = ScanSceneResult(pointcloud_scene=cloud)
         self._as.set_succeeded(result)

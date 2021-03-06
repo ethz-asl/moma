@@ -47,6 +47,7 @@ class ScanAction(object):
             self._scan_joints = rospy.get_param(
                 "moma_demo/scan_joints_" + self._robot_arm_names[0]
             )
+            self._ready_joint_values = rospy.get_param("moma_demo/ready_joints_arm")
 
     def _connect_robot(self):
         full_robot_name = (
