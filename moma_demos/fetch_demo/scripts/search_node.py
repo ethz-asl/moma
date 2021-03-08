@@ -112,8 +112,8 @@ class SearchActionServer(MovingActionServer):
             )
 
         try:
-            for waypoint in self._initial_waypoints:
-                self._handle_waypoint(waypoint)
+            # for waypoint in self._initial_waypoints:
+            #     self._handle_waypoint(waypoint)
 
             while True:
                 for waypoint in self._loop_waypoints:

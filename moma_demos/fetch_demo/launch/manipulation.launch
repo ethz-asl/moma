@@ -37,22 +37,22 @@
             </include>
         </group>
     </group>
-    <!-- <group if="$(eval robot_arm_name == 'yumi')">
+    <group if="$(eval robot_arm_name == 'yumi')">
         <group if="$(eval robot_base_name == 'royal')">
             <include file="$(find moma_bringup)/launch/mobmi_control_moveit_rviz.launch">
                 <arg name="launch_rviz" value="false"/>
             </include>
         </group>
-    </group> -->
+    </group>
 
     <!-- Launch GPD -->
-    <!-- <node name="detect_grasps" pkg="gpd_ros" type="detect_grasps" output="screen">
+    <node name="detect_grasps" pkg="gpd_ros" type="detect_grasps" output="screen">
         <param name="cloud_type" value="0" />
         <param name="cloud_topic" value="/cloud_stitched" />
         <param name="samples_topic" value="" />
         <param name="config_file" value="$(find grasp_demo)/config/$(arg robot_arm_name)/gpd.cfg" />
         <param name="rviz_topic" value="plot_grasps" />
-    </node> -->
+    </node>
 
     <!-- Launch the action nodes -->
     <node pkg="fetch_demo" type="search_node.py" name="search_action_node" args="$(arg robot_arm_name)" output="screen"/>
