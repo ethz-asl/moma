@@ -40,7 +40,7 @@
     </include>
 
     <!-- Launch GPD -->
-    <node name="detect_grasps" pkg="gpd_ros" type="detect_grasps" ns="manipulator" output="screen">
+    <node name="detect_grasps" if="$(eval arg('detect_grasps_with') == 'gpd')" pkg="gpd_ros" type="detect_grasps" ns="manipulator" output="screen">
         <param name="cloud_type" value="0"/>
         <param name="cloud_topic" value="cloud_stitched"/>
         <param name="samples_topic" value=""/>

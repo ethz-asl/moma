@@ -112,6 +112,8 @@ class GraspSelectionAction(object):
             msg.child_frame_id = "task"
             msg.transform = to_transform_msg(self.T_panda_link0_task)
             self.static_broadcaster.sendTransform(msg)
+        else:
+            raise ValueError("Invalid grasp selection framework requested")
 
         self.detected_grasps_pub = rospy.Publisher(
             "grasp_candidates", PoseArray, queue_size=10
