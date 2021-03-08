@@ -75,6 +75,13 @@ def from_transform_msg(msg):
     return Transform(rotation, translation)
 
 
+def to_transform_msg(transform):
+    msg = geometry_msgs.msg.Transform()
+    msg.translation = to_vector3_msg(transform.translation)
+    msg.rotation = to_quat_msg(transform.rotation)
+    return msg
+
+
 def to_point_cloud_msg(points, frame_id=None, stamp=None):
     """Convert a list of unstructured points to a PointCloud2 message.
 

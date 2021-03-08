@@ -8,7 +8,7 @@
 
     <!-- Choose whether to use voxblox++ for scanning. If set to false, will fall back to point cloud stitching. -->
     <arg name="scan_using_voxbloxpp" default="false"/>
-
+    <arg name="detect_grasps_with" default="gpd" />
     <arg name="semantic_grasping" default="false"/>
     <arg name="launch_rviz" default="true"/>
 
@@ -58,7 +58,7 @@
         <node pkg="grasp_demo" type="semantic_grasp_selection.py" name="semantic_grasp_selection_node" output="screen" />
     </group>
     <group unless="$(arg semantic_grasping)">
-        <node pkg="grasp_demo" type="grasp_selection.py" name="grasp_selection_action_node" args="$(arg robot_name)" ns="manipulator" output="screen"/>
+        <node pkg="grasp_demo" type="grasp_selection.py" name="grasp_selection_action_node" args="$(arg robot_name) $(arg detect_grasps_with)" ns="manipulator" output="screen"/>
     </group>
 
     <node pkg="grasp_demo" type="run_bt.py" name="behaviour_tree_node" ns="manipulator" output="screen"/>

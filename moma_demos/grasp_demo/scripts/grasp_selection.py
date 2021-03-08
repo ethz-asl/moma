@@ -3,16 +3,23 @@
 import sys
 from actionlib import SimpleActionServer
 import numpy as np
-from geometry_msgs.msg import PointStamped, Pose, PoseArray, PoseStamped
+from geometry_msgs.msg import *
 from gpd_ros.msg import GraspConfigList
 import rospy
 from sensor_msgs.msg import PointCloud2
 from scipy.spatial.transform import Rotation
 import tf
+import tf2_ros
+import ros_numpy
 
+
+from vgn import vis
+from vgn.detection import *
+from vgn.networks import *
+from vpp_msgs.srv import GetMap
 from grasp_demo.msg import SelectGraspAction, SelectGraspResult
 from moma_utils.transform import Transform, Rotation
-from moma_utils.ros_conversions import from_point_msg, from_pose_msg, to_pose_msg
+from moma_utils.ros_conversions import *
 
 from geometry_msgs.msg import Vector3, Twist
 
@@ -70,24 +77,48 @@ class GraspSelectionAction(object):
             auto_start=False,
         )
 
+        self.listener = tf.TransformListener()
+        self.static_broadcaster = tf2_ros.StaticTransformBroadcaster()
+        rospy.sleep(0.5)
+
         self.base_frame_id = rospy.get_param("moma_demo/base_frame_id")
         self.grasp_selection_method = rospy.get_param(
             "moma_demo/grasp_selection_method"
         )
 
-        self.gpd_cloud_pub = rospy.Publisher(
-            "detect_grasps/cloud_stitched", PointCloud2, queue_size=10
-        )  # publishing a cloud to this topic triggers GPD
+        detect_grasps_with = sys.argv[2]
+        if detect_grasps_with == "gpd":
+            self.gpd_cloud_pub = rospy.Publisher(
+                "detect_grasps/cloud_stitched", PointCloud2, queue_size=10
+            )  # publishing a cloud to this topic triggers GPD
+            self.detect_grasps = self.detect_grasps_with_gpd
+        elif detect_grasps_with == "vgn":
+            self.get_map_srv = rospy.ServiceProxy("/gsm_node/get_map", GetMap)
+            self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+            self.net = ConvNet()
+            model_path = (
+                "/home/franka/catkin_ws/src/vgn_private/data/models/vgn_conv.pth"
+            )
+            self.net.load_state_dict(torch.load(model_path, map_location=self.device))
+            self.detect_grasps = self.detect_grasps_with_vgn
+
+            # Define task space
+            self.T_panda_link0_task = Transform(
+                Rotation.identity(), np.r_[0.27, -0.13, 0.15]
+            )
+            msg = TransformStamped()
+            msg.header.stamp = rospy.Time.now()
+            msg.header.frame_id = "panda_link0"
+            msg.child_frame_id = "task"
+            msg.transform = to_transform_msg(self.T_panda_link0_task)
+            self.static_broadcaster.sendTransform(msg)
 
         self.detected_grasps_pub = rospy.Publisher(
             "grasp_candidates", PoseArray, queue_size=10
         )
-
         self.selected_grasp_pub = rospy.Publisher(
             "grasp_pose", PoseStamped, queue_size=10
         )
-
-        self.listener = tf.TransformListener()
 
         self._connect_ridgeback()
 
@@ -133,7 +164,7 @@ class GraspSelectionAction(object):
         result = SelectGraspResult(target_grasp_pose=selected_grasp)
         self._as.set_succeeded(result)
 
-    def detect_grasps(self, cloud):
+    def detect_grasps_with_gpd(self, cloud):
         self.gpd_cloud_pub.publish(cloud)
 
         try:
@@ -142,9 +173,52 @@ class GraspSelectionAction(object):
             )
         except rospy.ROSException:
             return []
-
         grasp_candidates, scores = grasp_config_list_to_pose_array(grasp_config_list)
         grasp_candidates.header.frame_id = self.base_frame_id
+        return grasp_candidates, scores
+
+    def detect_grasps_with_vgn(self, cloud):
+        voxel_size = 0.0075
+        map_cloud = self.get_map_srv().map_cloud
+        rospy.loginfo("Received map cloud")
+
+        vis.clear()
+        vis.draw_workspace(0.3)
+
+        # Build input from VPP map
+        data = ros_numpy.numpify(map_cloud)
+        x, y, z = data["x"], data["y"], data["z"]
+        points = np.column_stack((x, y, z)) - self.T_panda_link0_task.translation
+        d = (data["distance"] + 0.03) / 2.0 / (0.03)  # scale to [0, 1]
+        tsdf_vol = np.zeros((1, 40, 40, 40), dtype=np.float32)
+        for idx, point in enumerate(points):
+            if np.all(point > 0.0) and np.all(point < 0.3):
+                i, j, k = np.floor(point / voxel_size).astype(int)
+                tsdf_vol[0, i, j, k] = d[idx]
+        vis.draw_tsdf(tsdf_vol, voxel_size)
+        rospy.loginfo("Constructed VGN input")
+
+        # Detect grasps
+        qual_vol, rot_vol, width_vol = predict(tsdf_vol, self.net, self.device)
+        qual_vol, rot_vol, width_vol = process(tsdf_vol, qual_vol, rot_vol, width_vol)
+        grasps, scores = select(qual_vol, rot_vol, width_vol, 0.90, 1)
+        num_grasps = len(grasps)
+        if num_grasps > 0:
+            idx = np.random.choice(num_grasps, size=min(5, num_grasps), replace=False)
+            grasps, scores = np.array(grasps)[idx], np.array(scores)[idx]
+        grasps = [from_voxel_coordinates(g, voxel_size) for g in grasps]
+        vis.draw_quality(qual_vol, voxel_size, threshold=0.01)
+        rospy.loginfo("Detected grasps")
+
+        # Construct output
+        grasp_candidates = PoseArray()
+        grasp_candidates.header.stamp = rospy.Time.now()
+
+        for grasp in grasps:
+            pose_msg = to_pose_msg(self.T_panda_link0_task * grasp.pose)
+            grasp_candidates.poses.append(pose_msg)
+        grasp_candidates.header.frame_id = self.base_frame_id
+
         return grasp_candidates, scores
 
     def select_grasp(self, grasp_candidates, scores):

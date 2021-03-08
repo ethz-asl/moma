@@ -23,11 +23,8 @@ from grasp_demo.utils import create_robot_connection
 class ScanAction(object):
     def __init__(self):
         self.robot_name = sys.argv[1]
-
         self._read_joint_configurations()
-
         self._connect_robot()
-
         self._setup_action_server()
         self._as.start()
         rospy.loginfo("Scan action server ready")
@@ -90,7 +87,7 @@ class VoxbloxPPScanAction(ScanAction):
     def execute_cb(self, goal):
         rospy.loginfo("Scanning action was triggered")
 
-        self._reset_map(EmptyRequest())
+        # self._reset_map(EmptyRequest())  # TODO(mbreyer) crashes vpp
 
         self._toggle_integration(SetBoolRequest(data=True))
 
@@ -114,7 +111,7 @@ class VoxbloxPPScanAction(ScanAction):
 
         # Move home
         self._robot_arm.goto_joint_target(
-            self._scan_joints[0], max_velocity_scaling=0.4
+            self._ready_joint_values, max_velocity_scaling=0.4
         )
 
         result = ScanSceneResult(pointcloud_scene=cloud)
