@@ -21,6 +21,7 @@
   <depend>std_srvs</depend>
   <depend>tf2_ros</depend>
   <depend>realsense2_camera</depend>
+  <depend>vgn</depend>
 
   <build_depend>message_generation</build_depend>
 
