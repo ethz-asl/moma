@@ -126,7 +126,6 @@ class StartState(State):
         EE_T_K  = [1.0, 0.0, 0.0 ,0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0]
 
         succ = self.robot.set_frames(F_T_EE, EE_T_K)
-        #succ = True
         
         if not succ:
 
@@ -153,7 +152,6 @@ class StartState(State):
             grasping_move = False
 
             succ = self.robot.close_gripper(grasping_width, grasping_vel, grasping_force, grasping_homing, grasping_close, grasping_move)
-            #succ = True
             
             if not succ:
                 
@@ -166,7 +164,41 @@ class StartState(State):
                 
                 else:
                 
-                    return 'hold'            
+                    return 'hold'
+                
+            temp2 = input("Record the true init direction? [y/n]: ")
+            if temp2 in ['Y', 'y']:
+                
+                grasping_width = 0.007
+                grasping_vel = 0.01
+                grasping_force = 50
+                grasping_homing = False
+                grasping_close = True
+                grasping_move = False
+    
+                succ = self.robot.close_gripper(grasping_width, grasping_vel, grasping_force, grasping_homing, grasping_close, grasping_move)                
+                
+                self.robot.RecordTrueInitDirection()
+            
+                grasping_width = 0.01
+                grasping_vel = 0.01
+                grasping_force = 20  
+                grasping_homing = True
+                grasping_close = False
+                grasping_move = False
+    
+                succ = self.robot.close_gripper(grasping_width, grasping_vel, grasping_force, grasping_homing, grasping_close, grasping_move)
+                
+                succ = input("Move the gripper for the second homming [f]: ")
+                
+                grasping_width = 0.01
+                grasping_vel = 0.01
+                grasping_force = 20  
+                grasping_homing = True
+                grasping_close = False
+                grasping_move = False
+    
+                succ = self.robot.close_gripper(grasping_width, grasping_vel, grasping_force, grasping_homing, grasping_close, grasping_move) 
             
             return 'gripper_closed'
 
@@ -200,7 +232,7 @@ class ObjectGraspedState(State):
                 
             grasping_width = 0.007
             grasping_vel = 0.01
-            grasping_force = 50
+            grasping_force = 40
             grasping_homing = False
             grasping_close = True
             grasping_move = False
@@ -210,6 +242,34 @@ class ObjectGraspedState(State):
             return 'start_control'
 
         else:
+
+            condition = True
+            
+            while (condition):
+                
+                aux = input("Move robot base? [y/n]: ")
+                if aux in ['y', 'Y']:
+                    
+                    vx = float(input("vx: "))
+                    vy = float(input("vy: "))
+                    N_steps = int(input("N: "))
+                    
+                    counter = 0
+                    
+                    while counter <= N_steps and not rospy.is_shutdown():
+                        print("It: "+str(counter))
+                        req = PandaStateSrvRequest()
+                        panda_model = self.robot.panda_model_state_srv(req)
+                        
+                        base_state_msg = self.robot.baseState_msg
+                        print("Base pos: "+str([base_state_msg.pose.pose.position.x, base_state_msg.pose.pose.position.y, base_state_msg.pose.pose.position.z]))
+                        
+                        self.robot.publishArmAndBaseVelocityControl([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [vx, vy, 0.0], 0.0)            
+                        counter += 1
+                        
+                else:
+                        
+                    condition = False
 
             temp2 = input('Abort? [y/n]: ')
             if temp2 in ['Y', 'y']:
@@ -266,7 +326,7 @@ class RunningState(State):
     def test2(self):
         
         counter = 0
-        N_steps = 100
+        N_steps = 50
         
         while counter <= N_steps and not rospy.is_shutdown():
         
@@ -274,7 +334,7 @@ class RunningState(State):
             
             req = PandaStateSrvRequest()
             panda_model = self.robot.panda_model_state_srv(req)        
-            self.robot.publishArmAndBaseVelocityControl([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [-0.05, 0.0, 0.0], 0.0)
+            self.robot.publishArmAndBaseVelocityControl([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [0.05, 0.0, 0.0], 0.0)
             print("RECEIVED: "+str(panda_model.K_F_ext_hat_K))
             
             counter += 1
@@ -382,6 +442,9 @@ class RunningState(State):
         robot_EE_T_K = []
         robot_O_T_EE = []
         
+        robot_Jacobian = []
+        robot_base_vel = []
+        
         robot_dir_estimate = []
         
         folder_name = os.getcwd()
@@ -403,6 +466,10 @@ class RunningState(State):
             os.makedirs(folder_name) 
             
         self.folder_name = folder_name 
+        
+        #----- Perform Init estimation -----
+        
+        self.robot.InitProgram()
                
         while counter < N_steps and not rospy.is_shutdown():
             
@@ -414,7 +481,7 @@ class RunningState(State):
             self.robot.run_once(counter, vInit, vFinal, alphaInit, alphaFinal, t0, tConv, alpha=0.05, smooth=False, mixCoeff=0.1)
             
             req = PandaStateSrvRequest()
-            panda_model = self.robot.panda_model_state_srv(req) 
+            panda_model = self.robot.panda_model_state_srv(req)
             
             stopTime = time.time()
             interval = stopTime - startTime
@@ -434,6 +501,7 @@ class RunningState(State):
             robot_b.append(panda_model.coriolis)
 
             J_b_ee = np.array(panda_model.jacobian)                     # It is saved as column major but python does everyhing row major
+            robot_Jacobian.append(J_b_ee)
             J_b_ee = np.transpose(J_b_ee.reshape(7, 6))
             manipulabilityMeasure = LA.det(np.matmul(J_b_ee, np.transpose(J_b_ee)))**0.5
             
@@ -442,6 +510,8 @@ class RunningState(State):
             robot_tau_d_no_g.append(panda_model.tau_d_no_gravity)
             robot_EE_T_K.append(panda_model.EE_T_K)
             robot_O_T_EE.append(panda_model.O_T_EE)
+            
+            robot_base_vel.append([self.robot.baseState_msg.twist.twist.linear.x, self.robot.baseState_msg.twist.twist.linear.y, 0.0])
             
             direction = list(np.squeeze(np.array(self.robot.direction_estimator.GetCurrEstimate())))
             robot_dir_estimate.append(direction)
@@ -460,7 +530,12 @@ class RunningState(State):
         np.save(self.folder_name +'/robot_tau_d_no_g.npy', np.array(robot_tau_d_no_g))
         np.save(self.folder_name +'/robot_EE_T_K.npy', np.array(robot_EE_T_K))
         np.save(self.folder_name +'/robot_O_T_EE.npy', np.array(robot_O_T_EE))
-        np.save(self.folder_name +'/robot_dir_estimate.npy', np.array(robot_dir_estimate))    
+        np.save(self.folder_name +'/robot_dir_estimate.npy', np.array(robot_dir_estimate)) 
+        np.save(self.folder_name + '/robot_jacobian.npy', np.array(robot_Jacobian))
+        np.save(self.folder_name + '/robot_base_vel.npy', np.array(robot_base_vel))
+        np.save(self.folder_name + '/robot_true_init_dir', np.array(self.robot.true_init_dir))
+        np.save(self.folder_name + '/robot_ee_world_pos', np.array(self.robot.world_ee_pos))
+        
         
         
     def test6(self):
@@ -633,11 +708,39 @@ class RunningState(State):
             grasping_width = 0.05
             grasping_vel = 0.01
             grasping_force = 2  
-            grasping_homing = False 
+            grasping_homing = True 
             grasping_close = False
-            grasping_move = True
+            grasping_move = False
 
             succ = self.robot.close_gripper(grasping_width, grasping_vel, grasping_force, grasping_homing, grasping_close, grasping_move)
+            
+            condition = True
+            
+            while (condition):
+                
+                aux = input("Move robot base? [y/n]: ")
+                if aux in ['y', 'Y']:
+                    
+                    vx = float(input("vx: "))
+                    vy = float(input("vy: "))
+                    N_steps = int(input("N: "))
+                    
+                    counter = 0
+                    
+                    while counter <= N_steps and not rospy.is_shutdown():
+                        print("It: "+str(counter))
+                        req = PandaStateSrvRequest()
+                        panda_model = self.robot.panda_model_state_srv(req)
+                        
+                        base_state_msg = self.robot.baseState_msg
+                        print("Base pos: "+str([base_state_msg.pose.pose.position.x, base_state_msg.pose.pose.position.y, base_state_msg.pose.pose.position.z]))
+                        
+                        self.robot.publishArmAndBaseVelocityControl([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [vx, vy, 0.0], 0.0)            
+                        counter += 1
+                        
+                else:
+                        
+                    condition = False
                 
         except rospy.ROSInterruptException:  pass
 
@@ -750,6 +853,7 @@ class StopState(State):
         except:
             
             self.plot_run()
+           
             
         self.plot_run()     
 

@@ -51,7 +51,7 @@ def O1(x, *args):
 	vmean = args[1]
 	s = args[2]
 	
-	return LA.norm(vdesEE - s*x) + LA.norm(vmean - x)
+	return LA.norm(vdesEE - s*x) + 2*LA.norm(vmean - x)
 	
 def C1(x, *args):
 

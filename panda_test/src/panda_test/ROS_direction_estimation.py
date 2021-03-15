@@ -151,7 +151,7 @@ class SkillUnconstrainedDirectionEstimation:
     
         vdesEE_ee = v * self.directionVector
         
-        if calcAng and self.counter>self.initN:
+        if calcAng and self.counter>2*self.initN:
         
             theta_des = 0.0
             

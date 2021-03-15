@@ -204,13 +204,15 @@ class Controller:
         R_curr = LA.norm(r_b_ee[:2])
 
         scaleFactor = np.sign(R_curr - Rlim)*(1.0 - np.exp(-alphaR*np.abs(R_curr - Rlim)))
-
+        
         if not self.noCollision:
 
             scaleFactor = 1.0
-
+        
+        #scaleFactor = 1.0
+        print("Scale Factor: "+str(scaleFactor))
         q_dot_des = []
-        gamma = 0.5
+        gamma = 0.8
 
         for i in range(len(self.q_mean)):
 
@@ -243,7 +245,7 @@ class Controller:
 
             x0_lin = [0.0, 0.0]
 
-            arguments = (0.25*v, )
+            arguments = (0.5*v, )
             cons = ({'type': 'ineq', 'fun':C1, 'args':arguments})
 
             try:

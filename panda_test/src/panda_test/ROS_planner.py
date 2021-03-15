@@ -91,6 +91,11 @@ class RobotPlanner:
 
         self.publisher_joints = rospy.Publisher('/arm_command', desired_vel_msg, latch=True, queue_size=10)
         self.publisher_base_velocity = rospy.Publisher('/cmd_vel', Twist,  latch=True, queue_size=10)
+        
+        #----- True Init Direction -----
+        
+        self.true_init_dir = [0.0, 0.0, 0.0]
+        self.world_ee_pos = []
 
 #------- 
     def baseState_cb(self, msg):
@@ -394,7 +399,9 @@ class RobotPlanner:
 
         C_O_b = R.from_quat([base_state_msg.pose.pose.orientation.x, base_state_msg.pose.pose.orientation.y, base_state_msg.pose.pose.orientation.z, base_state_msg.pose.pose.orientation.w])
         C_O_b_mat = C_O_b.as_dcm()
-
+        
+        print("Base pos: "+str([base_state_msg.pose.pose.position.x, base_state_msg.pose.pose.position.y, base_state_msg.pose.pose.position.z]))
+        
         self.T_O_b = np.array([[C_O_b_mat[0, 0], C_O_b_mat[0, 1], C_O_b_mat[0, 2], base_state_msg.pose.pose.position.x],
                                [C_O_b_mat[1, 0], C_O_b_mat[1, 1], C_O_b_mat[1, 2], base_state_msg.pose.pose.position.y],
                                [C_O_b_mat[2, 0], C_O_b_mat[2, 1], C_O_b_mat[2, 2], base_state_msg.pose.pose.position.z],
@@ -430,6 +437,8 @@ class RobotPlanner:
             C_b_ee = R.from_dcm(self.T_b_ee[:3, :3])
 
             r_O_ee = np.squeeze(np.copy(T_O_ee[:3, 3]))
+            print("r_O_ee: "+str(r_O_ee))
+            self.world_ee_pos.append(r_O_ee)
 
             #----- Update Buffers and estimatein direction_estimator class -----
             
@@ -446,7 +455,7 @@ class RobotPlanner:
 
             velProfile = self.VelocityProfile(t, vInit, vFinal, alphaInit, alphaFinal, t0, tConv)
 
-            veldesEE_ee = self.direction_estimator.GetPlannedVelocities(v=velProfile, calcAng=True, kAng=0.1)   #Change to 0.05 or false
+            veldesEE_ee = self.direction_estimator.GetPlannedVelocities(v=velProfile, calcAng=True, kAng=0.3)   #Change to 0.05 or false
 
             r_b_ee = self.T_b_ee[:3, 3]
 
@@ -630,5 +639,30 @@ class RobotPlanner:
         stopTime = time.time()
         totalInitTime = stopTime - startTime
         print("Total init time: "+str(totalInitTime))
+        
+#-------
+    def RecordTrueInitDirection(self):
+        
+        req = PandaStateSrvRequest()
+        panda_model = self.panda_model_state_srv(req)
+        base_state_msg = self.baseState_msg
+        
+        self.CalculateVars_usingPanda(panda_model, base_state_msg)
+        
+        T_O_ee = np.matmul(self.T_O_b, self.T_b_ee)
+
+        C_O_ee = R.from_dcm(T_O_ee[:3, :3])
+        C_O_b = R.from_dcm(self.T_O_b[:3, :3])
+
+        r_O_ee = np.squeeze(np.copy(T_O_ee[:3, 3]))
+        
+        gravity_dir = np.array([0.0, 0.0, 1.0]).reshape(-1, 1)
+        orthoProjMatGravity = OrthoProjection(gravity_dir) 
+
+        true_init_dir = np.squeeze(np.matmul(T_O_ee[:3, :3], np.array([0.0, 0.0, -1.0]).reshape(-1,1)))
+        self.true_init_dir = np.matmul(orthoProjMatGravity, true_init_dir)
+        print("True Init dir: "+str(self.true_init_dir))        
+        
+        
             
         
