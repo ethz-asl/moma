@@ -28,3 +28,6 @@
 [submodule "submodules/gazebo_models"]
 	path = submodules/gazebo_models
 	url = git@github.com:osrf/gazebo_models.git
+[submodule "submodules/catkin_simple"]
+	path = submodules/catkin_simple
+	url = git@github.com:catkin/catkin_simple.git
