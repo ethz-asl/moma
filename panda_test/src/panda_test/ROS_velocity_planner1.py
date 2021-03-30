@@ -7,6 +7,14 @@ from quadprog import solve_qp
 EPS = 1e-6
 DEBUG = True
 
+#----- Description -----
+
+# This is the class for the fixed base version of the algorithm. The controller 
+# performs the optimization procedure needed for issuing the joint velocity commands
+# in compliance with the hardware imposed constraints.
+
+#-----------------------
+
 class Controller:
 
     def __init__(self, time_step):
@@ -15,7 +23,7 @@ class Controller:
         
         self.mode_name = 'fixed_base_torque_control'
         
-        #----- Constraints -----
+        #----- Constraints obtained from the data sheet of the robot -----
 
         self.torque_max = np.array([87.0, 87.0, 87.0, 87.0, 12.0, 12.0, 12.0])
         self.torque_dot_max = np.array([1000.0]*7)
@@ -42,8 +50,11 @@ class Controller:
         self.vAngBase_b = [0.0, 0.0, 0.0]
         
         self.sol_lin_previous = [0.0]*7
+        
 #-------
     def PrepareTask1(self, J_b_ee, vdesEE_b, M, b, q, q_dot, tau_prev):
+        
+        #----- Joint impedance parameters taken from the franka_ros package -----
     
         Kp = np.zeros((7,7))
         Kp[0, 0] = 600
@@ -84,6 +95,15 @@ class Controller:
         
 #-------
     def PrepareTask2(self, M, b, q, q_dot, tau_prev, sol1, Null1):
+        
+        #----- Description -----
+        
+        # This is a task with a second highest priority solved in the null space
+        # of the original task of issuing the optimal joint velocity commands within
+        # the hardware constraints. It is not used in the solution presented in the
+        # thesis but is left here in case some future work finds it useful.
+        
+        #-----------------------
     
         Kp = np.zeros((7,7))
         Kp[0, 0] = 600
@@ -127,15 +147,10 @@ class Controller:
         vLindesEE_ee = np.squeeze(veldesEE_ee[:3])
         vAngdesEE_ee = np.squeeze(veldesEE_ee[3:])
         
-        #vLindesEE_ee = np.array([0.0, 0.0, 0.0])
-        #vAngdesEE_ee = np.array([0.0, 0.0, 0.0,])
-        
         vLindesEE_b = np.squeeze(np.array(C_b_ee.apply(vLindesEE_ee)))
         vAngdesEE_b = np.squeeze(np.array(C_b_ee.apply(vAngdesEE_ee)))
         
         vdesEE_b = np.concatenate((vLindesEE_b, vAngdesEE_b), axis=0)
-        
-       # vdesEE_b = np.array([-0.01, 0.0, 0.0, 0.0, 0.0, 0.0])
         
         try:
         
@@ -150,6 +165,11 @@ class Controller:
             else:
         
                 q_dot_optimal = np.array(sol1)
+
+            #----- This is if the null space projection control is included ------
+            
+            # In the end, it was not used in the solution presented in the thesis 
+            # but is left here as an option to be later included if needed. 
         
             if minTorque:
         

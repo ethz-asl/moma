@@ -1,10 +1,5 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
-"""
-Created on Mon Jan 25 13:11:26 2021
-
-@author: marko
-"""
 
 import rospy
 from matplotlib import pyplot as plt
@@ -13,8 +8,8 @@ from datetime import datetime
 
 #----- Skills -----
 
-from panda_test.ROS_optimizer1 import Controller as controller1
-from panda_test.ROS_optimizer2 import Controller as controller2
+from panda_test.ROS_velocity_planner1 import Controller as controller1
+from panda_test.ROS_velocity_planner2 import Controller as controller2
 
 from panda_test.ROS_direction_estimation import SkillUnconstrainedDirectionEstimation
 
@@ -32,6 +27,15 @@ import numpy.linalg as LA
 #----- Other -----
 
 import numpy as np
+
+#----- Description -----
+
+# This is the state machine implementation. It resembles the one provided for the 
+# Gazebo simulation. We provide a class for each of the visisted states
+# and the state machine class that performs the transitions. Finally, we provide a
+# function that analyses the performance of the closed loop system.
+
+#-----------------------
 
 class State(object):
 
@@ -90,8 +94,7 @@ class StartState(State):
         print("Waiting for all the subscribed topics and services to be initiated...")
         waiting = True
         rospy.sleep(1.0)
-        
-        
+                
         rospy.wait_for_service('/franka_control/set_EE_frame')
         print("SET_EE_FRAME initiated")
         rospy.wait_for_service('/franka_control/set_K_frame')
@@ -212,6 +215,7 @@ class StartState(State):
             else:
                 return 'hold'
 
+#-------
     def transition(self, event):
 
         if event == 'hold':
@@ -249,7 +253,7 @@ class ObjectGraspedState(State):
             
             while (condition):
                 
-                aux = input("Move robot base? [y/n]: ")
+                aux = input("Manually move the robot base? [y/n]: ")
                 if aux in ['y', 'Y']:
                     
                     vx = float(input("vx: "))
@@ -259,7 +263,7 @@ class ObjectGraspedState(State):
                     counter = 0
                     
                     while counter <= N_steps and not rospy.is_shutdown():
-                        print("It: "+str(counter))
+                        print("Iteration: "+str(counter))
                         req = PandaStateSrvRequest()
                         panda_model = self.robot.panda_model_state_srv(req)
                         
@@ -279,6 +283,7 @@ class ObjectGraspedState(State):
             else:
                 return 'hold'
 
+#-------
     def transition(self, event):
 
         if event == 'hold':
@@ -290,11 +295,13 @@ class ObjectGraspedState(State):
         if event == 'stop':
             return StopState(self.direction_estimator, self.controller, self.cinit, self.robot)
         
-#----- Simplified Running State -----
+#----- Various Running States -----
             
 class RunningState(State):
     
     def test1(self):
+        
+        #----- This function is used to test the communication -----
         
         counter = 0
         N_steps = 1000
@@ -316,16 +323,19 @@ class RunningState(State):
             print("tau_d_no_gravity: ", panda_model.tau_d_no_gravity)
             print("coriolis: ", panda_model.coriolis)
             print("gravity: ", panda_model.gravity)
-            #print("jacobian: ", panda_model.jacobian)
-            #print("mass_matrix: ", panda_model.mass_matrix)
             print("K_F_ext_hat_K: ", panda_model.K_F_ext_hat_K)
             print("EE_T_K: ", panda_model.EE_T_K)
             print("O_T_EE: ", panda_model.O_T_EE)
             print(100*"=")
             
             counter += 1
-        
+
+#-------        
     def test2(self):
+        
+        #----- This function is used to test simple movement commands -----
+        
+        # It is used activate individual joints or the mobile base
         
         counter = 0
         N_steps = 50
@@ -340,8 +350,11 @@ class RunningState(State):
             print("RECEIVED: "+str(panda_model.K_F_ext_hat_K))
             
             counter += 1
-        
+
+#-------        
     def test3(self):
+        
+        #----- This is simple closed loop test without data logging -----
 
         vFinal = 0.02
         vInit = vFinal/4
@@ -363,8 +376,11 @@ class RunningState(State):
             self.robot.run_once(counter, vInit, vFinal, alphaInit, alphaFinal, t0, tConv, alpha=0.1, smooth=False, mixCoeff=0.1)
             
             counter += 1
-        
+
+#-------        
     def test4(self):
+        
+        #----- This function is used to test the force reading at the EE -----
 
         counter = 0
         N_steps = 1000
@@ -414,7 +430,14 @@ class RunningState(State):
         
         plt.show()
         
+#-------        
     def test5(self):
+        
+        #===== THIS IS THE ACTUAL RUNNING STATE =====
+        
+        # It is used to perform the closed loop simulation for both door models.
+        # All the data required to generate the plots presented in the thesis are 
+        # logged within this state.
 
         vFinal = 0.01
         vInit = vFinal/2
@@ -537,175 +560,25 @@ class RunningState(State):
         np.save(self.folder_name + '/robot_base_vel.npy', np.array(robot_base_vel))
         np.save(self.folder_name + '/robot_true_init_dir', np.array(self.robot.true_init_dir))
         np.save(self.folder_name + '/robot_ee_world_pos', np.array(self.robot.world_ee_pos))
-        
-        
-        
-    def test6(self):
-        
-        counter = 0
-        N_steps = 30
-        
-        force_x = []
-        force_y = []
-        force_z = []
-        
-        torque_x = []
-        torque_y = []
-        torque_z = []
-        
-        list_of_C = []
-        
-        list_of_C_mat = []
-        
-        while counter < N_steps and not rospy.is_shutdown():
-        
-            print("Iteration: " + str(counter) )
-            
-            temp1 = input("Press enter to read the force value: ")
-            
-            req = PandaStateSrvRequest()
-            panda_model = self.robot.panda_model_state_srv(req)        
-            
-            ext_wrench = np.array(panda_model.K_F_ext_hat_K)
-            
-            force = ext_wrench[:3]
-            torque = ext_wrench[3:]
-            print('Force: '+str(force))
 
-            force_x.append(force[0])
-            force_y.append(force[1])
-            force_z.append(force[2])
-            
-            torque_x.append(torque[0])
-            torque_y.append(torque[1])
-            torque_z.append(torque[2])
-            
-            
-            T_b_ee = np.array(panda_model.O_T_EE)
-            T_b_ee = np.transpose(T_b_ee.reshape(4, 4))
-
-            T_ee_k = np.array(panda_model.EE_T_K)
-            T_ee_k = np.transpose(T_ee_k.reshape(4, 4))
-
-            T_b_ee = np.matmul(T_b_ee, T_ee_k) 
-            
-            C_b_ee = T_b_ee[:3, :3]
-            
-            list_of_C_mat.append(C_b_ee)
-            
-            list_of_C.append(list(np.squeeze(C_b_ee.reshape(-1, 1))))
-                       
-            counter += 1
-            
-        folder_name = os.getcwd()
-        
-        np.save(folder_name +'/forcex.npy', np.array(force_x))
-        np.save(folder_name +'/forcey.npy', np.array(force_y))
-        np.save(folder_name +'/forcez.npy', np.array(force_z))
-        
-        np.save(folder_name +'/torquex.npy', np.array(torque_x))
-        np.save(folder_name +'/torquey.npy', np.array(torque_y))
-        np.save(folder_name +'/torquez.npy', np.array(torque_z))
-        
-        np.save(folder_name +'/C_b_ee.npy', np.array(list_of_C))
-        
-        b_force_est1, b_torque_est1 = self.calibrate1(force_x, force_y, force_z, torque_x, torque_y, torque_z, list_of_C_mat, inv_sigma = (1/0.035**2)*np.eye(3))
-        
-        b_force_est2, b_torque_est2 = self.calibrate2(force_x, force_y, force_z, torque_x, torque_y, torque_z)
-        
-        print('b_force1: ' + str(b_force_est1))
-        print('b_torque1: ' + str(b_torque_est1))
-        
-        print('b_force2: ',b_force_est2)
-        print('b_torque2: ',b_torque_est2)
-        
-        np.save(folder_name +'/b_force1.npy', b_force_est1)
-        np.save(folder_name +'/b_torque1.npy', b_torque_est1)
-
-        np.save(folder_name +'/b_force2.npy', b_force_est2)
-        np.save(folder_name +'/b_torque2.npy', b_torque_est2)
-        
-        N = N_steps
-        t = np.arange(1, N+1)
-        
-        fig1, (ax1_1, ax1_2, ax1_3) = plt.subplots(3,1,figsize=(10,10))
-        
-        ax1_1.plot(t, force_x)
-        ax1_1.set_ylabel('x force')
-        ax1_1.grid('on')
-        ax1_1.set_xlim(t[0], t[-1])
-        
-        ax1_2.plot(t, force_y)
-        ax1_2.set_ylabel('y force')
-        ax1_2.grid('on')
-        ax1_2.set_xlim(t[0], t[-1])
-        
-        ax1_3.plot(t, force_z)
-        ax1_3.set_ylabel('z force')
-        ax1_3.grid('on')
-        ax1_3.set_xlim(t[0], t[-1])
-        
-        plt.show() 
-        
-    def calibrate1(self, force_x, force_y, force_z, torque_x, torque_y, torque_z, list_of_C_mat, inv_sigma = np.eye(3)):
-        
-        A = np.zeros((3,3))
-        B = np.zeros((3,1))
-        C = np.zeros((3,1))
-        
-        N = len(force_x)
-        
-        for i in range(N):
-            
-            Ci = list_of_C_mat[i]
-            Fi = np.array([force_x[i], force_y[i], force_z[i]]).reshape(-1, 1)
-            Ti = np.array([torque_x[i], torque_y[i], torque_z[i]]).reshape(-1, 1)
-            
-            A = A + np.matmul(np.matmul(np.transpose(Ci), inv_sigma), Ci)
-            B = B + np.matmul(np.matmul(np.transpose(Ci), inv_sigma), Fi)
-            C = C + np.matmul(np.matmul(np.transpose(Ci), inv_sigma), Ti)
-            
-        b_force = np.matmul(LA.pinv(A), B)
-        b_torque = np.matmul(LA.pinv(A), C)
-        
-        return np.squeeze(b_force), np.squeeze(b_torque)
-    
-    def calibrate2(self, force_x, force_y, force_z, torque_x, torque_y, torque_z):
-        
-        N = len(force_x)
-        
-        b_force = np.array([0.0, 0.0, 0.0])
-        b_torque = np.array([0.0, 0.0, 0.0])
-        
-        for i in range(N):
-            
-            Fi = np.array([force_x[i], force_y[i], force_z[i]])
-            Ti = np.array([torque_x[i], torque_y[i], torque_z[i]])
-            print("Fi ",Fi)
-            print("Ti ", Ti)
-            
-            b_force = b_force + Fi
-            
-            b_torque = b_torque + Ti
-        print("bforce ",b_force)   
-        b_force = (1/20.0)*b_force
-        b_torque = (1/20.0)*b_torque
-        print("bforce ",b_force)
-        return b_force, b_torque
-    
+#-------
     def test7(self):
         
-        self.robot.InitProgram()
+        #----- This function is used to test the initial direction estimation module -----
         
+        self.robot.InitProgram()
+
+#-------        
     def test8(self):
         
         self.robot.AlignZAxis()
-                             
+
+#-------                             
     def run(self):
                 
         try:
             
-            waitingin = input('START!')
+            waiting = input('START!')
             
             self.test5()
             
@@ -717,12 +590,17 @@ class RunningState(State):
             grasping_move = False
 
             succ = self.robot.close_gripper(grasping_width, grasping_vel, grasping_force, grasping_homing, grasping_close, grasping_move)
+
+            #----- Moving the base back to its original place -----
+            
+            # This part of the code is used when the external PS4 controller used for
+            # the manual movement of the robot base is not available
             
             condition = True
             
             while (condition):
                 
-                aux = input("Move robot base? [y/n]: ")
+                aux = input("Manually move robot base? [y/n]: ")
                 if aux in ['y', 'Y']:
                     
                     vx = float(input("vx: "))
@@ -732,7 +610,7 @@ class RunningState(State):
                     counter = 0
                     
                     while counter <= N_steps and not rospy.is_shutdown():
-                        print("It: "+str(counter))
+                        print("Iteration: "+str(counter))
                         req = PandaStateSrvRequest()
                         panda_model = self.robot.panda_model_state_srv(req)
                         
@@ -749,11 +627,14 @@ class RunningState(State):
         except rospy.ROSInterruptException:  pass
 
         return 'stop'
-    
+
+#-------    
     def transition(self, event):
 
         if event == 'stop':
             return StopState(self.direction_estimator, self.controller, self.cinit, self.robot, self.folder_name)        
+
+#----- Stopping state -----
         
 class StopState(State):
     
@@ -839,7 +720,8 @@ class StopState(State):
         fig2.savefig(self.folder_name + '//' + 'metrics.jpg')
         
         plt.close('all')
-        
+
+#-------        
     def run(self):
 
         self.robot.prepare_for_stop()

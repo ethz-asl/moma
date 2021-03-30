@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import rospy
-import actionlib
 import numpy.linalg as LA
 import time
 
@@ -9,16 +8,6 @@ import time
 
 from nav_msgs.msg import Odometry                                                # used to recieve info from the base
 from geometry_msgs.msg import Twist                                              # used to set comand for the base
-from std_msgs.msg import Float64                                                 # used to set command to each of the joints
-from sensor_msgs.msg import JointState                                           # used to recieve joint state
-from geometry_msgs.msg import WrenchStamped
-from tf2_msgs.msg import TFMessage
-from franka_msgs.msg import FrankaState
-from control_msgs.msg import (
-    GripperCommand,
-    GripperCommandAction,
-    GripperCommandGoal,
-)
 
 from panda_test.msg import *
 
@@ -36,8 +25,16 @@ import pybullet as p
 import pybullet_data
 
 import numpy as np
-import os
 import math
+
+#----- Description -----
+
+# This is the main class that utilizes the information from the online direction
+# estimtaion module and the velocity planner module in order to perform a complete
+# loop iteration when called from the state machine. It is designed such that it 
+# very much resembles the one provided for the Gazebo simulation.
+
+#-----------------------
 
 class RobotPlanner:
 
@@ -206,7 +203,10 @@ class RobotPlanner:
 
 #------- 
     def InitURDF(self, time_step, urdf_filename, robot_base, robot_orientation):
-
+        
+        #----- This function is kept in case the user wants to use the PyBullet 
+        # library for calculating the jacobian instead of the libfranka library -----
+        
         id_simulator = p.connect(p.DIRECT)
         p.setTimeStep(time_step)
 
@@ -323,15 +323,11 @@ class RobotPlanner:
         #----- INFO FROM FORCE MSG -----
 
         self.force = np.array([force_msg.wrench.force.x, force_msg.wrench.force.y, force_msg.wrench.force.z])
-        #print("FORCE: ", self.force)
+
         #----- INFO FROM BASE ODOM -----
 
         self.linVelBase = [base_state_msg.twist.twist.linear.x, base_state_msg.twist.twist.linear.y, 0.0]
         self.angVelBase = [0.0, 0.0, base_state_msg.twist.twist.angular.z]
-
-        #print("linVelBase: ", self.linVelBase)
-        #print("angVelBase: ", self.angVelBase)
-        #print("orient: ", base_state_msg.pose.pose.orientation)
 
         C_O_b = R.from_quat([base_state_msg.pose.pose.orientation.x, base_state_msg.pose.pose.orientation.y, base_state_msg.pose.pose.orientation.z, base_state_msg.pose.pose.orientation.w])
         C_O_b_mat = C_O_b.as_dcm()
@@ -340,6 +336,7 @@ class RobotPlanner:
                                [C_O_b_mat[1, 0], C_O_b_mat[1, 1], C_O_b_mat[1, 2], base_state_msg.pose.pose.position.y],
                                [C_O_b_mat[2, 0], C_O_b_mat[2, 1], C_O_b_mat[2, 2], base_state_msg.pose.pose.position.z],
                                [0.0            , 0.0            , 0.0            , 1.0                                ]])
+    
 #------- 
     def CalculateVars_usingPanda(self, panda_model, base_state_msg):
 
@@ -369,7 +366,7 @@ class RobotPlanner:
 
         #----- GET INFO FROM MODEL STATE -----
 
-        self.J_b_ee = np.array(panda_model.jacobian)                     # It is saved as column major but python does everyhing row major
+        self.J_b_ee = np.array(panda_model.jacobian)                             # It is saved as column major but python does everyhing row major
         self.J_b_ee = np.transpose(self.J_b_ee.reshape(7, 6))
 
         self.M = np.array(panda_model.mass_matrix)
@@ -384,23 +381,14 @@ class RobotPlanner:
 
         ext_wrench = np.array(panda_model.K_F_ext_hat_K)
         self.force = -ext_wrench[:3]
-        #print("force: "+str(self.force))
-
-        #print("FORCE: ", self.force)
 
         #----- INFO FROM BASE ODOM -----
 
         self.linVelBase = [base_state_msg.twist.twist.linear.x, base_state_msg.twist.twist.linear.y, 0.0]
         self.angVelBase = [0.0, 0.0, base_state_msg.twist.twist.angular.z]
 
-        #print("linVelBase: ", self.linVelBase)
-        #print("angVelBase: ", self.angVelBase)
-        #print("orient: ", base_state_msg.pose.pose.orientation)
-
         C_O_b = R.from_quat([base_state_msg.pose.pose.orientation.x, base_state_msg.pose.pose.orientation.y, base_state_msg.pose.pose.orientation.z, base_state_msg.pose.pose.orientation.w])
         C_O_b_mat = C_O_b.as_dcm()
-        
-        print("Base pos: "+str([base_state_msg.pose.pose.position.x, base_state_msg.pose.pose.position.y, base_state_msg.pose.pose.position.z]))
         
         self.T_O_b = np.array([[C_O_b_mat[0, 0], C_O_b_mat[0, 1], C_O_b_mat[0, 2], base_state_msg.pose.pose.position.x],
                                [C_O_b_mat[1, 0], C_O_b_mat[1, 1], C_O_b_mat[1, 2], base_state_msg.pose.pose.position.y],
@@ -437,7 +425,7 @@ class RobotPlanner:
             C_b_ee = R.from_dcm(self.T_b_ee[:3, :3])
 
             r_O_ee = np.squeeze(np.copy(T_O_ee[:3, 3]))
-            print("r_O_ee: "+str(r_O_ee))
+
             self.world_ee_pos.append(r_O_ee)
 
             #----- Update Buffers and estimatein direction_estimator class -----
@@ -481,6 +469,10 @@ class RobotPlanner:
         
 #-------         
     def AlignZAxis(self):
+        
+        #----- Function used to test angular velocity planning -----
+        
+        # It should align the z axis of the EE frame with the horizontal plane
         
         N_align = 1000
         theta_des = 0
@@ -528,6 +520,8 @@ class RobotPlanner:
             
 #-------        
     def InitProgram(self):
+        
+        #----- Function that performs the initial direction estimation movement -----
         
         print(5*"-"+' Init procedure '+5*'-')
         
@@ -626,8 +620,6 @@ class RobotPlanner:
                 except:
                 
                     self.publishArmAndBaseVelocityControl([0.0]*7, linVelBase = [0.0, 0.0, 0.0], angVelBase = 0.0)
-            print("f: "+str(LA.norm(f)))
-            print("sf: "+str(LA.norm(sf)))
             
             req = PandaStateSrvRequest()          
             panda_model = self.panda_model_state_srv(req)  
@@ -638,10 +630,13 @@ class RobotPlanner:
         
         stopTime = time.time()
         totalInitTime = stopTime - startTime
+        
         print("Total init time: "+str(totalInitTime))
         
 #-------
     def RecordTrueInitDirection(self):
+        
+        #----- Function that records the z axis of the EE frame expressed in the body frame -----
         
         req = PandaStateSrvRequest()
         panda_model = self.panda_model_state_srv(req)
@@ -661,6 +656,7 @@ class RobotPlanner:
 
         true_init_dir = np.squeeze(np.matmul(T_O_ee[:3, :3], np.array([0.0, 0.0, -1.0]).reshape(-1,1)))
         self.true_init_dir = np.matmul(orthoProjMatGravity, true_init_dir)
+        
         print("True Init dir: "+str(self.true_init_dir))        
         
         

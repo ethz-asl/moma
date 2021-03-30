@@ -1,25 +1,10 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
-"""
-Created on Mon Jan 25 13:11:26 2021
 
-@author: marko
-"""
-
-import rospy
 from matplotlib import pyplot as plt
-import time 
-from datetime import datetime
 import math
 
 #----- Skills -----
-
-from panda_test.ROS_optimizer1 import Controller as controller1
-from panda_test.ROS_optimizer2 import Controller as controller2
-
-from panda_test.ROS_direction_estimation import SkillUnconstrainedDirectionEstimation
-
-from panda_test.ROS_planner import RobotPlanner
 
 from panda_test.msg import *
 
@@ -28,11 +13,16 @@ from panda_test.srv import *
 from franka_msgs.srv import *
 
 import os
-import numpy.linalg as LA
 
 #----- Other -----
 
 import numpy as np
+
+#----- Description -----
+
+# This script is used to analyse and plot all the results used in the report
+
+#-----------------------
 
 def GenerateImages(door_type, plot_vel=False):
     
@@ -105,7 +95,7 @@ def GenerateImages(door_type, plot_vel=False):
         
         if a == 1:
             
-            mode = '/moving_base_no_collision_max_mob_control_QCQP'
+            mode = '/moving_base_no_collision_max_mob_control_QCCO'
             list_of_positions.append('/Runs complete algorithm')
             list_of_positions.append('/Runs for velocity plot')
             
@@ -646,7 +636,7 @@ def PlotCircle(door_type):
         
         if a == 1:
             
-            mode = '/moving_base_no_collision_max_mob_control_QCQP'
+            mode = '/moving_base_no_collision_max_mob_control_QCCO'
             
         else:
             

@@ -1,10 +1,5 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
-"""
-Created on Sat Jan  2 10:18:05 2021
-
-@author: marko
-"""
 
 import numpy as np
 from numpy import linalg as LA
@@ -19,6 +14,16 @@ from scipy.optimize import minimize_scalar
 EPS = 1e-6
 DEBUG = True
 
+#----- Description -----
+
+# This is the class for the mobile base version of the algorithm. The controller 
+# performs the optimization procedure needed for issuing the joint velocity commands
+# in compliance with the hardware imposed constraints and the optimization procedure
+# needed for spliting the velocity. The problem formulation corresponds to the QCCO
+# formulation presented in the thesis.
+
+#-----------------------
+
 class Controller:
 
     def __init__(self, time_step, noCollision=True):
@@ -27,11 +32,11 @@ class Controller:
         self.noCollision = noCollision
 
         if self.noCollision:
-            self.mode_name = 'moving_base_no_collision_max_mob_control_QCQP'
+            self.mode_name = 'moving_base_no_collision_max_mob_control_QCCO'
         else:
-            self.mode_name = 'moving_base_max_mob_control_QCQP'
+            self.mode_name = 'moving_base_max_mob_control_QCCO'
 
-        #----- Constraints -----
+        #----- Constraints obtained from the data sheet of the robot -----
 
         self.torque_max = np.array([87.0, 87.0, 87.0, 87.0, 12.0, 12.0, 12.0])
         self.torque_dot_max = np.array([1000.0]*7)
@@ -58,8 +63,11 @@ class Controller:
         self.vAngBase_b = [0.0, 0.0, 0.0]
 
         self.sol_lin_previous = [0.0]*7
+        
 #-------
     def PrepareTask1(self, J_b_ee, vdesEE_b, M, b, q, q_dot, tau_prev):
+        
+        #----- Joint impedance parameters taken from the franka_ros package -----
 
         Kp = np.zeros((7,7))
         Kp[0, 0] = 600
@@ -100,6 +108,15 @@ class Controller:
 
 #-------
     def PrepareTask2(self, M, b, q, q_dot, tau_prev, sol1, Null1):
+        
+        #----- Description -----
+        
+        # This is a task with a second highest priority solved in the null space
+        # of the original task of issuing the optimal joint velocity commands within
+        # the hardware constraints. It is not used in the solution presented in the
+        # thesis but is left here in case some future work finds it useful.
+        
+        #-----------------------
 
         Kp = np.zeros((7,7))
         Kp[0, 0] = 600
@@ -136,28 +153,23 @@ class Controller:
         b2 = np.concatenate((ineq1, ineq2, ineq3, ineq4), axis=0)
         
         return G2, a2, C2, b2
+    
 #-------
     def CalculateDesiredJointVel(self, veldesEE_ee, J_b_ee, M, b, q, q_dot, C_b_ee, tau_prev, minTorque):
 
         vLindesEE_ee = np.squeeze(veldesEE_ee[:3])
         vAngdesEE_ee = np.squeeze(veldesEE_ee[3:])
         
-        #vLindesEE_ee = np.array([0.0, 0.0, 0.0])
-        #vAngdesEE_ee = np.array([0.0, 0.0, 0.0,])
-        
         vLindesEE_b = np.squeeze(np.array(C_b_ee.apply(vLindesEE_ee)))
         vAngdesEE_b = np.squeeze(np.array(C_b_ee.apply(vAngdesEE_ee)))
         
         vdesEE_b = np.concatenate((vLindesEE_b, vAngdesEE_b), axis=0)
-        
-       # vdesEE_b = np.array([-0.01, 0.0, 0.0, 0.0, 0.0, 0.0])
         
         try:
         
             G1, a1, C1, b1 = self.PrepareTask1(J_b_ee, vdesEE_b[:J_b_ee.shape[0]], M, b, q, q_dot, tau_prev)
         
             sol1,_,_,_,_,_ = solve_qp(G1, a1, C1, b1)
-            print(sol1)
             if sol1 is None:
                 
                 return self.q_dot_optimal
@@ -165,6 +177,11 @@ class Controller:
             else:
         
                 q_dot_optimal = np.array(sol1)
+                
+            #----- This is if the null space projection control is included ------
+            
+            # In the end, it was not used in the solution presented in the thesis 
+            # but is left here as an option to be later included if needed.
         
             if minTorque:
         
@@ -209,10 +226,8 @@ class Controller:
 
             scaleFactor = 1.0
         
-        #scaleFactor = 1.0
-        print("Scale Factor: "+str(scaleFactor))
         q_dot_des = []
-        gamma = 0.8
+        gamma = 0.5
 
         for i in range(len(self.q_mean)):
 
