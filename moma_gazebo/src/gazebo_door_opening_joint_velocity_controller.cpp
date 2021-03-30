@@ -12,6 +12,15 @@
 #include <ros/ros.h>
 #include <ros/console.h>
 
+//----- Description -----
+
+// This .cpp file contains the definition of all the functions
+// declared in the .h file of the DoorOpeningJointVelocityController
+// class. It listens to several ROS topics published by the Gazebo
+// simulator, which will not be the case on the real robot.
+
+//-----------------------
+
 namespace moma_gazebo{
 
 bool DoorOpeningJointVelocityController::init(hardware_interface::RobotHW *robot_hw,
@@ -192,17 +201,6 @@ void DoorOpeningJointVelocityController::update(const ros::Time & /* time */, co
     {
         desired_joint_velocity_command_ = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
     }
-
-//    auto state = state_handle_->getRobotState();
-//
-//    auto velocity_command = franka::limitRate(
-//        max_velocity_,
-//        max_acceleration_,
-//        max_jerk_,
-//        desired_joint_velocity_command_,
-//        state.dq_d,
-//        state.ddq_d);
-
 
     for(size_t i=0; i<7; i++)
     {

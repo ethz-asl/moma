@@ -1,16 +1,12 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
-"""
-Created on Sat Jan  2 13:42:10 2021
 
-@author: marko
-"""
 import rospy
 
 #----- Skills -----
 
-from moma_gazebo.ROS_optimizer1 import Controller as controller1
-from moma_gazebo.ROS_optimizer2 import Controller as controller2
+from moma_gazebo.ROS_velocity_planner1 import Controller as controller1
+from moma_gazebo.ROS_velocity_planner2 import Controller as controller2
 
 from moma_gazebo.ROS_direction_estimation import SkillUnconstrainedDirectionEstimation
 
@@ -24,6 +20,16 @@ from datetime import datetime
 import time
 from scipy.spatial.transform import Rotation as R
 import matplotlib.pyplot as plt
+
+#----- Description -----
+
+# This is the state machine implementation. It resembles the one that will be run 
+# on the actual robotic platform. We provide a class for each of the visisted states
+# and the state machine class that performs the transitions. Finally, we provide a
+# function that analyses the performance of the closed loop system and plots the 
+# Cartesian velocity components.
+
+#-----------------------
 
 class State(object):
     
@@ -61,9 +67,9 @@ class StartState(State):
     def run(self):
 
         time_step = 0.05
-        buffer_length = 100
+        buffer_length = 50
         init_direction = np.array([0.0, 0.0, -1.0]).reshape(3,1)
-        initN = 100
+        initN = 50
         fd1 = 1/(50*time_step)
 
         self.direction_estimator = SkillUnconstrainedDirectionEstimation(time_step, buffer_length, init_direction, initN, fd1)
@@ -157,7 +163,8 @@ class StartState(State):
                 return 'stop'
             else:
                 return 'hold'
-        
+
+#-------        
     def transition(self, event):
         
         if event == 'hold':           
@@ -187,7 +194,8 @@ class ObjectGraspedState(State):
                 return 'stop'
             else:
                 return 'hold'
-            
+
+#-------             
     def transition(self, event):
         
         if event == 'hold':
@@ -207,14 +215,13 @@ class RunningState(State):
         
         time_step = 0.05
         
-        freq = rospy.Rate(1/time_step)
-        
         vFinal = 0.1
         vInit = vFinal/4
         alphaInit = 0.5
         alphaFinal = 0.5
         
-        initN = 100
+        N_steps = 400
+        initN = int(N_steps/10)
     
         tConv = initN
         t0 = np.ceil(tConv/3)
@@ -228,7 +235,7 @@ class RunningState(State):
         id_simulator, id_robot, joint_idx_arm, joint_idx_fingers, joint_idx_hand, arm_base_link_idx, arm_ee_link_idx, link_name_to_index = self.robot.InitURDF(time_step, urdf_filename, robot_base, robot_orientation)                
         
         counter = 0
-        N_steps = 400
+        
         
         robot_dq = []
         robot_v = []
@@ -255,7 +262,6 @@ class RunningState(State):
             
         self.folder_name = folder_name
         
-        print("")
         try:
             
             while counter <= N_steps and not rospy.is_shutdown():
@@ -285,6 +291,7 @@ class RunningState(State):
         
         return 'stop'
 
+#------- 
     def transition(self, event):
         
         if event == 'stop':            
@@ -295,8 +302,6 @@ class RunningState(State):
 class StopState(State):
     
     def plot_run(self):
-        
-        folder_name = self.folder_name
         
         iteration_times = np.load(self.folder_name +'/iteration_times.npy')           
         robot_dq = np.load(self.folder_name +'/robot_dq.npy')
@@ -310,6 +315,10 @@ class StopState(State):
         v_x = robot_v[:, 0]
         v_y = robot_v[:, 1]
         v_z = robot_v[:, 2]
+        
+        np.save(self.folder_name + '//' + 'vx.npy', np.squeeze(np.array(v_x)))
+        np.save(self.folder_name + '//' + 'vy.npy', np.squeeze(np.array(v_y)))
+        np.save(self.folder_name + '//' + 'vz.npy', np.squeeze(np.array(v_z)))
         
         ax1_1.plot(t, v_x, color='b')
         ax1_1.set_ylabel('x velocity')
@@ -339,6 +348,7 @@ class StopState(State):
         
         plt.close('all')      
 
+#------- 
     def run(self):
         
         self.robot.prepare_for_stop()
@@ -354,7 +364,8 @@ class StopState(State):
         else:
             
             return 'hold'
-        
+
+#-------         
     def transition(self, event):
         
         if event == 'hold':
@@ -373,7 +384,8 @@ class DoorOpenningStateMachine:
         
         self.state = StartState()
         self.event = 'hold'
-        
+
+#-------         
     def run_machine(self):
         
         while(1):
@@ -381,6 +393,127 @@ class DoorOpenningStateMachine:
             self.event = self.state.run()
             self.state = self.state.transition(self.event)
             
+#----- Analyse -----
+            
+def Analyse():
+    
+    list_of_vx1 = []
+    list_of_vy1 = []
+    list_of_vz1 = []
+
+    list_of_vx2 = []
+    list_of_vy2 = []
+    list_of_vz2 = []
+    
+    folder = os.getcwd() + '/GOOD RUNS/'
+    
+    list_of_exp = ['/vx_exp', '/vy_exp']
+    list_of_v = ['/vx', '/vy', '/vz']
+    
+    for exp in list_of_exp:            
+        for v in list_of_v:           
+            for i in range(1,6):
+                folder2 = folder + exp + v + v + str(i)+'.npy'                
+                niz = np.load(folder2)                
+                if exp=='/vx_exp':
+                    
+                    if v=='/vx':
+                        list_of_vx1.append(niz)
+                    if v=='/vy':
+                        list_of_vy1.append(niz)                    
+                    if v=='/vz':
+                        list_of_vz1.append(niz)                    
+                else:
+                    if v=='/vx':
+                        list_of_vx2.append(niz)
+                    if v=='/vy':
+                        list_of_vy2.append(niz)                    
+                    if v=='/vz':
+                        list_of_vz2.append(niz) 
+                        
+    fig1, (ax1, ax2, ax3)=plt.subplots(3,1,figsize=(15,15))
+    
+    t = np.arange(1,402)
+    
+    vx1_mat = np.squeeze(np.array(list_of_vx1))
+    
+    vx1_mat_mean = np.mean(vx1_mat, axis=0)
+    vx1_mat_std = np.std(vx1_mat, axis=0)
+    vx1_mat_upper_limit = vx1_mat_mean + 2*vx1_mat_std
+    vx1_mat_lower_limit = vx1_mat_mean - 2*vx1_mat_std
+                
+    vx2_mat = np.squeeze(np.array(list_of_vx2))
+    
+    vx2_mat_mean = np.mean(vx2_mat, axis=0)
+    vx2_mat_std = np.std(vx2_mat, axis=0)
+    vx2_mat_upper_limit = vx2_mat_mean + 2*vx2_mat_std
+    vx2_mat_lower_limit = vx2_mat_mean - 2*vx2_mat_std            
+            
+    vy1_mat = np.squeeze(np.array(list_of_vy1))
+    
+    vy1_mat_mean = np.mean(vy1_mat, axis=0)
+    vy1_mat_std = np.std(vy1_mat, axis=0)
+    vy1_mat_upper_limit = vy1_mat_mean + 2*vy1_mat_std
+    vy1_mat_lower_limit = vy1_mat_mean - 2*vy1_mat_std
+                
+    vy2_mat = np.squeeze(np.array(list_of_vy2))
+    
+    vy2_mat_mean = np.mean(vy2_mat, axis=0)
+    vy2_mat_std = np.std(vy2_mat, axis=0)
+    vy2_mat_upper_limit = vy2_mat_mean + 2*vy2_mat_std
+    vy2_mat_lower_limit = vy2_mat_mean - 2*vy2_mat_std     
+    
+    vz1_mat = np.squeeze(np.array(list_of_vz1))
+    
+    vz1_mat_mean = np.mean(vz1_mat, axis=0)
+    vz1_mat_std = np.std(vz1_mat, axis=0)
+    vz1_mat_upper_limit = vz1_mat_mean + 2*vz1_mat_std
+    vz1_mat_lower_limit = vz1_mat_mean - 2*vz1_mat_std
+                
+    vz2_mat = np.squeeze(np.array(list_of_vz2))
+    
+    vz2_mat_mean = np.mean(vz2_mat, axis=0)
+    vz2_mat_std = np.std(vz2_mat, axis=0)
+    vz2_mat_upper_limit = vz2_mat_mean + 2*vz2_mat_std
+    vz2_mat_lower_limit = vz2_mat_mean - 2*vz2_mat_std
+
+
+    ax1.plot(t, vx1_mat_mean, label = 'Experiment \'x\'', linewidth=2.5)
+    ax1.fill_between(t, vx1_mat_lower_limit, vx1_mat_upper_limit, alpha=0.2) 
+    ax1.plot(t, vx2_mat_mean, label = 'Experiment \'y\'', linewidth=2.5)
+    ax1.fill_between(t, vx2_mat_lower_limit, vx2_mat_upper_limit, alpha=0.2)
+    ax1.grid('on')
+    ax1.set_ylabel(r"$v_{x}$", fontsize=18)
+    #ax1.set_ylim(0.02, 0.06)
+    ax1.set_xlim(t[0], t[-1])
+    ax1.tick_params(axis='both', which='major', labelsize=15)
+    ax1.legend(loc="center right", fontsize=15)
+
+    ax2.plot(t, vy1_mat_mean, label = 'Experiment \'x\'', linewidth=2.5)
+    ax2.fill_between(t, vy1_mat_lower_limit, vy1_mat_upper_limit, alpha=0.2) 
+    ax2.plot(t, vy2_mat_mean, label = 'Experiment \'y\'', linewidth=2.5)
+    ax2.fill_between(t, vy2_mat_lower_limit, vy2_mat_upper_limit, alpha=0.2)
+    ax2.grid('on')
+    ax2.set_ylabel(r"$v_{y}$", fontsize=18)
+    #ax1.set_ylim(0.02, 0.06)
+    ax2.set_xlim(t[0], t[-1])
+    ax2.tick_params(axis='both', which='major', labelsize=15)
+    ax2.legend(loc="center right", fontsize=15)
+
+    ax3.plot(t, vz1_mat_mean, label = 'Experiment \'x\'', linewidth=2.5)
+    ax3.fill_between(t, vz1_mat_lower_limit, vz1_mat_upper_limit, alpha=0.2) 
+    ax3.plot(t, vz2_mat_mean, label = 'Experiment \'y\'', linewidth=2.5)
+    ax3.fill_between(t, vz2_mat_lower_limit, vz2_mat_upper_limit, alpha=0.2)
+    ax3.grid('on')
+    ax3.set_ylabel(r"$v_{z}$", fontsize=18)
+    #ax1.set_ylim(0.02, 0.06)
+    ax3.set_xlim(t[0], t[-1])
+    ax3.tick_params(axis='both', which='major', labelsize=15)
+    ax3.legend(loc="center right", fontsize=15)
+    
+    fig1.savefig(folder + '//VelocityGazebo.png')
+    plt.close('all')
+    
 #----- main -----
             
 def main():
@@ -388,6 +521,8 @@ def main():
     machine = DoorOpenningStateMachine()
     
     machine.run_machine()
+    
+    Analyse()
         
 if __name__ == "__main__":
     main()        

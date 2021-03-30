@@ -261,7 +261,7 @@ def GenerateImages(door_type, plot_vel=False):
 #                fig1.suptitle('Metrics for position ' + title_pos[i], fontsize=18)
 #            else:
 #                fig1.suptitle('Metrics', fontsize=18)
-            
+
             Init1_iteration_times = np.squeeze(list_of_iteration_times[a, i, 0, :N_runs, :])
             
             Init1_iteration_times_mean = np.mean(Init1_iteration_times, axis=0)
@@ -400,7 +400,7 @@ def GenerateImages(door_type, plot_vel=False):
                 f2 = open(saving_folder + '/Table_2', "w")
             N_last =20
             
-            start_average_dot1_mat = np.squeeze(list_of_dot[a, i, 0, :, :initL])
+            start_average_dot1_mat = np.squeeze(list_of_dot[a, i, 0, :N_runs, :initL])
             
             start_average_dot1_mat = np.ones((start_average_dot1_mat.shape[0], start_average_dot1_mat.shape[1]))-start_average_dot1_mat
             start_average_dot1_mat = np.multiply(start_average_dot1_mat, start_average_dot1_mat)
@@ -410,25 +410,25 @@ def GenerateImages(door_type, plot_vel=False):
             
             start_average_dot1 = np.mean(np.squeeze(start_average_dot1_mean))
             
-            whole_average_dot1_mat = np.squeeze(list_of_dot[a, i, 0, :, :])
+            whole_average_dot1_mat = np.squeeze(list_of_dot[a, i, 0, :N_runs, :])
             whole_average_dot1_mean = np.mean(whole_average_dot1_mat, axis=0)
             whole_average_dot1 = np.mean(np.squeeze(whole_average_dot1_mean))
             
-            whole_average_manip1_mat = np.squeeze(list_of_manipulability[a, i, 0, :, :])
+            whole_average_manip1_mat = np.squeeze(list_of_manipulability[a, i, 0, :N_runs, :])
             whole_average_manip1_mean = np.mean(whole_average_manip1_mat, axis=0)
             whole_average_manip1 = np.mean(np.squeeze(whole_average_manip1_mean))
             
-            end_average_manip1_mat = np.squeeze(list_of_manipulability[a, i, 0, :, 500-N_last:])
+            end_average_manip1_mat = np.squeeze(list_of_manipulability[a, i, 0, :N_runs, 500-N_last:])
             end_average_manip1_mean = np.mean(end_average_manip1_mat, axis=0)
             end_average_manip1 = np.mean(np.squeeze(end_average_manip1_mean)) 
             
-            total_planning_time1_mat = np.squeeze(list_of_iteration_times[a, i, 0, :, :])
+            total_planning_time1_mat = np.squeeze(list_of_iteration_times[a, i, 0, :N_runs, :])
             total_planning_time1 = np.sum(np.mean(total_planning_time1_mat, axis=0))
             
             average_planning_time1 = np.mean(np.mean(total_planning_time1_mat, axis=0))
             
             if len(list_of_config) == 2:
-                start_average_dot2_mat = np.squeeze(list_of_dot[a, i, 1, :, :initL])
+                start_average_dot2_mat = np.squeeze(list_of_dot[a, i, 1, :N_runs, :initL])
 #                start_average_dot2_mean = np.mean(start_average_dot2_mat, axis=0)
 #                start_average_dot2 = np.mean(np.squeeze(start_average_dot2_mean))
                 
@@ -440,19 +440,19 @@ def GenerateImages(door_type, plot_vel=False):
                 
                 start_average_dot2 = np.mean(np.squeeze(start_average_dot2_mean))
                             
-                whole_average_dot2_mat = np.squeeze(list_of_dot[a, i, 1, :, :])
+                whole_average_dot2_mat = np.squeeze(list_of_dot[a, i, 1, :N_runs, :])
                 whole_average_dot2_mean = np.mean(whole_average_dot2_mat, axis=0)
                 whole_average_dot2 = np.mean(np.squeeze(whole_average_dot2_mean))
     
-                whole_average_manip2_mat = np.squeeze(list_of_manipulability[a, i, 1, :, :])
+                whole_average_manip2_mat = np.squeeze(list_of_manipulability[a, i, 1, :N_runs, :])
                 whole_average_manip2_mean = np.mean(whole_average_manip2_mat, axis=0)
                 whole_average_manip2 = np.mean(np.squeeze(whole_average_manip2_mean))
                 
-                end_average_manip2_mat = np.squeeze(list_of_manipulability[a, i, 1, :, 500-N_last:])
+                end_average_manip2_mat = np.squeeze(list_of_manipulability[a, i, 1, :N_runs, 500-N_last:])
                 end_average_manip2_mean = np.mean(end_average_manip2_mat, axis=0)
                 end_average_manip2 = np.mean(np.squeeze(end_average_manip2_mean)) 
                 
-                total_planning_time2_mat = np.squeeze(list_of_iteration_times[a, i, 1, :, :])
+                total_planning_time2_mat = np.squeeze(list_of_iteration_times[a, i, 1, :N_runs, :])
                 total_planning_time2 = np.sum(np.mean(total_planning_time2_mat, axis=0))
                 
                 average_planning_time2 = np.mean(np.mean(total_planning_time2_mat, axis=0))
@@ -548,11 +548,11 @@ def GenerateImages(door_type, plot_vel=False):
                 vz_rel_mat_lower_limit = vz_rel_mat_mean - 2*vz_rel_mat_std
 
                 ax2_1.plot(t, vx_mat_mean, label = 'Total velocity', linewidth=2.5)
-                ax2_1.fill_between(t, vx_mat_lower_limit, vx_mat_upper_limit, alpha=0.1)
+                ax2_1.fill_between(t, vx_mat_lower_limit, vx_mat_upper_limit, alpha=0.2)
                 ax2_1.plot(t, vx_base_mat_mean,'--',label = '$v_{b}^{Base}$', linewidth=2.5)
-                ax2_1.fill_between(t, vx_base_mat_lower_limit, vx_base_mat_upper_limit, alpha=0.1)
+                ax2_1.fill_between(t, vx_base_mat_lower_limit, vx_base_mat_upper_limit, alpha=0.2)
                 ax2_1.plot(t, vx_rel_mat_mean,'--', label = '$v_{b}^{Arm}$', linewidth=2.5)
-                ax2_1.fill_between(t, vx_rel_mat_lower_limit, vx_rel_mat_upper_limit, alpha=0.1)
+                ax2_1.fill_between(t, vx_rel_mat_lower_limit, vx_rel_mat_upper_limit, alpha=0.2)
                 
                 ax2_1.axvline(x=initL, linewidth=3, color='k', ls='--')
                 ax2_1.grid('on')
@@ -563,11 +563,11 @@ def GenerateImages(door_type, plot_vel=False):
                 ax2_1.legend(loc="lower left",fontsize=12)
                               
                 ax2_2.plot(t, vy_mat_mean, label = 'Total velocity', linewidth=2.5)
-                ax2_2.fill_between(t, vy_mat_lower_limit, vy_mat_upper_limit, alpha=0.1)
+                ax2_2.fill_between(t, vy_mat_lower_limit, vy_mat_upper_limit, alpha=0.2)
                 ax2_2.plot(t, vy_base_mat_mean,'--', label = '$v_{b}^{Base}$', linewidth=2.5)
-                ax2_2.fill_between(t, vy_base_mat_lower_limit, vy_base_mat_upper_limit, alpha=0.1)
+                ax2_2.fill_between(t, vy_base_mat_lower_limit, vy_base_mat_upper_limit, alpha=0.2)
                 ax2_2.plot(t, vy_rel_mat_mean,'--', label = '$v_{b}^{Arm}$', linewidth=2.5)
-                ax2_2.fill_between(t, vy_rel_mat_lower_limit, vy_rel_mat_upper_limit, alpha=0.1)
+                ax2_2.fill_between(t, vy_rel_mat_lower_limit, vy_rel_mat_upper_limit, alpha=0.2)
                 
                 ax2_2.axvline(x=initL, linewidth=3, color='k', ls='--')
                 ax2_2.grid('on')
@@ -578,7 +578,7 @@ def GenerateImages(door_type, plot_vel=False):
                 ax2_2.legend(loc="lower right",fontsize=12)                
 
                 ax2_3.plot(t, vz_mat_mean, label = 'Configuration 1', linewidth=2.5)
-                ax2_3.fill_between(t, vz_mat_lower_limit, vz_mat_upper_limit, alpha=0.1)
+                ax2_3.fill_between(t, vz_mat_lower_limit, vz_mat_upper_limit, alpha=0.2)
 
                 ax2_3.axvline(x=initL, linewidth=3, color='k', ls='--')
                 ax2_3.grid('on')
@@ -588,7 +588,7 @@ def GenerateImages(door_type, plot_vel=False):
                 ax2_3.tick_params(axis='both', which='major', labelsize=15)                
 
                 ax2_4.plot(t, vabs_mat_mean, label = 'Measured value', linewidth=2.5)
-                ax2_4.fill_between(t, vabs_mat_lower_limit, vabs_mat_upper_limit, alpha=0.1)
+                ax2_4.fill_between(t, vabs_mat_lower_limit, vabs_mat_upper_limit, alpha=0.2)
                 ax2_4.plot(t, list_of_abs_vel,'r--', label = 'Velocity profile', linewidth=4)
 
                 ax2_4.axvline(x=initL, linewidth=3, color='k', ls='--')
@@ -728,8 +728,8 @@ def PlotCircle(door_type):
 
 def main():
     
-    door_type = 'rotational_door'
-    #door_type = 'drawer_door'
+    #door_type = 'rotational_door'
+    door_type = 'drawer_door'
     
     GenerateImages(door_type)
     print("PLOTS CPMPLETED")

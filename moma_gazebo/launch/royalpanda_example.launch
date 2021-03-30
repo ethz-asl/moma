@@ -24,9 +24,10 @@
   <!-- spawn robot -->
   <include file="$(find moma_gazebo)/launch/spawn_royalpanda.launch"/>
 
-  <!-- start joint position trajectory controller -->
+  <!-- start joint velocity trajectory controller -->
   <rosparam file="$(find moma_gazebo)/config/panda_controllers.yaml" command="load" />
   <node name="controller_spawner_panda" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="joint_state_controller door_opening_joint_velocity_controller franka_gripper" />
+
 
   <!-- start a robot state publisher -->
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="true" output="screen" />
@@ -39,8 +40,10 @@
     <arg name="load_robot_description" value="false" />
   </include>
 
+
   <!-- start rviz -->
   <node if="$(arg rviz)" name="rviz" pkg="rviz" type="rviz" args="-d $(find moma_gazebo)/config/royalpanda_example.rviz" />
+
 
   <!-- PandaInitService node -->
   <node name="panda_init_service_node" pkg="moma_gazebo" type="panda_init_service" respawn="true" output="screen" />

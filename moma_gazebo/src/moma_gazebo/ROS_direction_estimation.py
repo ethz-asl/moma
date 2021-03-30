@@ -9,6 +9,17 @@ from collections import deque
 EPS = 1e-6
 DEBUG = True
 
+#----- Description -----
+
+# This class performs the online direction estimation update procedure. It performs 
+# the haptic based and the fixed-grasp based updates and outputs the combined 
+# estimate. For convenience, this class also automatically gives the total 
+# desired end effector velocity (linear + angular) and transfers it to the velocity
+# planner module that just performs the velocity split and planning within hardware 
+# constraints.
+
+#-----------------------
+
 class SkillUnconstrainedDirectionEstimation:
 
     def __init__(self, time_step, buffer_length, init_direction, initN=100, fd1=0.1):
@@ -71,6 +82,8 @@ class SkillUnconstrainedDirectionEstimation:
 #-------
     def GetDirectionFromPoses(self):
         
+        #----- Fixed-grasp based estimator -----
+        
         sample = np.copy(np.array(self.objPoseBuffer[0]).reshape(1,3))
         
         X = np.copy(sample)
@@ -94,6 +107,8 @@ class SkillUnconstrainedDirectionEstimation:
         
 #-------
     def UpdateEstimate(self, f_wristframe, alpha, C_O_ee, smooth=False, mixCoeff=0.1):
+        
+        #----- Haptic based estimator -----
     
         self.counter +=1
         f_wristframe = f_wristframe.reshape(3,1)
@@ -107,6 +122,8 @@ class SkillUnconstrainedDirectionEstimation:
         
         error = np.matmul(orthoProjMat, f_wristframe) - self.fDesired
         error = error/LA.norm(error)
+        
+        #-----------------------------------
                 
         if self.sufficiently_filled:
             

@@ -10,6 +10,16 @@
 #include <sensor_msgs/JointState.h>
 #include <geometry_msgs/WrenchStamped.h>
 
+//----- Description -----
+
+// Panda state service is a virtual (dummy) service that should mimic the communication
+// with the on-board sensors of the Franka Emika robotic arm. In Gazebo, this service
+// gives the true values of the joint positions, velocities and torques received from
+// the simulator but issues dummy values for all other fiels of the PandaStateSrv::Request.
+
+//-----------------------
+
+
 class PandaStateService {
 
     private:
@@ -44,11 +54,20 @@ class PandaStateService {
 
     PandaStateService(ros::NodeHandle *nh){
 
+        //----- Receive joint states -----
+
         joint_state_subscriber = nh->subscribe("/joint_states", 10, &PandaStateService::joint_state_clb, this);
+
+        //----- Simulated force/torque sensor -----
+
         eeforce_subscriber = nh->subscribe("/eeforce", 10, &PandaStateService::eeforce_clb, this);
+
+        //----- Advertise the actual Panda state service -----
 
         get_robot_state_srv = nh->advertiseService("/get_panda_state_srv", &PandaStateService::state_clb, this);
         ROS_INFO("Panda state service is ready!");
+
+        //----- Initialize the dummy values -----
 
         for (size_t i=0; i<42; ++i){
             jacobian[i] = i;
@@ -141,7 +160,7 @@ class PandaStateService {
             }
         }
     }
-//
+
     void eeforce_clb(const geometry_msgs::WrenchStamped& msg){
 
         if (~processing){

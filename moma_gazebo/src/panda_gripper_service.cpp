@@ -7,6 +7,15 @@
 
 #include <moma_gazebo/PandaGripperSrv.h>
 
+//----- Description -----
+
+// This service mimics the non-realtime gripper service.
+// It allows for different commands to be issued to the
+// gripper based on the values of the specific fields in
+// PandaGripperSrv::Request suche as home, close and release
+
+//-----------------------
+
 class PandaGripperService {
 
     private:

@@ -1,4 +1,5 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
+# -*- coding: utf-8 -*-
 
 import rospy
 
@@ -6,7 +7,6 @@ import rospy
 
 from nav_msgs.msg import Odometry                                                # used to recieve info from the base
 from geometry_msgs.msg import Twist                                              # used to set comand for the base
-from std_msgs.msg import Float64                                                 # used to set command to each of the joints 
 from sensor_msgs.msg import JointState                                           # used to recieve joint state
 from geometry_msgs.msg import WrenchStamped
 from gazebo_msgs.msg import LinkStates
@@ -23,8 +23,15 @@ import pybullet as p
 import pybullet_data
 
 import numpy as np
-import os
 import math
+
+#----- Description -----
+
+# This is the main class that utilizes the information from the online direction
+# estimtaion module and the velocity planner module in order to perform a complete
+# loop iteration when called from the state machine.
+
+#-----------------------
 
 class RobotPlanner:
 
@@ -82,7 +89,8 @@ class RobotPlanner:
         
         self.publisher_joints = rospy.Publisher('/arm_joint_command', command, latch=True, queue_size=10)
         self.publisher_base_velocity = rospy.Publisher('/cmd_vel', Twist,  latch=True, queue_size=10)
-               
+
+#-------               
     def armState_cb(self, msg):
         
         if not self.processing:
@@ -93,6 +101,7 @@ class RobotPlanner:
                 if not self.arm_state_topic_initiated:
                     self.arm_state_topic_initiated = True
 
+#-------
     def baseState_cb(self, msg):
 
         if not self.processing:
@@ -101,6 +110,7 @@ class RobotPlanner:
             if not self.base_state_topic_initiated:
                 self.base_state_topic_initiated = True
 
+#-------
     def eeForce_cb(self, msg):
 
         if not self.processing:
@@ -109,6 +119,7 @@ class RobotPlanner:
             if not self.ee_force_topic_initiated:
                 self.ee_force_topic_initiated = True
 
+#-------
     def eeState_cb(self, msg):
 
         if not self.processing:
@@ -117,6 +128,7 @@ class RobotPlanner:
             if not self.ee_state_topic_initiated:
                 self.ee_state_topic_initiated = True
 
+#-------
     def publishArmAndBaseVelocityControl(self, q_dot_des, linVelBase, angVelBase):
 
         base_des = Twist()
@@ -138,7 +150,8 @@ class RobotPlanner:
             joints_des.dq_arm[i] = q_dot_des[i]
             
         self.publisher_joints.publish(joints_des)
-        
+
+#-------        
     def set_frames(self, NE_T_EE, EE_T_K):
         
         req = PandaInitSrvRequest()
@@ -151,7 +164,8 @@ class RobotPlanner:
         res = self.set_frames_srv(req)
         
         return res.success
-    
+
+#-------    
     def close_gripper(self, grasping_width, grasping_vel, grasping_force):
         
         req = PandaGripperSrvRequest()
@@ -165,7 +179,8 @@ class RobotPlanner:
         res = self.robot_gripper_srv(req)
         
         return res.success
-        
+
+#-------        
     def VelocityProfile(self, t, vInit, vFinal, alphaInit, alphaFinal, t0, tConv):
     
         if t<t0:
@@ -180,8 +195,17 @@ class RobotPlanner:
             v = a1 * 2.0/math.pi*np.arctan(alphaFinal*(t - tConv)) + a2
         
         return v
-    
+
+#-------    
     def InitURDF(self, time_step, urdf_filename, robot_base, robot_orientation):
+        
+        #----- Description -----
+        
+        # This function is used to connect to the PyBullet 
+        # simulator in order to parse the URDF model of the 
+        # robot and obtain the required EE Jacobian.
+        
+        #-----------------------
         
         id_simulator = p.connect(p.DIRECT)
         p.setTimeStep(time_step)
@@ -236,7 +260,7 @@ class RobotPlanner:
                 
         return id_simulator, id_robot, joint_idx_arm, joint_idx_fingers, joint_idx_hand, arm_base_link_idx, arm_ee_link_idx, link_name_to_index
         
-    
+#-------    
     def CalculateVars_usingSimulator(self, panda_model, base_state_msg, joint_idx_arm, model, arm_ee_link_idx, arm_base_link_idx, link_name_to_index):
         
         #----- INFO FROM JOINT STATE -----
@@ -254,9 +278,7 @@ class RobotPlanner:
         self.q = np.array(q)
         self.q_dot = np.array(q_dot)
         self.tau = np.array(tau)
-        #print(q)
-        #print(q_dot)
-        #print(tau)
+
         #----- CHECK OTHER DUMMY VALUES -----
         
         #self.test_dummy_state_values(panda_model)
@@ -264,7 +286,7 @@ class RobotPlanner:
         #----- Set joints in PyBuller simulation -----
         
         for i in range(len(joint_idx_arm)):
-            p.resetJointState(model, joint_idx_arm[i], q[i], q_dot[i])            # Set the robot joints in simulator to appropriate values
+            p.resetJointState(model, joint_idx_arm[i], q[i], q_dot[i])           # Set the robot joints in simulator to appropriate values
                 
         #----- GET INFO FROM SIMULATION -----
         
@@ -304,16 +326,11 @@ class RobotPlanner:
         
         ext_wrench = np.array(panda_model.K_F_ext_hat_K)
         self.force = ext_wrench[:3] 
-        #print(self.force)
-        #print("FORCE: ", self.force)    
+   
         #----- INFO FROM BASE ODOM -----
             
         self.linVelBase = [base_state_msg.twist.twist.linear.x, base_state_msg.twist.twist.linear.y, 0.0]
         self.angVelBase = [0.0, 0.0, base_state_msg.twist.twist.angular.z]
-        
-        #print("linVelBase: ", self.linVelBase)
-        #print("angVelBase: ", self.angVelBase)
-        #print("orient: ", base_state_msg.pose.pose.orientation)
         
         C_O_b = R.from_quat([base_state_msg.pose.pose.orientation.x, base_state_msg.pose.pose.orientation.y, base_state_msg.pose.pose.orientation.z, base_state_msg.pose.pose.orientation.w])
         C_O_b_mat = C_O_b.as_dcm()
@@ -322,7 +339,8 @@ class RobotPlanner:
                                [C_O_b_mat[1, 0], C_O_b_mat[1, 1], C_O_b_mat[1, 2], base_state_msg.pose.pose.position.y],
                                [C_O_b_mat[2, 0], C_O_b_mat[2, 1], C_O_b_mat[2, 2], base_state_msg.pose.pose.position.z],
                                [0.0            , 0.0            , 0.0            , 1.0                                ]])
-    
+
+#-------    
     def test_dummy_state_values(self, panda_model):
 
         #===== JUST A CHECK =====
@@ -343,7 +361,7 @@ class RobotPlanner:
         
         #----- GET INFO FROM MODEL STATE -----
         
-        self.J_b_ee = np.array(panda_model.jacobian)                     # It is saved as column major but python does everyhing row major
+        self.J_b_ee = np.array(panda_model.jacobian)                             # It is saved as column major but python does everyhing row major
         self.J_b_ee = np.transpose(self.J_b_ee.reshape(7, 6))
         
         print("J_b_ee: ", self.J_b_ee)
@@ -361,14 +379,15 @@ class RobotPlanner:
         print("b: ", self.b)
 
         #=====
-    
+
+#-------     
     def run_once(self, t, vInit, vFinal, alphaInit, alphaFinal, t0, tConv, model, arm_ee_link_idx, arm_base_link_idx, link_name_to_index, joint_idx_arm, alpha=0.1, smooth=False, mixCoeff=0.1):
         
         #----- Copying -----
         
         try:
         
-            base_state_msg = Odometry()                                              # Base position and velocity
+            base_state_msg = Odometry()                                              
             
             self.processing = True
             
@@ -418,7 +437,8 @@ class RobotPlanner:
         except rospy.ServiceException as e:
             
             print("Service failed: " + str(e))
-             
+
+#-------              
     def prepare_for_stop(self):
 
         self.publishArmAndBaseVelocityControl([0.0]*7, linVelBase = [0.0, 0.0, 0.0], angVelBase = 0.0)

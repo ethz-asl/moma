@@ -7,6 +7,15 @@
 
 #include <moma_gazebo/PandaInitSrv.h>
 
+//----- Description -----
+
+// This service mimics the non-real time commands that
+// will have to be completed before the automatic control
+// starts. These mainly correspond to setting the appropriate
+// end effector and stiffness frames.
+
+//-----------------------
+
 class PandaInitService {
 
     private:
@@ -19,6 +28,8 @@ class PandaInitService {
     public:
 
     PandaInitService(ros::NodeHandle *nh){
+
+        //----- Advertise the Init service -----
 
         panda_init_srv = nh->advertiseService("/panda_init_srv", &PandaInitService::init_clb, this);
         ROS_INFO("Panda init service is ready!");

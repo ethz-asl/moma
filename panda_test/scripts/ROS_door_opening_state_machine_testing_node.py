@@ -71,7 +71,9 @@ class StartState(State):
 
         time_step = 0.05
         buffer_length = 50
-        init_direction = np.array([0.0, 0.0, -1.0]).reshape(3,1)
+        init_direction = np.array([0.0, 0.0, -1.0])
+        init_direction = init_direction/LA.norm(init_direction)
+        init_direction = init_direction.reshape(3,1)
         initN = 50
         fd1 = 1/(50*time_step)
 
@@ -232,7 +234,7 @@ class ObjectGraspedState(State):
                 
             grasping_width = 0.007
             grasping_vel = 0.01
-            grasping_force = 40
+            grasping_force = 50
             grasping_homing = False
             grasping_close = True
             grasping_move = False
@@ -425,7 +427,7 @@ class RunningState(State):
         t0 = np.ceil(tConv/3)
 
         counter = 0
-        N_steps = 500        
+        N_steps = 550        
         
         robot_force = []
         
@@ -702,10 +704,12 @@ class RunningState(State):
     def run(self):
                 
         try:
-
-            self.test7()
             
-            grasping_width = 0.05
+            waitingin = input('START!')
+            
+            self.test5()
+            
+            grasping_width = 0.02
             grasping_vel = 0.01
             grasping_force = 2  
             grasping_homing = True 
