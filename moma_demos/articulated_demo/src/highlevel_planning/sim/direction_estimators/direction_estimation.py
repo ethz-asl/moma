@@ -7,6 +7,16 @@ from collections import deque
 EPS = 1e-6
 DEBUG = True
 
+#----- Description -----
+
+# This is the base class for the online direction estimation update procedure. 
+# The 'UpdateEstimate' function needs to be implemented so that the online 
+# direction estimation module can be plugged-in and used within the door opening 
+# skill. This function should obtain the haptic based and fixed-grasp based estimates
+# and combine them.
+
+#-----------------------
+
 class SkillUnconstrainedDirectionEstimation:
 
     def __init__(self, scene, robot, time_step, buffer_length, init_direction, initN=100):

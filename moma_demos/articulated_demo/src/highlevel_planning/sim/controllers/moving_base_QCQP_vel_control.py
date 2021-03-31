@@ -13,6 +13,16 @@ from highlevel_planning.sim.controllers.controller import ControllerTemplate
 EPS = 1e-6
 DEBUG = True
 
+#----- Description -----
+
+# This is the class for the mobile base version of the algorithm. The controller 
+# performs the optimization procedure needed for issuing the joint velocity commands
+# in compliance with the hardware imposed constraints and the optimization procedure
+# needed for spliting the velocity. The problem formulation corresponds to the QCCO
+# formulation presented in the thesis.
+
+#-----------------------
+
 class Controller(ControllerTemplate):
 
     def __init__(self, scene, robot, time_step, noCollision=True):
@@ -22,15 +32,17 @@ class Controller(ControllerTemplate):
         self.noCollision = noCollision
         
         if self.noCollision:
-            self.mode_name = 'moving_base_no_collision_max_mob_control_QCQP'
+            self.mode_name = 'moving_base_no_collision_max_mob_control_QCCO'
         else:
-            self.mode_name = 'moving_base_max_mob_control_QCQP'
+            self.mode_name = 'moving_base_max_mob_control_QCCO'
         
         self.vLinBase_b = None
         self.vAngBase_b = None
         
 #-------
     def PrepareTask1(self, J_b_ee, vdesEE_b, M, b, q, q_dot, tau_prev):
+        
+        #----- Joint impedance parameters taken from the franka_ros package -----
     
         Kp = np.zeros((7,7))
         Kp[0, 0] = 600
@@ -71,6 +83,15 @@ class Controller(ControllerTemplate):
         
 #-------
     def PrepareTask2(self, M, b, q, q_dot, tau_prev, sol1, Null1):
+
+        #----- Description -----
+        
+        # This is a task with a second highest priority solved in the null space
+        # of the original task of issuing the optimal joint velocity commands within
+        # the hardware constraints. It is not used in the solution presented in the
+        # thesis but is left here in case some future work finds it useful.
+        
+        #-----------------------
     
         Kp = np.zeros((7,7))
         Kp[0, 0] = 600
@@ -99,8 +120,8 @@ class Controller(ControllerTemplate):
         
         C2 = np.transpose(np.concatenate((Aux, -Aux, Null1, -Null1), axis=0))
         
-        ineq1 = -self.torque_max[:len(q)] - b + np.matmul(Kd, q_dot - sol1) - self.dt*np.matmul(Kp, np.array(sol1).reshape(-1, 1))
-        ineq2 = -self.torque_max[:len(q)] + b - np.matmul(Kd, q_dot - sol1) + self.dt*np.matmul(Kp, np.array(sol1).reshape(-1, 1))
+        ineq1 = -self.torque_max[:len(q)] - b + np.matmul(Kd, q_dot - sol1) - self.dt*np.matmul(Kp, np.array(sol1))
+        ineq2 = -self.torque_max[:len(q)] + b - np.matmul(Kd, q_dot - sol1) + self.dt*np.matmul(Kp, np.array(sol1))
         ineq3 = np.maximum(np.maximum(self.q_dot_min[:len(q)], (1/self.dt)*(self.q_min[:len(q)] - q)), self.dt*self.q_dot_dot_min + q_dot) - sol1
         ineq4 = -np.minimum(np.minimum(self.q_dot_max[:len(q)], (1/self.dt)*(self.q_max[:len(q)] - q)), self.dt*self.q_dot_dot_max + q_dot) + sol1
         
@@ -124,7 +145,12 @@ class Controller(ControllerTemplate):
         sol1,_,_,_,_,_ = solve_qp(G1, a1, C1, b1)
         
         q_dot_optimal = np.array(sol1)
+
+        #----- This is if the null space projection control is included ------
         
+        # In the end, it was not used in the solution presented in the thesis 
+        # but is left here as an option to be later included if needed.
+            
         if minTorque:
         
             try:
@@ -143,7 +169,7 @@ class Controller(ControllerTemplate):
         
 #-------
     def SplitVelocity(self, veldesEE_ee, J_b_ee, C_O_b, C_O_ee, r_O_ee, v, q, Rlim=0.1, alpha=2.0):
-        print(veldesEE_ee)
+
         vLindesEE_O = np.array(C_O_ee.apply(veldesEE_ee[:3]))
         vAngdesEE_O = np.array(C_O_ee.apply(veldesEE_ee[3:]))
         
@@ -160,7 +186,7 @@ class Controller(ControllerTemplate):
             scaleFactor = 1.0
             
         q_dot_des = []
-        gamma = 0.5
+        gamma = 0.1
         
         for i in range(len(self.q_mean[:6])):
             
@@ -241,15 +267,9 @@ class Controller(ControllerTemplate):
         
         vLinBase_b, vAngBase_b, vEE_ee = self.SplitVelocity(veldesEE_ee, J_b_ee, C_O_b, C_O_ee, r_O_ee, v, q)
         
-        self.q_dot_optimal = self.CalculateDesiredJointVel(vEE_ee, J_b_ee, M, b, q, q_dot, C_O_b, C_O_ee, tau_prev, True)
+        self.q_dot_optimal = self.CalculateDesiredJointVel(vEE_ee, J_b_ee, M, b, q, q_dot, C_O_b, C_O_ee, tau_prev, False)
         
         p.setJointMotorControlArray(self.robot.model.uid, self.robot.joint_idx_fingers, p.TORQUE_CONTROL, forces=[-25.0]*2)
-        
-        q_dot_dot_optimal = (1/self.dt)*(self.q_dot_optimal - q_dot)
-        
-        tau = np.matmul(M, q_dot_dot_optimal) + b 
-        
-        #p.setJointMotorControlArray(self.robot.model.uid, self.robot.joint_idx_arm, p.TORQUE_CONTROL, forces=list(tau[:7]))
         
         p.setJointMotorControlArray(self.robot.model.uid, self.robot.joint_idx_arm, p.VELOCITY_CONTROL, targetVelocities=list(self.q_dot_optimal[:7]))
         self.robot.update_velocity(vLinBase_b, vAngBase_b[2])                             

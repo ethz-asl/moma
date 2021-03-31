@@ -77,36 +77,7 @@ def GetMotorJointStates(robot):
 	
 	return joint_positions, joint_velocities, joint_torques
 	
-#----- Optimization objectives and constraints -----
-
-def LinearVelocityObjective(x, *args):
-
-	u1_lin = args[0]
-	lin_vdesEE_b_arm = args[1]
-	scale_coeff = args[2]
-	
-	temp = np.array([scale_coeff*(lin_vdesEE_b_arm[0] - x[0]), scale_coeff*(lin_vdesEE_b_arm[1] - x[1]), lin_vdesEE_b_arm[2]])
-	temp = temp/LA.norm(temp)
-	
-	u1_lin = u1_lin/LA.norm(u1_lin)
-	
-	return -np.dot(temp, u1_lin)
-	
-def LVconstraint1(x, *args):
-	
-	v = args[0]
-	
-	return v**2 - x[0]**2 - x[1]**2
-	
-def AngularVelocityObjective(x, *args):
-
-	u1_ang = args[0]
-	ang_vdesEE_b_arm = args[1]
-	
-	temp = np.array([ang_vdesEE_b_arm[0], ang_vdesEE_b_arm[1], ang_vdesEE_b_arm[2] - x])
-	temp = temp/LA.norm(temp)
-	
-	return -np.dot(temp, u1_ang)
+#----- Optimization objectives and constraints -----	
 	
 def Objective1(x, *args):
 

@@ -12,6 +12,17 @@ from scipy.stats import norm
 EPS = 1e-6
 DEBUG = True
 
+#----- Description -----
+
+# This class performs the online direction estimation update procedure. It performs 
+# the haptic based and the fixed-grasp based updates and outputs the combined 
+# estimate. For convenience, this class also automatically gives the total 
+# desired end effector velocity (linear + angular) and transfers it to the velocity
+# planner module that performs the velocity split and planning within hardware 
+# constraints.
+
+#-----------------------
+
 class Estimator(SkillUnconstrainedDirectionEstimation):
 
     def __init__(self, scene, robot, time_step, buffer_length, init_direction, initN=100, fd1=0.1):
@@ -34,8 +45,6 @@ class Estimator(SkillUnconstrainedDirectionEstimation):
         self.y_k_1_coeff = None
         self.y_k_2_coeff = None
         
-        self.z_k_previous = 0.0
-        
         self.SetupButterworthFilter()
         
 #-------
@@ -53,6 +62,8 @@ class Estimator(SkillUnconstrainedDirectionEstimation):
                         
 #-------
     def GetDirectionFromPoses(self):
+        
+        #----- Fixed-grasp based estimator -----
         
         sample = np.copy(np.array(self.objPoseBuffer[0]).reshape(1,3))
         
@@ -76,6 +87,8 @@ class Estimator(SkillUnconstrainedDirectionEstimation):
         
 #-------
     def UpdateEstimate(self, f_wristframe, alpha, C_O_ee, smooth=False, mixCoeff=0.5):
+        
+        #----- Haptic based estimator -----
     
         self.counter +=1
         f_wristframe = f_wristframe.reshape(3,1)
@@ -92,29 +105,15 @@ class Estimator(SkillUnconstrainedDirectionEstimation):
         error = np.matmul(orthoProjMatGravity, np.matmul(orthoProjMat, f_wristframe)) - self.fDesired
         error = error/LA.norm(error)
         
-#        if len(self.objPoseBuffer)>1:
-#            z_k = 0.0
-#            for aux1 in range(len(self.objPoseBuffer)):
-#                
-#                z_k += self.objPoseBuffer[aux1][2]
-#            z_k = z_k/len(self.objPoseBuffer)
-#            
-#        else:
-#            
-#            z_k = 0.0
-#        
-#        error2 = (z_k - self.z_k_previous) * gravity_dir
-#        self.z_k_previous = z_k
-#        
-#        alpha2 = 0.1
-#        
+        #-----------------------------------  
+        
         if self.counter>self.initN:
             
             eFromPoses = self.GetDirectionFromPoses()
             eFromPoses = np.array(C_O_ee.inv().apply(eFromPoses))
             eFromPoses = eFromPoses.reshape(3,1)
             
-            eFromForces = self.directionVector - alpha*error #+ alpha2*error2
+            eFromForces = self.directionVector - alpha*error 
             eFromForces = eFromForces/LA.norm(eFromForces)
             eFromForces = eFromForces.reshape(3,1)
             
@@ -123,7 +122,7 @@ class Estimator(SkillUnconstrainedDirectionEstimation):
             
         else:
 
-            newDirVec = self.directionVector - alpha*error #+ alpha2*error2
+            newDirVec = self.directionVector - alpha*error 
             newDirVec = newDirVec/LA.norm(newDirVec)
         
         if self.counter>3:            
@@ -138,14 +137,13 @@ class Estimator(SkillUnconstrainedDirectionEstimation):
         self.y_k_1 = self.directionVector
                     
         self.directionVector = self.directionVector/LA.norm(self.directionVector)
-        #print("dir: ",self.directionVector)
         
 #-------
     def GetPlannedVelocities(self, v, calcAng=False, kAng=1):
     
         vdesEE_ee = v * self.directionVector
         
-        if calcAng and self.counter>self.initN*2:
+        if calcAng and self.counter>self.initN:
             theta_des = 0.0
             
             nObj_ee = np.squeeze(self.directionVector)
@@ -164,6 +162,8 @@ class Estimator(SkillUnconstrainedDirectionEstimation):
 #-------
     def CalculateInitialDirections(self, Nx=5, Ny=5):
         
+        #----- Calculate candidate initial directions -----
+        
         list_n = []
         
         list_of_x = list(np.linspace(-1.0, 1.0, num=Nx))
@@ -181,6 +181,8 @@ class Estimator(SkillUnconstrainedDirectionEstimation):
     
 #-------    
     def EstimateBestInitialDirection(self, X_data, Y_data, C_O_ee):
+        
+        #----- Calculating the expected initial unconstrained direction of motion -----
         
         X_data = np.array(X_data).reshape(len(X_data), -1)
         Y_data = np.array(Y_data)

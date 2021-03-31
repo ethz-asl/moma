@@ -8,6 +8,16 @@ from highlevel_planning.sim.controllers.controller import ControllerTemplate
 EPS = 1e-6
 DEBUG = True
 
+#----- Description -----
+
+# This controller uses the built in procedure to perform the EE movement by 
+# commanding a desired velocity expressed in the Cartesian frame. Here, no 
+# hardware imposed constraints are taken into account. This is basically a dummy
+# version of the algorithm used to test if everything is working properly in the 
+# rest of the code.
+
+#----------------------- 
+
 class Controller(ControllerTemplate):
 
     def __init__(self, scene, robot, time_step):

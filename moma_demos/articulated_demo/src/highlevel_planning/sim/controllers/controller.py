@@ -4,6 +4,15 @@ import numpy as np
 EPS = 1e-6
 DEBUG = True
 
+#----- Description -----
+
+# This is the base class for all the controllers that can be pluged-in and 
+# directly used for the door opening procedure. The 'PerformOneStep' is left empty
+# and is the only thing that has to be implemented in order to have a fully functional
+# velocity planner module
+
+#-----------------------
+
 class ControllerTemplate:
 
     def __init__(self, scene, robot, time_step):

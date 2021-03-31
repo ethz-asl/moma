@@ -10,12 +10,12 @@ def main():
     world.add_plane()
 
     # ======== Cupboard ====================================
-
-    #cupboard_mdl = world.add_model(
-    #    os.path.join(os.getcwd(), "data/models/cupboard_drawers/cupboard_drawers.urdf"),
-    #    position=[0.0, 0.0, 0.0],
-    #    orientation=[0.0, 0.0, 0.0, 1.0],
-    #)
+    
+#    cupboard_mdl = world.add_model(
+#        os.path.join(os.getcwd(), "moma/moma_demos/articulated_demo/data/models/cupboard_drawers/cupboard_drawers.urdf"),
+#        position=[3.0, 0.0, 0.0],
+#        orientation=[0.0, 0.0, 0.0, 1.0],
+#    )
 
     #drawer_link_idx = []
     #for i in range(p.getNumJoints(cupboard_mdl.uid)):
@@ -37,7 +37,7 @@ def main():
     
     #lid_mdl = world.add_model("data/models/container/lid.urdf", position=[0.0, 0.0, 0.0], orientation=[0.0, 0.0, 0.0,1.0])
     
-    lid_mdl = world.add_model(os.path.join(os.getcwd(), "moma/moma_demos/articulated_demo/data/models/container/lid_for_container_on_table.urdf"), position=[0.0, 0.0, 0.725], orientation=[0.0, 0.0, 0.0,1.0])
+    #lid_mdl = world.add_model(os.path.join(os.getcwd(), "moma/moma_demos/articulated_demo/data/models/container/lid_for_container_on_table.urdf"), position=[0.0, 0.0, 0.725], orientation=[0.0, 0.0, 0.0,1.0])
 
     #container_sliding_mdl = world.add_model("data/models/container/container_sliding_lid.urdf", position=[0.0, 0.5, 0.0], 	orientation=[0.0, 0.0, 0.0,1.0])
     
@@ -45,17 +45,17 @@ def main():
     
     #door_mdl = world.add_model(os.path.join(os.getcwd(), "moma/moma_demos/articulated_demo/data/models/door/door.urdf"), position=[1, 0.0, 0.0], orientation=[0.0, 0.0, 0.0,1.0])
 
-    #dishwasher_mdl = world.add_model(os.path.join(os.getcwd(), "moma/moma_demos/articulated_demo/data/models/dishwasher/dishwasher_door.urdf"), position=[0.0, 0.0, 0.0], orientation=[0.0, 0.0, 0.0,1.0])
+    #dishwasher_mdl = world.add_model(os.path.join(os.getcwd(), "moma/moma_demos/articulated_demo/data/models/dishwasher/dishwasher_door.urdf"), position=[3.0, 0.0, 0.0], orientation=[0.0, 0.0, 0.0,1.0])
     
     #sliding_door_mdl = world.add_model(os.path.join(os.getcwd(), "moma/moma_demos/articulated_demo/data/models/sliding_door/sliding_door.urdf"), position=[3, 0.0, 0.0], orientation=[0.0, 0.0, 0.0,1.0])
     
     #container_removable_mdl = world.add_model(os.path.join(os.getcwd(), "moma/moma_demos/articulated_demo/data/models/container/container_removable_lid.urdf"), position=[0.0, 0.0, 0.0], 	orientation=[0.0, 0.0, 0.0,1.0])
     
-    #container_sliding_lid_on_table_mdl= world.add_model(os.path.join(os.getcwd(), "moma/moma_demos/articulated_demo/data/models/container/container_sliding_lid_on_table.urdf"), position=[0.0, -1.0, 0.0], 	orientation=[0.0, 0.0, 0.0,1.0])
+    container_sliding_lid_on_table_mdl= world.add_model(os.path.join(os.getcwd(), "moma/moma_demos/articulated_demo/data/models/container/container_sliding_lid_on_table.urdf"), position=[3.0, 0.0, 0.0], 	orientation=[0.0, 0.0, 0.0,1.0])
 
-    container_removable_lid_on_table_mdl= world.add_model(os.path.join(os.getcwd(), "moma/moma_demos/articulated_demo/data/models/container/container_removable_lid_on_table.urdf"), position=[0.0, 0.0 , 0.0], 	orientation=[0.0, 0.0, 0.0,1.0])
+    #container_removable_lid_on_table_mdl= world.add_model(os.path.join(os.getcwd(), "moma/moma_demos/articulated_demo/data/models/container/container_removable_lid_on_table.urdf"), position=[0.0, 0.0 , 0.0], 	orientation=[0.0, 0.0, 0.0,1.0])
     
-    world.step_seconds(50)
+    world.step_seconds(150)
 
     world.close()
 

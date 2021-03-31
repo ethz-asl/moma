@@ -10,13 +10,21 @@ from highlevel_planning.tools.door_opening_util import *
 
 import math
 import matplotlib.pyplot as plt
-from numpy import linalg as LA
 
 EPS = 1e-6
 DEBUG = True
 BASEDIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+#----- Description -----
 
+# This is the door opening skill class which corresponds to the Automatic Control 
+# state presented in the Gazebo simulation and on the real robot. It collects all
+# the feedback information from the PyBullet simulator and communicates with both
+# the direction estimation module and the velocity planner modules(controllers).
+# Furthermore, it also logs all the information required for the later analysis of
+# the results.
+
+#------------------------
 
 class SkillTrajectoryPlanning:
 
@@ -65,7 +73,7 @@ class SkillTrajectoryPlanning:
         
         #----- -----
         
-        self.PrintRobotJointInfo()
+        #self.PrintRobotJointInfo()
         
 #-------
     def reset(self):
@@ -97,6 +105,8 @@ class SkillTrajectoryPlanning:
         
 #-------
     def PrintRobotJointInfo(self):
+        
+        #----- Prints the information about the robot from its URDF model -----
     
         num_joints = p.getNumJoints(self.robot.model.uid)
         
@@ -126,6 +136,8 @@ class SkillTrajectoryPlanning:
 #-------
     def FreezeRobotConfiguration(self):
         
+        #----- Returns the current joint configuration of the robot -----
+        
         joint_positions, joint_velocities, joint_torques = GetJointStates(self.robot.model.uid)        
         base_pos, base_ori = p.getBasePositionAndOrientation(self.robot.model.uid)        
         lin_base_vel, ang_base_vel = p.getBaseVelocity(self.robot.model.uid)
@@ -134,6 +146,8 @@ class SkillTrajectoryPlanning:
         
 #-------
     def ApplyRobotConfiguration(self, joint_positions, joint_velocities, base_pos, base_ori, lin_base_vel, ang_base_vel):
+        
+        #----- Artificially sets the joint configuration of the robot -----
 
         p.resetBasePositionAndOrientation(self.robot.model.uid, base_pos, base_ori)
         
@@ -145,6 +159,8 @@ class SkillTrajectoryPlanning:
 
 #-------
     def ObjectConfiguration(self, mode, target_name, joint_positions=None, joint_velocities=None):
+        
+        #----- Collects the joint position and velocities of a particular articulated object -----
         
         obj_info = self.scene.objects[target_name]
         target_id = obj_info.model.uid
@@ -166,6 +182,8 @@ class SkillTrajectoryPlanning:
             
 #-------
     def GetGraspedObjActualInfo(self, target_name, link_idx, grasp_id):
+        
+        #----- Collects the info about the grasped object -----
     
         obj_info = self.scene.objects[target_name]
         target_id = obj_info.model.uid
@@ -214,6 +232,9 @@ class SkillTrajectoryPlanning:
         
 #-------
     def GetMeasurements(self):
+        
+        #----- This function mimics reading the information from the on-board sensors.
+        # It collects all the information required to close the feedback loop -----
     
         link_pos_and_vel = p.getLinkStates(self.robot.model.uid, linkIndices=[self.robot.arm_base_link_idx, self.robot.link_name_to_index["panda_default_EE"]], 
             computeLinkVelocity = 1, computeForwardKinematics = True
@@ -249,6 +270,8 @@ class SkillTrajectoryPlanning:
 
 #-------
     def VelocityProfile1(self, t, vInit, vFinal, tConv):
+        
+        #----- This is a dummy version of the temporal velocity magnitude profile -----
         
         if t<=tConv:
             
@@ -387,9 +410,6 @@ class SkillTrajectoryPlanning:
             ang_vEE_O_meas = np.load(folder_name+'//ang_vEE_O_meas.npy')
             manipulability_meas = np.load(folder_name+'//manipulability_meas.npy') 
         
-            lin_vBase_O_meas = np.load(folder_name+'//lin_vBase_O_meas.npy') 
-            ang_vBase_O_meas = np.load(folder_name+'//ang_vBase_O_meas.npy')
-        
             q_dot_optimal = np.load(folder_name+'//q_dot_optimal.npy')
         
             f_wristframe = np.load(folder_name+'//f_wristframe.npy')
@@ -408,6 +428,34 @@ class SkillTrajectoryPlanning:
         
             N = len(exec_time)
             t = np.arange(1, N+1)
+            
+            #----- Calculate metrics ------
+            
+            Nstart = self.initLength
+            
+            if N>20:
+                
+                start_average_dot_product = np.sum(np.array(list_of_model_fitting_metrics[:Nstart]))*(1.0/Nstart)
+                
+                total_average_dot_product = np.sum(np.array(list_of_model_fitting_metrics))*(1.0/N)
+                
+                total_average_manipulability_index = np.sum(manipulability_meas)*(1.0/N)
+                
+                end_manipulability_index = np.sum(manipulability_meas[N-10:])/len(list(manipulability_meas[N-10:]))
+                
+                total_planning_time = np.sum(exec_time)
+                
+                average_iteration_time = np.sum(exec_time)*(1.0/N)
+                
+                f = open(folder_name + '/metrics.txt', 'w')
+                f.write("Average dot product during start: "+str(start_average_dot_product)+"\n")
+                f.write("Total average dot product       : "+str(total_average_dot_product)+"\n")
+                f.write("Total average manipulability    : "+str(total_average_manipulability_index)+"\n")
+                f.write("End average manipulability      : "+str(end_manipulability_index)+"\n")
+                f.write("Total planning time             : "+str(total_planning_time)+"\n")
+                f.write("Average iteration time          : "+str(average_iteration_time)+"\n")
+                
+                f.close()
         
             #----- ARM JOINT POSITIONS -----
         
@@ -653,6 +701,9 @@ class SkillTrajectoryPlanning:
 #-------
     def InitProgram(self, sk_dir, target_name, link_idx, grasp_id):
         
+                #----- This procedure performs the complete initial direction 
+                # estimtaion procedure -----
+        
                 print(5*"-"+' Init procedure '+5*'-')
                 
                 direction_list = sk_dir.CalculateInitialDirections()
@@ -669,7 +720,6 @@ class SkillTrajectoryPlanning:
                 for idx in range(len(direction_list)):
                     
                     d = direction_list[idx]
-                    direction = np.array(d).reshape(-1, 1)
                     
                     print("Trying the direction n: "+str(d))
                     
@@ -687,11 +737,6 @@ class SkillTrajectoryPlanning:
                         
                         M, b, J_b_ee, q, q_dot, C_O_b, r_O_b, C_O_ee, r_O_ee, mtorq, vLinEE_O, vAngEE_O, vLinBase_O, vAngBase_O, f_wristframe, t_wristframe = self.GetMeasurements()
                         sf = f_wristframe
-                        sy_proj = LA.norm(np.matmul((np.eye(3) - np.matmul(direction, np.transpose(direction))), f_wristframe))
-                  
-                    print("Starting force: "+str(np.squeeze(sf)))
-                    print("sf: "+str(LA.norm(sf)))
-                    print("sy: "+str(sy_proj))
                     
                     for temp_it in range(N_steps_per_dir):
                     
@@ -712,19 +757,11 @@ class SkillTrajectoryPlanning:
                     f_wristframe = np.array(f_wristframe).reshape(-1, 1)
                     
                     y = 1 - LA.norm(f_wristframe)/LA.norm(sf)
-
-                    y_proj = LA.norm(np.matmul((np.eye(3) - np.matmul(direction, np.transpose(direction))), f_wristframe))
                     
                     if y>0:
                         
                         X_data.append(d[:2])
                         Y_data.append(y)                        
-                    
-                    print("y: ", y)
-                    print("f: ", LA.norm(f_wristframe))
-                    print("force direction: "+str(np.squeeze(f_wristframe)))
-                    print("y_proj: "+str(y_proj))
-                    print(100*"*")
                     
                     for temp_it in range(N_steps_per_dir):
                     
@@ -744,14 +781,14 @@ class SkillTrajectoryPlanning:
                     
                     f_wristframe = np.array(f_wristframe).reshape(-1, 1)
                     
-                    sf = f_wristframe
-                    sy_proj = LA.norm(np.matmul((np.eye(3) - np.matmul(direction, np.transpose(direction))), f_wristframe))                    
+                    sf = f_wristframe                   
                    
                 sk_dir.EstimateBestInitialDirection(X_data, Y_data, C_O_ee)
 
                 stopTime = time.time()
                     
                 totalInitTime = stopTime - startTime
+                
                 print("Total init time: "+str(totalInitTime))
             
 #-------
@@ -834,7 +871,7 @@ class SkillTrajectoryPlanning:
                     
                     velProfile = self.VelocityProfile2(it, self.vInit, self.vRegular, 0.5, 0.5, np.floor(self.initLength/3), self.initLength)
                 
-                    veldesEE_ee = sk_dir.GetPlannedVelocities(v=velProfile, calcAng=False, kAng=0.5)        
+                    veldesEE_ee = sk_dir.GetPlannedVelocities(v=velProfile, calcAng=True, kAng=0.2)        
                 
                     infoTuple = (M, b, J_b_ee, q, q_dot, C_O_b, C_O_ee, r_O_ee, velProfile, mtorq[:7])
                                 
