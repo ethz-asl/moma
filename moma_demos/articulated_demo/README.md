@@ -64,3 +64,5 @@ To run the door opening PyBullet experiment for multiple initial configurations 
 ```
 python moma/moma_demos/articulated_demo/scripts/run_multiple_configurations.py -m gui
 ```
+
+Choosing the initial pose parameters and door type is performed in the 'main' function of the corresponding scripts. 
