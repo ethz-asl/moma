@@ -7,7 +7,7 @@ The ROS Master should be located on the Ridgeback base and should be running all
 2. Run:
 
 ```
-roslaunch panda_test joint_velocity_controller_full.launch robot_ip:=$FRANKA_IP load_gripper:=false
+roslaunch door_opening_on_real_robot_demo joint_velocity_controller_full.launch robot_ip:=$FRANKA_IP load_gripper:=false
 ```
 
 on the Franka computer. The robot should be in the 'high level API' state (Lights on the arm should be white). 
@@ -16,14 +16,14 @@ It will complain that the automatic control is not possible in the current regim
 3. Open a new terminal and run:
 
 ```
-rosrun panda_test panda_gripper_service $FRANKA_IP
+rosrun door_opening_on_real_robot_demo panda_gripper_service $FRANKA_IP
 ```
 on the Franka computer.
 
 4. Open a new terminal and run:
 
 ```
-rosrun panda_test panda_state_service $FRANKA_IP
+rosrun door_opening_on_real_robot_demo panda_state_service $FRANKA_IP
 ```
 
 on the Franka computer.
@@ -31,7 +31,7 @@ on the Franka computer.
 5. Open a new terminal and run:
 
 ```
-rosrun panda_test ROS_door_opening_state_machine_testing_node.py
+rosrun door_opening_on_real_robot_demo ROS_door_opening_state_machine_testing_node.py
 ```
 
 on the personal computer. This node will require some user input. The answer to each question has to be entered with quotation marks (e.g. 'y' or 'n'). 
