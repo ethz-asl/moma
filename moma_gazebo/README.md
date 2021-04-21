@@ -40,4 +40,22 @@ roslaunch moma_gazebo royalpanda_example.launch
 ```
 ## DOOR OPENING EXAMPLE
 
+1. Run:
+
+```
+roslaunch moma_gazebo royalpanda_example.launch
+```
+
+2. Open a new terminal and run:
+
+```
+rosrun moma_gazebo panda_state_service
+```
+
+3. Open a new terminal and run:
+
+```
+rosrun moma_gazebo ROS_door_openning_state_machine_node.py
+```
+
 
