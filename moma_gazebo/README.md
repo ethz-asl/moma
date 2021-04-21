@@ -38,7 +38,7 @@ To run the demo:
 ```bash
 roslaunch moma_gazebo royalpanda_example.launch
 ```
-## DOOR OPENING EXAMPLE
+## LOW LEVEL CONTROL FOR DOOR OPENING EXAMPLE
 
 1. Run:
 
