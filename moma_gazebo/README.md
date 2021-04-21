@@ -6,7 +6,7 @@ Launch files, models, worlds and door opening procedure implementation for Gazeb
 
 The code is tested using ROS melodic on Ubuntu 18.04.
 
-1. Run:
+1. After cloning the branch run:
 
 ```
 git submodule update --init
