@@ -1,5 +1,7 @@
 ## STEPS TO RUN THE CODE ON THE REAL ROBOT:
 
+The code was tested using ROS Melodic on Ubuntu 18.04
+
 1. Build the "door_opening_on_real_robot_demo" package on the Franka computer and on the personal computer. 
 The ROS control plugin and the ROS services have to run on the Franka computer whereas the script for the state machine should run on the personal computer due to use of the third party libraries. 
 The ROS Master should be located on the Ridgeback base and should be running all the time.
