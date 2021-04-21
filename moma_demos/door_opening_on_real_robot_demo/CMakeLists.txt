@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.4)
-project(panda_test)
+project(door_opening_on_real_robot_demo)
 
 set(CMAKE_BUILD_TYPE Release)
 set(CMAKE_CXX_STANDARD 14)
@@ -37,7 +37,7 @@ generate_messages()
 
 catkin_package(
   INCLUDE_DIRS include
-  LIBRARIES panda_test
+  LIBRARIES door_opening_on_real_robot_demo
   CATKIN_DEPENDS
     controller_interface
     franka_hw
@@ -54,27 +54,27 @@ catkin_package(
   DEPENDS Franka
 )
 
-add_library(panda_test
+add_library(door_opening_on_real_robot_demo
   src/door_opening_joint_velocity_controller.cpp
 )
 
-add_dependencies(panda_test
+add_dependencies(door_opening_on_real_robot_demo
   ${${PROJECT_NAME}_EXPORTED_TARGETS}
   ${catkin_EXPORTED_TARGETS}
   ${PROJECT_NAME}_generate_messages_cpp
   ${PROJECT_NAME}_gencpp
 )
 
-target_link_libraries(panda_test PUBLIC
+target_link_libraries(door_opening_on_real_robot_demo PUBLIC
   ${Franka_LIBRARIES}
   ${catkin_LIBRARIES}
 )
 
-target_include_directories(panda_test SYSTEM PUBLIC
+target_include_directories(door_opening_on_real_robot_demo SYSTEM PUBLIC
   ${Franka_INCLUDE_DIRS}
   ${catkin_INCLUDE_DIRS}
 )
-target_include_directories(panda_test PUBLIC
+target_include_directories(door_opening_on_real_robot_demo PUBLIC
   include
 )
 
@@ -113,7 +113,7 @@ add_dependencies(panda_gripper_service
 )
 
 ## Installation
-install(TARGETS panda_test
+install(TARGETS door_opening_on_real_robot_demo
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
@@ -124,7 +124,7 @@ install(DIRECTORY launch
 install(DIRECTORY config
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
-install(FILES panda_test_plugin.xml
+install(FILES door_opening_on_real_robot_demo_plugin.xml
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
 
@@ -138,9 +138,9 @@ if(CLANG_TOOLS)
     ${CMAKE_CURRENT_SOURCE_DIR}/include/*.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/*.h
   )
-  add_format_target(panda_test FILES ${SOURCES} ${HEADERS})
-  add_tidy_target(panda_test
+  add_format_target(door_opening_on_real_robot_demo FILES ${SOURCES} ${HEADERS})
+  add_tidy_target(door_opening_on_real_robot_demo
     FILES ${SOURCES}
-    DEPENDS panda_test
+    DEPENDS door_opening_on_real_robot_demo
   )
 endif()

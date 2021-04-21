@@ -1,0 +1,7 @@
+<library path="lib/libdoor_opening_on_real_robot_demo">
+  <class name="door_opening_on_real_robot_demo/DoorOpeningJointVelocityController" type="door_opening_on_real_robot_demo::DoorOpeningJointVelocityController" base_class_type="controller_interface::ControllerBase">
+    <description>
+      A controller that executes joint velocity commands
+    </description>
+  </class>
+</library>

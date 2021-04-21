@@ -17,10 +17,10 @@
 #include <ros/time.h>
 #include <ros/ros.h>
 
-#include <panda_test/desired_vel_msg.h>
-#include <panda_test/PandaStateSrv.h>
+#include <door_opening_on_real_robot_demo/desired_vel_msg.h>
+#include <door_opening_on_real_robot_demo/PandaStateSrv.h>
 
-namespace panda_test{
+namespace door_opening_on_real_robot_demo{
 
 class DoorOpeningJointVelocityController : public controller_interface::MultiInterfaceController<
                                                     hardware_interface::VelocityJointInterface,
@@ -34,9 +34,9 @@ public:
     void starting(const ros::Time&) override;
     void stopping(const ros::Time&) override;
 
-    void command_cb(const panda_test::desired_vel_msg::ConstPtr& msg);
+    void command_cb(const door_opening_on_real_robot_demo::desired_vel_msg::ConstPtr& msg);
 
-    bool state_clb(panda_test::PandaStateSrv::Request &req, panda_test::PandaStateSrv::Response &res);
+    bool state_clb(door_opening_on_real_robot_demo::PandaStateSrv::Request &req, door_opening_on_real_robot_demo::PandaStateSrv::Response &res);
 
 private:
 
@@ -78,6 +78,6 @@ private:
 };
 
 
-} //namespace panda_test
+} //namespace door_opening_on_real_robot_demo
 
 

@@ -1,4 +1,4 @@
-#include <panda_test/door_opening_joint_velocity_controller.h>
+#include <door_opening_on_real_robot_demo/door_opening_joint_velocity_controller.h>
 
 #include <array>
 #include <cmath>
@@ -13,7 +13,7 @@
 #include <ros/console.h>
 #include <franka/exception.h>
 
-namespace panda_test{
+namespace door_opening_on_real_robot_demo{
 
 bool DoorOpeningJointVelocityController::init(hardware_interface::RobotHW *robot_hw,
                                        ros::NodeHandle &node_handle)
@@ -177,7 +177,7 @@ void DoorOpeningJointVelocityController::starting(const ros::Time & /* time */)
 
 //----- Callback function -----
 
-void DoorOpeningJointVelocityController::command_cb(const panda_test::desired_vel_msg::ConstPtr& msg)
+void DoorOpeningJointVelocityController::command_cb(const door_opening_on_real_robot_demo::desired_vel_msg::ConstPtr& msg)
 {
 
     desired_joint_velocity_command_[0] = msg->dq_arm[0];
@@ -224,7 +224,7 @@ void DoorOpeningJointVelocityController::update(const ros::Time & /* time */, co
 
 //----- State callback -----
 
-bool DoorOpeningJointVelocityController::state_clb(panda_test::PandaStateSrv::Request &req, panda_test::PandaStateSrv::Response &res)
+bool DoorOpeningJointVelocityController::state_clb(door_opening_on_real_robot_demo::PandaStateSrv::Request &req, door_opening_on_real_robot_demo::PandaStateSrv::Response &res)
 {
 
     try{
@@ -291,7 +291,7 @@ void DoorOpeningJointVelocityController::stopping(const ros::Time & /*time*/)
 }
 
 
-} //namespace panda_test
+} //namespace door_opening_on_real_robot_demo
 
-PLUGINLIB_EXPORT_CLASS(panda_test::DoorOpeningJointVelocityController, controller_interface::ControllerBase)
+PLUGINLIB_EXPORT_CLASS(door_opening_on_real_robot_demo::DoorOpeningJointVelocityController, controller_interface::ControllerBase)
 

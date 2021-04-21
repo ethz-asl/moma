@@ -1,5 +1,5 @@
 door_opening_joint_velocity_controller:
-    type: panda_test/DoorOpeningJointVelocityController
+    type: door_opening_on_real_robot_demo/DoorOpeningJointVelocityController
     arm_id: panda
     joint_names:
         - panda_joint1

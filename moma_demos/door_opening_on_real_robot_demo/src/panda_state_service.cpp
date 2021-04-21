@@ -9,7 +9,7 @@
 #include <franka/robot.h>
 #include <franka/exception.h>
 
-#include <panda_test/PandaStateSrv.h>
+#include <door_opening_on_real_robot_demo/PandaStateSrv.h>
 
 class PandaStateService {
 
@@ -30,7 +30,7 @@ class PandaStateService {
         ROS_INFO("Panda state service is ready!");
     }
 
-    bool state_clb(panda_test::PandaStateSrv::Request &req, panda_test::PandaStateSrv::Response &res){
+    bool state_clb(door_opening_on_real_robot_demo::PandaStateSrv::Request &req, door_opening_on_real_robot_demo::PandaStateSrv::Response &res){
 
         try{
 

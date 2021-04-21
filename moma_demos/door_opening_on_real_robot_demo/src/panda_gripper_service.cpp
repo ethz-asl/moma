@@ -8,7 +8,7 @@
 #include <franka/gripper.h>
 #include <franka/exception.h>
 
-#include <panda_test/PandaGripperSrv.h>
+#include <door_opening_on_real_robot_demo/PandaGripperSrv.h>
 
 class PandaGripperService {
 
@@ -28,7 +28,7 @@ class PandaGripperService {
         ROS_INFO("Panda gripper service is ready!");
     }
 
-    bool gripper_clb(panda_test::PandaGripperSrv::Request &req, panda_test::PandaGripperSrv::Response &res){
+    bool gripper_clb(door_opening_on_real_robot_demo::PandaGripperSrv::Request &req, door_opening_on_real_robot_demo::PandaGripperSrv::Response &res){
 
         try{
 

@@ -1,0 +1,10 @@
+<?xml version="1.0" ?>
+<launch>
+  <arg name="robot_ip" default="172.16.0.2"/>
+
+  <!-- PandaStateService node -->
+  <node name="panda_state_service_node" pkg="door_opening_on_real_robot_demo" type="panda_state_service" respawn="true" output="screen" args="$(arg robot_ip)" />
+
+  <!-- PandaGripperService node -->
+  <node name="panda_gripper_service_node" pkg="door_opening_on_real_robot_demo" type="panda_gripper_service" respawn="true" output="screen" args="$(arg robot_ip)" />
+</launch>
