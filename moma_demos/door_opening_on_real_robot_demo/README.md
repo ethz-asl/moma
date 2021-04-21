@@ -37,5 +37,5 @@ rosrun panda_test ROS_door_opening_state_machine_testing_node.py
 on the personal computer. This node will require some user input. The answer to each question has to be entered with quotation marks (e.g. 'y' or 'n'). 
 After the state machine informs the user that the EE frame and the K frame have been set, the user should re-launch the joint_velocity_controller.launch file but this time with the Franka arm in the automatic control mode (Lights on the arm should be blue). 
 This is neccessary because the process of setting the EE and the K frames is done through the non-realtime commands of the specialized 'libfranka' library that cannot be used in the automatic regime. 
-The reset should be completed before entering the response to the 'Initiate door opening procedure?' question. From this point on, the user can proceed normally.
+The reset should be completed before entering the response to the 'Initiate door opening procedure?' question. From this point on, the user proceeds normally, by answering to the questions asked by the state machine. 
 
