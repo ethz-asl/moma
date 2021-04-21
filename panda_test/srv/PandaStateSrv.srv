@@ -1,0 +1,19 @@
+bool set_frames
+float64[16] NE_T_EE
+float64[16] EE_T_K
+---
+float64[7] q
+float64[7] dq
+float64[7] q_d
+float64[7] dq_d
+float64[7] ddq_d
+float64[7] tau
+float64[7] tau_ext
+float64[7] tau_d_no_gravity
+float64[7] coriolis
+float64[7] gravity
+float64[42] jacobian
+float64[49] mass_matrix
+float64[16] EE_T_K
+float64[16] O_T_EE
+float64[6] K_F_ext_hat_K

@@ -298,4 +298,4 @@ class PandaTree:
         print("=" * 20)
 
     def setup(self):
-        self.tree.setup(timeout=15)
+        self.tree.setup(timeout=0)

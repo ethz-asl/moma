@@ -1,0 +1,8 @@
+bool gripper_homing
+bool gripper_close
+bool gripper_move
+float64 grasping_width
+float64 grasping_speed
+float64 grasping_force
+---
+bool success

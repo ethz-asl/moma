@@ -1,0 +1,7 @@
+<library path="lib/libmoma_gazebo">
+  <class name="moma_gazebo/DoorOpeningJointVelocityController" type="moma_gazebo::DoorOpeningJointVelocityController" base_class_type="controller_interface::ControllerBase">
+    <description>
+      A controller that executes joint velocities set via ROS messages.
+    </description>
+  </class>
+</library>

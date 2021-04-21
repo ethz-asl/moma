@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="container_no_lid">
+
+<xacro:include filename="container_common.xacro"/>
+
+<link name="base_link">
+  <inertial>
+    <origin rpy="0 0 0" xyz="0 0 0"/>
+    <mass value="0.0"/>
+    <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+  </inertial>
+</link>
+
+<xacro:corpus prefix="frame" width="${total_width}" depth="${total_depth}" height="${total_height-wall_thickness}" wall_thickness="${wall_thickness}" color="dark_brown"/>
+<joint name="frame_joint" type="fixed">
+  <origin xyz="0 0 ${wall_thickness/2}" rpy="0 0 0"/>
+  <parent link="base_link"/>
+  <child link="frame_bottom_plane"/>
+</joint>
+
+</robot>

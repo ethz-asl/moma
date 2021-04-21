@@ -25,10 +25,13 @@
 
   <depend>moma_bringup</depend>
   <depend>moma_description</depend>
+  <depend>moma_gazebo</depend>
+  <depend>moma_utils</depend>
   <depend>panda_control</depend>
 
   <exec_depend>message_runtime</exec_depend>
   <exec_depend>rviz</exec_depend>
+  <exec_depend>panda_moveit_config</exec_depend>
   
   <export>
     <rviz plugin="${prefix}/plugin_description.xml" />

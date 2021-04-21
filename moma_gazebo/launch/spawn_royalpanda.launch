@@ -1,0 +1,31 @@
+<launch>
+  <arg name="x" default="0.0"/>
+  <arg name="y" default="0.0"/>
+  <arg name="z" default="1.0"/>
+  <arg name="config" default="dual_hokuyo_lasers"/>
+  <arg name="joystick" default="false"/>
+
+  <!-- send the robot XML to param server -->
+  <param  name="robot_description"
+          command="$(find ridgeback_description)/scripts/env_run
+                   $(find ridgeback_description)/urdf/configs/$(arg config)
+                   $(find xacro)/xacro $(find moma_description)/urdf/royalpanda.urdf.xacro use_nominal_extrinsics:=true use_fixed_realsense:=false"/>
+  <include file="$(find ridgeback_control)/launch/control.launch" />
+  <include file="$(find ridgeback_control)/launch/teleop.launch">
+    <arg name="joystick" value="$(arg joystick)"/>
+  </include>
+
+  <!-- spawn robot in gazebo -->
+  <node name="spawn_royalpanda" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen" args="-urdf -param robot_description -model royalpanda
+      -x $(arg x)
+      -y $(arg y)
+      -z $(arg z) 
+      -J panda_joint1 0
+      -J panda_joint2 -0.785
+      -J panda_joint3 0
+      -J panda_joint4 -2.1
+      -J panda_joint5 0
+      -J panda_joint6 1.571
+      -J panda_joint7 0.785" />
+
+</launch>

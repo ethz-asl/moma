@@ -2,19 +2,24 @@
   <arg name="gui" default="true" />
   <arg name="moveit" default="true" />
   <arg name="rviz" default="true" />
+  <arg name="world_name" default="$(find moma_gazebo)/worlds/panda_example.world"/>
+  <arg name="panda_z_position" default="0.0"/>
+  <arg name="use_fixed_realsense" default="false"/>
 
   <env name="GAZEBO_MODEL_PATH" value="${GAZEBO_MODEL_PATH}:$(find moma_gazebo)/models"/>
 
   <!-- start gazebo -->
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
-    <arg name="world_name" value="$(find moma_gazebo)/worlds/panda_example.world"/>
+    <arg name="world_name" value="$(arg world_name)"/>
     <arg name="use_sim_time" value="true" />
-    <arg name="paused" value="true" />
+    <arg name="paused" value="false" />
     <arg name="gui" value="$(arg gui)" />
   </include>
 
   <!-- spawn panda -->
   <include file="$(find moma_gazebo)/launch/spawn_panda.launch">
+    <arg name="z" value="$(arg panda_z_position)"/>
+    <arg name="use_fixed_realsense" value="$(arg use_fixed_realsense)"/>
   </include>
 
   <!-- start joint position trajectory controller -->
@@ -25,6 +30,9 @@
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="true" output="screen" />
 
   <!-- start moveit -->
+  <include file="$(find panda_moveit_config)/launch/planning_context.launch">
+    <arg name="load_robot_description" value="false" />
+  </include>
   <include if="$(arg moveit)" file="$(find panda_moveit_config)/launch/move_group.launch">
     <arg name="load_robot_description" value="false" />
   </include>

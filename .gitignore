@@ -1,6 +1,10 @@
 # Byte-compiled files
 __pycache__/
 *.pyc
+*.egg-info
+
+# Editor files
+.idea
 
 # Environments
 .env

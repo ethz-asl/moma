@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="lid">
+
+<xacro:include filename="container_common.xacro"/>
+
+<link name="base_link">
+  <inertial>
+    <origin rpy="0 0 0" xyz="0 0 0"/>
+    <mass value="0.1"/>
+    <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+  </inertial>
+</link>
+
+<xacro:corpus prefix="lid" width="${total_width+2*(wall_thickness+lid_spacing)}" depth="${total_depth+2*(wall_thickness+lid_spacing)}" height="${total_height*0.2}" wall_thickness="${wall_thickness}" color="white"/>
+
+<xacro:handle length="${total_width*0.4}"/>
+<joint name="handle_joint" type="fixed">
+  <origin xyz="0 0 ${-wall_thickness/2-0.02}" rpy="0 ${pi/2} 0"/>
+  <parent link="lid_bottom_plane"/>
+  <child link="handle"/>
+</joint>
+
+<joint name="frame_joint" type="fixed">
+  <origin xyz="0 0 0" rpy="${pi} 0 0"/>
+  <parent link="base_link"/>
+  <child link="lid_bottom_plane"/>
+</joint>
+
+</robot>

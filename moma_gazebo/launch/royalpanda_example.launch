@@ -1,0 +1,54 @@
+<launch>
+  <arg name="gui" default="true" />
+  <arg name="moveit" default="true" />
+  <arg name="rviz" default="true" />
+  <arg name="world_name" default="$(find moma_gazebo)/worlds/panda_example.world"/>
+  <arg name="config" default="dual_hokuyo_lasers" />
+  <arg name="x" default="0" />
+  <arg name="y" default="0" />
+  <arg name="z" default="1" />
+  <arg name="yaw" default="0" />
+  <arg name="joystick" default="false" />
+
+  <env name="GAZEBO_MODEL_PATH" value="${GAZEBO_MODEL_PATH}:$(find moma_gazebo)/models"/>
+  <env name="GAZEBO_MODEL_PATH" value="${GAZEBO_MODEL_PATH}:$(find moma_gazebo)/../submodules/gazebo_models"/>
+
+  <!-- start gazebo -->
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <!-- <arg name="world_name" value="$(arg world_name)"/> -->
+    <arg name="use_sim_time" value="true" />
+    <arg name="paused" value="false" />
+    <arg name="gui" value="$(arg gui)" />
+  </include>
+
+  <!-- spawn robot -->
+  <include file="$(find moma_gazebo)/launch/spawn_royalpanda.launch"/>
+
+  <!-- start joint velocity trajectory controller -->
+  <rosparam file="$(find moma_gazebo)/config/panda_controllers.yaml" command="load" />
+  <node name="controller_spawner_panda" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="joint_state_controller door_opening_joint_velocity_controller franka_gripper" />
+
+
+  <!-- start a robot state publisher -->
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="true" output="screen" />
+
+  <!-- start moveit -->
+  <include file="$(find royalpanda_moveit_config)/launch/planning_context.launch">
+    <arg name="load_robot_description" value="false" />
+  </include>
+  <include if="$(arg moveit)" file="$(find royalpanda_moveit_config)/launch/move_group.launch">
+    <arg name="load_robot_description" value="false" />
+  </include>
+
+
+  <!-- start rviz -->
+  <node if="$(arg rviz)" name="rviz" pkg="rviz" type="rviz" args="-d $(find moma_gazebo)/config/royalpanda_example.rviz" />
+
+
+  <!-- PandaInitService node -->
+  <node name="panda_init_service_node" pkg="moma_gazebo" type="panda_init_service" respawn="true" output="screen" />
+
+  <!-- PandaGripperService node -->
+  <node name="panda_gripper_service_node" pkg="moma_gazebo" type="panda_gripper_service" respawn="true" output="screen" />
+
+</launch>
