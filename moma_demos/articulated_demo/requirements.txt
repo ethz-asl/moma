@@ -1,0 +1,6 @@
+pybullet~=3.0.1
+scipy~=1.5.2
+numpy~=1.19.2
+PyYAML
+matplotlib
+ipython

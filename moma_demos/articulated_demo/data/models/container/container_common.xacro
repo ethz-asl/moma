@@ -1,0 +1,106 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="container_common">
+
+<xacro:property name="wall_thickness" value="0.01"/>
+<xacro:property name="total_height" value="0.1"/>
+<xacro:property name="total_width" value="0.3"/>
+<xacro:property name="total_depth" value="0.2"/>
+<xacro:property name="lid_spacing" value="0.01"/>
+
+<material name="white">
+  <color rgba="1 1 1 1"/>
+</material>
+<material name="dark_brown">
+  <color rgba="0.4 0.2 0.0 1"/>
+</material>
+<material name="light_brown">
+  <color rgba="0.6 0.29 0.0 1"/>
+</material>
+<material name="silver">
+  <color rgba="0.87 0.87 0.87 0.8"/>
+</material>
+
+<xacro:macro name="ori_geo" params="width depth height">
+  <origin rpy="0 0 0" xyz="0 0 0"/>
+  <geometry>
+    <box size="${width} ${depth} ${height}"/>
+  </geometry>
+</xacro:macro>
+
+<xacro:macro name="plane" params="prefix width depth thickness color">
+  <link name="${prefix}_plane">
+    <contact>
+      <lateral_friction value="1.0"/>
+    </contact>
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+       <mass value="0.02"/>
+       <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+    </inertial>
+    <visual>
+      <xacro:ori_geo width="${width}" depth="${depth}" height="${thickness}"/>
+      <material name="${color}"/>
+    </visual>
+    <collision>
+      <xacro:ori_geo width="${width}" depth="${depth}" height="${thickness}"/>
+    </collision>
+  </link>
+</xacro:macro>
+
+<xacro:macro name="corpus" params="prefix width depth height wall_thickness color">
+  <xacro:plane prefix="${prefix}_bottom" width="${width}" depth="${depth}" thickness="${wall_thickness}" color="${color}"/>
+
+  <xacro:plane prefix="${prefix}_back" width="${width}" depth="${height}" thickness="${wall_thickness}" color="${color}"/>
+  <joint name="${prefix}_back_joint" type="fixed">
+    <origin xyz="0 ${depth/2-wall_thickness/2} ${height/2-wall_thickness/2}" rpy="${pi/2} 0 0"/>
+    <parent link="${prefix}_bottom_plane"/>
+    <child link="${prefix}_back_plane"/>
+  </joint>
+
+  <xacro:plane prefix="${prefix}_left" width="${depth-2*wall_thickness}" depth="${height}" thickness="${wall_thickness}" color="${color}"/>
+  <joint name="${prefix}_left_joint" type="fixed">
+    <origin xyz="-${width/2-wall_thickness/2} 0 ${height/2-wall_thickness/2}" rpy="${pi/2} 0 ${pi/2}"/>
+    <parent link="${prefix}_bottom_plane"/>
+    <child link="${prefix}_left_plane"/>
+  </joint>
+
+  <xacro:plane prefix="${prefix}_right" width="${depth-2*wall_thickness}" depth="${height}" thickness="${wall_thickness}" color="${color}"/>
+  <joint name="${prefix}_right_joint" type="fixed">
+    <origin xyz="${width/2-wall_thickness/2} 0 ${height/2-wall_thickness/2}" rpy="${pi/2} 0 ${pi/2}"/>
+    <parent link="${prefix}_bottom_plane"/>
+    <child link="${prefix}_right_plane"/>
+  </joint>
+
+  <xacro:plane prefix="${prefix}_front" width="${width}" depth="${height}" thickness="${wall_thickness}" color="${color}"/>
+  <joint name="${prefix}_front_joint" type="fixed">
+    <origin xyz="0 -${depth/2-wall_thickness/2} ${height/2-wall_thickness/2}" rpy="${pi/2} 0 0"/>
+    <parent link="${prefix}_bottom_plane"/>
+    <child link="${prefix}_front_plane"/>
+  </joint>
+</xacro:macro>
+
+<xacro:macro name="handle" params="length">
+<link name="handle">
+  <inertial>
+    <origin rpy="0 0 0" xyz="0 0 0"/>
+    <mass value="0.02"/>
+    <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+  </inertial>
+  <collision>
+    <origin rpy="0 0 0" xyz="0 0 0"/>
+    <geometry>
+      <cylinder radius="0.01" length="${length}"/>
+    </geometry>
+  </collision>
+  <visual>
+    <origin rpy="0 0 0" xyz="0 0 0"/>
+    <geometry>
+      <cylinder radius="0.01" length="${length}"/>
+    </geometry>
+    <material name="silver"/>
+  </visual>
+</link>
+</xacro:macro>
+
+</robot>
+

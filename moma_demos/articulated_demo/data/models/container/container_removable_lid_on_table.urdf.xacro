@@ -1,0 +1,81 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="container_no_lid">
+
+<xacro:include filename="container_common.xacro"/>
+
+<link name="base_link">
+  <inertial>
+    <origin rpy="0 0 0" xyz="0 0 0"/>
+    <mass value="0.0"/>
+    <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+  </inertial>
+</link>
+
+<link name="table_link">
+  <contact>
+    <lateral_friction value="1.0"/>
+  </contact>
+  <inertial>
+    <origin rpy="0 0 0" xyz="0 0 0"/>
+    <mass value="10.0"/>
+    <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+  </inertial>
+  <visual>
+    <origin rpy="0 0 0" xyz="0 0 0.6"/>
+    <geometry>
+      <mesh filename="table.obj" scale="1.5 0.4 0.05"/>
+    </geometry>
+    <material name="white">
+      <color rgba="1 1 1 1"/>
+    </material>
+  </visual>
+  <collision>
+    <origin rpy="0 0 0" xyz="0 0 0.3125"/>
+    <geometry>
+      <box size="1.5 0.4 0.625"/>
+    </geometry>
+  </collision>
+  <visual>
+    <origin rpy="0 0 0" xyz="-0.65 -0.2 0.29"/>
+    <geometry>
+      <mesh filename="table.obj" scale="0.1 0.02 0.58"/>
+    </geometry>
+    <material name="framemat0"/>
+  </visual>
+  <visual>
+    <origin rpy="0 0 0" xyz="-0.65 0.2 0.29"/>
+    <geometry>
+      <mesh filename="table.obj" scale="0.1 0.02 0.58"/>
+    </geometry>
+    <material name="framemat0"/>
+  </visual>
+  <visual>
+    <origin rpy="0 0 0" xyz="0.65 -0.2 0.29"/>
+    <geometry>
+      <mesh filename="table.obj" scale="0.1 0.02 0.58"/>
+    </geometry>
+    <material name="framemat0"/>
+  </visual>
+  <visual>
+    <origin rpy="0 0 0" xyz="0.65 0.2 0.29"/>
+    <geometry>
+      <mesh filename="table.obj" scale="0.1 0.02 0.58"/>
+    </geometry>
+  </visual>
+</link>
+
+<joint name="table_joint" type="fixed">
+  <origin xyz="0 0 0" rpy="0 0 0"/>
+  <parent link="base_link"/>
+  <child link="table_link"/>
+</joint>
+
+<xacro:corpus prefix="frame" width="${total_width}" depth="${total_depth}" height="${total_height-wall_thickness}" wall_thickness="${wall_thickness}" color="dark_brown"/>
+<joint name="frame_joint" type="fixed">
+  <origin xyz="0 0 ${wall_thickness/2+0.625}" rpy="0 0 0"/>
+  <parent link="table_link"/>
+  <child link="frame_bottom_plane"/>
+</joint>
+
+
+</robot>
