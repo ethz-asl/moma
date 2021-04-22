@@ -1,5 +1,7 @@
 ## DOOR OPENING POCEDURE ON THE REAL ROBOT
 
+The code was tested using ROS Melodic on Ubuntu 18.04
+
 1. Clone the branch into 'catkin_ws/src' with:
 ```
 git clone --recursive -b projects/door_opening https://github.com/ethz-asl/moma.git
@@ -31,9 +33,10 @@ catkin build ridgeback_control
 sudo apt-get install ros-melodic-interactive-marker-twist-server
 catkin build royalpanda_moveit_config
 
+```
+
 ## STEPS TO RUN THE CODE ON THE REAL ROBOT:
 
-The code was tested using ROS Melodic on Ubuntu 18.04
 
 1. Build the "door_opening_on_real_robot_demo" package on the Franka computer and on the personal computer. 
 The ROS control plugin and the ROS services have to run on the Franka computer whereas the script for the state machine should run on the personal computer due to use of the third party libraries. 
