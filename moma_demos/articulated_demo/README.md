@@ -17,7 +17,7 @@ Furthermore, the package `robot_control` requires Pinocchio to build, so install
 In a ROS Noetic workspace `test_ws/src`, clone some repos recursively, i.e. using the following commands:
 
 ```bash
-git clone --recursive -b projects/articulated-mechanisms https://github.com/ethz-asl/moma.git
+git clone --recursive -b projects/door_opening https://github.com/ethz-asl/moma.git
 git clone https://bitbucket.org/traclabs/trac_ik
 git clone --recursive -b cartesian-velocity-controller https://github.com/ethz-asl/robot_control.git
 ```
