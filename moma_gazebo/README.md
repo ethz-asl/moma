@@ -8,7 +8,7 @@ The code is tested using ROS melodic on Ubuntu 18.04.
 
 1. Clone the branch into 'catkin_ws/src' with:
 ```
-git clone --recursive -b projects/articulated-mechanisms-dev https://github.com/ethz-asl/moma.git
+git clone --recursive -b projects/door_opening https://github.com/ethz-asl/moma.git
 ```
 and run:
 
