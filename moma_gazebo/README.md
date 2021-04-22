@@ -6,7 +6,11 @@ Launch files, models, worlds and door opening procedure implementation for Gazeb
 
 The code is tested using ROS melodic on Ubuntu 18.04.
 
-1. After cloning the branch run:
+1. After cloning the branch with
+```
+git clone --recursive -b projects/articulated-mechanisms-dev https://github.com/ethz-asl/moma.git
+```
+run:
 
 ```
 git submodule update --init
