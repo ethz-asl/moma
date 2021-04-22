@@ -6,8 +6,6 @@ import math
 from highlevel_planning.tools.door_opening_util import *
 
 from highlevel_planning.sim.direction_estimators.direction_estimation import SkillUnconstrainedDirectionEstimation
-from sklearn.gaussian_process import GaussianProcessRegressor
-from scipy.stats import norm
 
 EPS = 1e-6
 DEBUG = True
