@@ -3,10 +3,6 @@
   <name>door_opening_on_real_robot_demo</name>
   <version>0.7.1</version>
   <description>Custom joint velocity controller for Royal Panda robot</description>
-<<<<<<< HEAD:panda_test/package.xml
-=======
-
->>>>>>> origin/projects/articulated-mechanisms-dev:moma_demos/door_opening_on_real_robot_demo/package.xml
   <maintainer email="mamarko@student.ethz.ch">Marko Maljkovic</maintainer>
   <license>Apache 2.0</license>
 
