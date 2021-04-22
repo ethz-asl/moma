@@ -6,11 +6,11 @@ Launch files, models, worlds and door opening procedure implementation for Gazeb
 
 The code is tested using ROS melodic on Ubuntu 18.04.
 
-1. After cloning the branch with
+1. Clone the branch into 'catkin_ws/src' with:
 ```
 git clone --recursive -b projects/articulated-mechanisms-dev https://github.com/ethz-asl/moma.git
 ```
-run:
+and run:
 
 ```
 git submodule update --init
@@ -21,8 +21,24 @@ to make sure that all submodules are up to date and
 ```
 to make sure that you have all required packages on your machine.
 
-2. Run:
+2. Install 'catkin_simple' package:
 
+```
+cd catkin_ws/src
+git clone git@github.com:catkin/catkin_simple.git
+cd catkin_ws
+catkin build catkin_simple
+```
+3. Install other required packages:
+
+```
+sudo apt-get install ros-melodic-lms1xx
+catkin build ridgeback_control
+sudo apt-get install ros-melodic-interactive-marker-twist-server
+catkin build royalpanda_moveit_config
+```
+
+4. Run
 ```
 catkin build moma_gazebo
 ```
