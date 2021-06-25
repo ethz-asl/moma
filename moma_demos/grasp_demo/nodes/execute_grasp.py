@@ -100,10 +100,6 @@ class GraspExecutionAction(object):
             T_base_pregrasp.to_list(), max_velocity_scaling=self._arm_velocity_scaling
         )
 
-        self._robot_arm.goto_joint_target(
-            self._ready_joints, max_velocity_scaling=self._arm_velocity_scaling
-        )
-
         grasped_something = self._robot_arm.check_object_grasped()
 
         if not grasped_something:
