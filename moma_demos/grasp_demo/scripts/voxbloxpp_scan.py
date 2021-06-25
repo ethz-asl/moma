@@ -87,7 +87,7 @@ class VoxbloxPPScanAction(ScanAction):
     def execute_cb(self, goal):
         rospy.loginfo("Scanning action was triggered")
 
-        # self._reset_map(EmptyRequest())  # TODO(mbreyer) crashes vpp
+        self._reset_map(EmptyRequest())
 
         self._toggle_integration(SetBoolRequest(data=True))
 
