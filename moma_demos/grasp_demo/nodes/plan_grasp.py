@@ -121,14 +121,8 @@ class GraspSelectionAction(object):
         self.selected_grasp_pub = rospy.Publisher(
             "grasp_pose", PoseStamped, queue_size=10
         )
-
-        self._connect_ridgeback()
-
         self._as.start()
         rospy.loginfo("Grasp selection action server ready")
-
-    def _connect_ridgeback(self):
-        self._base_vel_pub = rospy.Publisher("/cmd_vel", Twist, queue_size=10)
 
     def execute_cb(self, goal_msg):
         grasp_candidates, scores = self.detect_grasps(goal_msg.pointcloud_scene)
@@ -145,23 +139,6 @@ class GraspSelectionAction(object):
         selected_grasp = self.select_grasp(grasp_candidates, scores)
 
         self.visualize_selected_grasp(selected_grasp)
-
-        if self.robot_name == "yumi":
-            # If it's too far right, move the base a bit
-            grasp_y_position = selected_grasp.pose.position.y
-            if grasp_y_position < 0.0:
-                rospy.loginfo("Need to correct position")
-                vel_abs = 0.05
-                frequency = 20.0
-                safety_margin = 0.04
-                vel_msg = Twist(linear=Vector3(0.0, -vel_abs, 0.0))
-                dist_to_move = -grasp_y_position + safety_margin
-                num_steps = int(dist_to_move / vel_abs * frequency)
-                for _ in range(num_steps):
-                    self._base_vel_pub.publish(vel_msg)
-                    rospy.sleep(1.0 / frequency)
-                self._as.set_aborted()
-                return
 
         result = SelectGraspResult(target_grasp_pose=selected_grasp)
         self._as.set_succeeded(result)
@@ -227,7 +204,7 @@ class GraspSelectionAction(object):
         if self.grasp_selection_method == "manual":
             selected_grasp = self.wait_for_user_selection(grasp_candidates)
         elif self.grasp_selection_method == "auto":
-            selected_grasp = self.select_highest_ranked_grasp(grasp_candidates, scores)
+            selected_grasp = self.select_best_grasp(grasp_candidates, scores)
         else:
             raise NotImplementedError(
                 "Grasp selection method {} invalid".format(self.grasp_selection_method)
@@ -259,9 +236,8 @@ class GraspSelectionAction(object):
 
         return selected_grasp_msg
 
-    def select_highest_ranked_grasp(self, grasp_candidates, scores):
+    def select_best_grasp(self, grasp_candidates, scores):
         index = np.argmax(scores)
-
         selected_grasp_msg = PoseStamped()
         selected_grasp_msg.header.stamp = rospy.Time.now()
         selected_grasp_msg.header.frame_id = self.base_frame_id

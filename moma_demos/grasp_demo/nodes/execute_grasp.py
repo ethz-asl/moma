@@ -91,9 +91,16 @@ class GraspExecutionAction(object):
         self._robot_arm.goto_pose_target(
             T_base_grasp.to_list(), max_velocity_scaling=self._arm_velocity_scaling
         )
+        if self._robot_arm.has_error:
+            self._as.set_aborted()
+            return
 
         rospy.loginfo("Grasping")
         self._robot_arm.grasp()
+
+        if self._robot_arm.has_error:
+            self._as.set_aborted()
+            return
 
         rospy.loginfo("Retrieving object")
         self._robot_arm.goto_pose_target(

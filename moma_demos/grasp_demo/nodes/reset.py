@@ -2,7 +2,7 @@
 
 from __future__ import print_function
 
-
+import geometry_msgs.msg
 import rospy
 from std_srvs.srv import Trigger, TriggerResponse
 
@@ -18,6 +18,8 @@ class ResetNode(object):
 
     def reset(self, req):
         rospy.loginfo("Reset")
+        if self.arm.has_error:
+            self.arm.recover()
         self.arm.goto_joint_target(self.home_joints, max_velocity_scaling=0.2)
         return TriggerResponse()
 
