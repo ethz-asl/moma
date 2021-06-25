@@ -3,10 +3,7 @@
 from __future__ import print_function
 
 import copy
-import sys
 
-from actionlib import SimpleActionServer
-import numpy as np
 from geometry_msgs.msg import TransformStamped
 import rospy
 from sensor_msgs.msg import PointCloud2
