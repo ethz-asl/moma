@@ -49,8 +49,8 @@
     <node pkg="grasp_demo" type="reset.py" name="reset" ns="manipulator" output="screen"/>
     <node pkg="grasp_demo" type="reconstruct_scene.py" name="scan_action_node" args="$(arg semantic)" ns="manipulator" output="screen" />
     <node pkg="grasp_demo" type="plan_grasp.py" name="plan_grasp" args="$(arg robot_name) $(arg detect_grasps_with)" ns="manipulator" output="screen"/>
-    <node pkg="grasp_demo" type="execute_grasp.py" name="execute_grasp" args="$(arg robot_name)" ns="manipulator" output="screen"/>
-    <node pkg="grasp_demo" type="drop_object.py" name="drop_object" args="$(arg robot_name)" ns="manipulator" output="screen"/>
+    <node pkg="grasp_demo" type="execute_grasp.py" name="execute_grasp" ns="manipulator" output="screen"/>
+    <node pkg="grasp_demo" type="drop_object.py" name="drop_object" ns="manipulator" output="screen"/>
 
     <!-- Open rviz if desired -->
     <node if="$(arg launch_rviz)" type="rviz" name="rviz" pkg="rviz" args="-d $(find grasp_demo)/config/$(arg robot_name)/rviz.rviz" ns="manipulator"/>
