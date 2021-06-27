@@ -52,11 +52,6 @@ class SimpleScanAction(ScanAction):
             cloud = self.capture_point_cloud()
             captured_clouds.append(cloud)
 
-        # Move home
-        self._robot_arm.goto_joint_target(
-            self._ready_joint_values, max_velocity_scaling=0.4
-        )
-
         # Stitch the cloud
         cloud = self.stitch_point_clouds(captured_clouds)
 

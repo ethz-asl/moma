@@ -1,124 +1,79 @@
 #!/usr/bin/env python
-import sys
 
-from geometry_msgs.msg import PoseStamped
 from actionlib import SimpleActionServer
-from moveit_commander.conversions import pose_to_list
+from geometry_msgs.msg import PoseStamped
 import numpy as np
 import rospy
-from scipy.spatial.transform import Rotation
 
 from grasp_demo.msg import GraspAction, GraspResult
-from grasp_demo.utils import create_robot_connection
-
-from moma_utils.transform import Transform
+from moma_utils.ros.conversions import from_pose_msg, to_pose_stamped_msg
+from moma_utils.ros.moveit import MoveItClient
+from moma_utils.ros.panda import PandaArmClient, PandaGripperClient
+from moma_utils.spatial import Transform
 
 
 class GraspExecutionAction(object):
-    """
-        Execute a grasp specified by the action goal using MoveIt.
+    """Execute a grasp specified by the action goal using MoveIt.
     """
 
     def __init__(self):
-        self.robot_name = sys.argv[1]
         self._load_parameters()
-        self._connect_robot()
+        self.arm = PandaArmClient()
+        self.gripper = PandaGripperClient()
+        self.moveit = MoveItClient("panda_arm")
 
-        self._as = SimpleActionServer(
+        self.pregrasp_pub = rospy.Publisher("pregrasp_pose", PoseStamped, queue_size=10)
+
+        self.action_server = SimpleActionServer(
             "grasp_execution_action",
             GraspAction,
             execute_cb=self.execute_cb,
             auto_start=False,
         )
+        self.action_server.start()
 
-        self.pregrasp_pub = rospy.Publisher("pregrasp_pose", PoseStamped, queue_size=10)
-
-        self._as.start()
         rospy.loginfo("Grasp action server ready")
 
-    def _connect_robot(self):
-        full_robot_name = (
-            self.robot_name + "_" + self._robot_arm_names[0]
-            if len(self._robot_arm_names) > 1
-            else self.robot_name
-        )
-        self._robot_arm = create_robot_connection(full_robot_name)
-
     def _load_parameters(self):
-        self._robot_arm_names = rospy.get_param("moma_demo/robot_arm_names")
-        self._ready_joints = rospy.get_param(
-            "moma_demo/ready_joints_" + self._robot_arm_names[0]
-        )
-        self._base_frame_id = rospy.get_param("moma_demo/base_frame_id")
-        self._arm_velocity_scaling = rospy.get_param(
-            "moma_demo/arm_velocity_scaling_grasp"
-        )
-        self._pregrasp_offset_z = rospy.get_param("moma_demo/pregrasp_offset_z")
-        self._grasp_offset_z = rospy.get_param("moma_demo/grasp_offset_z")
+        self.base_frame = rospy.get_param("moma_demo/base_frame_id")
+        self.velocity_scaling = rospy.get_param("moma_demo/arm_velocity_scaling_grasp")
+        self.pregrasp_offset_z = rospy.get_param("moma_demo/pregrasp_offset_z")
+        self.grasp_offset_z = rospy.get_param("moma_demo/grasp_offset_z")
 
-    def execute_cb(self, goal_msg):
+    def execute_cb(self, goal):
         rospy.loginfo("Received grasp pose")
-
-        grasp_pose_msg = goal_msg.target_grasp_pose.pose
-        grasp_pose_msg_list = pose_to_list(grasp_pose_msg)
-        T_base_grasp = Transform(
-            Rotation.from_quat(grasp_pose_msg_list[3:]), grasp_pose_msg_list[:3]
-        )
-        T_grasp_offset = Transform(
-            Rotation.from_quat([0.0, 0.0, 0.0, 1.0]),
-            np.array([0.0, 0.0, self._grasp_offset_z]),
-        )
+        T_base_grasp = from_pose_msg(goal.target_grasp_pose.pose)
+        T_grasp_offset = Transform.translation([0.0, 0.0, self.grasp_offset_z])
         T_base_grasp = T_base_grasp * T_grasp_offset
-
-        T_grasp_pregrasp = Transform(
-            Rotation.from_quat([0.0, 0.0, 0.0, 1.0]),
-            np.array([0.0, 0.0, self._pregrasp_offset_z]),
-        )
+        T_grasp_pregrasp = Transform.translation([0.0, 0.0, self.pregrasp_offset_z])
         T_base_pregrasp = T_base_grasp * T_grasp_pregrasp
 
-        msg = T_base_pregrasp.to_pose_stamped(self._base_frame_id)
-        self.pregrasp_pub.publish(msg)
+        # Visualize pre-grasp pose
+        self.pregrasp_pub.publish(to_pose_stamped_msg(T_base_pregrasp, self.base_frame))
 
-        rospy.loginfo("Opening hand")
-        self._robot_arm.release()
+        self.gripper.release()
+        self.moveit.goto(T_base_pregrasp, velocity_scaling=self.velocity_scaling)
+        self.moveit.goto(T_base_grasp, velocity_scaling=self.velocity_scaling)
 
-        rospy.loginfo("Moving to pregrasp pose")
-        self._robot_arm.goto_pose_target(
-            T_base_pregrasp.to_list(), max_velocity_scaling=self._arm_velocity_scaling
-        )
-
-        rospy.loginfo("Moving to grasp pose")
-        self._robot_arm.goto_pose_target(
-            T_base_grasp.to_list(), max_velocity_scaling=self._arm_velocity_scaling
-        )
-        if self._robot_arm.has_error:
-            self._as.set_aborted()
+        if self.arm.has_error:
+            self.action_server.set_aborted()
             return
 
-        rospy.loginfo("Grasping")
-        self._robot_arm.grasp()
+        self.gripper.grasp()
 
-        if self._robot_arm.has_error:
-            self._as.set_aborted()
+        if self.arm.has_error:
+            self.action_server.set_aborted()
             return
 
-        rospy.loginfo("Retrieving object")
-        self._robot_arm.goto_pose_target(
-            T_base_pregrasp.to_list(), max_velocity_scaling=self._arm_velocity_scaling
-        )
+        self.moveit.goto(T_base_pregrasp, velocity_scaling=self.velocity_scaling)
 
-        grasped_something = self._robot_arm.check_object_grasped()
-
-        if not grasped_something:
-            self._as.set_aborted()
+        if self.gripper.read() > 0.01:
+            self.action_server.set_succeeded(GraspResult())
         else:
-            self._as.set_succeeded(GraspResult())
+            self.action_server.set_aborted()
 
 
 if __name__ == "__main__":
-    try:
-        rospy.init_node("grasp_execution_node")
-        GraspExecutionAction()
-        rospy.spin()
-    except rospy.ROSInterruptException:
-        pass
+    rospy.init_node("grasp_execution_node")
+    GraspExecutionAction()
+    rospy.spin()

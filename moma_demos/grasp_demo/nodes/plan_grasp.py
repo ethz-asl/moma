@@ -7,7 +7,6 @@ from geometry_msgs.msg import *
 from gpd_ros.msg import GraspConfigList
 import rospy
 from sensor_msgs.msg import PointCloud2
-from scipy.spatial.transform import Rotation
 import tf
 import tf2_ros
 import ros_numpy
@@ -18,8 +17,8 @@ from vgn.detection import *
 from vgn.networks import *
 from vpp_msgs.srv import GetMap
 from grasp_demo.msg import SelectGraspAction, SelectGraspResult
-from moma_utils.transform import Transform, Rotation
-from moma_utils.ros_conversions import *
+from moma_utils.spatial import Transform, Rotation
+from moma_utils.ros.conversions import *
 
 from geometry_msgs.msg import Vector3, Twist
 
@@ -250,9 +249,6 @@ class GraspSelectionAction(object):
 
 
 if __name__ == "__main__":
-    try:
-        rospy.init_node("grasp_selection_action_node")
-        GraspSelectionAction()
-        rospy.spin()
-    except rospy.ROSInterruptException:
-        pass
+    rospy.init_node("grasp_selection_action_node")
+    GraspSelectionAction()
+    rospy.spin()
