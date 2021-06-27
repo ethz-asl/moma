@@ -33,3 +33,7 @@ Or alternatively, to run the demo continuously, use
 ```
 rosrun grasp_demo run_plan.py __ns:=manipulator
 ```
+
+## To Do
+
+- [ ] Semantic grasp selection

@@ -2,8 +2,9 @@
 
 from __future__ import print_function
 
-import copy
+import argparse
 
+from actionlib import SimpleActionServer
 from geometry_msgs.msg import TransformStamped
 import rospy
 from sensor_msgs.msg import PointCloud2
@@ -12,70 +13,59 @@ import tf
 from tf2_sensor_msgs.tf2_sensor_msgs import do_transform_cloud
 
 from grasp_demo.msg import ScanSceneAction, ScanSceneResult
-from grasp_demo.utils import create_robot_connection
-
-from voxbloxpp_scan import ScanAction
+from moma_utils.ros.moveit import MoveItClient
 
 
-class SimpleScanAction(ScanAction):
-    """Move robot to a set of predefined scan poses and stitch together the captured point clouds."""
+class ReconstructSceneNode(object):
+    """Reconstruct scene moving the camera along a fixed trajectory.
+    
+    The reconstruction can either done with Voxblox++ or via simple point cloud stitching.
+    """
 
-    def __init__(self):
-        super(SimpleScanAction, self).__init__()
+    def __init__(self, semantic):
+        self.moveit = MoveItClient("panda_arm")
+        self.scan_joints = rospy.get_param("moma_demo/scan_joints_arm")
 
-        self.base_frame_id = rospy.get_param("moma_demo/base_frame_id")
+        if semantic:
+            execute_cb = self.reconstruct_semantic_scene
+        else:
+            execute_cb = self.reconstruct_scene
+            self.base_frame_id = rospy.get_param("moma_demo/base_frame_id")
+            self.listener = tf.TransformListener()
+            self.cloud_pub = rospy.Publisher("~cloud", PointCloud2, queue_size=1)
 
-        self.listener = tf.TransformListener()
-        self.latest_cloud_data = None
+        self.action_server = SimpleActionServer(
+            "scan_action", ScanSceneAction, execute_cb=execute_cb, auto_start=False
+        )
+        self.action_server.start()
+        rospy.loginfo("Scan action server ready")
 
-        rospy.Subscriber("/camera/depth/color/points", PointCloud2, self.point_cloud_cb)
-        self.cloud_pub = rospy.Publisher("~cloud", PointCloud2, queue_size=1)
-
-    def point_cloud_cb(self, data):
-        self.latest_cloud_data = copy.deepcopy(data)
-
-    def execute_cb(self, goal):
-        rospy.loginfo("Scanning action was triggered")
-
-        # Capture clouds from multiple viewpoints
+    def reconstruct_scene(self, goal):
+        rospy.loginfo("Stitching point clouds")
         captured_clouds = []
-        for joints in self._scan_joints:
-            if self._as.is_preempt_requested():
-                rospy.loginfo("Got preempted")
-                self._as.set_preempted()
+        for joints in self.scan_joints:
+            if self.action_server.is_preempt_requested():
+                self.action_server.set_preempted()
                 return
 
-            self._robot_arm.goto_joint_target(
-                joints, max_acceleration_scaling=0.2, max_velocity_scaling=0.4
-            )
+            self.moveit.goto(joints, velocity_scaling=0.4, acceleration_scaling=0.2)
             rospy.sleep(0.5)
-            cloud = self.capture_point_cloud()
-            captured_clouds.append(cloud)
+            cloud_msg = rospy.wait_for_message(
+                "/camera/depth/color/points", PointCloud2
+            )
+            cloud_msg = self._transform_pointcloud(cloud_msg)
+            captured_clouds.append(cloud_msg)
 
-        # Stitch the cloud
-        cloud = self.stitch_point_clouds(captured_clouds)
-
-        # Publish stitched cloud for visualization only
+        cloud = self._stitch_point_clouds(captured_clouds)
         self.cloud_pub.publish(cloud)
 
         result = ScanSceneResult(pointcloud_scene=cloud)
-        self._as.set_succeeded(result)
-        rospy.loginfo("Scan scene action succeeded")
+        self.action_server.set_succeeded(result)
 
-    def capture_point_cloud(self):
-        self.latest_cloud_data = None
-        rospy.sleep(0.1)  # wait for the latest point cloud to be published
+    def reconstruct_semantic_scene(self, goal):
+        pass
 
-        if self.latest_cloud_data is None:
-            rospy.logwarn("Didn't receive any pointcloud data yet.")
-            return None
-
-        point_cloud_msg = self.transform_pointcloud(self.latest_cloud_data)
-        rospy.loginfo("Captured point cloud")
-
-        return point_cloud_msg
-
-    def transform_pointcloud(self, msg):
+    def _transform_pointcloud(self, msg):
         frame = msg.header.frame_id
         translation, rotation = self.listener.lookupTransform(
             self.base_frame_id, frame, rospy.Time()
@@ -93,17 +83,24 @@ class SimpleScanAction(ScanAction):
         transformed_msg.header.frame_id = self.base_frame_id
         return transformed_msg
 
-    def stitch_point_clouds(self, clouds):
+    def _stitch_point_clouds(self, clouds):
         points_out = []
         for cloud in clouds:
             points_out += list(read_points(cloud))
         return create_cloud(cloud.header, cloud.fields, points_out)
 
 
+def create_parser():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--semantic", type=str)
+    return parser
+
+
+def main():
+    rospy.init_node("scan_action_node")
+    ReconstructSceneNode(False)
+    rospy.spin()
+
+
 if __name__ == "__main__":
-    try:
-        rospy.init_node("scan_action_node")
-        SimpleScanAction()
-        rospy.spin()
-    except rospy.ROSInterruptException:
-        pass
+    main()

@@ -9,8 +9,8 @@ from sensor_msgs.msg import JointState
 
 class PandaArmClient:
     def __init__(self):
-        self._init_state_callbacks()
         self._init_recovery()
+        self._init_state_callbacks()
         rospy.loginfo("Panda arm ready")
 
     def get_state(self):
@@ -33,10 +33,10 @@ class PandaArmClient:
         )
 
     def _init_recovery(self):
+        self.has_error = False
         self.recovery_client = actionlib.SimpleActionClient(
             "franka_control/error_recovery", ErrorRecoveryAction
         )
-        self.has_error = False
 
     def _joint_state_cb(self, msg):
         self._joint_state_msg = msg

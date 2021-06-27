@@ -52,8 +52,9 @@ class GraspExecutionAction(object):
         self.pregrasp_pub.publish(to_pose_stamped_msg(T_base_pregrasp, self.base_frame))
 
         self.gripper.release()
-        self.moveit.goto(T_base_pregrasp, velocity_scaling=self.velocity_scaling)
-        self.moveit.goto(T_base_grasp, velocity_scaling=self.velocity_scaling)
+        self.moveit.goto("ready", self.velocity_scaling)
+        self.moveit.goto(T_base_pregrasp, self.velocity_scaling)
+        self.moveit.goto(T_base_grasp, self.velocity_scaling)
 
         if self.arm.has_error:
             self.action_server.set_aborted()
@@ -65,7 +66,7 @@ class GraspExecutionAction(object):
             self.action_server.set_aborted()
             return
 
-        self.moveit.goto(T_base_pregrasp, velocity_scaling=self.velocity_scaling)
+        self.moveit.goto(T_base_pregrasp, self.velocity_scaling)
 
         if self.gripper.read() > 0.01:
             self.action_server.set_succeeded(GraspResult())
