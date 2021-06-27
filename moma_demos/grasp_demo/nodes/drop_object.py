@@ -40,7 +40,6 @@ class DropActionNode(object):
         pos[2] -= 0.2
 
         self.moveit.goto(Transform(ori, pos), velocity_scaling=self.velocity_scaling)
-        rospy.sleep(2.0)
         self.gripper.release()
         self.action_server.set_succeeded(DropResult())
 

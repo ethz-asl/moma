@@ -21,11 +21,13 @@ class ResetNode(object):
 
     def create_planning_scene(self):
         # Add a collision box for the table
+        table_height = rospy.get_param("moma_demo/table_height")
+        safety_margin = 0.01
         msg = geometry_msgs.msg.PoseStamped()
         msg.header.frame_id = "panda_link0"
         msg.pose.position.x = 0.4
         msg.pose.position.y = 0.0
-        msg.pose.position.z = 0.06
+        msg.pose.position.z = table_height - 0.01 + safety_margin
         self.moveit.scene.add_box("table", msg, size=(0.6, 0.6, 0.02))
 
     def reset(self, req):
