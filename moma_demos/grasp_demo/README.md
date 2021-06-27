@@ -40,6 +40,7 @@ rosrun grasp_demo run_plan.py __ns:=manipulator
 ## Troubleshooting
 
 - Make sure that `ROS_MASTER_URI` is properly set in all terminal sessions.
+- Restart the ROS core.
 
 ## To Do
 

@@ -10,7 +10,7 @@ import rospy
 from sensor_msgs.msg import PointCloud2
 from sensor_msgs.point_cloud2 import read_points, create_cloud
 from std_srvs.srv import Empty, EmptyRequest, SetBool, SetBoolRequest
-import tf
+import tf2_ros
 from tf2_sensor_msgs.tf2_sensor_msgs import do_transform_cloud
 
 
@@ -43,9 +43,10 @@ class ReconstructSceneNode(object):
 
         else:
             execute_cb = self.reconstruct_scene
-            self.base_frame_id = rospy.get_param("moma_demo/base_frame_id")
-            self.listener = tf.TransformListener()
+            self.base_frame = rospy.get_param("moma_demo/base_frame_id")
             self.cloud_pub = rospy.Publisher("~cloud", PointCloud2, queue_size=1)
+            self.tf_buffer = tf2_ros.Buffer()
+            self.tf_listener = tf2_ros.TransformListener(self.tf_buffer)
 
         self.action_server = SimpleActionServer(
             "scan_action", ScanSceneAction, execute_cb=execute_cb, auto_start=False
@@ -92,23 +93,15 @@ class ReconstructSceneNode(object):
         self.acion_server.set_succeeded(result)
         rospy.loginfo("Scan scene action succeeded")
 
-    def _transform_pointcloud(self, msg):
-        frame = msg.header.frame_id
-        translation, rotation = self.listener.lookupTransform(
-            self.base_frame_id, frame, rospy.Time()
+    def _transform_pointcloud(self, cloud_msg):
+        frame = cloud_msg.header.frame_id
+        stamp = cloud_msg.header.stamp
+        transform = self.tf_buffer.lookup_transform(
+            self.base_frame, frame, stamp, rospy.Duration(0.2)
         )
-        transform_msg = TransformStamped()
-        transform_msg.transform.translation.x = translation[0]
-        transform_msg.transform.translation.y = translation[1]
-        transform_msg.transform.translation.z = translation[2]
-        transform_msg.transform.rotation.x = rotation[0]
-        transform_msg.transform.rotation.y = rotation[1]
-        transform_msg.transform.rotation.z = rotation[2]
-        transform_msg.transform.rotation.w = rotation[3]
-        transformed_msg = do_transform_cloud(msg, transform_msg)
-        transformed_msg.header = msg.header
-        transformed_msg.header.frame_id = self.base_frame_id
-        return transformed_msg
+        transformed_cloud_msg = do_transform_cloud(cloud_msg, transform)
+        transformed_cloud_msg.header.frame_id = self.base_frame
+        return transformed_cloud_msg
 
     def _stitch_point_clouds(self, clouds):
         points_out = []
