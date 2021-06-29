@@ -8,7 +8,7 @@
     <!-- Choose whether to use voxblox++ for semantic scene reconstruction and grasp selection -->
     <arg name="semantic" default="false"/>
     <arg name="detect_grasps_with" default="gpd" />
-    <arg name="launch_rviz" default="true"/>
+    <arg name="launch_rviz" default="false"/>
     <!-- Simulation mode (when set to true, the demo is run in Gazebo) -->
     <arg name="simulation_mode" default="false"/>
 
