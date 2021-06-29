@@ -35,5 +35,4 @@ rosrun grasp_demo run_plan.py __ns:=manipulator
 
 ## To Do
 
-- [ ] Test voxblox++
 - [ ] Semantic grasp selection

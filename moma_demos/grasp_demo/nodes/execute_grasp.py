@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 
+import sys
+
 from actionlib import SimpleActionServer
 from geometry_msgs.msg import PoseStamped
-import numpy as np
 import rospy
 
 from grasp_demo.msg import GraspAction, GraspResult

@@ -1,4 +1,3 @@
-
 robot_arm_names: ["arm"]
 
 scan_joints_arm: 
@@ -16,9 +15,9 @@ base_frame_id: "panda_link0"
 arm_velocity_scaling_drop: 0.3
 arm_velocity_scaling_grasp: 0.2
 
-pregrasp_offset_z: -0.05
-#  grasp_offset_z: -0.02    # This is for gpd
-grasp_offset_z: 0.05  # TODO this is tuned for VGN where grasps are defined at the palm of the hand
+table_height: 0.04   # Measured from the base frame specified above
 
 grasp_selection_method: "auto"    # choice: manual, auto
-table_height: 0.04   # Measured from the base frame specified above
+pregrasp_offset_z: -0.05
+grasp_offset_z: 0.05  # grasp frame is defined at the gripper's palm
+

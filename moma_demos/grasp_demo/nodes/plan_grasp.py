@@ -102,6 +102,8 @@ class PlanGraspNode(object):
         )
         self.T_panda_link0_task = from_transform_msg(msg.transform)
 
+        vis.draw_workspace(0.3)
+
     def _detect_grasps_with_vgn(self, cloud):
         voxel_size = 0.0075
         map_cloud = self.get_map_srv().map_cloud
@@ -217,12 +219,11 @@ def grasp_config_list_to_pose_array(grasp_config_list):
             # X-axis pointing in negative direction, rotating around Z axis
             rot = rot * Rotation.from_euler("z", 180, degrees=True)
 
-        # GPD defines points at the hand palm, not the fingertip
-        hand_depth = 0.06
-        position = from_point_msg(grasp.position)
-        position += rot.apply([0.0, 0.0, hand_depth])
-        pose_msg = to_pose_msg(Transform(rot, position))
-        pose_array_msg.poses.append(pose_msg)
+        msg = Pose()
+        msg.orientation = to_quat_msg(rot)
+        msg.position = grasp.position
+
+        pose_array_msg.poses.append(msg)
         scores.append(grasp.score)
 
     return pose_array_msg, scores
