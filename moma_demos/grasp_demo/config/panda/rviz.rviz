@@ -28,7 +28,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: Realsense cloud
+    SyncSource: Stitched cloud
   - Class: control_gui/ButtonPanel
     Name: Mission Control
 Preferences:
@@ -393,7 +393,7 @@ Visualization Manager:
       Queue Size: 10
       Selectable: true
       Size (Pixels): 5
-      Size (m): 0.0020000000949949026
+      Size (m): 0.004000000189989805
       Style: Spheres
       Topic: scan_action_node/cloud
       Unreliable: false
@@ -645,7 +645,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 1.7920000553131104
+      Distance: 1.9206628799438477
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -660,10 +660,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.19039881229400635
+      Pitch: 0.18039880692958832
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 5.428623676300049
+      Yaw: 5.493623733520508
     Saved: ~
 Window Geometry:
   Displays:
