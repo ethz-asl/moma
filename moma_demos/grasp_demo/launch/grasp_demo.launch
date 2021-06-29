@@ -19,6 +19,9 @@
 
     <!-- Launch camera -->
     <include file="$(find realsense2_camera)/launch/rs_camera.launch" unless="$(arg simulation_mode)">
+        <arg name="depth_width" value="640"/>
+        <arg name="depth_height" value="480"/>
+        <arg name="depth_fps" value="30"/>
         <arg name="enable_pointcloud" value="true"/>
         <arg name="filters" value="temporal"/>
         <arg name="tf_prefix" value="wrist_camera"/>
