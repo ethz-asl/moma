@@ -84,8 +84,10 @@ class PlanGraspNode(object):
         return grasps, scores
 
     def _init_vgn(self):
-        self.static_broadcaster = tf2_ros.StaticTransformBroadcaster()
-        rospy.sleep(0.5)
+        rospy.sleep(
+            2.0
+        )  # wait for the static transform to be broadcasted from the reset node
+
         self.get_map_srv = rospy.ServiceProxy("/gsm_node/get_map", GetMap)
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.net = ConvNet()
@@ -93,16 +95,12 @@ class PlanGraspNode(object):
         self.net.load_state_dict(torch.load(model_path, map_location=self.device))
         self.detect_grasps = self._detect_grasps_with_vgn
 
-        # Define task space
-        self.T_panda_link0_task = Transform(
-            Rotation.identity(), np.r_[0.27, -0.13, 0.15]
+        self.tf_buffer = tf2_ros.Buffer()
+        self.tf_listener = tf2_ros.TransformListener(self.tf_buffer)
+        msg = self.tf_buffer.lookup_transform(
+            "panda_link0", "task", rospy.Time(), rospy.Duration(2.0)
         )
-        msg = TransformStamped()
-        msg.header.stamp = rospy.Time.now()
-        msg.header.frame_id = "panda_link0"
-        msg.child_frame_id = "task"
-        msg.transform = to_transform_msg(self.T_panda_link0_task)
-        self.static_broadcaster.sendTransform(msg)
+        self.T_panda_link0_task = from_transform_msg(msg.transform)
 
     def _detect_grasps_with_vgn(self, cloud):
         voxel_size = 0.0075
