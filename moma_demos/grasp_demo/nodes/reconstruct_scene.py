@@ -90,7 +90,8 @@ class ReconstructSceneNode(object):
         # TODO(mbreyer) check frame of point cloud
 
         result = ScanSceneResult(pointcloud_scene=cloud)
-        self.acion_server.set_succeeded(result)
+
+        self.action_server.set_succeeded(result)
         rospy.loginfo("Scan scene action succeeded")
 
     def _transform_pointcloud(self, cloud_msg):
