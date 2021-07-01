@@ -54,25 +54,28 @@ class GraspExecutionAction(object):
 
         self.gripper.release()
         self.moveit.goto("ready", self.velocity_scaling)
+        if self.arm.has_error:
+            self.arm.recover()
         self.moveit.goto(T_base_pregrasp, self.velocity_scaling)
         self.moveit.goto(T_base_grasp, self.velocity_scaling)
 
         if self.arm.has_error:
-            self.action_server.set_aborted()
+            self.arm.recover()
             return
 
         self.gripper.grasp()
 
         if self.arm.has_error:
-            self.action_server.set_aborted()
+            self.arm.recover()
             return
 
         self.moveit.goto(T_base_pregrasp, self.velocity_scaling)
 
         if self.gripper.read() > 0.01:
-            self.action_server.set_succeeded(GraspResult())
+            rospy.loginfo("Object grasped successfully")
         else:
-            self.action_server.set_aborted()
+            rospy.logwarn("Nothing detected in gripper")
+        self.action_server.set_succeeded(GraspResult())
 
 
 if __name__ == "__main__":

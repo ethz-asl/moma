@@ -29,7 +29,7 @@ class ResetNode(object):
         safety_margin = 0.01
         msg = geometry_msgs.msg.PoseStamped()
         msg.header.frame_id = "panda_link0"
-        msg.pose.position.x = 0.4
+        msg.pose.position.x = 0.5
         msg.pose.position.y = 0.0
         msg.pose.position.z = table_height - 0.01 + safety_margin
         self.moveit.scene.add_box("table", msg, size=(0.6, 0.6, 0.02))
@@ -49,8 +49,9 @@ class ResetNode(object):
     def reset(self, req):
         if self.arm.has_error:
             self.arm.recover()
-        self.gripper.release()
         self.moveit.goto("ready", velocity_scaling=0.2)
+        self.gripper.home()
+        self.gripper.grasp()
         return TriggerResponse()
 
 

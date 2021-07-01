@@ -16,6 +16,7 @@ from tf2_sensor_msgs.tf2_sensor_msgs import do_transform_cloud
 
 from grasp_demo.msg import ScanSceneAction, ScanSceneResult
 from moma_utils.ros.moveit import MoveItClient
+from moma_utils.ros.panda import PandaArmClient
 from vpp_msgs.srv import GetScenePointcloud, GetScenePointcloudRequest
 
 
@@ -28,6 +29,7 @@ class ReconstructSceneNode(object):
     def __init__(self, semantic):
         self.moveit = MoveItClient("panda_arm")
         self.scan_joints = rospy.get_param("moma_demo/scan_joints_arm")
+        self.arm = PandaArmClient()
 
         if semantic:
             execute_cb = self.reconstruct_semantic_scene
@@ -79,6 +81,8 @@ class ReconstructSceneNode(object):
         self._toggle_integration(SetBoolRequest(data=True))
 
         for joints in self.scan_joints:
+            if self.arm.has_error:
+                self.arm.recover()
             self.moveit.goto(joints, velocity_scaling=0.2, acceleration_scaling=0.2)
             rospy.sleep(1.0)
 

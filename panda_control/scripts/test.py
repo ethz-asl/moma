@@ -1,19 +1,20 @@
 #!/usr/bin/env python
-from panda_control.panda_commander import PandaCommander
 import rospy
+from moma_utils.ros.panda import PandaGripperClient
 
 rospy.init_node("jlfkjaskldfjlk")
-pc = PandaCommander()
+gc = PandaGripperClient()
 
 rospy.loginfo("Got a commander")
+gc.home()
 
 while True:
     res = raw_input("a: close, b: open")
     if res == "a":
-        pc.grasp()
+        gc.grasp()
     elif res == "b":
-        pc.release()
+        gc.release()
     elif res == "s":
-        pc.stop()
+        gc.stop()
     else:
         break

@@ -15,7 +15,7 @@ base_frame_id: "panda_link0"
 arm_velocity_scaling_drop: 0.3
 arm_velocity_scaling_grasp: 0.2
 
-table_height: 0.04   # Measured from the base frame specified above
+table_height: -0.05   # Measured from the base frame specified above
 
 grasp_selection_method: "auto"    # choice: manual, auto
 pregrasp_offset_z: -0.05
