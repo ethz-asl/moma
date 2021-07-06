@@ -1,5 +1,5 @@
 <launch>
-  <arg name="gui" default="true" />
+  <arg name="gui" default="false" />
   <arg name="moveit" default="true" />
   <arg name="rviz" default="true" />
   <arg name="world_name" default="$(find moma_gazebo)/worlds/panda_example.world"/>
@@ -10,7 +10,7 @@
 
   <!-- start gazebo -->
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
-    <arg name="world_name" value="$(arg world_name)"/>
+    <!--arg name="world_name" value="$(arg world_name)"/-->
     <arg name="use_sim_time" value="true" />
     <arg name="paused" value="false" />
     <arg name="gui" value="$(arg gui)" />
@@ -38,6 +38,6 @@
   </include>
 
   <!-- start rviz -->
-  <node if="$(arg rviz)" name="rviz" pkg="rviz" type="rviz" args="-d $(find moma_gazebo)/config/panda_example.rviz" />
+  <node if="$(arg rviz)" name="rviz" pkg="rviz" type="rviz" args="-d $(find moma_gazebo)/config/piloting.rviz" />
 
 </launch>
