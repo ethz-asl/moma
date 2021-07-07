@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+
+	<arg name="start_delay_seconds" default="1.0"/>
+	<arg name="homing_position_name" default="home"/>
+
+    <node name="homing_commander" pkg="moma_moveit_utils" type="home_robot.py" output="screen" respawn="false"     launch-prefix="bash -c 'sleep $(arg start_delay_seconds); $0 $@'">
+      <param name="robot_name" value="$(arg robot_name)"/>
+      <param name="description_name" value="/$(arg robot_name)/moveit_description"/>
+      <param name="arm_group_name" value="arm"/>
+      <param name="homing_position_name" value="$(arg homing_position_name)"/>
+    </node>
+
+</launch>
