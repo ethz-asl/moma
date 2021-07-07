@@ -1,9 +1,7 @@
 <?xml version="1.0"?>
 <launch>
-  <arg name="gui" default="true" />
-  <arg name="moveit" default="true" />
+  <arg name="gui" default="false" />
   <arg name="rviz" default="true" />
-  <arg name="world_name" default="$(find moma_gazebo)/worlds/panda_example.world"/>
   <arg name="panda_z_position" default="0.0"/>
   <arg name="use_fixed_realsense" default="false"/>
 
@@ -11,7 +9,6 @@
 
   <!-- start gazebo -->
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
-    <arg name="world_name" value="$(arg world_name)"/>
     <arg name="use_sim_time" value="true" />
     <arg name="paused" value="true" />
     <arg name="gui" value="$(arg gui)" />
@@ -21,24 +18,21 @@
   <include file="$(find moma_gazebo)/launch/spawn_panda.launch">
     <arg name="z" value="$(arg panda_z_position)"/>
     <arg name="use_fixed_realsense" value="$(arg use_fixed_realsense)"/>
+    <arg name="control_mode" value="Effort"/>
   </include>
 
   <!-- start joint position trajectory controller -->
   <rosparam file="$(find moma_gazebo)/config/panda_controllers.yaml" command="load" />
-  <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="joint_state_controller position_joint_trajectory_controller franka_gripper" />
+  <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="joint_state_controller effort_joint_trajectory_controller franka_gripper" />
 
   <!-- start a robot state publisher -->
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="true" output="screen" />
 
-  <!-- start moveit -->
-  <include file="$(find panda_moveit_config)/launch/planning_context.launch">
-    <arg name="load_robot_description" value="false" />
-  </include>
-  <include if="$(arg moveit)" file="$(find panda_moveit_config)/launch/move_group.launch">
-    <arg name="load_robot_description" value="false" />
-  </include>
+  <node name="unpause_gazebo" pkg="moma_gazebo" type="unpause_gazebo.py">
+    <param name="wait_before_unpause" value="5.0"/>
+  </node>
 
   <!-- start rviz -->
-  <node if="$(arg rviz)" name="rviz" pkg="rviz" type="rviz" args="-d $(find moma_gazebo)/config/panda_example.rviz" />
+  <node if="$(arg rviz)" name="rviz" pkg="rviz" type="rviz" args="-d $(find moma_gazebo)/config/piloting.rviz" />
 
 </launch>

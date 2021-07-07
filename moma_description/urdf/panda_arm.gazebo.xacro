@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="panda">
-  <xacro:macro name="panda_gazebo" params="arm_id include_gazebo_control:=true">
+  <xacro:macro name="panda_gazebo" params="arm_id include_gazebo_control:=true control_mode:='Position'">
 
     <gazebo reference="${arm_id}_link0"/>
     <gazebo reference="${arm_id}_link1"/>
@@ -19,10 +19,9 @@
       <transmission name="${arm_id}_joint${joint_num}_trans">
         <type>transmission_interface/SimpleTransmission</type>
         <joint name="${arm_id}_joint${joint_num}">
-          <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+          <hardwareInterface>hardware_interface/${control_mode}JointInterface</hardwareInterface>
         </joint>
         <actuator name="${arm_id}_joint${joint_num}_motor">
-          <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
           <mechanicalReduction>1</mechanicalReduction>
         </actuator>
       </transmission>

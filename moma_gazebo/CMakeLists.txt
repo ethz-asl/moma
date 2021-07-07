@@ -4,3 +4,6 @@ project(moma_gazebo)
 find_package(catkin_simple REQUIRED)
 
 catkin_simple()
+
+catkin_install_python(PROGRAMS scripts/unpause_gazebo.py
+        DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
