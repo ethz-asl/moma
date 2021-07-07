@@ -21,6 +21,10 @@
     <arg name="control_mode" value="Effort"/>
   </include>
 
+  <!-- description used in mpc -->
+  <param name="robot_description_mpc" command="$(find xacro)/xacro $(find moma_description)/urdf/panda.urdf.xacro use_nominal_extrinsics:=true use_fixed_realsense:=$(arg use_fixed_realsense)
+    control_mode:='Effort'"/>
+
   <!-- start joint position trajectory controller -->
   <rosparam file="$(find moma_gazebo)/config/panda_controllers.yaml" command="load" />
   <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="joint_state_controller effort_joint_trajectory_controller franka_gripper" />
