@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<launch>
+    <arg name="robot_name" default="panda"/>
+    <arg name="rviz"       default="true" />
+    <arg name="task_file"  default="$(find moma_ocs2)/config/mpc/task_$(arg robot_name).info"/>
+    <arg name="debug"      default="false" />
+
+    <group if="$(arg rviz)">
+      <include file="$(find moma_ocs2)/launch/visualize.launch">
+        <arg name="robot_name" value="$(arg robot_name)"/>
+      </include>
+    </group>
+
+    <node if="$(arg debug)" pkg="moma_ocs2" type="mobile_manipulator_mpc_node" name="mobile_manipulator_mpc_node"
+          output="screen" args="$(arg task_file) $(arg robot_name)" launch-prefix="gnome-terminal -- gdb -ex run --args"/>
+    <node unless="$(arg debug)" pkg="moma_ocs2" type="mobile_manipulator_mpc_node" name="mobile_manipulator_mpc_node"
+          output="screen" args="$(arg task_file) $(arg robot_name)" launch-prefix=""/>
+
+    <node pkg="moma_ocs2" type="mobile_manipulator_dummy_mrt_node" name="mobile_manipulator_dummy_mrt_node"
+          output="screen" args="$(arg task_file) $(arg robot_name)" launch-prefix="gnome-terminal --">
+    </node>
+
+    <node if="$(arg rviz)" pkg="moma_ocs2" type="mobile_manipulator_target" name="mobile_manipulator_target"
+          output="screen" args="$(arg robot_name)"/>
+</launch>

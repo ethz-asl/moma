@@ -1,0 +1,108 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<root version="2.3.8">
+ <tabbed_widget parent="main_window" name="Main Window">
+  <Tab containers="1" tab_name="Velocities">
+   <Container>
+    <DockSplitter count="2" orientation="-" sizes="0.500483;0.499517">
+     <DockSplitter count="4" orientation="|" sizes="0.25;0.25;0.25;0.25">
+      <DockArea name="...">
+       <plot style="Lines" mode="TimeSeries">
+        <range right="41.858000" left="36.858000" top="0.100000" bottom="-0.100000"/>
+        <limitY/>
+        <curve color="#1f77b4" name="/mpc_joint_state_desired/arm_joint_1/velocity"/>
+       </plot>
+      </DockArea>
+      <DockArea name="...">
+       <plot style="Lines" mode="TimeSeries">
+        <range right="41.858000" left="36.858000" top="1.355091" bottom="-1.047633"/>
+        <limitY/>
+        <curve color="#d62728" name="/mpc_joint_state_desired/arm_joint_2/velocity"/>
+       </plot>
+      </DockArea>
+      <DockArea name="...">
+       <plot style="Lines" mode="TimeSeries">
+        <range right="41.858000" left="36.858000" top="2.207837" bottom="-1.370383"/>
+        <limitY/>
+        <curve color="#1ac938" name="/mpc_joint_state_desired/arm_joint_3/velocity"/>
+       </plot>
+      </DockArea>
+      <DockArea name="...">
+       <plot style="Lines" mode="TimeSeries">
+        <range right="41.858000" left="36.858000" top="0.605701" bottom="-1.359773"/>
+        <limitY/>
+        <curve color="#f14cc1" name="/mpc_joint_state_desired/arm_joint_4/velocity"/>
+       </plot>
+      </DockArea>
+     </DockSplitter>
+     <DockSplitter count="4" orientation="|" sizes="0.25;0.25;0.25;0.25">
+      <DockArea name="...">
+       <plot style="Lines" mode="TimeSeries">
+        <range right="41.858000" left="36.858000" top="1.285357" bottom="-1.236089"/>
+        <limitY/>
+        <curve color="#ff7f0e" name="/mpc_joint_state_desired/arm_joint_5/velocity"/>
+       </plot>
+      </DockArea>
+      <DockArea name="...">
+       <plot style="Lines" mode="TimeSeries">
+        <range right="41.858000" left="36.858000" top="1.205558" bottom="-2.088055"/>
+        <limitY/>
+        <curve color="#9467bd" name="/mpc_joint_state_desired/arm_joint_6/velocity"/>
+       </plot>
+      </DockArea>
+      <DockArea name="...">
+       <plot style="Lines" mode="TimeSeries">
+        <range right="41.858000" left="36.858000" top="1.499727" bottom="-1.426568"/>
+        <limitY/>
+        <curve color="#17becf" name="/mpc_joint_state_desired/arm_joint_7/velocity"/>
+       </plot>
+      </DockArea>
+      <DockArea name="...">
+       <plot style="Lines" mode="TimeSeries">
+        <range right="1.000000" left="0.000000" top="1.000000" bottom="0.000000"/>
+        <limitY/>
+       </plot>
+      </DockArea>
+     </DockSplitter>
+    </DockSplitter>
+   </Container>
+  </Tab>
+  <currentTabIndex index="0"/>
+ </tabbed_widget>
+ <use_relative_time_offset enabled="1"/>
+ <!-- - - - - - - - - - - - - - - -->
+ <!-- - - - - - - - - - - - - - - -->
+ <Plugins>
+  <plugin ID="DataLoad CSV">
+   <default time_axis=""/>
+  </plugin>
+  <plugin ID="DataLoad ROS bags">
+   <use_header_stamp value="false"/>
+   <use_renaming_rules value="true"/>
+   <discard_large_arrays value="true"/>
+   <max_array_size value="100"/>
+  </plugin>
+  <plugin ID="DataLoad ULog"/>
+  <plugin ID="LSL Subscriber"/>
+  <plugin ID="MQTT Subscriber"/>
+  <plugin ID="ROS Topic Subscriber">
+   <use_header_stamp value="true"/>
+   <use_renaming_rules value="true"/>
+   <discard_large_arrays value="true"/>
+   <max_array_size value="100"/>
+  </plugin>
+  <plugin ID="UDP Server"/>
+  <plugin ID="WebSocket Server"/>
+  <plugin ID="ZMQ Subscriber"/>
+  <plugin ID="CSV Exporter" status="idle"/>
+  <plugin ID="ROS /rosout Visualization" status="idle"/>
+  <plugin ID="ROS Topic Re-Publisher" status="idle"/>
+ </Plugins>
+ <!-- - - - - - - - - - - - - - - -->
+ <previouslyLoaded_Datafiles/>
+ <previouslyLoaded_Streamer name="ROS Topic Subscriber"/>
+ <!-- - - - - - - - - - - - - - - -->
+ <customMathEquations/>
+ <snippets/>
+ <!-- - - - - - - - - - - - - - - -->
+</root>
+

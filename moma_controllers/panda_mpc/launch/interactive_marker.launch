@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+<launch>
+    <node pkg="moma_ocs2" type="mobile_manipulator_target" name="mobile_manipulator_target" output="screen" args="panda"/>
+</launch>

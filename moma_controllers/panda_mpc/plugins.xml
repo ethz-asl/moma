@@ -1,0 +1,8 @@
+<library path="lib/libpanda_mpc">
+    <class name="moma_controllers/PandaMpcController" type="moma_controllers::PandaMpcController"
+           base_class_type="controller_interface::ControllerBase">
+        <description>
+            Panda mpc controller
+        </description>
+    </class>
+</library>

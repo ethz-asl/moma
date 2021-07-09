@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<launch>
+
+  <include file="$(find moma_ocs2)/launch/visualize.launch">
+    <arg name="rvizconfig"  value="$(find moma_ocs2)/rviz/mobile_manipulator_distance.rviz"/>
+  </include>
+
+  <node name="mobile_manipulator_joint_state_publisher" pkg="joint_state_publisher_gui" type="joint_state_publisher_gui" output="screen">
+    <param name="rate"              value="100"/>
+    <remap from="robot_description" to="robot_description_for_mpc"/>
+  </node>
+
+  <node pkg="moma_ocs2" type="mobile_manipulator_distance_visualization" name="mobile_manipulator_distance_visualization"
+          output="screen"/>
+
+
+</launch>
