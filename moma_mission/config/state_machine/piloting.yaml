@@ -14,17 +14,19 @@ CLOSE_GRIPPER:
   effort: 0.5   # must be between 0 and 10
 
 HOME_ROBOT:
-  action_name: /joint_action
-  controller_name: joint_trajectory_controller
-  manager_namespace: /my_gen3
-  whitelist: [reflex_controller]
+  action_name: /joint_space_controller_server
+  controller_name: joint_space_controller
+  manager_namespace: ''
+  whitelist: [robotiq_2f_85_controller, joint_state_controller]
   joints_configurations:
-    - [-1.5899806740233915, -0.48744316800716536, -3.1235457424628708, -1.938244380301926, 3.1225489212668545, 1.3859441850036247, -1.5689315813996227]
+    - [0, -0.785, 0, -2.1, 0, 1.571, 0.785]
 
 FETCH_DETECTION:
+  default_outcome: Completed
   detection_topic: "/object_keypoints_ros/pose"
 
 REACH_DETECTION_HOTSPOT:
+  default_outcome: Completed
   target_frame: navigation_target
   goal_pose_topic: /move_base_simple/goal
   base_pose_topic: /base_pose_measured
@@ -36,15 +38,16 @@ REACH_DETECTION_HOTSPOT:
   tolerance_deg: 50
 
 REACH_VIEWPOINT:
-  action_name: /joint_action
-  controller_name: joint_trajectory_controller
-  manager_namespace: /my_gen3
-  whitelist: [reflex_controller]
+  action_name: /joint_space_controller_server
+  controller_name: joint_space_controller
+  manager_namespace: ''
+  whitelist: [robotiq_2f_85_controller, joint_state_controller]
   joints_configurations:
-    - [-1.5899806740233915, -0.48744316800716536, -3.1235457424628708, -1.938244380301926, 3.1225489212668545, 1.3859441850036247, -1.5689315813996227]
-    - [0.467773759275626, 0.57541470250548, 3.0453992750161314, -2.4733171191407215, -1.0093108888969127, -1.277924773293356, -1.83265377150581]
+    - [1.57, -0.785, 0, -2.1, 0, 1.571, 0.785]
+    - [-1.57, -0.785, 0, -2.1, 0, 1.571, 0.785]
 
 LATERAL_GRASP:
+  default_outcome: Completed
   controller_name: mpc_admittance_torque
   manager_namespace: /my_gen3
   whitelist: [reflex_controller]
@@ -52,16 +55,18 @@ LATERAL_GRASP:
   path_topic_name: /desired_path
 
 RESET_LATERAL_GRASP:
+  default_outcome: FullRotationDone
   controller_name: mpc_admittance_torque
   manager_namespace: /my_gen3
-  whitelist: [ reflex_controller ]
+  whitelist: [ robotiq_2f_85_controller, joint_state_controller ]
   pose_topic_name: /target_pose
   path_topic_name: /desired_path
 
 MANIPULATE_VALVE:
+  default_outcome: Completed
   controller_name: mpc_admittance_torque
   manager_namespace: /my_gen3
-  whitelist: [reflex_controller]
+  whitelist: [robotiq_2f_85_controller, joint_state_controller]
 
   angle_step_deg: -120.0   # how much to rotate at once
   angle_end_deg: -120.0    # total desired rotation

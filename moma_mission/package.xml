@@ -7,4 +7,7 @@
     <license>BSD</license>
 
     <buildtool_depend>catkin</buildtool_depend>
+    <depend>moma_msgs</depend>
+    <depend>smach</depend>
+    <depend>smach_ros</depend>
 </package>

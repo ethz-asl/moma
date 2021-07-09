@@ -5,7 +5,7 @@ import pinocchio as pin
 import rospy
 import tf2_ros
 from geometry_msgs.msg import Pose, PoseStamped
-from mobile_manipulator_mission.utils.rotation import CompatibleRotation as R
+from moma_mission.utils.rotation import CompatibleRotation as R
 
 
 def get_transform(target, source):

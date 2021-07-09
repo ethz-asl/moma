@@ -2,7 +2,7 @@
 import rospy
 import smach
 import smach_ros
-from mobile_manipulator_mission.missions.piloting.sequences import *
+from moma_mission.missions.piloting.sequences import *
 
 rospy.init_node('piloting_mission')
 

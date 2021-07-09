@@ -1,28 +1,17 @@
 <?xml version="1.0"?>
 <launch>
-    <arg name="simulation" default="true"/>
-    <arg name="test" default="true"/>
-    <arg name="start_mission_delay" default="0.0"/>
-
-    <!-- Remap description for moveit commander -->
-    <param name="/moveit_planner/description_name" value="/my_gen3/robot_description"/>
-    <param name="/moveit_planner/namespace" value="my_gen3"/>
-    <param name="/moveit_planner/arm_group_name" value="arm"/>
-
+    <arg name="test" default="false"/>
+    
     <!--   Mock modules to test state machine without sim -->
     <group if="$(arg test)">
         <include file="$(find moma_mission)/launch/mock_modules.launch"/>
     </group>
 
+
     <!-- State Machine configuration -->
-    <group if="$(arg simulation)">
-        <rosparam command="load" file="$(find moma_mission)/config/state_machine/piloting.yaml"
-                  subst_value="true"/>
-    </group>
-    <group unless="$(arg simulation)">
-        <rosparam command="load" file="$(find moma_mission)/config/state_machine/piloting.yaml"
-                  subst_value="true"/>
-    </group>
+    <rosparam command="load" file="$(find moma_mission)/config/state_machine/piloting.yaml"
+              subst_value="true"/>
+
 
     <!--    State machine -->
     <node pkg="moma_mission" type="piloting.py" name="piloting_demo" output="screen"

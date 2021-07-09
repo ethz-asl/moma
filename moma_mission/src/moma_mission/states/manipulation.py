@@ -3,7 +3,7 @@
 import rospy
 import actionlib
 
-from moma_mission_msgs.msg import JointAction, JointGoal
+from moma_msgs.msg import JointAction, JointGoal
 from moma_mission.core import StateRos, StateRosControl
 from moma_mission.utils.ros import switch_ros_controller
 from moma_mission.utils.moveit import MoveItPlanner
