@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <robot name="stereolabs_camera" xmlns:xacro="http://ros.org/wiki/xacro">
 
-  <xacro:include filename="$(find kinova_description)/sensors/zedm/urdf/materials.urdf.xacro" />
+  <xacro:include filename="$(find moma_description)/sensors/zedm/urdf/materials.urdf.xacro" />
 
   <xacro:property name="M_PI"     value="3.1415926535897931" />
   <xacro:property name="baseline" value="0.063" />
@@ -12,7 +12,7 @@
       <visual>
         <origin xyz="0 0 0" rpy="0 0 0" />
         <geometry>
-          <mesh filename="package://kinova_description/sensors/zedm/meshes/zed_mount.stl" scale="0.001 0.001 0.001"/>
+          <mesh filename="package://moma_description/sensors/zedm/meshes/zed_mount.stl" scale="0.001 0.001 0.001"/>
         </geometry>
         <material name="">
           <color rgba="0.75294 0.75294 0.75294 1" />
@@ -21,7 +21,7 @@
       <collision>
         <origin xyz="0 0 0" rpy="0 0 0" />
         <geometry>
-          <mesh filename="package://kinova_description/sensors/zedm/meshes/zed_mount.stl" scale="0.001 0.001 0.001"/>
+          <mesh filename="package://moma_description/sensors/zedm/meshes/zed_mount.stl" scale="0.001 0.001 0.001"/>
         </geometry>
         <material name="">
           <color rgba="0.75294 0.75294 0.75294 1" />
@@ -54,14 +54,14 @@
         <visual>
             <origin xyz="0 0 0" rpy="0 0 0"/>
             <geometry>
-                <mesh filename="package://kinova_description/sensors/zedm/meshes/zedm.stl" />
+                <mesh filename="package://moma_description/sensors/zedm/meshes/zedm.stl" />
             </geometry>
             <material name="zedm_mat" />
         </visual>
         <collision>
             <origin xyz="0 0 0" rpy="0 0 0"/>
             <geometry>
-                <mesh filename="package://kinova_description/sensors/zedm/meshes/zedm.stl" />
+                <mesh filename="package://moma_description/sensors/zedm/meshes/zedm.stl" />
             </geometry>
             <material name="zedm_mat" />
         </collision>

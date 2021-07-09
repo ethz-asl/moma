@@ -4,7 +4,7 @@
   <xacro:include filename="$(find moma_description)/grippers/robotiq_2f_85/urdf/robotiq_arg2f_85_model.xacro" />
   <xacro:include filename="$(find moma_description)/grippers/robotiq_2f_85/urdf/robotiq_2f_85_transmission.xacro" />
 
-  <xacro:macro name="robotiq_arg2f_85" params="parent prefix *origin">
+  <xacro:macro name="robotiq_2f_85" params="parent prefix *origin">
      
     <joint name="${prefix}gripper_base_joint" type="fixed">
 	    <parent link="${parent}"/>

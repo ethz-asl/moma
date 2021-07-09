@@ -4,17 +4,17 @@
   <xacro:include filename="$(find moma_description)/sensors/bota/urdf/bota.urdf.xacro"/>
   <xacro:include filename="$(find moma_description)/sensors/zedm/urdf/zedm.urdf.xacro"/>
 
-  <xacro:macro name="robotiq_2f_toolset" params="parent">
+  <xacro:macro name="robotiq_2f_toolset" params="parent *origin">
     <xacro:bota_sensor parent="${parent}">
-      <origin xyz="0 0 0.0" rpy="0 0 0.0" />
+      <xacro:insert_block name='origin'/>
     </xacro:bota_sensor>
 
     <xacro:zedm parent="ft_sensor0">
       <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 3.14"/>
     </xacro:zedm>
     
-    <xacro:robotiq_arg2f_85 parent="ft_sensor0" prefix="">
+    <xacro:robotiq_2f_85 parent="ft_sensor0" prefix="">
       <origin xyz="0.0 0.0 0.046" rpy="0.0 0.0 0.0"/>
-    </xacro:robotiq_arg2f_85> 
+    </xacro:robotiq_2f_85> 
   </xacro:macro>
 </robot>
