@@ -1,0 +1,64 @@
+# Config file for the combined mission
+# Namespaces mirror (optionally) the state for better readability
+
+# Config file for the combined mission
+# Namespaces mirror (optionally) the state for better readability
+
+home_pose_joints:
+  joints_configurations:
+    - [0.01430224031815985, -0.5557954548291901, -0.03524296309150898, 2.281651279700482, -1.466734905096706, 1.509397547337284, 0.1480374351198569]
+
+home_pose:
+  controller_name: mpc_sim
+  manager_namespace: /my_gen3
+  whitelist: [arm_joint_state_controller, arm_robotiq_2f_85_gripper_controller]
+  path_topic_name: /desired_path
+
+navigation_state:
+  default_outcome: Completed
+  target_frame: navigation_target
+  goal_pose_topic: lol
+  base_pose_topic: /base_pose_measured
+  roco_controller: MpcTrackLocalPlan
+  controller_manager_namespace: /smb_highlevel_controller
+  timeout: 10.0
+  tolerance_m: 0.10
+  tolerance_deg: 10
+
+valve_detection:
+  controller_name: mpc_sim
+  manager_namespace: /my_gen3
+  whitelist: [ arm_joint_state_controller, arm_robotiq_2f_85_gripper_controller ]
+  path_topic_name: /desired_path
+
+open_gripper_usb:
+  default_outcome: Completed
+  command_topic: /gripper_command
+  position: 0.0   # must be between 0 and 1
+  velocity: 0.1  # between 0 and 1.79
+  effort: 6 # must be between 0 and 10
+
+close_gripper_usb:
+  default_outcome: Completed
+  command_topic: /gripper_command
+  position: 0.55  # must be between 0 and 1
+  velocity: 0.1  # between 0 and 1.79
+  effort: 6   # must be between 0 and 10
+
+grasp:
+  controller_name: mpc_sim
+  manager_namespace: /my_gen3
+  whitelist: [arm_joint_state_controller, arm_robotiq_2f_85_gripper_controller]
+  pose_topic_name: /target_pose
+  path_topic_name: /desired_path
+
+manipulate_valve:
+  controller_name: mpc_sim
+  manager_namespace: /my_gen3
+  whitelist: [arm_joint_state_controller, arm_robotiq_2f_85_gripper_controller]
+
+  angle_step_deg: 60.0
+  angle_end_deg: 120.0
+  angle_delta_deg: 5.0    # controls trajectory discretization
+  speed_deg: 5.0
+  path_topic_name: /desired_path

@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<robot name="fake_valve" xmlns:xacro="http://www.ros.org/wiki/xacro">
+   <xacro:arg name="x"      default="0.0"/>
+   <xacro:arg name="y"      default="0.0"/>
+   <xacro:arg name="z"      default="0.5"/>
+   <xacro:arg name="roll"   default="0.0"/>
+   <xacro:arg name="pitch"  default="0.0"/>
+   <xacro:arg name="yaw"    default="0.0"/>
+   
+   <link name="world">
+   </link>
+
+  <joint name="valve_base_joint" type="fixed">
+      <origin xyz="$(arg x) $(arg y) $(arg z)" rpy="3.14 $(arg pitch) $(arg yaw)"/>
+      <parent link="world"/>
+      <child link="valve_base"/>
+   </joint>
+   
+  <link name="valve_base">
+    <inertial>
+      <mass value="0.01" />
+      <origin xyz="0 0 0.0"  rpy="0 0 0"/>
+      <inertia 
+        ixx = "0.000001" ixy = "0.0" ixz = "0.0"
+        iyy = "0.000001" iyz = "0.0"
+        izz = "0.000001" />
+      </inertial>
+  </link>
+
+
+  <link name="wheel">
+    <contact>
+      <friction_anchor/>
+      <stiffness value="30000.0"/>
+      <damping value="1000.0"/>
+      <spinning_friction value="0.1"/>
+      <lateral_friction value="1.0"/>
+    </contact>
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="1.0" />
+      <!-- Inertia of a torus radius = 0.12 and cross section radius 0.02-->
+      <inertia
+        ixx = "0.00745" ixy = "0.0" ixz = "0.0"
+        iyy = "0.0147" iyz = "0.0"
+        izz = "0.00745" />
+    </inertial>
+
+    <!--collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.1225" length="0.02"/>
+      </geometry>
+    </collision-->
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.07" length="0.02"/>
+      </geometry>
+    </visual>
+  </link>
+
+  <joint name="wheel_joint" type="continuous">
+    <origin xyz="0 0 0" rpy="0.0 0 0"/>
+    <axis xyz="0 0 1" rpy="0 0 0"/>
+    <parent link="valve_base"/>
+    <child link="wheel"/>
+    <dynamics damping="10.0" friction="10.0"/>
+    <limit effort="30" velocity="1.0" lower="-3.14" upper="3.14"/>
+  </joint>
+
+  <!-- Gazebo simulation -->
+  <transmission name="wheel_joint_transmission">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="wheel_joint">
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="wheel_joint_motor">
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+  </transmission>
+
+  <gazebo>
+    <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
+      <legacyModeNS>true</legacyModeNS>
+      <robotParam>valve_description</robotParam>
+      <robotNamespace>valve</robotNamespace>
+    </plugin>
+  </gazebo>
+</robot>

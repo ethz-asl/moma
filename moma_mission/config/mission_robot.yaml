@@ -1,0 +1,76 @@
+# Config file for the combined mission
+# Namespaces mirror (optionally) the state for better readability
+  
+home_pose_joints:
+  joints_configurations:
+    - [-1.236452963534207, 0.2156914307010919, 2.995119592583762, -1.611908077174668, -0.0010391654573496112, -1.5482041986355366, 1.4961178277196578] 
+#  This joint configuration is a good retracted configuration for hand camera detection
+#    - [0.01430224031815985, -0.5557954548291901, -0.03524296309150898, 2.281651279700482, -1.466734905096706, 1.509397547337284, 0.1480374351198569]
+
+home_action:
+  controller_name: joint_trajectory_controller
+  manager_namespace: /my_gen3
+  whitelist: [reflex_controller]
+  joints_configurations:
+    - [-1.5899806740233915, -0.48744316800716536, -3.1235457424628708, -1.938244380301926, 3.1225489212668545, 1.3859441850036247, -1.5689315813996227] 
+    
+# home_pose:
+#   default_outcome: Completed
+#   controller_name: mpc_admittance_torque
+#   manager_namespace: /my_gen3
+#   whitelist: [reflex_controller]
+#   path_topic_name: /desired_path
+
+navigation_state:
+  default_outcome: Completed
+  target_frame: navigation_target
+  goal_pose_topic: /move_base_simple/goal
+  base_pose_topic: /base_pose_measured
+  base_odometry_topic: /base_odom
+  roco_controller: MpcTrackLocalPlan
+  controller_manager_namespace: /smb_highlevel_controller
+  timeout: 10000.0
+  tolerance_m: 0.30
+  tolerance_deg: 50
+
+reach_viewpoint:
+  controller_name: joint_trajectory_controller
+  manager_namespace: /my_gen3
+  whitelist: [reflex_controller]
+  joints_configurations: # home - > detection pose 
+    - [-1.5899806740233915, -0.48744316800716536, -3.1235457424628708, -1.938244380301926, 3.1225489212668545, 1.3859441850036247, -1.5689315813996227]
+    - [0.467773759275626, 0.57541470250548, 3.0453992750161314, -2.4733171191407215, -1.0093108888969127, -1.277924773293356, -1.83265377150581] 
+
+valve_detection:
+  detection_topic: "/object_keypoints_ros/pose"
+  detection_frame_name: "valve_test"
+
+open_gripper_usb:
+  command_topic: /gripper_command
+  position: 0.0   # must be between 0 and 1
+  velocity: 0  # between 0 and 1
+  effort: 0 # must be between 0 and 10 
+
+close_gripper_usb:
+  command_topic: /gripper_command
+  position: 0.55  # must be between 0 and 1
+  velocity: 0.01  # between 0 and 1
+  effort: 0.5   # must be between 0 and 10 
+
+grasp:
+  controller_name: mpc_admittance_torque
+  manager_namespace: /my_gen3
+  whitelist: [reflex_controller]
+  pose_topic_name: /target_pose
+  path_topic_name: /desired_path
+
+manipulate_valve:
+  controller_name: mpc_admittance_torque
+  manager_namespace: /my_gen3
+  whitelist: [reflex_controller]
+
+  angle_step_deg: -60.0   # how much to rotate at once
+  angle_end_deg: -120.0    # total desired rotation 
+  angle_delta_deg: 5.0    # controls trajectory discretization
+  speed_deg: 5.0
+  path_topic_name: /desired_path

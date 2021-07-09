@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<package format="2">
+    <name>moma_mission</name>
+    <version>0.1.0</version>
+    <description>moma_mission package</description>
+    <maintainer email="grizzi@mavt.ethz.ch">Giuseppe Rizzi</maintainer>
+    <license>BSD</license>
+
+    <buildtool_depend>catkin</buildtool_depend>
+</package>

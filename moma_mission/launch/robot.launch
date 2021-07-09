@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<launch>
+  <include file="$(find kinova_robot)/launch/robot.launch">
+    <arg name="tool_frame_offset" value="0.196"/>
+    <arg name="prefix" value="arm_"/>
+    <arg name="add_payload" value="true"/>
+    <arg name="zedm" value="true"/>
+  </include>
+</launch>

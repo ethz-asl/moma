@@ -1,0 +1,70 @@
+# Config file for the combined mission
+# Namespaces mirror (optionally) the state for better readability
+
+OPEN_GRIPPER:
+  command_topic: /gripper_command
+  position: 0.0   # must be between 0 and 1
+  velocity: 0  # between 0 and 1
+  effort: 0 # must be between 0 and 10
+
+CLOSE_GRIPPER:
+  command_topic: /gripper_command
+  position: 0.55  # must be between 0 and 1
+  velocity: 0.01  # between 0 and 1
+  effort: 0.5   # must be between 0 and 10
+
+HOME_ROBOT:
+  action_name: /joint_action
+  controller_name: joint_trajectory_controller
+  manager_namespace: /my_gen3
+  whitelist: [reflex_controller]
+  joints_configurations:
+    - [-1.5899806740233915, -0.48744316800716536, -3.1235457424628708, -1.938244380301926, 3.1225489212668545, 1.3859441850036247, -1.5689315813996227]
+
+FETCH_DETECTION:
+  detection_topic: "/object_keypoints_ros/pose"
+
+REACH_DETECTION_HOTSPOT:
+  target_frame: navigation_target
+  goal_pose_topic: /move_base_simple/goal
+  base_pose_topic: /base_pose_measured
+  base_odometry_topic: /base_odom
+  roco_controller: MpcTrackLocalPlan
+  controller_manager_namespace: /smb_highlevel_controller
+  timeout: 10000.0
+  tolerance_m: 0.30
+  tolerance_deg: 50
+
+REACH_VIEWPOINT:
+  action_name: /joint_action
+  controller_name: joint_trajectory_controller
+  manager_namespace: /my_gen3
+  whitelist: [reflex_controller]
+  joints_configurations:
+    - [-1.5899806740233915, -0.48744316800716536, -3.1235457424628708, -1.938244380301926, 3.1225489212668545, 1.3859441850036247, -1.5689315813996227]
+    - [0.467773759275626, 0.57541470250548, 3.0453992750161314, -2.4733171191407215, -1.0093108888969127, -1.277924773293356, -1.83265377150581]
+
+LATERAL_GRASP:
+  controller_name: mpc_admittance_torque
+  manager_namespace: /my_gen3
+  whitelist: [reflex_controller]
+  pose_topic_name: /target_pose
+  path_topic_name: /desired_path
+
+RESET_LATERAL_GRASP:
+  controller_name: mpc_admittance_torque
+  manager_namespace: /my_gen3
+  whitelist: [ reflex_controller ]
+  pose_topic_name: /target_pose
+  path_topic_name: /desired_path
+
+MANIPULATE_VALVE:
+  controller_name: mpc_admittance_torque
+  manager_namespace: /my_gen3
+  whitelist: [reflex_controller]
+
+  angle_step_deg: -120.0   # how much to rotate at once
+  angle_end_deg: -120.0    # total desired rotation
+  angle_delta_deg: 5.0    # controls trajectory discretization
+  speed_deg: 5.0
+  path_topic_name: /desired_path

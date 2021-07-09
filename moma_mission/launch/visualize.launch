@@ -1,0 +1,5 @@
+<?xml version="1.0"?>
+<launch>
+    <!-- <node pkg="smach_viewer" type="smach_viewer.py" name="smach_viewer_node" output="screen"/> -->
+    <node name="rviz_mission" pkg="rviz" type="rviz" args="-d $(find moma_mission)/config/config.rviz"/>
+</launch>

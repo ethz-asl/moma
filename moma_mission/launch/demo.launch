@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<launch>
+    
+    <!-- Launch the robot	 -->
+	<include file="$(find kinova_valve_opening)/launch/robot.launch"/>
+  
+  <!-- Connect robot to world -->
+  <node pkg="tf2_ros" type="static_transform_publisher" name="world_to_base_publisher" args="0 0 0 0 0 0 world  arm_base_link" output="screen"/>
+
+    <!-- Launch components: gripper, ft sensor ...  -->
+	<include file="$(find kinova_valve_opening)/launch/components.launch"/>
+	
+	<!-- Launch mission state machine -->
+	<include file="$(find kinova_valve_opening)/launch/mission.launch">
+	  <arg name="start_mission_delay" value="20.0"/>
+	</include>
+
+</launch>
