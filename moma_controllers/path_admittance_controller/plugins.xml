@@ -1,0 +1,8 @@
+<library path="lib/libpath_admittance_controller">
+    <class name="moma_controllers/PathAdmittanceController" type="moma_controllers::PathAdmittanceController"
+           base_class_type="controller_interface::ControllerBase">
+        <description>
+            Controller which modifies each pose in the path according to the external wrench
+        </description>
+    </class>
+</library>
