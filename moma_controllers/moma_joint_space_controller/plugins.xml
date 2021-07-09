@@ -1,0 +1,11 @@
+<library path="lib/libmoma_joint_space_controller">
+    <class name="moma_controllers/JointSpaceController"
+           type="moma_controllers::JointSpaceController"
+           base_class_type="controller_interface::ControllerBase">
+        <description>
+            Velocity based Joint Trajectory Controller
+        </description>
+    </class>
+</library>
+
+
