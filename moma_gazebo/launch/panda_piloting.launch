@@ -36,7 +36,7 @@
     <node name="gripper_controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="franka_gripper" />
   </group>
 
-  <group if="$(eval arg('tool') == 'robotiq_2f_85')">
+  <group if="$(eval arg('tool') in ['robotiq_2f_85', 'robotiq_2f_toolset'])">
     <node name="gripper_controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="robotiq_2f_85_controller" />
   </group>
   
