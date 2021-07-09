@@ -1,0 +1,73 @@
+<?xml version="1.0"?>
+<robot name="bota_sensor" xmlns:xacro="http://ros.org/wiki/xacro">
+
+  <xacro:property name="bota_interface_height" default="0.06"/>
+  <xacro:macro name="bota_sensor" params="parent *origin">
+    <link name="bota_interface">
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 3.14" />
+        <geometry>
+          <cylinder radius="0.035" length="${bota_interface_height}"/>
+        </geometry>
+        <material name="">
+          <color rgba="0.75294 0.75294 0.75294 1" />
+        </material>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 3.14" />
+        <geometry>
+          <cylinder radius="0.035" length="${bota_interface_height}"/>
+        </geometry>
+        <material name="">
+          <color rgba="0.75294 0.75294 0.75294 1" />
+        </material>
+      </collision>
+    </link>
+
+    <joint name="bota_interface_joint" type="fixed">
+      <parent link="${parent}"/>
+      <child link="bota_interface"/>
+      <xacro:insert_block name="origin"/>
+    </joint>
+
+    <link name="ft_sensor0">
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 3.14" />
+        <geometry>
+          <mesh filename="package://kinova_description/sensors/bota/meshes/bota_sensor.stl" scale="0.001 0.001 0.001"/>
+        </geometry>
+        <material name="">
+          <color rgba="0.75294 0.75294 0.75294 1" />
+        </material>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 3.14" />
+        <geometry>
+          <mesh filename="package://kinova_description/sensors/bota/meshes/bota_sensor.stl" scale="0.001 0.001 0.001"/>
+        </geometry>
+        <material name="">
+          <color rgba="0.75294 0.75294 0.75294 1" />
+        </material>
+      </collision>
+    </link>
+
+    <joint name="bota_sensor_joint" type="fixed">
+      <parent link="bota_interface"/>
+      <child link="ft_sensor0"/>
+      <origin xyz="0 0 ${bota_interface_height/2.0}" rpy="0 0 -1.57079" />
+    </joint>
+  </xacro:macro>    
+</robot>
+
+
+
+
+
+
+
+
+
+
+
+
+

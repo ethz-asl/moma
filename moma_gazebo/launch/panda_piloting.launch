@@ -4,6 +4,7 @@
   <arg name="rviz" default="true" />
   <arg name="panda_z_position" default="0.0"/>
   <arg name="use_fixed_realsense" default="false"/>
+  <arg name="tool" default="none"/>
 
   <env name="GAZEBO_MODEL_PATH" value="${GAZEBO_MODEL_PATH}:$(find moma_gazebo)/models"/>
 
@@ -19,16 +20,26 @@
     <arg name="z" value="$(arg panda_z_position)"/>
     <arg name="use_fixed_realsense" value="$(arg use_fixed_realsense)"/>
     <arg name="control_mode" value="Effort"/>
+    <arg name="tool" value="$(arg tool)"/>
   </include>
 
   <!-- description used in mpc -->
   <param name="robot_description_mpc" command="$(find xacro)/xacro $(find moma_description)/urdf/panda.urdf.xacro use_nominal_extrinsics:=true use_fixed_realsense:=$(arg use_fixed_realsense)
-    control_mode:='Effort'"/>
+    control_mode:='Effort' tool:=$(arg tool)"/>
 
   <!-- start joint position trajectory controller -->
   <rosparam file="$(find moma_gazebo)/config/panda_controllers.yaml" command="load" />
-  <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="joint_state_controller effort_joint_trajectory_controller franka_gripper" />
+  <rosparam file="$(find moma_gazebo)/config/gripper_controllers.yaml" command="load" />
+  <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="joint_state_controller effort_joint_trajectory_controller" />
 
+  <group if="$(eval arg('tool') == 'panda_hand')">
+    <node name="gripper_controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="franka_gripper" />
+  </group>
+
+  <group if="$(eval arg('tool') == 'robotiq_2f_85')">
+    <node name="gripper_controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="robotiq_2f_85_controller" />
+  </group>
+  
   <!-- start a robot state publisher -->
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="true" output="screen" />
 

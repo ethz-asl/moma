@@ -1,14 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="panda">
-  <xacro:macro name="panda" params="connected_to:='' rpy:='0 0 0' xyz:='0 0 0' use_fixed_realsense:=false include_gazebo_control:=true control_mode:='Position'">
+  <xacro:macro name="panda" params="connected_to:='' rpy:='0 0 0' xyz:='0 0 0' use_fixed_realsense:=false include_gazebo_control:=true tool:='panda_hand' control_mode:='Position'">
 
     <!-- panda arm  -->
     <xacro:include filename="$(find franka_description)/robots/panda_arm.xacro"/>
     <xacro:panda_arm connected_to="${connected_to}" rpy="${rpy}" xyz="${xyz}"/>
 
     <!-- panda hand -->
-    <xacro:include filename="$(find franka_description)/robots/hand.xacro"/>
-    <xacro:hand ns="panda" rpy="0 0 ${-pi/4}" connected_to="panda_link8"/>
+    <xacro:if value="${tool == 'panda_hand'}">
+      <xacro:include filename="$(find franka_description)/robots/hand.xacro"/>
+      <xacro:include filename="$(find moma_description)/grippers/panda_hand/panda_hand.gazebo.xacro"/>
+      <xacro:hand ns="panda" rpy="0 0 ${-pi/4}" connected_to="panda_link8"/>
+      <xacro:panda_hand_gazebo arm_id="panda"/>
+    </xacro:if>
+
+    <!-- robotiq 2f-85 -->
+    <xacro:if value="${tool == 'robotiq_2f_85'}">
+      <xacro:include filename="$(find moma_description)/grippers/robotiq_2f_85/urdf/robotiq_2f_85.xacro"/>
+      <xacro:robotiq_arg2f_85 parent="panda_link8" prefix="">
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+      </xacro:robotiq_arg2f_85> 
+    </xacro:if>
 
     <!-- end effector frame for MoveIt -->
     <link name="panda_default_ee"/>

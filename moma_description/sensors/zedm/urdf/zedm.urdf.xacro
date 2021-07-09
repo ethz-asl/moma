@@ -1,0 +1,105 @@
+<?xml version="1.0"?>
+<robot name="stereolabs_camera" xmlns:xacro="http://ros.org/wiki/xacro">
+
+  <xacro:include filename="$(find kinova_description)/sensors/zedm/urdf/materials.urdf.xacro" />
+
+  <xacro:property name="M_PI"     value="3.1415926535897931" />
+  <xacro:property name="baseline" value="0.063" />
+
+  <xacro:macro name="zedm" params="parent camera_name:='zedm' *origin">
+
+      <link name="zedm_sensor_mount">
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <geometry>
+          <mesh filename="package://kinova_description/sensors/zedm/meshes/zed_mount.stl" scale="0.001 0.001 0.001"/>
+        </geometry>
+        <material name="">
+          <color rgba="0.75294 0.75294 0.75294 1" />
+        </material>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <geometry>
+          <mesh filename="package://kinova_description/sensors/zedm/meshes/zed_mount.stl" scale="0.001 0.001 0.001"/>
+        </geometry>
+        <material name="">
+          <color rgba="0.75294 0.75294 0.75294 1" />
+        </material>
+      </collision>       
+    </link>
+
+    <joint name="zedm_mount_to_zed_link" type="fixed">
+      <xacro:insert_block name='origin'/>
+      <parent link="${parent}"/>
+      <child link="zedm_sensor_mount"/>
+    </joint>
+
+    <link name="zedm_base_link"/>
+    <joint name="zedm_base_joint" type="fixed">
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <parent link="zedm_sensor_mount"/>
+      <child link="zedm_base_link"/>
+    </joint>
+
+
+    <!-- Camera Center -->
+    <joint name="${camera_name}_camera_center_joint" type="fixed">
+        <parent link="zedm_base_link"/>
+        <child link="${camera_name}_camera_center"/>
+        <origin xyz="0.11613 0.00775 0.023" rpy="0.0 -1.570796326 3.1415926535897931" />
+    </joint>
+
+    <link name="${camera_name}_camera_center">
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <mesh filename="package://kinova_description/sensors/zedm/meshes/zedm.stl" />
+            </geometry>
+            <material name="zedm_mat" />
+        </visual>
+        <collision>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <mesh filename="package://kinova_description/sensors/zedm/meshes/zedm.stl" />
+            </geometry>
+            <material name="zedm_mat" />
+        </collision>
+    </link>
+
+    <!-- Left Camera -->
+    <joint name="${camera_name}_left_camera_joint" type="fixed">
+        <parent link="${camera_name}_camera_center"/>
+        <child link="${camera_name}_left_camera_frame"/>
+        <origin xyz="0 ${baseline/2} 0" rpy="0 0 0" />
+    </joint>
+
+    <link name="${camera_name}_left_camera_frame" />
+
+    <joint name="${camera_name}_left_camera_optical_joint" type="fixed">
+        <origin xyz="0 0 0" rpy="-${M_PI/2} 0.0 -${M_PI/2}"/>
+        <parent link="${camera_name}_left_camera_frame"/>
+        <child link="${camera_name}_left_camera_optical_frame"/>
+    </joint>
+
+    <link name="${camera_name}_left_camera_optical_frame"/>
+
+    <!-- Right Camera -->
+    <joint name="${camera_name}_right_camera_joint" type="fixed">
+        <parent link="${camera_name}_camera_center"/>
+        <child link="${camera_name}_right_camera_frame"/>
+        <origin xyz="0 -${baseline/2} 0" rpy="0 0 0" />
+    </joint>
+
+    <link name="${camera_name}_right_camera_frame" />
+
+    <joint name="${camera_name}_right_camera_optical_joint" type="fixed">
+        <origin xyz="0 0 0" rpy="-${M_PI/2} 0.0 -${M_PI/2}"/>
+        <parent link="${camera_name}_right_camera_frame"/>
+        <child link="${camera_name}_right_camera_optical_frame"/>
+    </joint>
+
+    <link name="${camera_name}_right_camera_optical_frame"/>
+  </xacro:macro>  
+    
+</robot>

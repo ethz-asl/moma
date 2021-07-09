@@ -1,0 +1,62 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
+
+  <xacro:macro name="load_gazebo_gripper_transmissions" params="prefix=''">
+
+        <transmission name="${prefix}finger_joint_trans">
+            <type>transmission_interface/SimpleTransmission</type>
+            <joint name="${prefix}finger_joint">
+                <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+            </joint>
+            <actuator name="${prefix}finger_joint_motor">
+                <mechanicalReduction>1</mechanicalReduction>
+                <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+            </actuator>
+        </transmission>
+        
+        <gazebo>
+            <plugin filename="libroboticsgroup_gazebo_mimic_joint_plugin.so" name="mimic_robotiq_85_1">
+                <joint>${prefix}finger_joint</joint>
+                <mimicJoint>${prefix}right_outer_knuckle_joint</mimicJoint>
+                <multiplier>1.0</multiplier>
+                <offset>0.0</offset>
+                <maxEffort>5.0</maxEffort>
+                <hasPID/>
+            </plugin>
+            <plugin filename="libroboticsgroup_gazebo_mimic_joint_plugin.so" name="mimic_robotiq_85_2">
+                <joint>${prefix}finger_joint</joint>
+                <mimicJoint>${prefix}right_inner_knuckle_joint</mimicJoint>
+                <multiplier>1.0</multiplier>
+                <offset>0.0</offset>
+                <maxEffort>5.0</maxEffort>
+                <hasPID/>
+            </plugin>
+            <plugin filename="libroboticsgroup_gazebo_mimic_joint_plugin.so" name="mimic_robotiq_85_3">
+                <joint>${prefix}finger_joint</joint>
+                <mimicJoint>${prefix}left_inner_knuckle_joint</mimicJoint>
+                <multiplier>1.0</multiplier>
+                <offset>0.0</offset>
+                <maxEffort>5.0</maxEffort>
+                <hasPID/>
+            </plugin>
+            <plugin filename="libroboticsgroup_gazebo_mimic_joint_plugin.so" name="mimic_robotiq_85_4">
+                <joint>${prefix}finger_joint</joint>
+                <mimicJoint>${prefix}left_inner_finger_joint</mimicJoint>
+                <multiplier>-1.0</multiplier>
+                <offset>0.0</offset>
+                <maxEffort>5.0</maxEffort>
+                <hasPID/>
+            </plugin>
+            <plugin filename="libroboticsgroup_gazebo_mimic_joint_plugin.so" name="mimic_robotiq_85_5">
+                <joint>${prefix}finger_joint</joint>
+                <mimicJoint>${prefix}right_inner_finger_joint</mimicJoint>
+                <multiplier>-1.0</multiplier>
+                <offset>0.0</offset>
+                <maxEffort>5.0</maxEffort>
+                <hasPID/>
+            </plugin>
+        </gazebo>
+
+    </xacro:macro>
+
+</robot>
