@@ -77,21 +77,12 @@ joint_space_controller:
 
 mpc_controller:
   type: moma_controllers/PandaMpcController
-  simulation: false
+  simulation: true
   arm_id: panda
-  joint_names: [ "panda_joint1", 
-                 "panda_joint2", 
-                 "panda_joint3", 
-                 "panda_joint4", 
-                 "panda_joint5", 
-                 "panda_joint6", 
-                 "panda_joint7" ]
-
-
+  
   robot_name: "panda"
   base_link: base_link
   tool_link: panda_hand
-  simulation: true
   joint_names:
     - panda_joint1
     - panda_joint2
@@ -104,9 +95,6 @@ mpc_controller:
   command_topic: "/joints_position_controller/command"
   path_topic: "/desired_path"
 
-  admittance: true
-  wrench_topic: "/ft_compensated"
-
   gains:
     panda_joint1: { p: 100.0, i: 0.0, d: 20.0, i_clamp_min: -100.0, i_clamp_max: 100.0 }
     panda_joint2: { p: 100.0, i: 0.0, d: 20.0, i_clamp_min: -5.0, i_clamp_max: 5.0 }
@@ -115,3 +103,21 @@ mpc_controller:
     panda_joint5: { p: 100.0, i: 0.0, d: 20.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
     panda_joint6: { p: 100.0, i: 0.0, d: 20.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
     panda_joint7: { p: 100.0, i: 0.0, d: 20.0, i_clamp_min: -0.1, i_clamp_max: 0.1 }
+
+path_admittance_controller:
+  type: moma_controllers/PathAdmittanceController
+
+  wrench_topic: /ft_compensated
+  path_in_topic: /desired_path
+  path_out_topic: /mpc_reference_path
+  
+  kp_linear_gains: [0.01, 0.01, 0.01]
+  kp_angular_gains: [0.0, 0.0, 0.0]
+  ki_linear_gains: [ 0.0, 0.0, 0.0 ]
+  ki_angular_gains: [ 0.0, 0.0, 0.0 ]
+  force_integral_max: [1.0, 1.0, 1.0]
+  torque_integral_max: [1.0, 1.0, 1.0]
+
+  force_threshold: [2.0, 2.0, 2.0]
+  torque_threshold: [0.0, 0.0, 0.0]
+  
