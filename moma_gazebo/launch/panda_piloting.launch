@@ -23,6 +23,9 @@
     <arg name="tool" value="$(arg tool)"/>
   </include>
 
+  <!-- spawn valve -->
+  <include file="$(find moma_gazebo)/launch/load_valve.launch"/>
+  
   <!-- description used in mpc -->
   <param name="robot_description_mpc" command="$(find xacro)/xacro $(find moma_description)/urdf/panda.urdf.xacro use_nominal_extrinsics:=true use_fixed_realsense:=$(arg use_fixed_realsense)
     control_mode:='Effort' tool:=$(arg tool)"/>

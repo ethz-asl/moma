@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+  <arg name="x"       default="0.0"/>
+  <arg name="y"       default="0.0"/>
+  <arg name="z"       default="0.0"/>
+  <arg name="roll"    default="0.0"/>
+  <arg name="pitch"   default="0.0"/>
+  <arg name="yaw"     default="0.0"/>
+  
+  <param name="valve_description" command="$(find xacro)/xacro --inorder $(find moma_description)/objects/urdf/valve.urdf.xacro x:=0.6 y:=0.0 z:=0.2 roll:=0.0 pitch:=1.57 yaw:=0.0"/>
+
+  <node name="valve_spawner" pkg="gazebo_ros" type="spawn_model"
+    args="-param valve_description -urdf -model valve"  output="screen"/> 
+
+  <node name="valve_state_publisher"  type="robot_state_publisher"  pkg="robot_state_publisher">
+    <remap from="robot_description" to="valve_description"/>
+    <remap from="/joint_states"     to="/valve/joint_states"/>
+  </node>
+
+  <!-- Load joint controller to publish the joint state under object namespace -->
+  <group ns="valve">
+    <rosparam command="load" file="$(find moma_gazebo)/config/objects_controllers.yaml" subst_value="True"/>
+    <node name="valve_controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="valve_state_controller"/>
+  </group>
+
+</launch>
+
