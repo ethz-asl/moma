@@ -73,6 +73,7 @@ bool JointSpaceController::init(hardware_interface::RobotHW* hw, ros::NodeHandle
   action_server_ = std::make_unique<ActionServer>(
       controller_nh, "/joint_space_controller_server",
       boost::bind(&JointSpaceController::execute_callback, this, _1), false);
+  action_server_->start();
 
   // Init specialized command handles
   if (!add_command_handles(hw)) return false;
@@ -101,6 +102,12 @@ bool JointSpaceController::init(hardware_interface::RobotHW* hw, ros::NodeHandle
   position_command_ = q_.head(n_joints_);
   velocity_command_ = Eigen::VectorXd::Zero(n_joints_);
   return true;
+}
+
+void JointSpaceController::starting(const ros::Time& time){
+  read_state();
+  position_command_ = q_.head(n_joints_);
+  velocity_command_ = Eigen::VectorXd::Zero(n_joints_);
 }
 
 bool JointSpaceController::add_command_handles(hardware_interface::RobotHW* hw) {
@@ -267,7 +274,7 @@ void JointSpaceController::execute_callback(
   moma_msgs::JointResult result;
   result.success = false;
   success_ = false;
-
+  
   // start executing the action
   while (ros::ok()) {
     // check that preempt has not been requested by the client

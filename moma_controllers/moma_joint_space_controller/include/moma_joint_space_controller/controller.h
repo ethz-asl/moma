@@ -34,6 +34,7 @@ class JointSpaceController
  private:
   bool init(hardware_interface::RobotHW* hw, ros::NodeHandle& root_nh,
             ros::NodeHandle& controller_nh) override;
+  void starting(const ros::Time& time) override;
   void stopping(const ros::Time& time) override;
   void update(const ros::Time& time, const ros::Duration& period) override;
 
