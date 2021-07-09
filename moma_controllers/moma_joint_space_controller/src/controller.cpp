@@ -98,7 +98,7 @@ bool JointSpaceController::init(hardware_interface::RobotHW* hw, ros::NodeHandle
   }
 
   read_state();
-  position_command_ = Eigen::VectorXd::Zero(n_joints_);
+  position_command_ = q_.head(n_joints_);
   velocity_command_ = Eigen::VectorXd::Zero(n_joints_);
   return true;
 }
