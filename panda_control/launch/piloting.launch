@@ -3,6 +3,12 @@
 	<arg name="load_gripper" default="true"/>
   <arg name="robot_ip" default="172.16.0.2"/>
 
+  <!-- Load the robot description -->
+  <arg name="tool" default="panda_hand"/>
+   
+  <!-- send the robot XML to param server -->
+  <param name="robot_description" command="$(find xacro)/xacro $(find moma_description)/urdf/panda.urdf.xacro use_nominal_extrinsics:=true use_fixed_realsense:=false tool:=$(arg tool)"/>
+
   <!-- Launch franka gripper -->
   <include file="$(find franka_gripper)/launch/franka_gripper.launch" if="$(arg load_gripper)">
 	    <arg name="robot_ip" value="$(arg robot_ip)" />
@@ -24,10 +30,7 @@
     <param name="rate" value="30"/>
   </node>
 
-
   <!-- Load all available controllers -->
   <rosparam command="load" file="$(find panda_control)/config/controllers.yaml" />
 
-  <!-- Controller selection gui-->
-  <node name="rqt_controller_manager" type="rqt_controller_manager" pkg="rqt_controller_manager"/>
 </launch>

@@ -74,6 +74,7 @@ bool JointSpaceController::init(hardware_interface::RobotHW* hw, ros::NodeHandle
       controller_nh, "/joint_space_controller_server",
       boost::bind(&JointSpaceController::execute_callback, this, _1), false);
   action_server_->start();
+  
 
   // Init specialized command handles
   if (!add_command_handles(hw)) return false;
@@ -101,6 +102,7 @@ bool JointSpaceController::init(hardware_interface::RobotHW* hw, ros::NodeHandle
   read_state();
   position_command_ = q_.head(n_joints_);
   velocity_command_ = Eigen::VectorXd::Zero(n_joints_);
+  ROS_INFO("Controller successfully initialized.");
   return true;
 }
 
@@ -108,6 +110,7 @@ void JointSpaceController::starting(const ros::Time& time){
   read_state();
   position_command_ = q_.head(n_joints_);
   velocity_command_ = Eigen::VectorXd::Zero(n_joints_);
+  ROS_INFO("Controller successfully started.");
 }
 
 bool JointSpaceController::add_command_handles(hardware_interface::RobotHW* hw) {
@@ -215,7 +218,7 @@ void JointSpaceController::write_command() {
 
 void JointSpaceController::stopping(const ros::Time& time) {
   cleanup();
-  action_server_->shutdown();
+  ROS_INFO("Stopping controller.");
 }
 
 void JointSpaceController::compute_profile(const Eigen::VectorXd& goal) {
