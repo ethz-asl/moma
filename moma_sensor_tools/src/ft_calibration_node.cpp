@@ -1,4 +1,5 @@
 #include <moma_sensor_tools/ft_calibration_node.h>
+#include <geometry_msgs/TwistStamped.h>
 
 using namespace moma_sensor_tools;
 
@@ -16,15 +17,20 @@ bool FTCalibrationNode::init() {
 }
 
 bool FTCalibrationNode::init_ros() {
-  std::string ft_raw_topic;
-  if (!n_.param<std::string>("wrench_topic", ft_raw_topic, "")) {
-    ROS_ERROR("Failed to get wrench topic from param server.");
-    return false;
+  n_.param<bool>("debug", debug_, false);
+  if (debug_){
+    gravity_publisher_ = n_.advertise<geometry_msgs::TwistStamped>("gravity_ft", 1);
   }
 
   if (!n_.param<std::string>("gravity_aligned_frame",
                              gravity_aligned_frame_, "")) {
     ROS_ERROR("Failed to get gravity_aligned_frame from param server.");
+    return false;
+  }
+
+  std::string ft_raw_topic;
+  if (!n_.param<std::string>("wrench_topic", ft_raw_topic, "")) {
+    ROS_ERROR("Failed to get wrench topic from param server.");
     return false;
   }
 
@@ -66,7 +72,8 @@ bool FTCalibrationNode::init_ros() {
   }
 
   if (!n_.param<int>("num_poses", num_poses_, 1) || num_poses_ < 1) {
-    ROS_WARN("No num_poses parameter or invalid parameter (must be > 1)");
+    ROS_ERROR("No num_poses parameter or invalid parameter (must be > 1)");
+    return false;
   }
 
   int pose_vector_size;
@@ -75,7 +82,8 @@ bool FTCalibrationNode::init_ros() {
     pose_name += std::to_string(i);
     std::vector<double> pose_vector;
     if (!n_.param<std::vector<double>>(pose_name, pose_vector, {})) {
-      ROS_WARN("No num_poses parameter or invalid parameter (must be > 1)");
+      ROS_ERROR_STREAM("No " << pose_name << " parameter or invalid parameter");
+      return false;
     }
     if (i > 0 && pose_vector_size != pose_vector.size()) {
       ROS_ERROR("Pose vectors have different size!");
@@ -138,7 +146,8 @@ bool FTCalibrationNode::moveNextPose() {
     goal.position[i] = configurations_[pose_counter_][i];
   }
   action_client_->sendGoal(goal);
-  if (!action_client_->waitForResult(ros::Duration(10.0))){
+  bool finished_before_timeout = action_client_->waitForResult(ros::Duration(30.0));
+  if (!finished_before_timeout){
     ROS_WARN("Goal not achieved within timeout");
     return false;
   }
@@ -216,7 +225,35 @@ bool FTCalibrationNode::finished() const { return finished_; }
 
 void FTCalibrationNode::ft_raw_callback(
     const geometry_msgs::WrenchStamped::ConstPtr &msg) {
+
   ft_raw_ = *msg;
+
+  if (debug_) {  // TODO(giuseppe) remove this stupid debug
+    // express gravity vector in F/T sensor frame
+    geometry_msgs::Vector3Stamped gravity;
+    gravity.header.stamp = ros::Time();
+    gravity.header.frame_id = gravity_aligned_frame_;
+    gravity.vector.x = 0.0;
+    gravity.vector.y = 0.0;
+    gravity.vector.z = -9.81;
+
+    geometry_msgs::Vector3Stamped gravity_ft_frame;
+
+    try {
+      // target_frame, source_frame ...
+      geometry_msgs::TransformStamped transform = tf2_buffer_.lookupTransform(
+          ft_raw_.header.frame_id, gravity_aligned_frame_, ros::Time(0));
+      tf2::doTransform(gravity, gravity_ft_frame, transform);
+      gravity_ft_frame.header.frame_id = ft_raw_.header.frame_id;
+    } catch (tf2::TransformException &ex) {
+      ROS_ERROR(
+          "Error transforming gravity aligned frame to the F/T sensor frame");
+      ROS_ERROR("%s.", ex.what());
+    }
+    ft_raw_.wrench.force.x = gravity_ft_frame.vector.x;
+    ft_raw_.wrench.force.y = gravity_ft_frame.vector.y;
+    ft_raw_.wrench.force.z = gravity_ft_frame.vector.z;
+  }
   received_ft_ = true;
 }
 
@@ -249,12 +286,22 @@ void FTCalibrationNode::addMeasurement() {
   try {
     // target_frame, source_frame ...
     geometry_msgs::TransformStamped transform = tf2_buffer_.lookupTransform(ft_raw_.header.frame_id, gravity_aligned_frame_, ros::Time(0));
-    tf2::doTransform(gravity, gravity, transform);
+    tf2::doTransform(gravity, gravity_ft_frame, transform);
+    gravity_ft_frame.header.frame_id = ft_raw_.header.frame_id;
   } catch (tf2::TransformException& ex) {
     ROS_ERROR(
         "Error transforming gravity aligned frame to the F/T sensor frame");
     ROS_ERROR("%s.", ex.what());
     return;
+  }
+
+  if (debug_){
+    geometry_msgs::TwistStamped gravity;
+    gravity.header.frame_id = ft_raw_.header.frame_id;
+    gravity.twist.linear.x = gravity_ft_frame.vector.x;
+    gravity.twist.linear.y = gravity_ft_frame.vector.y;
+    gravity.twist.linear.z = gravity_ft_frame.vector.z;
+    gravity_publisher_.publish(gravity);
   }
 
   ft_calib_.addMeasurement(gravity_ft_frame, ft_avg_);
@@ -301,7 +348,7 @@ void FTCalibrationNode::averageFTMeas() {
 
 int main(int argc, char **argv) {
   ros::init(argc, argv, "ft_calib_node");
-  ros::NodeHandle nh;
+  ros::NodeHandle nh("~");
 
   FTCalibrationNode ft_calib_node(nh);
   if (!ft_calib_node.init()) {

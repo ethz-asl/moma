@@ -4,6 +4,7 @@
         <param name="gravity_aligned_frame" value="base_link"/>
         <param name="joint_action_server_name" value="/joint_space_controller_server"/>
         <param name="calib_file_dir" value="$(find moma_sensor_tools)/config"/>
-        <param name="num_poses" value="3"/>
+        <param name="debug" value="true"/>
+        <rosparam command="load" file="$(find moma_sensor_tools)/config/calibration_poses.yaml"/>
     </node>
 </launch>

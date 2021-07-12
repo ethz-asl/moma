@@ -1,0 +1,5 @@
+<?xml version="1.0" ?>
+<launch>
+	<node name="rviz" pkg="rviz" type="rviz" output="screen" args="-d $(find panda_control)/config/operator_pc.rviz"/>
+    <node name="rqt_controller_manager" type="rqt_controller_manager" pkg="rqt_controller_manager" output="screen"/>
+</launch>

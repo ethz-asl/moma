@@ -44,6 +44,7 @@ public:
 public:
     ros::NodeHandle n_;
     ros::Subscriber ft_raw_subscriber_;
+    ros::Publisher gravity_publisher_;
 
 private:
 
@@ -51,6 +52,7 @@ private:
     unsigned int pose_counter_;
     unsigned int ft_counter_;
 
+    bool debug_;
     bool finished_;
     bool received_ft_;
 

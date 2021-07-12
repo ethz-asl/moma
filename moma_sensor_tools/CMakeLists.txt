@@ -22,8 +22,6 @@ catkin_package(
 include_directories(include ${catkin_INCLUDE_DIRS} ${EIGEN3_INCLUDE_DIRS})
 
 add_library(${PROJECT_NAME}
-   src/ft_calibration.cpp
-   src/ft_calibration_node.cpp
    src/ft_sensor_utils.cpp
    src/ft_sensor.cpp)
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
@@ -31,6 +29,10 @@ target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
 add_executable(ft_sensor_node src/ft_sensor_node.cpp)
 target_link_libraries(ft_sensor_node ${PROJECT_NAME} ${catkin_LIBRARIES} yaml-cpp)
 add_dependencies(ft_sensor_node ${PROJECT_NAME})
+
+add_executable(ft_calibration_node src/ft_calibration.cpp src/ft_calibration_node.cpp)
+target_link_libraries(ft_calibration_node ${PROJECT_NAME} ${catkin_LIBRARIES} yaml-cpp)
+add_dependencies(ft_calibration_node ${PROJECT_NAME})
 
 #############
 ## Install ##
