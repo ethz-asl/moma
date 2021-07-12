@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<package format="2">
+    <name>moma_sensor_tools</name>
+    <version>0.0.0</version>
+    <description>Collection of sensor utilities</description>
+
+    <maintainer email="grizzi@mavt.ethz.ch">Giuseppe Rizzi</maintainer>
+    <license>TODO</license>
+    <author>Giuseppe Rizzi</author>
+
+    <buildtool_depend>catkin</buildtool_depend>
+    <depend>roscpp</depend>
+    <depend>eigen_conversions</depend>
+    <depend>tf2_ros</depend>
+    <depend>moma_msgs</depend>
+
+</package>

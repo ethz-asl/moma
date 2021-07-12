@@ -1,0 +1,7 @@
+rokubiminis:
+ - name: ft_sensor0
+   configuration_file: rokubimini_sensor.yaml
+   product_code: 1
+   port: /dev/ttyBota
+   baud_rate: 460800
+   

@@ -1,0 +1,9 @@
+<launch>
+    <node pkg="moma_sensor_tools" type="ft_calibration_node" name="ft_calibration"  output="screen">
+        <param name="wrench_topic" value="/rokubimini/ft_sensor0/ft_sensor_readings/wrench"/>
+        <param name="gravity_aligned_frame" value="base_link"/>
+        <param name="joint_action_server_name" value="/joint_space_controller_server"/>
+        <param name="calib_file_dir" value="$(find moma_sensor_tools)/config"/>
+        <param name="num_poses" value="3"/>
+    </node>
+</launch>

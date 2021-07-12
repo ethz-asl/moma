@@ -1,0 +1,68 @@
+set_reading_to_nan_on_disconnect:  false
+
+imu_acceleration_range: 3
+imu_angular_rate_range: 3
+
+imu_acceleration_filter: 1
+imu_angular_rate_filter: 3
+
+force_torque_filter:
+  sinc_filter_size: 512
+  chop_enable:      false
+  fir_disable:      true
+  fast_enable:      false
+
+force_torque_offset:
+  Fx: 0.0
+  Fy: 0.0
+  Fz: 0.0
+  Tx: 0.0
+  Ty: 0.0
+  Tz: 0.0
+
+sensor_configuration:        
+  calibration_matrix_active:            true
+  temperature_compensation_active:      false
+  imu_active:                           0   #0=no IMU, 1=internal, 2=external, 3=both
+  coordinate_system_active:             true
+  inertia_compensation_active:          1
+  orientation_estimation_active:        0
+use_custom_calibration:                 false
+sensor_calibration:
+  calibration_matrix:
+    1_1:  -0.0120389
+    1_2:  0.0206676
+    1_3:  0.0011164
+    1_4:  0.0010681
+    1_5:  0.0006295
+    1_6:  0.0002029
+    2_1:  -0.0109678
+    2_2:  -0.0207696
+    2_3:  -0.0004745
+    2_4:  -0.0010578
+    2_5:  0.0005841
+    2_6:  0.0001810
+    3_1:  0.0217535
+    3_2:  -0.0005980
+    3_3:  -0.0002701
+    3_4:  -0.0000395
+    3_5:  -0.0011409
+    3_6:  0.0001944
+    4_1:  0.0155252
+    4_2:  0.0100866
+    4_3:  -0.0148265
+    4_4:  0.0003659
+    4_5:  -0.0005838
+    4_6:  0.0000055
+    5_1:  -0.0169726
+    5_2:  0.0114251
+    5_3:  -0.0146247
+    5_4:  0.0004339
+    5_5:  0.0006094
+    5_6:  0.0000011
+    6_1:  -0.0001013
+    6_2:  -0.0197085
+    6_3:  -0.0146952
+    6_4:  -0.0007251
+    6_5:  -0.0000145
+    6_6:  -0.0000077
