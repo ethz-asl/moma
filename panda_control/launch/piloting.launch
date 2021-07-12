@@ -1,0 +1,13 @@
+<?xml version="1.0" ?>
+<launch>
+    <!-- Launch the panda control node -->
+    <include file="$(find panda_control)/launch/panda_control.launch">
+      <arg name="load_gripper" default="true"/>
+    </include>
+
+    <!-- Load all available controllers -->
+    <rosparam command="load" file="$(find panda_control)/config/controllers.yaml" />
+
+    <!-- Controller selection gui-->
+    <node name="rqt_controller_manager" type="rqt_controller_manager" pkg="rqt_controller_manager"/>
+</launch>

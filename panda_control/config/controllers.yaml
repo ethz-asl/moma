@@ -43,7 +43,6 @@ mpc_controller:
   simulation: false
   arm_id: panda
 
-
   robot_name: "panda"
   base_link: base_link
   tool_link: panda_hand
@@ -58,9 +57,6 @@ mpc_controller:
   mpc_frequency: 20
   command_topic: "/joints_position_controller/command"
   path_topic: "/desired_path"
-
-  admittance: true
-  wrench_topic: "/ft_compensated"
 
   gains:
     panda_joint1: { p: 100.0, i: 0.0, d: 20.0, i_clamp_min: -100.0, i_clamp_max: 100.0 }
