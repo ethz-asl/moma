@@ -225,46 +225,18 @@ bool FTCalibrationNode::finished() const { return finished_; }
 
 void FTCalibrationNode::ft_raw_callback(
     const geometry_msgs::WrenchStamped::ConstPtr &msg) {
-
   ft_raw_ = *msg;
-
-  if (debug_) {  // TODO(giuseppe) remove this stupid debug
-    // express gravity vector in F/T sensor frame
-    geometry_msgs::Vector3Stamped gravity;
-    gravity.header.stamp = ros::Time();
-    gravity.header.frame_id = gravity_aligned_frame_;
-    gravity.vector.x = 0.0;
-    gravity.vector.y = 0.0;
-    gravity.vector.z = -9.81;
-
-    geometry_msgs::Vector3Stamped gravity_ft_frame;
-
-    try {
-      // target_frame, source_frame ...
-      geometry_msgs::TransformStamped transform = tf2_buffer_.lookupTransform(
-          ft_raw_.header.frame_id, gravity_aligned_frame_, ros::Time(0));
-      tf2::doTransform(gravity, gravity_ft_frame, transform);
-      gravity_ft_frame.header.frame_id = ft_raw_.header.frame_id;
-    } catch (tf2::TransformException &ex) {
-      ROS_ERROR(
-          "Error transforming gravity aligned frame to the F/T sensor frame");
-      ROS_ERROR("%s.", ex.what());
-    }
-    ft_raw_.wrench.force.x = gravity_ft_frame.vector.x;
-    ft_raw_.wrench.force.y = gravity_ft_frame.vector.y;
-    ft_raw_.wrench.force.z = gravity_ft_frame.vector.z;
-  }
   received_ft_ = true;
 }
 
 void FTCalibrationNode::addMeasurement() {
-  ft_avg_.wrench.force.x = -ft_avg_.wrench.force.x / (double)ft_counter_;
-  ft_avg_.wrench.force.y = -ft_avg_.wrench.force.y / (double)ft_counter_;
-  ft_avg_.wrench.force.z = -ft_avg_.wrench.force.z / (double)ft_counter_;
+  ft_avg_.wrench.force.x = ft_avg_.wrench.force.x / (double)ft_counter_;
+  ft_avg_.wrench.force.y = ft_avg_.wrench.force.y / (double)ft_counter_;
+  ft_avg_.wrench.force.z = ft_avg_.wrench.force.z / (double)ft_counter_;
 
-  ft_avg_.wrench.torque.x = -ft_avg_.wrench.torque.x / (double)ft_counter_;
-  ft_avg_.wrench.torque.y = -ft_avg_.wrench.torque.y / (double)ft_counter_;
-  ft_avg_.wrench.torque.z = -ft_avg_.wrench.torque.z / (double)ft_counter_;
+  ft_avg_.wrench.torque.x = ft_avg_.wrench.torque.x / (double)ft_counter_;
+  ft_avg_.wrench.torque.y = ft_avg_.wrench.torque.y / (double)ft_counter_;
+  ft_avg_.wrench.torque.z = ft_avg_.wrench.torque.z / (double)ft_counter_;
 
   ft_counter_ = 0;
 
@@ -324,12 +296,12 @@ void FTCalibrationNode::getCalib(double &mass, Eigen::Vector3d &COM_pos,
 
   COM_pos = center_mass_position;
 
-  f_bias(0) = -ft_calib(4);
-  f_bias(1) = -ft_calib(5);
-  f_bias(2) = -ft_calib(6);
-  t_bias(0) = -ft_calib(7);
-  t_bias(1) = -ft_calib(8);
-  t_bias(2) = -ft_calib(9);
+  f_bias(0) = ft_calib(4);
+  f_bias(1) = ft_calib(5);
+  f_bias(2) = ft_calib(6);
+  t_bias(0) = ft_calib(7);
+  t_bias(1) = ft_calib(8);
+  t_bias(2) = ft_calib(9);
 }
 
 void FTCalibrationNode::averageFTMeas() {

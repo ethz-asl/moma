@@ -34,6 +34,9 @@ add_executable(ft_calibration_node src/ft_calibration.cpp src/ft_calibration_nod
 target_link_libraries(ft_calibration_node ${PROJECT_NAME} ${catkin_LIBRARIES} yaml-cpp)
 add_dependencies(ft_calibration_node ${PROJECT_NAME})
 
+add_executable(dummy_wrench_node test/dummy_wrench.cpp)
+target_link_libraries(dummy_wrench_node ${PROJECT_NAME} ${catkin_LIBRARIES})
+
 #############
 ## Install ##
 #############

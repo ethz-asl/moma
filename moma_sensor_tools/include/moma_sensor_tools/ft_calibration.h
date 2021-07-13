@@ -41,7 +41,7 @@ class FTCalibration {
   // Estimation
   //  Based on Inertial Parameters", D. Kubus, T. Kroger, F. Wahl, IROS 2008
   Eigen::MatrixXd getMeasurementMatrix(
-      const geometry_msgs::Vector3Stamped &gravity);
+      const Eigen::Vector3d &gravity);
 
  protected:
   Eigen::MatrixXd H_;     // stacked measurement matrices

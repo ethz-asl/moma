@@ -16,9 +16,13 @@ void FTCalibration::addMeasurement(const geometry_msgs::Vector3Stamped &gravity,
     return;
   }
 
+  Eigen::Vector3d gravity_eigen(gravity.vector.x, gravity.vector.y, gravity.vector.z);
+  std::cout << "Adding measurement." << std::endl;
+  std::cout << "Gravity vector is: " << gravity_eigen.transpose() << std::endl;
+  std::cout << "Norm = " << gravity_eigen.norm() << std::endl;
   n_meas_++;
 
-  Eigen::MatrixXd h = getMeasurementMatrix(gravity);
+  Eigen::MatrixXd h = getMeasurementMatrix(gravity_eigen);
   Eigen::VectorXd z = Eigen::Matrix<double, 6, 1>::Zero();
   z(0) = ft_raw.wrench.force.x;
   z(1) = ft_raw.wrench.force.y;
@@ -59,36 +63,17 @@ Eigen::VectorXd FTCalibration::getCalib() {
 }
 
 Eigen::MatrixXd FTCalibration::getMeasurementMatrix(
-    const geometry_msgs::Vector3Stamped &gravity) {
+    const Eigen::Vector3d &g) {
   Eigen::Vector3d w;
   Eigen::Vector3d alpha;
   Eigen::Vector3d a;
 
-  Eigen::Vector3d g(gravity.vector.x, gravity.vector.y, gravity.vector.z);
-
   Eigen::MatrixXd H;
   H = Eigen::Matrix<double, 6, 10>::Zero();
+  H.block<6, 6>(0, 4).setIdentity();
 
   for (unsigned int i = 0; i < 3; i++) {
-    for (unsigned int j = 4; j < 10; j++) {
-      if (i == j - 4) {
-        H(i, j) = 1.0;
-      } else {
-        H(i, j) = 0.0;
-      }
-    }
-  }
-
-  for (unsigned int i = 3; i < 6; i++) {
-    H(i, 0) = 0.0;
-  }
-
-  H(3, 1) = 0.0;
-  H(4, 2) = 0.0;
-  H(5, 3) = 0.0;
-
-  for (unsigned int i = 0; i < 3; i++) {
-    H(i, 0) = a(i) - g(i);
+    H(i, 0) = a(i) + g(i);
   }
 
   H(0, 1) = -w(1) * w(1) - w(2) * w(2);
@@ -103,24 +88,15 @@ Eigen::MatrixXd FTCalibration::getMeasurementMatrix(
   H(2, 2) = w(1) * w(2) + alpha(0);
   H(2, 3) = -w(1) * w(1) - w(0) * w(0);
 
-  H(3, 2) = a(2) - g(2);
-  H(3, 3) = -a(1) + g(1);
+  H(3, 2) = a(2) + g(2);
+  H(3, 3) = -a(1) - g(1);
 
-  H(4, 1) = -a(2) + g(2);
-  H(4, 3) = a(0) - g(0);
+  H(4, 1) = -a(2) - g(2);
+  H(4, 3) = a(0) + g(0);
 
-  H(5, 1) = a(1) - g(1);
-  H(5, 2) = -a(0) + g(0);
+  H(5, 1) = a(1) + g(1);
+  H(5, 2) = -a(0) - g(0);
 
-  for (unsigned int i = 3; i < 6; i++) {
-    for (unsigned int j = 4; j < 10; j++) {
-      if (i == (j - 4)) {
-        H(i, j) = 1.0;
-      } else {
-        H(i, j) = 0.0;
-      }
-    }
-  }
-
+  std::cout << "Measurement matrix is: \n" << H << std::endl;
   return H;
 }
