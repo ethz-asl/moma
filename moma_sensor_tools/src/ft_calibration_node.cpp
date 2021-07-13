@@ -43,6 +43,7 @@ bool FTCalibrationNode::init_ros() {
     ROS_ERROR("Failed to get joint_action_server_name from param server.");
     return false;
   }
+
   action_client_ =
       std::make_unique<actionlib::SimpleActionClient<moma_msgs::JointAction>>(
           joint_action_server_name, true);
@@ -52,6 +53,13 @@ bool FTCalibrationNode::init_ros() {
     ROS_WARN(
         "No calib_file_name parameter, setting to default 'ft_calib.yaml'");
   }
+
+  if (!n_.param<bool>("external_wrench_is_positive", external_wrench_is_positive_,
+                             true)) {
+    ROS_WARN(
+        "No external_wrench_is_positive parameter, setting to default: true");
+  }
+  wrench_sign_ = (external_wrench_is_positive_) ? 1.0 : -1.0;
 
   if (!n_.param<std::string>("calib_file_dir", calib_file_dir_,
                              "~/.ros/ft_calib")) {
@@ -230,13 +238,13 @@ void FTCalibrationNode::ft_raw_callback(
 }
 
 void FTCalibrationNode::addMeasurement() {
-  ft_avg_.wrench.force.x = ft_avg_.wrench.force.x / (double)ft_counter_;
-  ft_avg_.wrench.force.y = ft_avg_.wrench.force.y / (double)ft_counter_;
-  ft_avg_.wrench.force.z = ft_avg_.wrench.force.z / (double)ft_counter_;
+  ft_avg_.wrench.force.x = wrench_sign_ * ft_avg_.wrench.force.x / (double)ft_counter_;
+  ft_avg_.wrench.force.y = wrench_sign_ * ft_avg_.wrench.force.y / (double)ft_counter_;
+  ft_avg_.wrench.force.z = wrench_sign_ * ft_avg_.wrench.force.z / (double)ft_counter_;
 
-  ft_avg_.wrench.torque.x = ft_avg_.wrench.torque.x / (double)ft_counter_;
-  ft_avg_.wrench.torque.y = ft_avg_.wrench.torque.y / (double)ft_counter_;
-  ft_avg_.wrench.torque.z = ft_avg_.wrench.torque.z / (double)ft_counter_;
+  ft_avg_.wrench.torque.x = wrench_sign_ * ft_avg_.wrench.torque.x / (double)ft_counter_;
+  ft_avg_.wrench.torque.y = wrench_sign_ * ft_avg_.wrench.torque.y / (double)ft_counter_;
+  ft_avg_.wrench.torque.z = wrench_sign_ * ft_avg_.wrench.torque.z / (double)ft_counter_;
 
   ft_counter_ = 0;
 
