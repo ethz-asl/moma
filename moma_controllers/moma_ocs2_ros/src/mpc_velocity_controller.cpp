@@ -19,7 +19,7 @@ bool MpcController::init() {
   mm_interface_.reset(
       new ocs2::mobile_manipulator::MobileManipulatorInterface(taskFile_, robotName));
   mpcPtr_ = mm_interface_->getMpc();
-  mpc_mrt_interface_.reset(new ocs2::MPC_MRT_Interface(*mpcPtr_));
+  //mpc_mrt_interface_.reset(new ocs2::MPC_MRT_Interface(*mpcPtr_));
 
   nh_.param<std::string>("/robot_description_mpc", robot_description_, "");
   nh_.param<std::string>("/mpc_controller/base_link", base_link_, "base_link");
@@ -86,7 +86,9 @@ void MpcController::start(const joint_vector_t& initial_observation) {
 
   // mpc solution update thread
   start_time_ = 0.0;
+  mpc_mrt_interface_.reset(new ocs2::MPC_MRT_Interface(*mpcPtr_));
   mpc_mrt_interface_->reset();
+  
   mpcTimer_.reset();
 
   stopped_ = false;
@@ -140,13 +142,12 @@ void MpcController::advanceMpc() {
 }
 
 void MpcController::update(const ros::Time& time, const joint_vector_t& observation) {
+  std::unique_lock<std::mutex> lock(observationMutex_);
   setObservation(observation);
   updateCommand();
-  publishObservation();
 }
 
 void MpcController::setObservation(const joint_vector_t& observation) {
-  std::lock_guard<std::mutex> lock(observationMutex_);
   observation_.time = ros::Time::now().toSec() - start_time_;
   observation_.state.tail(7) = observation;
   observationEverReceived_ = true;
@@ -154,10 +155,7 @@ void MpcController::setObservation(const joint_vector_t& observation) {
 
 void MpcController::publishObservation() {
   ocs2_msgs::mpc_observation observationMsg;
-  {
-    std::unique_lock<std::mutex> lock(observationMutex_);
-    ocs2::ros_msg_conversions::createObservationMsg(observation_, observationMsg);
-  }
+  ocs2::ros_msg_conversions::createObservationMsg(observation_, observationMsg);
   observationPublisher_.publish(observationMsg);
 }
 
@@ -172,13 +170,9 @@ void MpcController::updateCommand() {
     return;
   }
 
-  {
-    std::unique_lock<std::mutex> policyLock(policyMutex_);
-    std::unique_lock<std::mutex> observationLock(observationMutex_);
-    mpc_mrt_interface_->updatePolicy();
-    mpc_mrt_interface_->evaluatePolicy(observation_.time, observation_.state, mpcState, mpcInput,
+  mpc_mrt_interface_->updatePolicy();
+  mpc_mrt_interface_->evaluatePolicy(observation_.time, observation_.state, mpcState, mpcInput,
                                        mode);
-  }
   positionCommand_ = mpcState.tail(7);
   velocityCommand_ = mpcInput.tail(7);
 }
@@ -285,6 +279,7 @@ void MpcController::stop() {
   ROS_INFO("[MPC_Controller::stop] Stopping MPC update thread");
   stopped_ = true;
   mpcThread_.join();
+  publishRosThread_.join();
   ROS_INFO("[MPC_Controller::stop] Stopped MPC update thread");
 }
 
@@ -342,6 +337,7 @@ void MpcController::publishRos(){
   while (ros::ok() && !stopped_){
     //publishDesiredPath();
     publishCurrentRollout();
+    publishObservation();
     std::this_thread::sleep_for(std::chrono::milliseconds((int)(1e3 / publishRosFrequency_)));
   }
 }

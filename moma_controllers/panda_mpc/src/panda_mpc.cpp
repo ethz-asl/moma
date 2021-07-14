@@ -6,6 +6,7 @@
 
 #include <cmath>
 #include <memory>
+#include <chrono>
 
 #include <controller_interface/controller_base.h>
 #include <pluginlib/class_list_macros.h>
@@ -167,10 +168,12 @@ void PandaMpcController::write_command(){
 }
 
 void PandaMpcController::starting(const ros::Time& time) {
-  if (started_) return;
+  if (started_){
+    ROS_INFO("[PandaMpcController::starting] Controller already started.");
+  };
   read_state();
 
-  ROS_INFO_STREAM("Starting with current joint position: " << position_current_.transpose());
+  ROS_INFO_STREAM("[PandaMpcController::starting] Starting with current joint position: " << position_current_.transpose());
   mpc_controller_->start(position_current_.head<7>());
   position_integral_ = position_current_;
 
@@ -202,11 +205,13 @@ void PandaMpcController::compute_torque(const ros::Duration& period) {
     gravity_and_coriolis_ = robot_model_->getNonLinearTerms().head<7>();    
   } 
   else {
+
     // Panda already compensates for gravity internally
     robot_state_ = state_handle_->getRobotState();
-    std::array<double, 7> coriolis = model_handle_->getCoriolis();
-    for(int i=0; i<7; i++) 
-      gravity_and_coriolis_[i] = coriolis_factor_ * coriolis[i];
+    coriolis_ = model_handle_->getCoriolis();
+    for(int i=0; i<7; i++){
+      gravity_and_coriolis_[i] = coriolis_factor_ * coriolis_[i];    
+    }
   }
 
 
@@ -214,7 +219,6 @@ void PandaMpcController::compute_torque(const ros::Duration& period) {
     tau_(i) = pid_controllers_[i].computeCommand(position_error_(i), velocity_error_(i), period) + 
            gravity_and_coriolis_(i);
   }
-
   // Maximum torque difference with a sampling rate of 1 kHz. The maximum
   // torque rate is 1000 * (1 / sampling_time).
   if (!sim_){
@@ -226,13 +230,13 @@ void PandaMpcController::update(const ros::Time& time,
                                      const ros::Duration& period) {
   read_state();
   mpc_controller_->update(time, position_current_.head<7>());
-  compute_torque(period);
+  compute_torque(period);  
   write_command();
 }
 
 void PandaMpcController::stopping(const ros::Time& time) {
   ROS_INFO("Stopping Mpc Controller!");
-  this->mpc_controller_->stop();
+  mpc_controller_->stop();
 }
 
 void PandaMpcController::saturate_torque_rate(
