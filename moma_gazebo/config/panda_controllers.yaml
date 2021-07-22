@@ -92,8 +92,8 @@ mpc_controller:
     - panda_joint6
     - panda_joint7
   mpc_frequency: 20
-  command_topic: "/joints_position_controller/command"
-  path_topic: "/desired_path"
+  command_topic: /joints_position_controller/command
+  path_topic: /mpc_reference_path
 
   gains:
     panda_joint1: { p: 100.0, i: 0.0, d: 20.0, i_clamp_min: -100.0, i_clamp_max: 100.0 }
@@ -112,7 +112,7 @@ path_admittance_controller:
   path_out_topic: /mpc_reference_path
   
   kp_linear_gains: [0.01, 0.01, 0.01]
-  kp_angular_gains: [0.0, 0.0, 0.0]
+  kp_angular_gains: [0.01, 0.01, 0.01]
   ki_linear_gains: [ 0.0, 0.0, 0.0 ]
   ki_angular_gains: [ 0.0, 0.0, 0.0 ]
   force_integral_max: [1.0, 1.0, 1.0]

@@ -1,6 +1,6 @@
 <launch>
     <node name="demo_path" pkg="path_admittance_controller" type="demo_path.py" output="screen">
-      <param name="demo_path_topic" value="/mpc_reference_path"/>
+      <param name="demo_path_topic" value="/desired_path"/>
       <param name="demo_path_frame" value="panda_hand"/>
     </node>
 </launch>

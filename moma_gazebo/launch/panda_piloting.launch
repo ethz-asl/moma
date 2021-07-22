@@ -13,6 +13,7 @@
     <arg name="use_sim_time" value="true" />
     <arg name="paused" value="true" />
     <arg name="gui" value="$(arg gui)" />
+    <arg name="debug" value="false"/>
   </include>
 
   <!-- spawn panda -->
@@ -50,7 +51,7 @@
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="true" output="screen" />
 
   <node name="unpause_gazebo" pkg="moma_gazebo" type="unpause_gazebo.py">
-    <param name="wait_before_unpause" value="5.0"/>
+    <param name="wait_before_unpause" value="8.0"/>
   </node>
 
   <!-- start rviz -->

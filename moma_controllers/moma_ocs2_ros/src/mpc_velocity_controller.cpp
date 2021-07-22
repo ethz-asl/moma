@@ -41,7 +41,7 @@ bool MpcController::init() {
   command_path_publisher_.init(nh_, "/command_path", 10);
   rollout_publisher_.init(nh_, "/mpc_rollout", 10);
 
-  observation_.time = 0.0;
+  observation_.time = ros::Time::now().toSec();
   observation_.state.setZero(10);
   observation_.input.setZero(9);
   positionCommand_.setZero(10);
@@ -85,7 +85,7 @@ void MpcController::start(const joint_vector_t& initial_observation) {
   setObservation(initial_observation);
 
   // mpc solution update thread
-  start_time_ = 0.0;
+  //start_time_ = 0.0;
   mpc_mrt_interface_->reset();
   mpcTimer_.reset();
 
@@ -147,7 +147,7 @@ void MpcController::update(const ros::Time& time, const joint_vector_t& observat
 
 void MpcController::setObservation(const joint_vector_t& observation) {
   std::lock_guard<std::mutex> lock(observationMutex_);
-  observation_.time = ros::Time::now().toSec() - start_time_;
+  observation_.time = ros::Time::now().toSec();// - start_time_;
   observation_.state.tail(7) = observation;
   observationEverReceived_ = true;
 }
@@ -187,15 +187,15 @@ void MpcController::adjustPathTime(nav_msgs::Path& desiredPath) const {
   if (desiredPath.poses.empty()) return;
 
   // take only relative timing from path
-  double current_mpc_time = ros::Time::now().toSec() - start_time_;
-  ROS_INFO_STREAM("[MPC_Controller::adjustPathTime] Current mpc time: " << current_mpc_time);
-
-  double time_offset = desiredPath.poses[0].header.stamp.toSec() - current_mpc_time;
-  ROS_INFO_STREAM("[MPC_Controller::adjustPathTime] Time offset is: " << time_offset);
-
-  for (auto& pose : desiredPath.poses) {
-    pose.header.stamp = pose.header.stamp - ros::Duration(time_offset);
-  }
+//  double current_mpc_time = ros::Time::now().toSec() - start_time_;
+//  ROS_INFO_STREAM("[MPC_Controller::adjustPathTime] Current mpc time: " << current_mpc_time);
+//
+//  double time_offset = desiredPath.poses[0].header.stamp.toSec() - current_mpc_time;
+//  ROS_INFO_STREAM("[MPC_Controller::adjustPathTime] Time offset is: " << time_offset);
+//
+//  for (auto& pose : desiredPath.poses) {
+//    pose.header.stamp = pose.header.stamp - ros::Duration(time_offset);
+//  }
 }
 
 void MpcController::pathCallback(const nav_msgs::PathConstPtr& desiredPath) {
@@ -210,7 +210,7 @@ void MpcController::pathCallback(const nav_msgs::PathConstPtr& desiredPath) {
     return;
   }
 
-  ROS_INFO_STREAM("[MPC_Controller::pathCallback] Received new path with "
+  ROS_DEBUG_STREAM("[MPC_Controller::pathCallback] Received new path with "
                   << desiredPath->poses.size() << " poses.");
 
   {
@@ -252,7 +252,7 @@ void MpcController::writeDesiredPath(const nav_msgs::Path& desiredPath) {
 bool MpcController::sanityCheck(const nav_msgs::Path& path) {
   // check time monotonicity
   for (size_t idx = 1; idx < path.poses.size(); idx++) {
-    if ((path.poses[idx].header.stamp.toSec() - path.poses[idx - 1].header.stamp.toSec()) < 0) {
+    if ((path.poses[idx].header.stamp.toSec() - path.poses[idx - 1].header.stamp.toSec()) <= 0) {
       return false;
     }
   }
@@ -260,7 +260,7 @@ bool MpcController::sanityCheck(const nav_msgs::Path& path) {
 }
 
 void MpcController::transformPath(nav_msgs::Path& desiredPath) {
-  ROS_INFO_STREAM("[MPC_Controller::transformPath] Transforming path from "
+  ROS_DEBUG_STREAM("[MPC_Controller::transformPath] Transforming path from "
                   << desiredPath.header.frame_id << " to " << base_link_);
   geometry_msgs::TransformStamped transformStamped;
   try {
@@ -272,7 +272,6 @@ void MpcController::transformPath(nav_msgs::Path& desiredPath) {
   }
   tf::transformMsgToEigen(transformStamped.transform, T_base_x_);
 
-  ros::Time stamp;
   desiredPath.header.frame_id = base_link_;
   for (auto& pose : desiredPath.poses) {
     tf::poseMsgToEigen(pose.pose, T_x_tool_);
