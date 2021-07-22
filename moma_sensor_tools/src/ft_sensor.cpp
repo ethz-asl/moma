@@ -22,11 +22,16 @@ bool ForceTorqueSensor::init() {
     return false;
   }
 
-  std::string imu_topic;
-  if (!nh_.param<std::string>("imu_topic", imu_topic, "")) {
-    ROS_ERROR_STREAM("Failed to parse imu_topic");
+  if (!nh_.param<std::string>("gravity_aligned_frame", gravity_aligned_frame_, "")) {
+    ROS_ERROR_STREAM("Failed to parse gravity_aligned_frame");
     return false;
   }
+
+  //std::string imu_topic;
+  //if (!nh_.param<std::string>("imu_topic", imu_topic, "")) {
+  //  ROS_ERROR_STREAM("Failed to parse imu_topic");
+  //  return false;
+  //}
 
   bool estimate_bias_at_startup;
   if (!nh_.param<bool>("estimate_bias_at_startup", estimate_bias_at_startup, true)) {
@@ -69,8 +74,8 @@ bool ForceTorqueSensor::init() {
   estimate_bias_ = (estimate_bias_at_startup) ? true : false;
   estimate_bias_service_ = nh_.advertiseService("/estimate_bias", &ForceTorqueSensor::estimate_bias_callback, this);
   
-  imu_received_ = false;
-  imu_subscriber_ = nh_.subscribe(imu_topic, 1, &ForceTorqueSensor::imu_callback, this);
+  //imu_received_ = false;
+  //imu_subscriber_ = nh_.subscribe(imu_topic, 1, &ForceTorqueSensor::imu_callback, this);
 
   nh_.param<double>("filter_constant", alpha_, 1.0);
   if (alpha_ < 0 || alpha_ > 1){
@@ -88,30 +93,32 @@ void ForceTorqueSensor::update() {
     return ;
   }
 
-  if (!imu_received_){
-    ROS_WARN_STREAM_THROTTLE(1.0, "No imu message received yet.");
-    return ;
-  }
+  //if (!imu_received_){
+  //  ROS_WARN_STREAM_THROTTLE(1.0, "No imu message received yet.");
+  //  return ;
+ // }
 
   // method a: get local gravity vector using a gravity aligned frame
   // In fixed frame gravity is aligned with -z axis
-  // geometry_msgs::TransformStamped transform;
-  // try {
-  //   // target_frame, source_frame ...
-  //   transform = tf2_buffer_.lookupTransform(sensor_frame_, gravity_aligned_frame_, ros::Time(0));
-  // } catch (tf2::TransformException& ex) {
-  //   ROS_WARN_STREAM_THROTTLE(2.0, ex.what());
-  //   return;
-  // }
-  // Eigen::Quaterniond q(transform.transform.rotation.w, transform.transform.rotation.x,
-  //                      transform.transform.rotation.y, transform.transform.rotation.z);
-  // Eigen::Matrix3d R(q);
-  // tool_wrench_.get_force() = R * Eigen::Vector3d::UnitZ() * -9.81 * calibration_data_.mass;
-  // tool_wrench_.get_torque() = calibration_data_.com.cross(tool_wrench_.get_force());
-  // ROS_INFO_STREAM_THROTTLE(1.0, "Wrench tool" << tool_wrench_);
+  geometry_msgs::TransformStamped transform;
+  try {
+     // target_frame, source_frame ...
+     transform = tf2_buffer_.lookupTransform(sensor_frame_, gravity_aligned_frame_, ros::Time(0));
+  } catch (tf2::TransformException& ex) {
+     ROS_WARN_STREAM_THROTTLE(2.0, ex.what());
+     return;
+  }
+  Eigen::Quaterniond q(transform.transform.rotation.w, transform.transform.rotation.x,
+                       transform.transform.rotation.y, transform.transform.rotation.z);
+  Eigen::Matrix3d R(q);
+  Eigen::Vector3d gravity = R * Eigen::Vector3d::UnitZ() * -9.81;
+  tool_wrench_.get_force() = gravity * calibration_data_.mass;
+  tool_wrench_.get_torque() = calibration_data_.com.cross(tool_wrench_.get_force());
+  ROS_DEBUG_STREAM_THROTTLE(1.0, "Wrench tool" << tool_wrench_);
 
 
   /// alternative using IMU
+  /*
   Eigen::Vector3d gravity_temp(imu_.linear_acceleration.x, 
                                imu_.linear_acceleration.y, 
                                imu_.linear_acceleration.z);
@@ -128,27 +135,9 @@ void ForceTorqueSensor::update() {
   Eigen::Matrix3d R(q);
   Eigen::Vector3d gravity = R * gravity_temp;
 
-  // geometry_msgs::Vector3Stamped g;
-  // g.vector = imu_.linear_acceleration;
-  // g.header = imu_.header;
-  // g.header.stamp = ros::Time();
-
-  // Convert gravity to the FT sensor frame
-  // geometry_msgs::Vector3Stamped g_ft_frame;
-  // try{
-  //   tf2_listener_.transformVector(sensor_frame_, g, g_ft_frame);
-  // }
-  // catch(tf::TransformException &ex)
-  // {
-  //   ROS_ERROR("Error transforming gravity vector to ft sensor frame...");
-  //   ROS_ERROR("%s.", ex.what());
-  //   return false;
-  // }
-  // Eigen::Vector3d gravity;
-  // tf::vectorMsgToEigen(g_ft_frame.vector, gravity);
-  
   tool_wrench_.get_force() = gravity * calibration_data_.mass;
   tool_wrench_.get_torque() = calibration_data_.com.cross(tool_wrench_.get_force());
+  */
 
   Eigen::Matrix<double, 6, 1> raw_wrench;
   tf::wrenchMsgToEigen(wrench_raw_.wrench, raw_wrench);

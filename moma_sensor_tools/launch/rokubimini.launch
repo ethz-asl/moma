@@ -5,7 +5,7 @@
     <arg name="num_spinners" default="1"/>
     <arg name="launch_prefix" default="nice -n -10"/>
     <arg name="launch_prefix_gdb" default="gdb -ex run --args"/>
-    <arg name="rokubimini_setup_file" default="$(find sensor_tools)/config/rokubimini.yaml"/>
+    <arg name="rokubimini_setup_file" default="$(find moma_sensor_tools)/config/rokubimini.yaml"/>
     <arg name="sensor_config_name" default=""/>
     <arg name="verbose" default="true"/>
 
