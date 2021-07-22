@@ -122,6 +122,8 @@ void MobileManipulatorDummyVisualization::launchVisualizerNode(ros::NodeHandle& 
         std::cout << "Adding joint: " << joint->name << std::endl;
         jointPositions_[joint->name] = 0.0;
         jointNames_.push_back(joint->name);
+        jointState_.name.push_back(joint->name);
+        jointState_.position.push_back(0.0);
         childLink = model.links_[joint->child_link_name];
         movableJointFound = true;
         break;
@@ -136,9 +138,7 @@ void MobileManipulatorDummyVisualization::launchVisualizerNode(ros::NodeHandle& 
   }
   armJoints_ = jointPositions_.size();
 
-  robotStatePublisherPtr_.reset(new robot_state_publisher::RobotStatePublisher(tree));
-  robotStatePublisherPtr_->publishFixedTransforms(true);
-
+  jointStatePublisher_ = nodeHandle.advertise<sensor_msgs::JointState>("/joint_states", 1);
   stateOptimizedPublisher_ = nodeHandle.advertise<visualization_msgs::MarkerArray>("/mobile_manipulator/optimizedStateTrajectory", 1);
   stateOptimizedPosePublisher_ = nodeHandle.advertise<geometry_msgs::PoseArray>("/mobile_manipulator/optimizedPoseTrajectory", 1);
 
@@ -186,9 +186,11 @@ void MobileManipulatorDummyVisualization::publishObservation(const ros::Time& ti
   const auto j_arm = getArmJointPositions(observation.state);
   for (const auto& jointName : jointNames_){
     jointPositions_[jointName] = j_arm[idx];
+    jointState_.position[idx] = j_arm[idx];
     idx++;
   }
-  robotStatePublisherPtr_->publishTransforms(jointPositions_, timeStamp);
+  jointState_.header.stamp = ros::Time::now();
+  jointStatePublisher_.publish(jointState_);
 }
 
 /******************************************************************************************************/

@@ -31,6 +31,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <robot_state_publisher/robot_state_publisher.h>
 #include <tf/transform_broadcaster.h>
+#include <sensor_msgs/JointState.h>
 
 #include <ocs2_ros_interfaces/mrt/DummyObserver.h>
 
@@ -60,9 +61,10 @@ class MobileManipulatorDummyVisualization final : public DummyObserver {
 
   PinocchioInterface pinocchioInterface_;
 
-  std::unique_ptr<robot_state_publisher::RobotStatePublisher> robotStatePublisherPtr_;
   tf::TransformBroadcaster tfBroadcaster_;
 
+  sensor_msgs::JointState jointState_;
+  ros::Publisher jointStatePublisher_;
   ros::Publisher stateOptimizedPublisher_;
   ros::Publisher stateOptimizedPosePublisher_;
 
