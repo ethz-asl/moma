@@ -56,6 +56,9 @@ private:
     bool finished_;
     bool received_ft_;
 
+    bool external_wrench_is_positive_;
+    double wrench_sign_;
+
     FTCalibration ft_calib_;
 
     geometry_msgs::WrenchStamped ft_raw_;
