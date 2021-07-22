@@ -180,6 +180,15 @@ Visualization Manager:
       Update Interval: 0
       Value: true
       Visual Enabled: true
+    - Class: rviz/InteractiveMarkers
+      Enable Transparency: true
+      Enabled: true
+      Name: InteractiveMarkers
+      Show Axes: false
+      Show Descriptions: true
+      Show Visual Aids: false
+      Update Topic: /simple_marker/update
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -208,7 +217,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 2.407705068588257
+      Distance: 4.545452117919922
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -224,9 +233,9 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.5553981065750122
+      Pitch: 0.5453981757164001
       Target Frame: <Fixed Frame>
-      Yaw: 1.5303975343704224
+      Yaw: 1.330397605895996
     Saved: ~
 Window Geometry:
   Displays:
