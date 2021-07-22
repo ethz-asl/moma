@@ -6,11 +6,14 @@ find_package(Eigen3 3.3 REQUIRED)
 
 set(PROJECT_DEPENDENCIES
         roscpp
+        geometry_msgs
+        nav_msgs
+        std_msgs
         realtime_tools
-        angles
-        tf2
         tf2_ros
-        tf2_geometry_msgs)
+        hardware_interface
+        controller_interface
+        pluginlib)
 
 find_package(catkin REQUIRED COMPONENTS ${PROJECT_DEPENDENCIES})
 
@@ -34,3 +37,6 @@ install(TARGETS ${PROJECT_NAME}
         LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
         RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}
         )
+
+catkin_install_python(PROGRAMS scripts/demo_path.py
+        DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})

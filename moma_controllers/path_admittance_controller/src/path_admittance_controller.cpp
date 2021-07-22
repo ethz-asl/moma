@@ -12,8 +12,9 @@
 
 namespace moma_controllers{
 
-PathAdmittanceController::PathAdmittanceController()
-    : tf_listener_(tf_buffer_) {}
+PathAdmittanceController::PathAdmittanceController(){
+  tf_listener_ = std::make_unique<tf2_ros::TransformListener>(tf_buffer_);
+}
 
 
 bool PathAdmittanceController::init(hardware_interface::JointStateInterface* hw,
@@ -32,7 +33,6 @@ bool PathAdmittanceController::init(hardware_interface::JointStateInterface* hw,
   }
   path_subscriber_ = controller_nh.subscribe(path_in_topic, 1, &PathAdmittanceController::path_callback, this);
 
-
   std::string path_out_topic;
   if (!controller_nh.param<std::string>("path_out_topic", path_out_topic, "/demo_path")) {
     ROS_WARN_STREAM("Failed to parse path_out_topic topic");
@@ -49,6 +49,7 @@ bool PathAdmittanceController::init(hardware_interface::JointStateInterface* hw,
   ok &= parse_vector<3>(controller_nh, "torque_integral_max", torque_integral_max_);
   ok &= parse_vector<3>(controller_nh, "force_threshold", force_threshold_);
   ok &= parse_vector<3>(controller_nh, "torque_threshold", torque_threshold_);
+
   if(!ok){
     return false;
   }
@@ -59,7 +60,6 @@ bool PathAdmittanceController::init(hardware_interface::JointStateInterface* hw,
       wrench_topic, 1, boost::bind(&PathAdmittanceController::wrench_callback, this, _1));
   so.callback_queue = wrench_callback_queue_.get();
   wrench_subscriber_ = controller_nh.subscribe(so);
-
 
   force_integral_.setZero();
   torque_integral_.setZero();
@@ -76,10 +76,15 @@ bool PathAdmittanceController::init(hardware_interface::JointStateInterface* hw,
       force_threshold_(i) = 0.0;
     }
   }
-  return true; 
+  return true;
 }
 
 void PathAdmittanceController::update(const ros::Time& time, const ros::Duration& /*period*/) {
+  if (!path_received_) {
+    ROS_WARN_STREAM_THROTTLE(2.0, "No path received yet.");
+    return;
+  }
+
   {
     std::unique_lock<std::mutex> lock(pathMutex_);
     desiredPath_ = receivedPath_;
@@ -88,6 +93,7 @@ void PathAdmittanceController::update(const ros::Time& time, const ros::Duration
   wrench_callback_queue_->callAvailable();
   if (!wrench_received_) {
     ROS_WARN_STREAM_THROTTLE(2.0, "No wrench received. Not modifying the path.");
+    desiredPathPublisher_.publish(desiredPath_);
     return;
   }
 
@@ -108,7 +114,8 @@ void PathAdmittanceController::update(const ros::Time& time, const ros::Duration
     transform =
         tf_buffer_.lookupTransform(desiredPath_.header.frame_id, wrench_.header.frame_id, ros::Time(0));
   } catch (tf2::TransformException& ex) {
-    ROS_WARN_STREAM_THROTTLE(2.0, ex.what());
+    ROS_WARN_STREAM_THROTTLE(2.0, std::string{ex.what()} + ", publishing current path");
+    desiredPathPublisher_.publish(desiredPath_);
     return;
   }
   Eigen::Quaterniond q(transform.transform.rotation.w, transform.transform.rotation.x,
@@ -116,16 +123,16 @@ void PathAdmittanceController::update(const ros::Time& time, const ros::Duration
   Eigen::Matrix3d R(q);
 
   // Update measured wrench and tracking errors
-  force_error_ = Eigen::Vector3d(wrench_.wrench.force.x, 
+  force_ext_ = Eigen::Vector3d(wrench_.wrench.force.x,
                                  wrench_.wrench.force.y, 
                                  wrench_.wrench.force.z);
-  threshold(force_error_, force_threshold_);
+  threshold(force_ext_, force_threshold_);
 
-  force_integral_ += force_error_ * dt;
+  force_integral_ += force_ext_ * dt;
   force_integral_ = force_integral_.cwiseMax(-force_integral_max_);
   force_integral_ = force_integral_.cwiseMin(force_integral_max_);
   Eigen::Vector3d delta_position =
-      Kp_linear_.cwiseProduct(force_error_) + Ki_linear_.cwiseProduct(force_integral_);
+      Kp_linear_.cwiseProduct(force_ext_) + Ki_linear_.cwiseProduct(force_integral_);
   Eigen::Vector3d delta_position_transformed = R * delta_position;
 
   torque_error_ = Eigen::Vector3d(wrench_.wrench.torque.x, 
@@ -179,6 +186,7 @@ void PathAdmittanceController::wrench_callback(const geometry_msgs::WrenchStampe
 void PathAdmittanceController::path_callback(const nav_msgs::PathConstPtr& msg){
   std::unique_lock<std::mutex> lock(pathMutex_);
   receivedPath_ = *msg;
+  path_received_ = true;
 }
 
 template <int N>
@@ -200,9 +208,9 @@ bool PathAdmittanceController::parse_vector(ros::NodeHandle& nh, const std::stri
 }
 
 void PathAdmittanceController::threshold(Eigen::Vector3d& v, const Eigen::Vector3d& tau){
-  for (size_t i=0; i<v.size(); i++){
+  for (int i=0; i<v.size(); i++){
     if (v(i) == 0) continue;
-    v(i) = (std::abs(v(i)) - tau(i)) > 0 ? v(i) - v(i)/std::abs(v(i)) * tau(i) : 0.0; 
+    v(i) = (std::abs(v(i)) - tau(i)) > 0 ? v(i) - v(i)/std::abs(v(i)) * tau(i) : 0.0;
   }
 }
 

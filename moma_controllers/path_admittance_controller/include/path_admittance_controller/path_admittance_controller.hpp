@@ -12,7 +12,6 @@
 #include <ros/callback_queue.h>
 #include <ros/subscribe_options.h>
 #include <std_srvs/Empty.h>
-#include <tf2_ros/buffer.h>
 #include <tf2_ros/transform_listener.h>
 #include <realtime_tools/realtime_publisher.h>
 
@@ -33,7 +32,10 @@ class PathAdmittanceController : public controller_interface::Controller<hardwar
             ros::NodeHandle& controller_nh) override;
   void update(const ros::Time& time, const ros::Duration& /*period*/) override;
   
-  void starting(const ros::Time& time) override{};
+  void starting(const ros::Time& time) override {
+      path_received_ = false;
+      wrench_received_ = false;
+  };
   void stopping(const ros::Time& /*time*/) override {};
 
  private:
@@ -54,6 +56,7 @@ class PathAdmittanceController : public controller_interface::Controller<hardwar
   void threshold(Eigen::Vector3d& v, const Eigen::Vector3d& tau);
 
  private:
+  std::atomic_bool path_received_;
   std::atomic_bool wrench_received_;
 
   // ROS
@@ -76,7 +79,7 @@ class PathAdmittanceController : public controller_interface::Controller<hardwar
 
   // Errors
   double last_time_;
-  Eigen::Vector3d force_error_;
+  Eigen::Vector3d force_ext_;
   Eigen::Vector3d force_integral_;
   Eigen::Vector3d torque_error_;
   Eigen::Vector3d torque_integral_;
@@ -87,7 +90,7 @@ class PathAdmittanceController : public controller_interface::Controller<hardwar
   Eigen::Vector3d torque_threshold_;
 
   // TF
-  tf2_ros::TransformListener tf_listener_;
+  std::unique_ptr<tf2_ros::TransformListener> tf_listener_;
   tf2_ros::Buffer tf_buffer_;
 };
 
