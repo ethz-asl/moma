@@ -1,0 +1,147 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<root version="2.3.8">
+ <tabbed_widget name="Main Window" parent="main_window">
+  <Tab tab_name="Raw Readings" containers="1">
+   <Container>
+    <DockSplitter sizes="0.500564;0.499436" orientation="-" count="2">
+     <DockSplitter sizes="0.333333;0.333333;0.333333" orientation="|" count="3">
+      <DockArea name="...">
+       <plot mode="TimeSeries" style="Lines">
+        <range right="72.380033" top="-3.438859" bottom="-9.003923" left="52.389973"/>
+        <limitY/>
+        <curve name="/rokubimini/ft_sensor0/ft_sensor_readings/wrench/wrench/force/x" color="#1f1fb4"/>
+       </plot>
+      </DockArea>
+      <DockArea name="...">
+       <plot mode="TimeSeries" style="Lines">
+        <range right="72.380033" top="14.732568" bottom="12.222458" left="52.389973"/>
+        <limitY/>
+        <curve name="/rokubimini/ft_sensor0/ft_sensor_readings/wrench/wrench/force/y" color="#d62728"/>
+       </plot>
+      </DockArea>
+      <DockArea name="...">
+       <plot mode="TimeSeries" style="Lines">
+        <range right="72.380033" top="9.900977" bottom="9.162120" left="52.389973"/>
+        <limitY/>
+        <curve name="/rokubimini/ft_sensor0/ft_sensor_readings/wrench/wrench/force/z" color="#1ac938"/>
+       </plot>
+      </DockArea>
+     </DockSplitter>
+     <DockSplitter sizes="0.333333;0.333333;0.333333" orientation="|" count="3">
+      <DockArea name="...">
+       <plot mode="TimeSeries" style="Lines">
+        <range right="72.380033" top="0.218856" bottom="0.157785" left="52.389973"/>
+        <limitY/>
+        <curve name="/rokubimini/ft_sensor0/ft_sensor_readings/wrench/wrench/torque/x" color="#0e0eff"/>
+       </plot>
+      </DockArea>
+      <DockArea name="...">
+       <plot mode="TimeSeries" style="Lines">
+        <range right="72.380033" top="0.373272" bottom="0.252688" left="52.389973"/>
+        <limitY/>
+        <curve name="/rokubimini/ft_sensor0/ft_sensor_readings/wrench/wrench/torque/y" color="#f14c50"/>
+       </plot>
+      </DockArea>
+      <DockArea name="...">
+       <plot mode="TimeSeries" style="Lines">
+        <range right="72.380033" top="0.143585" bottom="0.132250" left="52.389973"/>
+        <limitY/>
+        <curve name="/rokubimini/ft_sensor0/ft_sensor_readings/wrench/wrench/torque/z" color="#67bd6d"/>
+       </plot>
+      </DockArea>
+     </DockSplitter>
+    </DockSplitter>
+   </Container>
+  </Tab>
+  <Tab tab_name="Compensated" containers="1">
+   <Container>
+    <DockSplitter sizes="0.500564;0.499436" orientation="-" count="2">
+     <DockSplitter sizes="0.333333;0.333333;0.333333" orientation="|" count="3">
+      <DockArea name="...">
+       <plot mode="TimeSeries" style="Lines">
+        <range right="70.679999" top="0.644278" bottom="-0.599224" left="50.689971"/>
+        <limitY/>
+        <curve name="/ft_compensated/wrench/force/x" color="#17becf"/>
+       </plot>
+      </DockArea>
+      <DockArea name="...">
+       <plot mode="TimeSeries" style="Lines">
+        <range right="70.679999" top="0.295422" bottom="-0.367786" left="50.689971"/>
+        <limitY/>
+        <curve name="/ft_compensated/wrench/force/y" color="#bcbd22"/>
+       </plot>
+      </DockArea>
+      <DockArea name="...">
+       <plot mode="TimeSeries" style="Lines">
+        <range right="70.679999" top="0.212935" bottom="-0.039110" left="50.689971"/>
+        <limitY/>
+        <curve name="/ft_compensated/wrench/force/z" color="#1f77b4"/>
+       </plot>
+      </DockArea>
+     </DockSplitter>
+     <DockSplitter sizes="0.333333;0.333333;0.333333" orientation="|" count="3">
+      <DockArea name="...">
+       <plot mode="TimeSeries" style="Lines">
+        <range right="70.679999" top="0.009187" bottom="-0.012602" left="50.689971"/>
+        <limitY/>
+        <curve name="/ft_compensated/wrench/torque/x" color="#d62728"/>
+       </plot>
+      </DockArea>
+      <DockArea name="...">
+       <plot mode="TimeSeries" style="Lines">
+        <range right="70.679999" top="0.013020" bottom="-0.010749" left="50.689971"/>
+        <limitY/>
+        <curve name="/ft_compensated/wrench/torque/y" color="#1ac938"/>
+       </plot>
+      </DockArea>
+      <DockArea name="...">
+       <plot mode="TimeSeries" style="Lines">
+        <range right="70.679999" top="0.002440" bottom="-0.005911" left="50.689971"/>
+        <limitY/>
+        <curve name="/ft_compensated/wrench/torque/z" color="#ff7f0e"/>
+       </plot>
+      </DockArea>
+     </DockSplitter>
+    </DockSplitter>
+   </Container>
+  </Tab>
+  <currentTabIndex index="0"/>
+ </tabbed_widget>
+ <use_relative_time_offset enabled="1"/>
+ <!-- - - - - - - - - - - - - - - -->
+ <!-- - - - - - - - - - - - - - - -->
+ <Plugins>
+  <plugin ID="DataLoad CSV">
+   <default time_axis=""/>
+  </plugin>
+  <plugin ID="DataLoad ROS bags">
+   <use_header_stamp value="false"/>
+   <use_renaming_rules value="true"/>
+   <discard_large_arrays value="true"/>
+   <max_array_size value="100"/>
+  </plugin>
+  <plugin ID="DataLoad ULog"/>
+  <plugin ID="LSL Subscriber"/>
+  <plugin ID="MQTT Subscriber"/>
+  <plugin ID="ROS Topic Subscriber">
+   <use_header_stamp value="true"/>
+   <use_renaming_rules value="true"/>
+   <discard_large_arrays value="true"/>
+   <max_array_size value="100"/>
+  </plugin>
+  <plugin ID="UDP Server"/>
+  <plugin ID="WebSocket Server"/>
+  <plugin ID="ZMQ Subscriber"/>
+  <plugin status="idle" ID="CSV Exporter"/>
+  <plugin status="idle" ID="ROS /rosout Visualization"/>
+  <plugin status="idle" ID="ROS Topic Re-Publisher"/>
+ </Plugins>
+ <!-- - - - - - - - - - - - - - - -->
+ <previouslyLoaded_Datafiles/>
+ <previouslyLoaded_Streamer name="ROS Topic Subscriber"/>
+ <!-- - - - - - - - - - - - - - - -->
+ <customMathEquations/>
+ <snippets/>
+ <!-- - - - - - - - - - - - - - - -->
+</root>
+
