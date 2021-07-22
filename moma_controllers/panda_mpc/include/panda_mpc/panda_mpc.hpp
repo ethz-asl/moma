@@ -85,6 +85,7 @@ class PandaMpcController
 
   std::string arm_id_;
   std::vector<std::string> joint_names_;
+  std::array<double, 7> coriolis_;
   double coriolis_factor_ = 1.0;
   franka::RobotState robot_state_;
 
