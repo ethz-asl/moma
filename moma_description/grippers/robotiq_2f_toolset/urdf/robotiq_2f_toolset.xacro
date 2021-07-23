@@ -1,13 +1,13 @@
 <?xml version='1.0' encoding='utf-8'?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="panda">
   <xacro:include filename="$(find moma_description)/grippers/robotiq_2f_85/urdf/robotiq_2f_85.xacro"/>
-  <xacro:include filename="$(find moma_description)/sensors/bota/urdf/bota.urdf.xacro"/>
+  <xacro:include filename="$(find moma_description)/sensors/bota/urdf/BFT_SENS_SER_M8.urdf.xacro"/>
   <xacro:include filename="$(find moma_description)/sensors/zedm/urdf/zedm.urdf.xacro"/>
 
   <xacro:macro name="robotiq_2f_toolset" params="parent *origin">
-    <xacro:bota_sensor parent="${parent}">
+    <xacro:BFT_SENS_SER_M8 parent="${parent}">
       <xacro:insert_block name='origin'/>
-    </xacro:bota_sensor>
+    </xacro:BFT_SENS_SER_M8>
 
     <xacro:zedm parent="ft_sensor0">
       <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 3.14"/>
