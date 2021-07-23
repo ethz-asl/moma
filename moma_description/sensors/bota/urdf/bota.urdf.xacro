@@ -12,7 +12,7 @@
 
     <link name="ft_sensor0">
       <visual>
-        <origin xyz="0 0 0" rpy="0 0 3.14" />
+        <origin xyz="0 0 0" rpy="0 0 0" />
         <geometry>
           <mesh filename="package://moma_description/sensors/bota/meshes/bota_sensor.stl" scale="0.001 0.001 0.001"/>
         </geometry>
@@ -21,7 +21,7 @@
         </material>
       </visual>
       <collision>
-        <origin xyz="0 0 0" rpy="0 0 3.14" />
+        <origin xyz="0 0 0" rpy="0 0 0" />
         <geometry>
           <mesh filename="package://moma_description/sensors/bota/meshes/bota_sensor.stl" scale="0.001 0.001 0.001"/>
         </geometry>
