@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+<xacro:macro name="robotiq_ur_coupler" params="parent *origin">
+
+	<!-- length is along the z-axis! -->
+	<xacro:property name="coupler_height" value="16.9"/>  <!-- was 13.9-->
+	<xacro:macro name="cylinder_inertia" params="radius length mass">
+		<inertia ixx="${mass * (3 * radius * radius + length * length) / 12}" iyy="${mass * (3 * radius * radius + length * length) / 12}" izz="${mass * radius* radius / 2}" ixy="0" iyz="0" ixz="0"/>
+	</xacro:macro>
+
+	<joint name="robotiq_coupler_joint" type="fixed">
+		<!-- total height of coupler, minus the depth of robot end-effector shape and the gripper small depth-->
+		<origin xyz="0 0 ${0.001*(coupler_height-3-3)}" rpy="0 0 0" />
+		<parent link="${parent}"/>
+		<child link="robotiq_coupler"/>
+	</joint>
+	<link name="robotiq_coupler">
+		<visual>
+			<origin xyz="0 0 ${-1*0.001*(coupler_height-3-3)*0.5}" rpy="0 0 0" />
+			<geometry>
+				<!-- only the visible part of the coupler -->
+				<cylinder length="${0.001*(coupler_height)}" radius="${0.5*0.075}" />
+			</geometry>
+			<material name="dark_grey">
+				<color rgba="0.05 0.05 0.05 1" />
+			</material>
+		</visual>
+		<collision>
+			<origin xyz="0 0 0" rpy="0 0 0" />
+			<geometry>
+				<cylinder length="${0.001*(coupler_height)}" radius="${0.5*0.075}" />
+			</geometry>
+		</collision>
+		<inertial>
+			<mass value="0.1"/>
+			<origin xyz="0 0 ${0.001*(coupler_height)*0.5}"  />
+			<xacro:cylinder_inertia radius="${0.5*0.075}" length="${0.001*(coupler_height)}" mass="0.1"/>
+		</inertial>
+	</link>
+</xacro:macro>
+
+</robot>

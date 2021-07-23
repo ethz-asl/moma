@@ -54,7 +54,7 @@
     </link>
 
     <link
-      name="${prefix}">
+      name="${prefix}_wrench">
       <inertial>
         <origin
           xyz="-1.9753E-07 0.00017443 -0.0070758"
@@ -103,7 +103,7 @@
       <parent
         link="${prefix}_mounting" />
       <child
-        link="${prefix}" />
+        link="${prefix}_wrench" />
       <axis
         xyz="0 0 0" />
     </joint>

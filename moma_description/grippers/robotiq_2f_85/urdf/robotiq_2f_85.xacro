@@ -3,13 +3,19 @@
 
   <xacro:include filename="$(find moma_description)/grippers/robotiq_2f_85/urdf/robotiq_arg2f_85_model.xacro" />
   <xacro:include filename="$(find moma_description)/grippers/robotiq_2f_85/urdf/robotiq_2f_85_transmission.xacro" />
+  <xacro:include filename="$(find moma_description)/grippers/robotiq_2f_85/urdf/robotiq_ur_coupler.urdf.xacro" />
 
   <xacro:macro name="robotiq_2f_85" params="parent prefix *origin">
-     
-    <joint name="${prefix}gripper_base_joint" type="fixed">
-	    <parent link="${parent}"/>
-      <child link="${prefix}robotiq_arg2f_base_link"/>
+
+    
+    <xacro:robotiq_ur_coupler parent="${parent}">
       <xacro:insert_block name='origin'/>
+    </xacro:robotiq_ur_coupler>
+
+    <joint name="${prefix}gripper_base_joint" type="fixed">
+	    <parent link="robotiq_coupler"/>
+      <child link="${prefix}robotiq_arg2f_base_link"/>
+      <!--xacro:insert_block name='origin'/-->
     </joint>
 
     <xacro:robotiq_arg2f_base_link prefix="${prefix}"/>
