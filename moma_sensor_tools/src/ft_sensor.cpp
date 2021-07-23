@@ -83,6 +83,9 @@ bool ForceTorqueSensor::init() {
   }
   wrench_compensated_filtered_.setZero();
   
+  nh_.param<bool>("debug", debug_, false);
+  tool_wrench_publisher_ = nh_.advertise<geometry_msgs::WrenchStamped>("/tool_wrench", 1);
+  tool_wrench_ros_.header.frame_id = sensor_frame_;
   return true;
 }
 
@@ -116,7 +119,16 @@ void ForceTorqueSensor::update() {
   tool_wrench_.get_torque() = calibration_data_.com.cross(tool_wrench_.get_force());
   ROS_DEBUG_STREAM_THROTTLE(1.0, "Wrench tool" << tool_wrench_);
 
-
+  if (debug_){
+    tool_wrench_ros_.wrench.force.x = tool_wrench_.get_force().x();
+    tool_wrench_ros_.wrench.force.y = tool_wrench_.get_force().y();
+    tool_wrench_ros_.wrench.force.z = tool_wrench_.get_force().z(); 
+    tool_wrench_ros_.wrench.torque.x = tool_wrench_.get_torque().x();
+    tool_wrench_ros_.wrench.torque.y = tool_wrench_.get_torque().y();
+    tool_wrench_ros_.wrench.torque.z = tool_wrench_.get_torque().z();
+    tool_wrench_ros_.header.stamp = ros::Time::now();
+    tool_wrench_publisher_.publish(tool_wrench_ros_);
+  }
   /// alternative using IMU
   /*
   Eigen::Vector3d gravity_temp(imu_.linear_acceleration.x, 

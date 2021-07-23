@@ -75,6 +75,10 @@ class ForceTorqueSensor {
   sensor_msgs::Imu imu_;
   bool imu_received_;
   ros::Subscriber imu_subscriber_;
+
+  bool debug_;
+  geometry_msgs::WrenchStamped tool_wrench_ros_;
+  ros::Publisher tool_wrench_publisher_;
 };
 
 }  // namespace sensor_tools::ft

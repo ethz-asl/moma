@@ -26,6 +26,7 @@
         <param name="imu_topic" value="$(arg imu_topic)"/>
         <param name="estimate_bias_at_startup" value="true"/>
         <param name="filter_constant" value="0.1"/>
+        <param name="debug" value="true"/>
     </node>
 
     <group if="$(arg test)">
