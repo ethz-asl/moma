@@ -1,5 +1,6 @@
 <launch>
-    <arg name="wrench_topic" default="/franka_state_controller/F_ext"/>
+    <!-- arg name="wrench_topic" default="/franka_state_controller/F_ext"/ -->
+    <arg name="wrench_topic" default="/rokubimini/ft_sensor0/ft_sensor_readings/wrench"/>
     <arg name="gravity_aligned_frame" default="base_link"/>
     <arg name="debug" default="false"/>
 
