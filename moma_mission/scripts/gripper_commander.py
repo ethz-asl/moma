@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 
 import rospy
 from robotiq_2f_gripper_control.msg import _Robotiq2FGripper_robot_output  as outputMsg
@@ -104,7 +105,7 @@ def askForCommand(command):
     currentCommand += ', rFR = '   + str(command.rFR )
 
 
-    print currentCommand
+    print(currentCommand)
 
     strAskForCommand  = '-----\nAvailable commands\n\n'
     strAskForCommand += 'r: Reset\n'
@@ -146,4 +147,3 @@ if __name__ == '__main__':
         rospy.sleep(0.1)
 
     rospy.spin()
-   
