@@ -147,7 +147,6 @@ void MpcController::update(const ros::Time& time, const joint_vector_t& observat
 }
 
 void MpcController::setObservation(const joint_vector_t& observation) {
-  std::lock_guard<std::mutex> lock(observationMutex_);
   observation_.time = ros::Time::now().toSec();
   observation_.state.tail(7) = observation;
   observationEverReceived_ = true;

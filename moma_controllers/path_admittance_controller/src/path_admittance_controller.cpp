@@ -22,24 +22,28 @@ bool PathAdmittanceController::init(hardware_interface::JointStateInterface* hw,
                                     ros::NodeHandle& controller_nh){
   std::string wrench_topic;
   if (!controller_nh.param<std::string>("wrench_topic", wrench_topic, "/wrench")) {
-    ROS_WARN_STREAM("Failed to parse wrench topic");
+    ROS_WARN_STREAM("[PathAdmittanceController] Failed to parse wrench topic");
     return false;
   }
+  ROS_INFO_STREAM("[PathAdmittanceController] Subscribing to wrench topic [" << wrench_topic << "]");
+
 
   std::string path_in_topic;
   if (!controller_nh.param<std::string>("path_in_topic", path_in_topic, "/demo_path")) {
-    ROS_WARN_STREAM("Failed to parse path_in_topic topic");
+    ROS_WARN_STREAM("[PathAdmittanceController] Failed to parse path_in_topic topic");
     return false;
   }
   path_subscriber_ = controller_nh.subscribe(path_in_topic, 1, &PathAdmittanceController::path_callback, this);
-
+  ROS_INFO_STREAM("[PathAdmittanceController] Subscribing to path topic [" << path_in_topic << "]");
+  
   std::string path_out_topic;
   if (!controller_nh.param<std::string>("path_out_topic", path_out_topic, "/demo_path")) {
-    ROS_WARN_STREAM("Failed to parse path_out_topic topic");
+    ROS_WARN_STREAM("[PathAdmittanceController] Failed to parse path_out_topic topic");
     return false;
   }
   desiredPathPublisher_ = controller_nh.advertise<nav_msgs::Path>(path_out_topic, 1);
-
+  ROS_INFO_STREAM("[PathAdmittanceController] Publishing to path topic [" << path_out_topic << "]");
+  
   bool ok = true;
   ok &= parse_vector<3>(controller_nh, "kp_linear_gains", Kp_linear_);
   ok &= parse_vector<3>(controller_nh, "kp_angular_gains", Kp_angular_);
@@ -51,6 +55,7 @@ bool PathAdmittanceController::init(hardware_interface::JointStateInterface* hw,
   ok &= parse_vector<3>(controller_nh, "torque_threshold", torque_threshold_);
 
   if(!ok){
+    ROS_ERROR("[PathAdmittanceController] Failed to parse params.");
     return false;
   }
 
@@ -60,6 +65,7 @@ bool PathAdmittanceController::init(hardware_interface::JointStateInterface* hw,
       wrench_topic, 1, boost::bind(&PathAdmittanceController::wrench_callback, this, _1));
   so.callback_queue = wrench_callback_queue_.get();
   wrench_subscriber_ = controller_nh.subscribe(so);
+  ROS_INFO("[PathAdmittanceController] Created wrench callback.");
 
   force_integral_.setZero();
   torque_integral_.setZero();
@@ -76,6 +82,7 @@ bool PathAdmittanceController::init(hardware_interface::JointStateInterface* hw,
       force_threshold_(i) = 0.0;
     }
   }
+  ROS_INFO("[PathAdmittanceController] Initialized!");
   return true;
 }
 
@@ -184,6 +191,7 @@ void PathAdmittanceController::wrench_callback(const geometry_msgs::WrenchStampe
 }
 
 void PathAdmittanceController::path_callback(const nav_msgs::PathConstPtr& msg){
+  std::cout << "Path received!" << std::endl;
   std::unique_lock<std::mutex> lock(pathMutex_);
   receivedPath_ = *msg;
   path_received_ = true;

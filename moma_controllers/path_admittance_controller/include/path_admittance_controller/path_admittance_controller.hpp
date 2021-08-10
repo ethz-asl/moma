@@ -35,8 +35,11 @@ class PathAdmittanceController : public controller_interface::Controller<hardwar
   void starting(const ros::Time& time) override {
       path_received_ = false;
       wrench_received_ = false;
+      ROS_INFO("[PathAdmittanceController] Starting.");
   };
-  void stopping(const ros::Time& /*time*/) override {};
+  void stopping(const ros::Time& /*time*/) override {
+    ROS_INFO("[PathAdmittanceController] Stopping.");
+  };
 
  private:
   void adjustPath(nav_msgs::Path& desiredPath);

@@ -13,6 +13,15 @@
       <xacro:hand ns="panda" rpy="0 0 ${-pi/4}" connected_to="panda_link8"/>
       <xacro:panda_hand_gazebo arm_id="panda"/>
     </xacro:if>
+    <xacro:unless value="${tool == 'panda_hand'}">
+      <!-- Add panda hand link if not added by previous block for consistency -->
+      <joint name="panda_hand_joint" type="fixed">
+        <parent link="panda_link8"/>
+        <child link="panda_hand"/>
+        <origin rpy="0 0 -0.785398163397" xyz="0 0 0"/>
+      </joint>
+      <link name="panda_hand"/>
+    </xacro:unless>
 
     <!-- robotiq 2f-85 -->
     <xacro:if value="${tool == 'robotiq_2f_85'}">
