@@ -29,14 +29,8 @@ set(COMMON_LIBRARIES ${catkin_LIBRARIES} ${COMMON_LIBRARIES})
 
 include_directories(include SYSTEM ${DEPENDENCY_INCLUDE_DIRS})
 
-
 add_library(${PROJECT_NAME} src/mpc_velocity_controller.cpp)
 target_link_libraries(${PROJECT_NAME} ${COMMON_LIBRARIES})
-
-add_executable(admittance_controller 
-  src/admittance_controller.cpp
-  src/admittance_controller_node.cpp)
-target_link_libraries(admittance_controller ${COMMON_LIBRARIES})
 
 install(DIRECTORY launch config
         DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}

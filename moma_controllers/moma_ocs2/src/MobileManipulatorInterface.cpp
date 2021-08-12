@@ -92,6 +92,7 @@ MobileManipulatorInterface::MobileManipulatorInterface(const std::string& taskFi
 
   urdfXML_ = urdfXML;
   pinocchioInterfacePtr_.reset(new PinocchioInterface(buildPinocchioInterfaceFromXML(urdfXML_)));
+  pinocchioDesiredInterfacePtr_.reset(new PinocchioInterface(buildPinocchioInterfaceFromXML(urdfXML_)));
   std::cerr << *pinocchioInterfacePtr_;
 
   bool usePreComputation = true;
@@ -148,6 +149,13 @@ MobileManipulatorInterface::MobileManipulatorInterface(const std::string& taskFi
   initializerPtr_.reset(new DefaultInitializer(INPUT_DIM));
 }
 
+std::unique_ptr<ocs2::MPC_DDP> MobileManipulatorInterface::getMpc() {
+  std::unique_ptr<MPC_DDP> mpcPtr(new MPC_DDP(mpcSettings_, ddpSettings_, *rolloutPtr_,
+                                              problem_, *initializerPtr_));
+  mpcPtr->getSolverPtr()->setReferenceManager(referenceManagerPtr_);
+  return mpcPtr;
+}
+
 /******************************************************************************************************/
 /******************************************************************************************************/
 /******************************************************************************************************/
@@ -198,7 +206,7 @@ std::unique_ptr<StateCost> MobileManipulatorInterface::getEndEffectorConstraint(
                                                                                 bool recompileLibraries) {
   scalar_t muPosition = 1.0;
   scalar_t muOrientation = 1.0;
-  std::string name = "WRIST_2";
+  eeFrame_ = "WRIST_2";
 
   boost::property_tree::ptree pt;
   boost::property_tree::read_info(taskFile, pt);
@@ -206,7 +214,7 @@ std::unique_ptr<StateCost> MobileManipulatorInterface::getEndEffectorConstraint(
   std::cerr << "\n #### =============================================================================\n";
   loadData::loadPtreeValue(pt, muPosition, prefix + ".muPosition", true);
   loadData::loadPtreeValue(pt, muOrientation, prefix + ".muOrientation", true);
-  loadData::loadPtreeValue(pt, name, prefix + ".name", true);
+  loadData::loadPtreeValue(pt, eeFrame_, prefix + ".name", true);
   std::cerr << " #### =============================================================================\n";
 
   if (referenceManagerPtr_ == nullptr) {
@@ -216,11 +224,11 @@ std::unique_ptr<StateCost> MobileManipulatorInterface::getEndEffectorConstraint(
   std::unique_ptr<StateConstraint> constraint;
   if (usePreComputation) {
     MobileManipulatorPinocchioMapping<scalar_t> pinocchioMapping;
-    PinocchioEndEffectorKinematics eeKinematics(pinocchioInterface, pinocchioMapping, {name});
+    PinocchioEndEffectorKinematics eeKinematics(pinocchioInterface, pinocchioMapping, {eeFrame_});
     constraint.reset(new EndEffectorConstraint(eeKinematics, *referenceManagerPtr_));
   } else {
     MobileManipulatorPinocchioMapping<ad_scalar_t> pinocchioMappingCppAd;
-    PinocchioEndEffectorKinematicsCppAd eeKinematics(pinocchioInterface, pinocchioMappingCppAd, {name}, STATE_DIM, INPUT_DIM,
+    PinocchioEndEffectorKinematicsCppAd eeKinematics(pinocchioInterface, pinocchioMappingCppAd, {eeFrame_}, STATE_DIM, INPUT_DIM,
                                                      "end_effector_kinematics", libraryFolder, recompileLibraries, false);
     constraint.reset(new EndEffectorConstraint(eeKinematics, *referenceManagerPtr_));
   }

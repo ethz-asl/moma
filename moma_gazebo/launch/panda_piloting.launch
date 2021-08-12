@@ -27,9 +27,10 @@
   <!-- spawn valve -->
   <include file="$(find moma_gazebo)/launch/load_valve.launch"/>
   
-  <!-- description used in mpc -->
-  <param name="robot_description_mpc" command="$(find xacro)/xacro $(find moma_description)/urdf/panda.urdf.xacro use_nominal_extrinsics:=true use_fixed_realsense:=$(arg use_fixed_realsense)
-    control_mode:='Effort' tool:=$(arg tool)"/>
+  <!-- OCS2 params -->
+  <param name="ocs2_mpc/task_file"  value="$(find moma_ocs2)/config/mpc/task_panda.info"/>
+  <param name="ocs2_mpc/robot_description_ocs2" command="$(find xacro)/xacro $(find moma_description)/urdf/panda.urdf.xacro use_nominal_extrinsics:=true tool:='none'"/>
+  <include file="$(find panda_mpc)/launch/interactive_marker.launch"/>
 
   <!-- start joint position trajectory controller -->
   <rosparam file="$(find moma_gazebo)/config/panda_controllers.yaml" command="load" />

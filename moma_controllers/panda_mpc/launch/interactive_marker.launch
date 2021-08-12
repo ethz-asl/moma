@@ -1,4 +1,11 @@
 <?xml version="1.0"?>
 <launch>
-    <node pkg="moma_ocs2" type="mobile_manipulator_target" name="mobile_manipulator_target" output="screen" args="panda"/>
+    <node pkg="moma_ocs2" type="mobile_manipulator_target" name="mobile_manipulator_target" output="screen"
+          args="panda"/>
+
+    <node pkg="panda_mpc" type="interactive_target_relay.py" name="interactive_target_ralay">
+        <param name="frame_id" value="world"/>
+        <param name="in_topic" value="mobile_manipulator_mpc_target"/>
+        <param name="out_topic" value="/mpc_reference_path"/>
+    </node>
 </launch>

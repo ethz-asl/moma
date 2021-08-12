@@ -37,6 +37,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <ocs2_core/initialization/Initializer.h>
 #include <ocs2_ddp/DDP_Settings.h>
 #include <ocs2_mpc/MPC_Settings.h>
+#include <ocs2_mpc/MPC_DDP.h>
 #include <ocs2_oc/rollout/TimeTriggeredRollout.h>
 #include <ocs2_oc/synchronized_module/ReferenceManager.h>
 #include <ocs2_robotic_tools/common/RobotInterface.h>
@@ -73,6 +74,8 @@ class MobileManipulatorInterface final : public RobotInterface {
 
   const OptimalControlProblem& getOptimalControlProblem() const override { return problem_; }
 
+  std::unique_ptr<ocs2::MPC_DDP> getMpc();
+
   std::shared_ptr<ReferenceManagerInterface> getReferenceManagerPtr() const override { return referenceManagerPtr_; }
 
   const Initializer& getInitializer() const override { return *initializerPtr_; }
@@ -80,6 +83,9 @@ class MobileManipulatorInterface final : public RobotInterface {
   const RolloutBase& getRollout() const { return *rolloutPtr_; }
 
   const PinocchioInterface& getPinocchioInterface() const { return *pinocchioInterfacePtr_; }
+  PinocchioInterface& getPinocchioDesiredInterface() { return *pinocchioDesiredInterfacePtr_; }
+
+  inline const std::string& getEEFrame() { return eeFrame_; }
 
   /** MobileManipulator PinocchioInterface factory */
   static PinocchioInterface buildPinocchioInterface(const std::string& urdfPath);
@@ -108,7 +114,9 @@ class MobileManipulatorInterface final : public RobotInterface {
   std::unique_ptr<Initializer> initializerPtr_;
 
   std::unique_ptr<PinocchioInterface> pinocchioInterfacePtr_;
+  std::unique_ptr<PinocchioInterface> pinocchioDesiredInterfacePtr_;
 
+  std::string eeFrame_;
   vector_t initialState_{STATE_DIM};
 };
 
