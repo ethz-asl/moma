@@ -36,7 +36,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <ocs2_ros_interfaces/mrt/DummyObserver.h>
 
 #include <moma_ocs2/MobileManipulatorInterface.h>
-#include <ocs2_self_collision/visualization/GeometryInterfaceVisualization.h>
+#include <ocs2_self_collision_visualization/GeometryInterfaceVisualization.h>
 
 namespace ocs2 {
 namespace mobile_manipulator {
@@ -56,7 +56,7 @@ class MobileManipulatorDummyVisualization final : public DummyObserver {
   void launchVisualizerNode(ros::NodeHandle& nodeHandle);
 
   void publishObservation(const ros::Time& timeStamp, const SystemObservation& observation);
-  void publishDesiredTrajectory(const ros::Time& timeStamp, const CostDesiredTrajectories& costDesiredTrajectory);
+  void publishTargetTrajectories(const ros::Time& timeStamp, const TargetTrajectories& targetTrajectories);
   void publishOptimizedTrajectory(const ros::Time& timeStamp, const PrimalSolution& policy);
 
   PinocchioInterface pinocchioInterface_;

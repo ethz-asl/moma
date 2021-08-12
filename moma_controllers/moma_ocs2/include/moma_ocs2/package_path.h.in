@@ -1,5 +1,5 @@
 /******************************************************************************
-Copyright (c) 2020, Farbod Farshidian. All rights reserved.
+Copyright (c) 2021, Farbod Farshidian. All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -30,13 +30,15 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
 #include <cstddef>
+#include <string>
 
 namespace ocs2 {
 namespace mobile_manipulator {
 
-constexpr size_t STATE_DIM = 7 + 3;  // 7 DOF arm + 2D position + heading
-constexpr size_t INPUT_DIM = 7 + 2;  // 7 DOF arm vel. + forward vel. + rotational vel.
-constexpr size_t ARM_INPUT_DIM = 7;
+/** Gets the path to the package source directory. */
+inline std::string getPath() {
+  return "@PROJECT_SOURCE_DIR@";
+}
 
 }  // namespace mobile_manipulator
 }  // namespace ocs2

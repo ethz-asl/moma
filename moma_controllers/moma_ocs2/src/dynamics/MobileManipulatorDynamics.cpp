@@ -27,46 +27,25 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ******************************************************************************/
 
-#pragma once
-
-#include <memory>
-
-#include <moma_ocs2/definitions.h>
-#include <ocs2_pinocchio_interface/PinocchioEndEffectorKinematics.h>
-#include <ocs2_robotic_tools/end_effector/EndEffectorKinematics.h>
-
-#include <ocs2_core/constraint/StateConstraint.h>
-#include <ocs2_oc/synchronized_module/ReferenceManager.h>
+#include <moma_ocs2/MobileManipulatorDynamics.h>
 
 namespace ocs2 {
 namespace mobile_manipulator {
 
-class EndEffectorConstraint final : public StateConstraint {
- public:
-  using vector3_t = Eigen::Matrix<scalar_t, 3, 1>;
-  using quaternion_t = Eigen::Quaternion<scalar_t>;
+MobileManipulatorDynamics::MobileManipulatorDynamics(const std::string& modelName, const std::string& modelFolder /*= "/tmp/ocs2"*/,
+                                                     bool recompileLibraries /*= true*/, bool verbose /*= true*/)
+    : SystemDynamicsBaseAD() {
+  Base::initialize(STATE_DIM, INPUT_DIM, modelName, modelFolder, recompileLibraries, verbose);
+}
 
-  EndEffectorConstraint(const EndEffectorKinematics<scalar_t>& endEffectorKinematics, const ReferenceManager& referenceManager);
-  ~EndEffectorConstraint() override = default;
-  EndEffectorConstraint* clone() const override { return new EndEffectorConstraint(*endEffectorKinematicsPtr_, *referenceManagerPtr_); }
-
-  size_t getNumConstraints(scalar_t time) const override;
-  vector_t getValue(scalar_t time, const vector_t& state, const PreComputation& preComputation) const override;
-  VectorFunctionLinearApproximation getLinearApproximation(scalar_t time, const vector_t& state,
-                                                           const PreComputation& preComputation) const override;
-
- private:
-  EndEffectorConstraint(const EndEffectorConstraint& other) = default;
-  std::pair<vector_t, quaternion_t> interpolateEndEffectorPose(scalar_t time) const;
-
-  /** Cached pointer to the pinocchio end effector kinematics. Is set to nullptr if not used. */
-  PinocchioEndEffectorKinematics* pinocchioEEKinPtr_ = nullptr;
-
-  vector3_t eeDesiredPosition_;
-  quaternion_t eeDesiredOrientation_;
-  std::unique_ptr<EndEffectorKinematics<scalar_t>> endEffectorKinematicsPtr_;
-  const ReferenceManager* referenceManagerPtr_;
-};
+ad_vector_t MobileManipulatorDynamics::systemFlowMap(ad_scalar_t time, const ad_vector_t& state, const ad_vector_t& input,
+                                                     const ad_vector_t& parameters) const {
+  ad_vector_t dxdt(STATE_DIM);
+  const auto theta = state(2);
+  const auto v = input(0);  // forward velocity in base frame
+  dxdt << cos(theta) * v, sin(theta) * v, input(1), input.tail(6);
+  return dxdt;
+}
 
 }  // namespace mobile_manipulator
 }  // namespace ocs2

@@ -66,7 +66,7 @@ class MobileManipulatorPinocchioMapping final : public PinocchioStateInputMappin
                  0, 1.0;
     // clang-format on
     dfdu.template leftCols<2>() = Jv.template leftCols<3>() * dvdu_base;
-    dfdu.template rightCols(INPUT_DIM-2) = Jv.template rightCols(INPUT_DIM-2);
+    dfdu.template rightCols(ARM_INPUT_DIM) = Jv.template rightCols(ARM_INPUT_DIM);
     return {Jq, dfdu};
   }
 };

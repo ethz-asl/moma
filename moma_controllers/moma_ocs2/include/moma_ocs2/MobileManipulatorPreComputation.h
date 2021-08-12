@@ -27,25 +27,38 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ******************************************************************************/
 
-#include <moma_ocs2/MobileManipulatorDynamics.h>
+#pragma once
+
+#include <memory>
+#include <string>
+
+#include <ocs2_core/PreComputation.h>
+#include <ocs2_pinocchio_interface/PinocchioInterface.h>
+
+#include <moma_ocs2/MobileManipulatorPinocchioMapping.h>
 
 namespace ocs2 {
 namespace mobile_manipulator {
 
-MobileManipulatorDynamics::MobileManipulatorDynamics(const std::string& modelName, const std::string& modelFolder /*= "/tmp/ocs2"*/,
-                                                     bool recompileLibraries /*= true*/, bool verbose /*= true*/)
-    : SystemDynamicsBaseAD(STATE_DIM, INPUT_DIM) {
-  Base::initialize(modelName, modelFolder, recompileLibraries, verbose);
-}
+/** Callback for caching and reference update */
+class MobileManipulatorPreComputation : public PreComputation {
+ public:
+  MobileManipulatorPreComputation(PinocchioInterface pinocchioInterface);
+  ~MobileManipulatorPreComputation() override = default;
 
-ad_vector_t MobileManipulatorDynamics::systemFlowMap(ad_scalar_t time, const ad_vector_t& state, const ad_vector_t& input,
-                                                     const ad_vector_t& parameters) const {
-  ad_vector_t dxdt(STATE_DIM);
-  const auto theta = state(2);
-  const auto v = input(0);  // forward velocity in base frame
-  dxdt << cos(theta) * v, sin(theta) * v, input(1), input.tail(INPUT_DIM-2);
-  return dxdt;
-}
+  MobileManipulatorPreComputation(const MobileManipulatorPreComputation& rhs) = delete;
+  MobileManipulatorPreComputation* clone() const override;
+
+  void request(RequestSet request, scalar_t t, const vector_t& x, const vector_t& u) override;
+  void requestFinal(RequestSet request, scalar_t t, const vector_t& x) override;
+
+  PinocchioInterface& getPinocchioInterface() { return pinocchioInterface_; }
+  const PinocchioInterface& getPinocchioInterface() const { return pinocchioInterface_; }
+
+ private:
+  PinocchioInterface pinocchioInterface_;
+  MobileManipulatorPinocchioMapping<scalar_t> pinocchioMapping_;
+};
 
 }  // namespace mobile_manipulator
 }  // namespace ocs2

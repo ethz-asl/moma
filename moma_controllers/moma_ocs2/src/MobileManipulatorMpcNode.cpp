@@ -29,8 +29,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <moma_ocs2/MobileManipulatorInterface.h>
 
+#include <ocs2_mpc/MPC_DDP.h>
 #include <ocs2_ros_interfaces/mpc/MPC_ROS_Interface.h>
+#include <ocs2_ros_interfaces/synchronized_module/RosReferenceManager.h>
 #include <ros/init.h>
+#include <ros/package.h>
 
 using namespace ocs2;
 using namespace mobile_manipulator;
@@ -52,14 +55,26 @@ int main(int argc, char** argv) {
     ROS_ERROR("Failed to retrieve /ocs2_mpc/robot_description_ocs2 from param server.");
     return 0;
   }
+  const std::string libFolder = ros::package::getPath("moma_ocs2") + "/auto_generated";
 
   // Robot interface
   MobileManipulatorInterface interface(taskFile, urdfXML);
 
+  // ROS ReferenceManager
+  std::shared_ptr<ocs2::RosReferenceManager> rosReferenceManagerPtr(
+      new ocs2::RosReferenceManager("mobile_manipulator", interface.getReferenceManagerPtr()));
+  rosReferenceManagerPtr->subscribe(nodeHandle);
+
+
+  // MPC
+  ocs2::MPC_DDP mpc(interface.mpcSettings(), interface.ddpSettings(), interface.getRollout(), interface.getOptimalControlProblem(),
+                    interface.getInitializer());
+  mpc.getSolverPtr()->setReferenceManager(rosReferenceManagerPtr);
+
   // Launch MPC ROS node
-  auto mpcPtr = interface.getMpc();
-  MPC_ROS_Interface mpcNode(*mpcPtr, "mobile_manipulator");
+  MPC_ROS_Interface mpcNode(mpc, "mobile_manipulator");
   mpcNode.launchNodes(nodeHandle);
 
+  // Successful exit
   return 0;
 }

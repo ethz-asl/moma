@@ -11,8 +11,6 @@ set(CATKIN_PACKAGE_DEPENDENCIES
   robot_state_publisher
   visualization_msgs
   geometry_msgs
-  nav_msgs
-  interactive_markers
   ocs2_ros_interfaces
   ocs2_core
   ocs2_ddp
@@ -20,6 +18,7 @@ set(CATKIN_PACKAGE_DEPENDENCIES
   ocs2_robotic_tools
   ocs2_pinocchio_interface
   ocs2_self_collision
+  ocs2_self_collision_visualization
 )
 
 find_package(catkin REQUIRED COMPONENTS
@@ -59,6 +58,13 @@ catkin_package(
 
 set(FLAGS ${OCS2_CXX_FLAGS} ${pinocchio_CFLAGS_OTHER} -Wno-invalid-partial-specialization)
 
+# Resolve for the package path at compile time.
+configure_file (
+  "${PROJECT_SOURCE_DIR}/include/${PROJECT_NAME}/package_path.h.in"
+  "${PROJECT_BINARY_DIR}/include/${PROJECT_NAME}/package_path.h" @ONLY
+)
+
+# Add directories for all targets
 include_directories(
   include
   ${catkin_INCLUDE_DIRS}
@@ -73,10 +79,10 @@ link_directories(
 
 # mobile maniulator interface library
 add_library(${PROJECT_NAME}
-  src/cost/MobileManipulatorCost.cpp
+  src/MobileManipulatorPreComputation.cpp
   src/constraint/EndEffectorConstraint.cpp
   src/constraint/JointVelocityLimits.cpp
-  src/MobileManipulatorDynamics.cpp
+  src/dynamics/MobileManipulatorDynamics.cpp
   src/MobileManipulatorInterface.cpp
 )
 add_dependencies(${PROJECT_NAME}
@@ -134,7 +140,6 @@ target_compile_options(mobile_manipulator_dummy_mrt_node PUBLIC ${FLAGS})
 
 # Interactive Marker node
 add_executable(mobile_manipulator_target
-  src/TargetTrajectories_IMarker_Mobile_Manipulator.cpp
   src/MobileManipulatorTarget.cpp
 )
 add_dependencies(mobile_manipulator_target
@@ -176,19 +181,4 @@ install(DIRECTORY include/${PROJECT_NAME}/
 )
 install(DIRECTORY config launch
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
-)
-
-############
-# Testing ##
-############
-
-catkin_add_gtest(SelfCollisionTests
-  test/testSelfCollision.cpp
-  test/testEndEffectorConstraint.cpp
-)
-target_link_libraries(SelfCollisionTests
-  gtest_main
-  ${PROJECT_NAME}
-  ${catkin_LIBRARIES}
-  ${Boost_LIBRARIES}
 )

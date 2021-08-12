@@ -35,6 +35,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <ocs2_ros_interfaces/mrt/MRT_ROS_Interface.h>
 
 #include <ros/init.h>
+#include <ros/package.h>
 
 using namespace ocs2;
 using namespace mobile_manipulator;
@@ -84,10 +85,10 @@ int main(int argc, char** argv) {
   initTarget.head(3) << 0, 1, 1;
   initTarget.tail(4) << Eigen::Quaternion<scalar_t>(1, 0, 0, 0).coeffs();
   const vector_t zeroInput = vector_t::Zero(mobile_manipulator::INPUT_DIM);
-  const CostDesiredTrajectories initCostDesiredTrajectories({initObservation.time}, {initTarget}, {zeroInput});
+  const TargetTrajectories initTargetTrajectories({initObservation.time}, {initTarget}, {zeroInput});
 
   // Run dummy (loops while ros is ok)
-  dummy.run(initObservation, initCostDesiredTrajectories);
+  dummy.run(initObservation, initTargetTrajectories);
 
   // Successful exit
   return 0;
