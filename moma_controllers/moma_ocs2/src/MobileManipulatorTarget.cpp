@@ -30,17 +30,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <moma_ocs2/TargetTrajectories_IMarker_Mobile_Manipulator.h>
 
 int main(int argc, char* argv[]) {
-  // robot name
-  std::vector<std::string> programArgs{};
-  ::ros::removeROSArgs(argc, argv, programArgs);
-  if (programArgs.size() <= 1) {
-    throw std::runtime_error("Need to specify robot name. Aborting.");
-  }
-  std::string robotName = std::string(programArgs[1]);
+  ros::init(argc, argv, "mobile_manipulator_target");
 
-  ros::init(argc, argv, robotName + "_target");
-
-  ocs2::mobile_manipulator::TargetTrajectories_IMarker_Mobile_Manipulator targetPoseCommand(argc, argv, robotName);
+  ocs2::mobile_manipulator::TargetTrajectories_IMarker_Mobile_Manipulator targetPoseCommand(argc, argv, "mobile_manipulator");
 
   targetPoseCommand.launchNodes();
 

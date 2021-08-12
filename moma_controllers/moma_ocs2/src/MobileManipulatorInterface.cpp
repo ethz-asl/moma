@@ -44,14 +44,13 @@ namespace mobile_manipulator {
 /******************************************************************************************************/
 /******************************************************************************************************/
 /******************************************************************************************************/
-MobileManipulatorInterface::MobileManipulatorInterface(const std::string& taskFile, const std::string& robot_name) {
+MobileManipulatorInterface::MobileManipulatorInterface(const std::string& taskFile, const std::string& urdfXML) {
+  urdfXML_ = urdfXML;
   taskFile_ = taskFile;
   std::cerr << "Loading task file: " << taskFile_ << std::endl;
 
   libraryFolder_ = ros::package::getPath("moma_ocs2") + "/auto_generated";
   std::cerr << "Generated library path: " << libraryFolder_ << std::endl;
-
-  urdfPath_ = ros::package::getPath("moma_ocs2") + "/urdf/" + robot_name + ".urdf";
 
   // load setting from loading file
   loadSettings(taskFile_);
@@ -87,9 +86,7 @@ PinocchioInterface MobileManipulatorInterface::buildPinocchioInterfaceFromXML(co
 /******************************************************************************************************/
 /******************************************************************************************************/
 void MobileManipulatorInterface::loadSettings(const std::string& taskFile) {
-  std::cerr << "Load Pinocchio model from " << urdfPath_ << '\n';
-
-  pinocchioInterfacePtr_.reset(new PinocchioInterface(buildPinocchioInterface(urdfPath_)));
+  pinocchioInterfacePtr_.reset(new PinocchioInterface(buildPinocchioInterfaceFromXML(urdfXML_)));
   std::cerr << *pinocchioInterfacePtr_;
 
   bool useCaching = true;

@@ -40,24 +40,28 @@ using namespace ocs2;
 using namespace mobile_manipulator;
 
 int main(int argc, char** argv) {
-  // task files
-  std::vector<std::string> programArgs{};
-  ::ros::removeROSArgs(argc, argv, programArgs);
-  if (programArgs.size() <= 2) {
-    throw std::runtime_error("No task file and or robot name specified. Aborting.");
-  }
-  std::string taskFile = std::string(programArgs[1]);
-  std::string robotName = std::string(programArgs[2]);
 
   // Initialize ros node
-  ros::init(argc, argv, robotName + "_mrt");
+  ros::init(argc, argv, "mobile_manipulator_mrt");
   ros::NodeHandle nodeHandle;
 
+  // Params
+  std::string taskFile;
+  if (!nodeHandle.param("/ocs2_mpc/task_file", taskFile, {})){
+    ROS_ERROR("Failed to retrieve /ocs2_mpc/task_file from param server.");
+    return 0;
+  }
+  std::string urdfXML;
+  if (!nodeHandle.param("/ocs2_mpc/robot_description_ocs2", urdfXML, {})){
+    ROS_ERROR("Failed to retrieve /ocs2_mpc/robot_description_ocs2 from param server.");
+    return 0;
+  }
+
   // Robot Interface
-  mobile_manipulator::MobileManipulatorInterface interface(taskFile, robotName);
+  mobile_manipulator::MobileManipulatorInterface interface(taskFile, urdfXML);
 
   // MRT
-  MRT_ROS_Interface mrt(robotName);
+  MRT_ROS_Interface mrt("mobile_manipulator");
   mrt.initRollout(&interface.getRollout());
   mrt.launchNodes(nodeHandle);
 

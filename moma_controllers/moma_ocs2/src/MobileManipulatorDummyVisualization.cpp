@@ -97,7 +97,7 @@ void assignIncreasingId(It firstIt, It lastIt, int startId = 0) {
 /******************************************************************************************************/
 void MobileManipulatorDummyVisualization::launchVisualizerNode(ros::NodeHandle& nodeHandle) {
   // load a kdl-tree from the urdf robot description and initialize the robot state publisher
-  const std::string urdfName = "robot_description_for_mpc";
+  const std::string urdfName = "/ocs2_mpc/robot_description_ocs2";
   urdf::Model model;
   if (!model.initParam(urdfName)) {
     ROS_ERROR("URDF model load was NOT successful");
@@ -145,7 +145,8 @@ void MobileManipulatorDummyVisualization::launchVisualizerNode(ros::NodeHandle& 
   nodeHandle.param<std::string>("end_effector_name", endEffectorName_, "WRIST_2");
 
   std::string robotDescription;
-  nodeHandle.param<std::string>("robot_description_for_mpc", robotDescription, "");
+  nodeHandle.param<std::string>(urdfName, robotDescription, "");
+
   PinocchioInterface pinocchioInterface = MobileManipulatorInterface::buildPinocchioInterfaceFromXML(robotDescription);
   // TODO(giuseppe) get the collision pairs from the task.info file to match the current mpc setup
   PinocchioGeometryInterface geomInterface(pinocchioInterface, {{1, 4}, {1, 6}});

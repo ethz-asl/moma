@@ -1,6 +1,6 @@
-# kinova_valve_opening
+# moma_mission
 
-This package contains the state machine for the valve opening task
+This package contains the state machine for mobile manipulator missions
 
 ### Run the simulation 
 

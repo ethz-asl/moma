@@ -36,25 +36,29 @@ using namespace ocs2;
 using namespace mobile_manipulator;
 
 int main(int argc, char** argv) {
-  // task file
-  std::vector<std::string> programArgs{};
-  ::ros::removeROSArgs(argc, argv, programArgs);
-  if (programArgs.size() <= 2) {
-    throw std::runtime_error("Need to specify task file and robot name. Aborting.");
-  }
-  std::string taskFile = std::string(programArgs[1]);
-  std::string robotName = std::string(programArgs[2]);
 
   // Initialize ros node
-  ros::init(argc, argv, robotName + "_mpc");
+  ros::init(argc, argv, "mobile_manipulator_mpc");
   ros::NodeHandle nodeHandle;
 
+  // Params
+  std::string taskFile;
+  if (!nodeHandle.param("/ocs2_mpc/task_file", taskFile, {})){
+    ROS_ERROR("Failed to retrieve /ocs2_mpc/task_file from param server.");
+    return 0;
+  }
+  std::string urdfXML;
+  if (!nodeHandle.param("/ocs2_mpc/robot_description_ocs2", urdfXML, {})){
+    ROS_ERROR("Failed to retrieve /ocs2_mpc/robot_description_ocs2 from param server.");
+    return 0;
+  }
+
   // Robot interface
-  MobileManipulatorInterface interface(taskFile, robotName);
+  MobileManipulatorInterface interface(taskFile, urdfXML);
 
   // Launch MPC ROS node
   auto mpcPtr = interface.getMpc();
-  MPC_ROS_Interface mpcNode(*mpcPtr, robotName);
+  MPC_ROS_Interface mpcNode(*mpcPtr, "mobile_manipulator");
   mpcNode.launchNodes(nodeHandle);
 
   return 0;

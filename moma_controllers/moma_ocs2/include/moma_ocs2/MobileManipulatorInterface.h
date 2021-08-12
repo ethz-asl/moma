@@ -54,7 +54,7 @@ class MobileManipulatorInterface final : public RobotInterface {
    * Constructor
    * @param [in] taskFileFolderName: The name of the folder containing task file
    */
-  explicit MobileManipulatorInterface(const std::string& taskFile, const std::string& robot_name);
+  explicit MobileManipulatorInterface(const std::string& taskFile, const std::string& urdfXML);
 
   ~MobileManipulatorInterface() override = default;
 
@@ -85,7 +85,7 @@ class MobileManipulatorInterface final : public RobotInterface {
 
   std::string taskFile_;
   std::string libraryFolder_;
-  std::string urdfPath_;
+  std::string urdfXML_;
 
   ddp::Settings ddpSettings_;
   mpc::Settings mpcSettings_;
