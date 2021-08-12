@@ -6,7 +6,9 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
-      Splitter Ratio: 0.5
+        - /TF1
+        - /TF1/Frames1
+      Splitter Ratio: 0.679411768913269
     Tree Height: 719
   - Class: rviz/Selection
     Name: Selection
@@ -66,20 +68,57 @@ Visualization Manager:
           Alpha: 1
           Show Axes: false
           Show Trail: false
+        ft_sensor0_mech1:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        ft_sensor0_mech2:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        ft_sensor0_mech3:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        ft_sensor0_mounting:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        ft_sensor0_wrench:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        left_inner_finger:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        left_inner_finger_pad:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        left_inner_knuckle:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        left_outer_finger:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        left_outer_knuckle:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
         panda_default_ee:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-        panda_hand:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        panda_leftfinger:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
         panda_link0:
           Alpha: 1
           Show Axes: false
@@ -124,11 +163,45 @@ Visualization Manager:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-        panda_rightfinger:
+        right_inner_finger:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
+        right_inner_finger_pad:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_inner_knuckle:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_outer_finger:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_outer_knuckle:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        robotiq_arg2f_base_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        robotiq_coupler:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        tool_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
         world:
           Alpha: 1
           Show Axes: false
@@ -174,6 +247,36 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
+        zedm_base_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        zedm_camera_center:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        zedm_left_camera_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        zedm_left_camera_optical_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        zedm_right_camera_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        zedm_right_camera_optical_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        zedm_sensor_mount:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
       Name: RobotModel
       Robot Description: robot_description
       TF Prefix: ""
@@ -188,6 +291,190 @@ Visualization Manager:
       Show Descriptions: true
       Show Visual Aids: false
       Update Topic: /simple_marker/update
+      Value: true
+    - Class: rviz/WrenchStamped
+      Enabled: true
+      Name: WrenchStamped
+      Queue Size: 10
+      Topic: /tool_wrench
+      Unreliable: false
+      Value: true
+    - Class: rviz/TF
+      Enabled: true
+      Frame Timeout: 15
+      Frames:
+        All Enabled: false
+        base_link:
+          Value: false
+        ft_sensor0_mech1:
+          Value: false
+        ft_sensor0_mech2:
+          Value: false
+        ft_sensor0_mech3:
+          Value: false
+        ft_sensor0_mounting:
+          Value: false
+        ft_sensor0_wrench:
+          Value: true
+        left_inner_finger:
+          Value: false
+        left_inner_finger_pad:
+          Value: false
+        left_inner_knuckle:
+          Value: false
+        left_outer_finger:
+          Value: false
+        left_outer_knuckle:
+          Value: false
+        panda_EE:
+          Value: false
+        panda_K:
+          Value: false
+        panda_default_ee:
+          Value: false
+        panda_link0:
+          Value: false
+        panda_link1:
+          Value: false
+        panda_link2:
+          Value: false
+        panda_link3:
+          Value: false
+        panda_link4:
+          Value: false
+        panda_link5:
+          Value: false
+        panda_link6:
+          Value: false
+        panda_link7:
+          Value: false
+        panda_link8:
+          Value: false
+        right_inner_finger:
+          Value: false
+        right_inner_finger_pad:
+          Value: false
+        right_inner_knuckle:
+          Value: false
+        right_outer_finger:
+          Value: false
+        right_outer_knuckle:
+          Value: false
+        robotiq_arg2f_base_link:
+          Value: false
+        robotiq_coupler:
+          Value: false
+        tool_frame:
+          Value: false
+        world:
+          Value: false
+        wrist_camera_bottom_screw_frame:
+          Value: false
+        wrist_camera_color_frame:
+          Value: false
+        wrist_camera_color_optical_frame:
+          Value: false
+        wrist_camera_depth_frame:
+          Value: false
+        wrist_camera_depth_optical_frame:
+          Value: false
+        wrist_camera_infra1_frame:
+          Value: false
+        wrist_camera_infra1_optical_frame:
+          Value: false
+        wrist_camera_infra2_frame:
+          Value: false
+        wrist_camera_infra2_optical_frame:
+          Value: false
+        wrist_camera_link:
+          Value: false
+        zedm_base_link:
+          Value: false
+        zedm_camera_center:
+          Value: false
+        zedm_left_camera_frame:
+          Value: false
+        zedm_left_camera_optical_frame:
+          Value: false
+        zedm_right_camera_frame:
+          Value: false
+        zedm_right_camera_optical_frame:
+          Value: false
+        zedm_sensor_mount:
+          Value: false
+      Marker Alpha: 1
+      Marker Scale: 1
+      Name: TF
+      Show Arrows: true
+      Show Axes: true
+      Show Names: true
+      Tree:
+        world:
+          base_link:
+            panda_link0:
+              panda_link1:
+                panda_link2:
+                  panda_link3:
+                    panda_link4:
+                      panda_link5:
+                        panda_link6:
+                          panda_link7:
+                            panda_link8:
+                              ft_sensor0_mounting:
+                                ft_sensor0_mech1:
+                                  {}
+                                ft_sensor0_mech2:
+                                  {}
+                                ft_sensor0_mech3:
+                                  {}
+                                ft_sensor0_wrench:
+                                  robotiq_coupler:
+                                    robotiq_arg2f_base_link:
+                                      left_inner_knuckle:
+                                        {}
+                                      left_outer_knuckle:
+                                        left_outer_finger:
+                                          left_inner_finger:
+                                            left_inner_finger_pad:
+                                              {}
+                                      right_inner_knuckle:
+                                        {}
+                                      right_outer_knuckle:
+                                        right_outer_finger:
+                                          right_inner_finger:
+                                            right_inner_finger_pad:
+                                              {}
+                                      tool_frame:
+                                        {}
+                                zedm_sensor_mount:
+                                  zedm_base_link:
+                                    zedm_camera_center:
+                                      zedm_left_camera_frame:
+                                        zedm_left_camera_optical_frame:
+                                          {}
+                                      zedm_right_camera_frame:
+                                        zedm_right_camera_optical_frame:
+                                          {}
+                              panda_EE:
+                                panda_K:
+                                  {}
+                              panda_default_ee:
+                                {}
+                            wrist_camera_bottom_screw_frame:
+                              wrist_camera_link:
+                                wrist_camera_color_frame:
+                                  wrist_camera_color_optical_frame:
+                                    {}
+                                wrist_camera_depth_frame:
+                                  wrist_camera_depth_optical_frame:
+                                    {}
+                                wrist_camera_infra1_frame:
+                                  wrist_camera_infra1_optical_frame:
+                                    {}
+                                wrist_camera_infra2_frame:
+                                  wrist_camera_infra2_optical_frame:
+                                    {}
+      Update Interval: 0
       Value: true
   Enabled: true
   Global Options:
@@ -217,7 +504,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 4.545452117919922
+      Distance: 1.8365235328674316
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -225,17 +512,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 0
-        Y: 0
-        Z: 0
+        X: 0.04966530203819275
+        Y: -0.19968679547309875
+        Z: 0.37875473499298096
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.5453981757164001
+      Pitch: 0.555398166179657
       Target Frame: <Fixed Frame>
-      Yaw: 1.330397605895996
+      Yaw: 0.9453980922698975
     Saved: ~
 Window Geometry:
   Displays:
