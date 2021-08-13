@@ -9,15 +9,15 @@
     <license>TODO</license>
 
     <buildtool_depend>catkin</buildtool_depend>
-    <exec_depends>franka_hw</exec_depends>
-    <exec_depends>franka_description</exec_depends>
-    <exec_depends>franka_ros</exec_depends>
-    <exec_depends>franka_control</exec_depends>
-    <exec_depends>panda_mpc</exec_depends>
-    <exec_depends>joint_space_controller</exec_depends>
-    <exec_depends>path_admittance_controller</exec_depends>
-    <exec_depends>moma_sensor_tools</exec_depends>
-    <exec_depends>moma_mission</exec_depends>
+    <exec_depend>franka_hw</exec_depend>
+    <exec_depend>franka_description</exec_depend>
+    <exec_depend>franka_ros</exec_depend>
+    <exec_depend>franka_control</exec_depend>
+    <exec_depend>panda_mpc</exec_depend>
+    <exec_depend>path_admittance_controller</exec_depend>
+    <exec_depend>moma_joint_space_controller</exec_depend>
+    <exec_depend>moma_sensor_tools</exec_depend>
+    <exec_depend>moma_mission</exec_depend>
     <export>
         <metapackage />
     </export>
