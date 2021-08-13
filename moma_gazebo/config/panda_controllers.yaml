@@ -82,7 +82,7 @@ mpc_controller:
   
   robot_name: "panda"
   base_link: base_link
-  tool_link: panda_hand
+  tool_link: tool_frame
   joint_names:
     - panda_joint1
     - panda_joint2
@@ -107,6 +107,7 @@ mpc_controller:
 path_admittance_controller:
   type: moma_controllers/PathAdmittanceController
 
+  verbose: false
   wrench_topic: /ft_compensated
   path_in_topic: /desired_path
   path_out_topic: /mpc_reference_path

@@ -8,21 +8,6 @@ from geometry_msgs.msg import Pose, PoseStamped
 from moma_mission.utils.rotation import CompatibleRotation as R
 
 
-def get_transform(target, source):
-    """ Retrieve transform. Let it fail if unable to get the transform """
-    tf_buffer = tf2_ros.Buffer()
-    tf_listener = tf2_ros.TransformListener(tf_buffer)
-
-    res = tf_buffer.can_transform(target, source, rospy.Time(0), rospy.Duration(10), return_debug_tuple=True)
-    for r in res:
-        print(r)
-    transform = tf_buffer.lookup_transform(target,
-                                           source,
-                                           rospy.Time(0),  # tf at first available time
-                                           rospy.Duration(3))
-    return tf_to_se3(transform)
-
-
 def numpy_to_pose_stamped(translation, orientation, frame_id):
     pose = PoseStamped()
     pose.pose.position.x = translation[0]

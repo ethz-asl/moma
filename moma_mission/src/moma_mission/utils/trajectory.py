@@ -5,7 +5,7 @@ from nav_msgs.msg import Path
 from geometry_msgs.msg import PoseStamped
 import tf2_ros
 
-from moma_mission.utils.transforms import pose_to_se3, tf_to_se3, get_transform
+from moma_mission.utils.transforms import pose_to_se3, tf_to_se3
 
 
 def get_timed_path_to_target(start_pose, target_pose, linear_velocity, angular_velocity):
@@ -37,36 +37,3 @@ def get_timed_path_to_target(start_pose, target_pose, linear_velocity, angular_v
     path.poses.append(pose_stamped_end)
     return path
 
-
-def wait_until_reached(target_frame, target_pose, linear_tolerance=0.01, angular_tolerance=0.1, timeout=15, quiet=False):
-    """
-    Returns once the target pose has been reached
-    """
-    tf_buffer = tf2_ros.Buffer()
-    tf_listener = tf2_ros.TransformListener(tf_buffer)
-    tolerance_met = False
-    time_elapsed = 0.0
-    rate = rospy.Rate(10)
-    while not rospy.is_shutdown():
-        if tolerance_met:
-            return True
-
-        t_current = get_transform(target=target_pose.header.frame_id, source=target_frame)
-        t_desired = pose_to_se3(target_pose.pose)
-        error = pin.log6(t_current.actInv(t_desired))  # motion that brings in 1 sec ee to target
-        linear_error = max(abs(error.linear))
-        angular_error = max(abs(error.angular))
-        if linear_error < linear_tolerance and angular_error < angular_tolerance:
-            tolerance_met = True
-
-        rate.sleep()
-        time_elapsed += 0.1
-
-        if timeout != 0 and time_elapsed > timeout:
-            if quiet:
-                rospy.logwarn(
-                    "Timeout elapsed while reaching a pose. Current distance to target is: {}".format(linear_error))
-                return True
-            else:
-                rospy.logerror("Timeout elapsed while reaching a pose")
-                return False

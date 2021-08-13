@@ -59,6 +59,7 @@ class PathAdmittanceController : public controller_interface::Controller<hardwar
   void threshold(Eigen::Vector3d& v, const Eigen::Vector3d& tau);
 
  private:
+  bool verbose_;
   std::atomic_bool path_received_;
   std::atomic_bool wrench_received_;
 

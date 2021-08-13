@@ -12,7 +12,7 @@ catkin_python_setup()
 
 catkin_install_python(PROGRAMS
         demo/mock_modules.py
-        demo/piloting_demo.py
+        demo/piloting.py
         demo/pcl_relay.py
         scripts/gripper_commander.py
         DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})

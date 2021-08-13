@@ -38,8 +38,11 @@
   <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="joint_state_controller effort_joint_trajectory_controller" />
 
   <!-- Load but do not start these controllers -->
-  <arg name="controllers_list" value="joint_space_controller mpc_controller path_admittance_controller"/>
-  <node name="controller_loader" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="--stopped $(arg controllers_list)" />
+  <arg name="controllers_load_list" value="joint_space_controller mpc_controller"/>
+  <node name="controller_loader" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="--stopped $(arg controllers_load_list)" />
+
+  <arg name="controllers_start_list" value="path_admittance_controller"/>
+  <node name="controller_starter" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="$(arg controllers_start_list)" />
 
   <group if="$(eval arg('tool') == 'panda_hand')">
     <node name="gripper_controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="franka_gripper" />

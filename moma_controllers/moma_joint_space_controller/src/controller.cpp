@@ -73,8 +73,6 @@ bool JointSpaceController::init(hardware_interface::RobotHW* hw, ros::NodeHandle
   action_server_ = std::make_unique<ActionServer>(
       controller_nh, "/joint_space_controller_server",
       boost::bind(&JointSpaceController::execute_callback, this, _1), false);
-  action_server_->start();
-  
 
   // Init specialized command handles
   if (!add_command_handles(hw)) return false;
@@ -110,6 +108,7 @@ void JointSpaceController::starting(const ros::Time& time){
   read_state();
   position_command_ = q_.head(n_joints_);
   velocity_command_ = Eigen::VectorXd::Zero(n_joints_);
+  action_server_->start();
   ROS_INFO("Controller successfully started.");
 }
 

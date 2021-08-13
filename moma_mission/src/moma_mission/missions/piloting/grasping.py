@@ -1,5 +1,6 @@
 import copy
 import rospy
+import tf2_ros
 import numpy as np
 import pinocchio as pin
 from nav_msgs.msg import Path
@@ -8,8 +9,8 @@ from geometry_msgs.msg import PoseStamped
 from moma_mission.missions.piloting.frames import Frames
 from moma_mission.missions.piloting.valve import Valve
 from moma_mission.utils.rotation import CompatibleRotation as R
-from moma_mission.utils.transforms import get_transform, se3_to_pose_ros, pose_to_se3, \
-    numpy_to_pose_stamped
+from moma_mission.utils.transforms import se3_to_pose_ros, pose_to_se3, \
+    numpy_to_pose_stamped, tf_to_se3
 
 
 def project_to_plane(plane_origin, plane_normal, p, in_plane=False):
@@ -35,13 +36,21 @@ def project_to_plane(plane_origin, plane_normal, p, in_plane=False):
 
 class GraspPlanner:
     def __init__(self):
-        pass
+        self.tf_buffer = tf2_ros.Buffer()
+        self.tf_listener = tf2_ros.TransformListener(self.tf_buffer)
+
+    def get_transform(self, target, source):
+        transform = self.tf_buffer.lookup_transform(target,
+                                                    source,
+                                                    rospy.Time(0),  # tf at first available time
+                                                    rospy.Duration(3))
+        return tf_to_se3(transform)
 
     def compute_candidate_grasps(self, radial_offset=0.0, normal_offset=0.0, rotation=None):
         path = Path()
         path.header.frame_id = Frames.base_frame
         angles = np.linspace(start=0, stop=2 * np.pi, num=25)
-        t_base_valve = get_transform(target=Frames.base_frame, source=Frames.valve_frame)
+        t_base_valve = self.get_transform(Frames.base_frame, Frames.valve_frame)
 
         radius = Valve.valve_radius
         for angle in angles:
@@ -90,7 +99,7 @@ class GraspPlanner:
             return best_grasp
 
         if method == 'distance':
-            ee_pose = get_transform(target=Frames.base_frame, source=Frames.tool_frame)
+            ee_pose = self.get_transform(target=Frames.base_frame, source=Frames.tool_frame)
             min_dist = np.inf
             for candidate in poses:
                 grasp_pose = pose_to_se3(candidate.pose)
@@ -127,7 +136,7 @@ class GraspPlanner:
         """
 
         print("\n\n\nGetting transform from {} to {}\n\n\n".format(Frames.valve_frame, Frames.tool_frame))
-        T_tool_valve = get_transform(target=Frames.tool_frame, source=Frames.valve_frame)
+        T_tool_valve = self.get_transform(target=Frames.tool_frame, source=Frames.valve_frame)
         origin = T_tool_valve.translation
         rotation = T_tool_valve.rotation
         normal = rotation[:, 2]
@@ -152,7 +161,7 @@ class GraspPlanner:
 
         T_tool_grasp = pin.SE3(grasp_orientation, grasp_position)
         T_grasp_graspdes = pin.SE3(pin.Quaternion(1, 0, 0, 0), np.array([0.0, 0.0, offset]))
-        T_base_tool = get_transform(target=Frames.base_frame, source=Frames.tool_frame)
+        T_base_tool = self.get_transform(target=Frames.base_frame, source=Frames.tool_frame)
         T_base_grasp = T_base_tool.act(T_tool_grasp.act(T_grasp_graspdes))
 
         grasp_pose_ros = PoseStamped()

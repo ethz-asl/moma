@@ -1,25 +1,22 @@
 <?xml version="1.0"?>
 <launch>
     <arg name="test" default="false"/>
-    
+
     <!--   Mock modules to test state machine without sim -->
     <group if="$(arg test)">
         <include file="$(find moma_mission)/launch/mock_modules.launch"/>
     </group>
 
-
     <!-- State Machine configuration -->
     <rosparam command="load" file="$(find moma_mission)/config/state_machine/piloting.yaml"
               subst_value="true"/>
 
-
     <!--    State machine -->
-    <node pkg="moma_mission" type="piloting.py" name="piloting_demo" output="screen"
-          >
+    <node pkg="moma_mission" type="piloting.py" name="piloting_demo" output="screen">
         <param name="valve_radius" value="0.12"/>
-        <param name="valve_frame" value="valve_frame"/>
-        <param name="base_frame" value="arm_base_link"/>
-        <param name="tool_frame" value="arm_tool_frame"/>
+        <param name="valve_frame" value="valve_base"/>
+        <param name="base_frame" value="base_link"/>
+        <param name="tool_frame" value="tool_frame"/>
         <param name="map_frame" value="map"/>
     </node>
 </launch>

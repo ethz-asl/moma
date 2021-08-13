@@ -27,6 +27,10 @@ bool PathAdmittanceController::init(hardware_interface::JointStateInterface* hw,
   }
   ROS_INFO_STREAM("[PathAdmittanceController] Subscribing to wrench topic [" << wrench_topic << "]");
 
+  if (!controller_nh.param<bool>("verbose", verbose_, true)) {
+    ROS_WARN_STREAM("[PathAdmittanceController] Failed to parse verbose topic");
+    return false;
+  }
 
   std::string path_in_topic;
   if (!controller_nh.param<std::string>("path_in_topic", path_in_topic, "/demo_path")) {
@@ -99,7 +103,8 @@ void PathAdmittanceController::update(const ros::Time& time, const ros::Duration
 
   wrench_callback_queue_->callAvailable();
   if (!wrench_received_) {
-    ROS_WARN_STREAM_THROTTLE(2.0, "No wrench received. Not modifying the path.");
+    if (verbose_)
+      ROS_WARN_STREAM_THROTTLE(2.0, "No wrench received. Not modifying the path.");
     desiredPathPublisher_.publish(desiredPath_);
     return;
   }

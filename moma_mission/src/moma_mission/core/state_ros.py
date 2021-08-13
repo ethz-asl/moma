@@ -1,9 +1,12 @@
 #!/usr/bin/env python
 import smach
 import rospy
+import tf2_ros
+import pinocchio as pin
 from os.path import join
 
 from moma_mission.utils import ros
+from moma_mission.utils.transforms import tf_to_se3, pose_to_se3
 
 
 class StateMachineContext(object):
@@ -35,9 +38,19 @@ class StateRos(smach.State):
         self.initialization_failure = False
 
         # parse optional default outcome
-        self.default_outcome = self.get_scoped_param("default_outcome", safe=False)
+        self.default_outcome = self.get_scoped_param("default_outcome", safe=True)
+        if self.default_outcome not in outcomes + ["None"]:
+            rospy.logerr("Default outcome must be one of {}".format(outcomes + ["None"]))
+            self.initialization_failure = True
+
+        if self.default_outcome == "None":
+            self.default_outcome = None
+
         if self.default_outcome and self.default_outcome not in self.get_registered_outcomes():
             raise NameError("{} is not in default outcomes".format(self.default_outcome))  # prevent accidental typos
+
+        self.tf_buffer = tf2_ros.Buffer()
+        self.tf_listener = tf2_ros.TransformListener(self.tf_buffer)
 
     def get_scoped_param(self, param_name, safe=True):
         """
@@ -61,7 +74,8 @@ class StateRos(smach.State):
     def execute(self, ud):
         if self.default_outcome:
             rospy.loginfo(
-                "{state} ==> {outcome} (using default outcome)".format(state=self.namespace, outcome=self.default_outcome))
+                "{state} ==> {outcome} (using default outcome)".format(state=self.namespace,
+                                                                       outcome=self.default_outcome))
             return self.default_outcome
 
         if self.initialization_failure:
@@ -93,9 +107,50 @@ class StateRos(smach.State):
             rospy.logwarn("Failed to retrieve [{}] from data".format(key))
             return None
 
+    def get_transform(self, target, source):
+        """ Retrieve transform. Let it fail if unable to get the transform """
+        transform = self.tf_buffer.lookup_transform(target,
+                                                    source,
+                                                    rospy.Time(0),  # tf at first available time
+                                                    rospy.Duration(3))
+        return tf_to_se3(transform)
+
+    def wait_until_reached(self, target_frame, target_pose, linear_tolerance=0.01, angular_tolerance=0.1, timeout=200, quiet=False):
+        """
+        Returns once the target pose has been reached
+        """
+        rospy.loginfo("Reaching target ... linear tol={}, angular tol={}".format(linear_tolerance, angular_tolerance))
+        tolerance_met = False
+        time_elapsed = 0.0
+        rate = rospy.Rate(10)
+        while not rospy.is_shutdown():
+            if tolerance_met:
+                return True
+
+            t_current = self.get_transform(target=target_pose.header.frame_id, source=target_frame)
+            t_desired = pose_to_se3(target_pose.pose)
+            error = pin.log6(t_current.actInv(t_desired))  # motion that brings in 1 sec ee to target
+            linear_error = max(abs(error.linear))
+            angular_error = max(abs(error.angular))
+            if linear_error < linear_tolerance and angular_error < angular_tolerance:
+                tolerance_met = True
+
+            rospy.loginfo_throttle(3.0, "Reaching target ... lin_err={}, ang_err={}".format(linear_error, angular_error))
+
+            rate.sleep()
+            time_elapsed += 0.1
+
+            if timeout != 0 and time_elapsed > timeout:
+                if quiet:
+                    rospy.logwarn(
+                        "Timeout elapsed while reaching a pose. Current distance to target is: {}".format(linear_error))
+                    return True
+                else:
+                    rospy.logerror("Timeout elapsed while reaching a pose")
+                    return False
+
 
 if __name__ == "__main__":
-
     class StateA(StateRos):
         def __init__(self, ns=""):
             StateRos.__init__(self, ns='state_a')

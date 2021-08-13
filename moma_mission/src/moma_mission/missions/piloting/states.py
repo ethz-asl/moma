@@ -3,8 +3,8 @@ import rospy
 from geometry_msgs.msg import PoseStamped
 
 from nav_msgs.msg import Path
-from moma_mission.utils.transforms import get_transform, se3_to_pose_ros
-from moma_mission.utils.trajectory import get_timed_path_to_target, wait_until_reached
+from moma_mission.utils.transforms import se3_to_pose_ros
+from moma_mission.utils.trajectory import get_timed_path_to_target
 from moma_mission.states.navigation import SingleNavGoalState
 
 from moma_mission.core import StateRosControl
@@ -46,14 +46,14 @@ class HomePose(StateRosControl):
 
         target_pose = PoseStamped()
         target_pose.header.frame_id = Frames.base_frame
-        target_pose.pose = se3_to_pose_ros(get_transform(target=Frames.base_frame,
+        target_pose.pose = se3_to_pose_ros(self.get_transform(target=Frames.base_frame,
                                                          source=Frames.tool_frame))
 
         path = get_timed_path_to_target(start_pose=home_pose,
                                         target_pose=target_pose,
                                         linear_velocity=0.25, angular_velocity=0.25)
         self.path_publisher.publish(path)
-        if not wait_until_reached(target_frame=Frames.tool_frame, target_pose=home_pose, quiet=True):
+        if not self.wait_until_reached(target_frame=Frames.tool_frame, target_pose=home_pose, quiet=True):
             return 'Failure'
         else:
             return 'Completed'
@@ -72,7 +72,7 @@ class NavigationState(SingleNavGoalState):
             self.initialization_failure = True
 
     def run(self):
-        T_map_target = get_transform(target=Frames.map_frame, source=self.target_frame)
+        T_map_target = self.get_transform(target=Frames.map_frame, source=self.target_frame)
         if T_map_target is None:
             return 'Failure'
 
@@ -112,14 +112,14 @@ class DetectionPosesVisitor(StateRosControl):
         for pose in poses:
             start_pose = PoseStamped()
             start_pose.header.frame_id = Frames.base_frame
-            start_pose.pose = se3_to_pose_ros(get_transform(target=Frames.base_frame,
+            start_pose.pose = se3_to_pose_ros(self.get_transform(target=Frames.base_frame,
                                                             source=Frames.tool_frame))
             path = get_timed_path_to_target(start_pose=start_pose,
                                             target_pose=pose,
                                             linear_velocity=0.25, angular_velocity=0.25)
             rospy.loginfo("Moving to the next viewpoint")
             self.path_publisher.publish(path)
-            if not wait_until_reached(target_frame=Frames.tool_frame, target_pose=pose, quiet=True):
+            if not self.wait_until_reached(target_frame=Frames.tool_frame, target_pose=pose, quiet=True):
                 return 'Failure'
             else:
                 rospy.loginfo("Viewpoint reached.")
@@ -194,12 +194,12 @@ class LateralGraspState(StateRosControl):
             approach_pose = self.grasp_planner.compute_lateral_approach_pose()
             start_pose = PoseStamped()
             start_pose.header.frame_id = Frames.base_frame
-            start_pose.pose = se3_to_pose_ros(get_transform(target=Frames.base_frame, source=Frames.tool_frame))
+            start_pose.pose = se3_to_pose_ros(self.get_transform(target=Frames.base_frame, source=Frames.tool_frame))
             path = get_timed_path_to_target(start_pose=start_pose,
                                             target_pose=approach_pose,
                                             linear_velocity=0.25, angular_velocity=0.25)
             self.path_publisher.publish(path)
-            if not wait_until_reached(target_frame=Frames.tool_frame, target_pose=approach_pose, quiet=True):
+            if not self.wait_until_reached(target_frame=Frames.tool_frame, target_pose=approach_pose, quiet=True):
                 return 'Failure'
 
             # Goal 1: move tool to the valve plane, not yet at the handle
@@ -214,21 +214,21 @@ class LateralGraspState(StateRosControl):
         start_pose = PoseStamped()
         start_pose.header.frame_id = Frames.base_frame
 
-        start_pose.pose = se3_to_pose_ros(get_transform(target=Frames.base_frame, source=Frames.tool_frame))
+        start_pose.pose = se3_to_pose_ros(self.get_transform(target=Frames.base_frame, source=Frames.tool_frame))
         path = get_timed_path_to_target(start_pose=start_pose,
                                         target_pose=self.pre_grasp,
                                         linear_velocity=0.5, angular_velocity=0.5)
         self.path_publisher.publish(path)
-        if not wait_until_reached(Frames.tool_frame, self.pre_grasp, quiet=True):
+        if not self.wait_until_reached(Frames.tool_frame, self.pre_grasp, quiet=True):
             return 'Failure'
 
         # Goal 2: move forward to surround the valve
-        start_pose.pose = se3_to_pose_ros(get_transform(target=Frames.base_frame, source=Frames.tool_frame))
+        start_pose.pose = se3_to_pose_ros(self.get_transform(target=Frames.base_frame, source=Frames.tool_frame))
         path = get_timed_path_to_target(start_pose=start_pose,
                                         target_pose=self.grasp,
                                         linear_velocity=0.1, angular_velocity=0.1)
         self.path_publisher.publish(path)
-        if not wait_until_reached(Frames.tool_frame, self.grasp, quiet=True):
+        if not self.wait_until_reached(Frames.tool_frame, self.grasp, quiet=True):
             return 'Failure'
 
         return 'Completed'
@@ -262,7 +262,7 @@ class ValveManipulation(StateRosControl):
                                                   angle_delta_deg=self.angle_delta_deg)
 
         self.path_publisher.publish(path)
-        if not wait_until_reached(Frames.tool_frame, path.poses[-1], quiet=True):
+        if not self.wait_until_reached(Frames.tool_frame, path.poses[-1], quiet=True):
             return 'Failure'
 
         else:
@@ -320,12 +320,12 @@ class PostLateralGraspState(StateRosControl):
         target_pose = self.grasp_planner.compute_post_lateral_grasp()
         start_pose = PoseStamped()
         start_pose.header.frame_id = Frames.base_frame
-        start_pose.pose = se3_to_pose_ros(get_transform(target=Frames.base_frame, source=Frames.tool_frame))
+        start_pose.pose = se3_to_pose_ros(self.get_transform(target=Frames.base_frame, source=Frames.tool_frame))
         path = get_timed_path_to_target(start_pose=start_pose,
                                         target_pose=target_pose,
                                         linear_velocity=0.1, angular_velocity=0.1)
         self.path_publisher.publish(path)
-        if not wait_until_reached(Frames.tool_frame, target_pose, quiet=True):
+        if not self.wait_until_reached(Frames.tool_frame, target_pose, quiet=True):
             return 'Failure'
 
         if self.get_context_data('full_rotation_done'):
