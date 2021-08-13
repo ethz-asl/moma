@@ -6,7 +6,7 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
-        - /TF1
+        - /WrenchStamped1
         - /TF1/Frames1
       Splitter Ratio: 0.679411768913269
     Tree Height: 719
@@ -116,6 +116,10 @@ Visualization Manager:
           Show Trail: false
           Value: true
         panda_default_ee:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        panda_hand:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -293,12 +297,12 @@ Visualization Manager:
       Update Topic: /simple_marker/update
       Value: true
     - Class: rviz/WrenchStamped
-      Enabled: true
+      Enabled: false
       Name: WrenchStamped
       Queue Size: 10
-      Topic: /tool_wrench
+      Topic: /ft_compensated
       Unreliable: false
-      Value: true
+      Value: false
     - Class: rviz/TF
       Enabled: true
       Frame Timeout: 15
@@ -315,7 +319,7 @@ Visualization Manager:
         ft_sensor0_mounting:
           Value: false
         ft_sensor0_wrench:
-          Value: true
+          Value: false
         left_inner_finger:
           Value: false
         left_inner_finger_pad:
@@ -332,6 +336,8 @@ Visualization Manager:
           Value: false
         panda_default_ee:
           Value: false
+        panda_hand:
+          Value: true
         panda_link0:
           Value: false
         panda_link1:
@@ -365,7 +371,11 @@ Visualization Manager:
         robotiq_coupler:
           Value: false
         tool_frame:
-          Value: false
+          Value: true
+        valve_base:
+          Value: true
+        valve_estimated:
+          Value: true
         world:
           Value: false
         wrist_camera_bottom_screw_frame:
@@ -460,6 +470,8 @@ Visualization Manager:
                                   {}
                               panda_default_ee:
                                 {}
+                              panda_hand:
+                                {}
                             wrist_camera_bottom_screw_frame:
                               wrist_camera_link:
                                 wrist_camera_color_frame:
@@ -474,7 +486,35 @@ Visualization Manager:
                                 wrist_camera_infra2_frame:
                                   wrist_camera_infra2_optical_frame:
                                     {}
+            valve_base:
+              {}
+            valve_estimated:
+              {}
       Update Interval: 0
+      Value: true
+    - Alpha: 1
+      Buffer Length: 1
+      Class: rviz/Path
+      Color: 25; 255; 0
+      Enabled: true
+      Head Diameter: 0.30000001192092896
+      Head Length: 0.20000000298023224
+      Length: 0.30000001192092896
+      Line Style: Lines
+      Line Width: 0.029999999329447746
+      Name: Path
+      Offset:
+        X: 0
+        Y: 0
+        Z: 0
+      Pose Color: 255; 85; 255
+      Pose Style: None
+      Queue Size: 10
+      Radius: 0.029999999329447746
+      Shaft Diameter: 0.10000000149011612
+      Shaft Length: 0.10000000149011612
+      Topic: /desired_path
+      Unreliable: false
       Value: true
   Enabled: true
   Global Options:
@@ -504,7 +544,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 1.8365235328674316
+      Distance: 1.7080477476119995
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -520,9 +560,9 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.555398166179657
+      Pitch: -0.029601801186800003
       Target Frame: <Fixed Frame>
-      Yaw: 0.9453980922698975
+      Yaw: 0.045395854860544205
     Saved: ~
 Window Geometry:
   Displays:
