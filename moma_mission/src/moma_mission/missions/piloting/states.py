@@ -262,7 +262,7 @@ class ValveManipulation(StateRosControl):
                                                   angle_delta_deg=self.angle_delta_deg)
 
         self.path_publisher.publish(path)
-        if not self.wait_until_reached(Frames.tool_frame, path.poses[-1], quiet=True):
+        if not self.wait_until_reached(Frames.tool_frame, path.poses[-1], quiet=True, linear_tolerance=0.02):
             return 'Failure'
 
         else:

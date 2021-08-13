@@ -21,13 +21,11 @@ class Frames:
 
     @classmethod
     def print_summary(cls):
-        print(f"""
-================================
-Valve opening frames data:
-================================
-Map frame: \t{cls.map_frame}
-Valve frame: \t{cls.valve_frame}
-Base frame: \t{cls.base_frame}
-Tool frame: \t{cls.tool_frame}
-================================
-""")
+        print("""================================\n
+                 Valve opening frames data:\n
+                 ================================\n
+                 Map frame: \t{cls.map_frame}\n
+                 Valve frame: \t{cls.valve_frame}\n
+                 Base frame: \t{cls.base_frame}\n
+                 Tool frame: \t{cls.tool_frame}\n
+                 ================================\n""")

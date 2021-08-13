@@ -1,10 +1,10 @@
 <?xml version="1.0" ?>
 <launch>
-	<arg name="load_gripper" default="true"/>
+	<arg name="load_gripper" default="false"/>
   <arg name="robot_ip" default="172.16.0.2"/>
 
   <!-- Load the robot description -->
-  <arg name="tool" default="panda_hand"/>
+  <arg name="tool" default="robotiq_2f_toolset"/>
    
   <!-- send the robot XML to param server -->
   <param name="robot_description" command="$(find xacro)/xacro $(find moma_description)/urdf/panda.urdf.xacro use_nominal_extrinsics:=true use_fixed_realsense:=false tool:=$(arg tool)"/>
@@ -40,4 +40,16 @@
   <!-- An interactive marker for the mpc controller-->
   <include file="$(find panda_mpc)/launch/interactive_marker.launch"/>
 
+  <!--    Force sensor and filtering/compensation relay node-->
+  <include file="$(find moma_sensor_tools)/launch/ft_sensor_standalone.launch"/>
+    
+  <!--  Gripper driver -->
+  <node name="robotiq_2f_gripper_driver" pkg="robotiq_2f_gripper_control" type="Robotiq2FGripperRtuNode.py" args="/dev/r2Fg" output="screen"/>
+  
+  <!-- Gripper control -->
+  <node name="robotiq_2f_gripper_commander" pkg="moma_mission" type="gripper_commander.py" output="screen" respawn="true"/>
+
+  <node name="valve_tf_publisher" type="static_transform_publisher" pkg="tf2_ros" args="0.488 -0.044 0.288 0.707 0 -0.707 0 base_link valve_base"/>
+
+    
 </launch>

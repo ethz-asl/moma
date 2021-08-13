@@ -13,7 +13,7 @@
     <arg name="output" default="log" unless="$(arg verbose)"/>
 
     <node name="rokubimini" pkg="bota_device_driver" type="bota_device_driver_node"
-          launch-prefix="xterm -e $(arg launch_prefix)">
+          output="screen" launch-prefix="xterm -e $(arg launch_prefix)">
         <param name="standalone" type="bool" value="$(arg standalone)"/>
         <param name="num_spinners" type="int" value="$(arg num_spinners)"/>
         <param name="time_step" type="double" value="$(arg time_step)"/>

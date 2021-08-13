@@ -173,7 +173,7 @@ void PandaMpcController::starting(const ros::Time& time) {
   };
   read_state();
 
-  ROS_INFO_STREAM("[PandaMpcController::starting] Starting with current joint position: " << position_current_.transpose());
+  ROS_DEBUG_STREAM("[PandaMpcController::starting] Starting with current joint position: " << position_current_.transpose());
   mpc_controller_->start(position_current_.head<7>());
   position_integral_ = position_current_;
 

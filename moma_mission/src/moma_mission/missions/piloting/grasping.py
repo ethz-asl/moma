@@ -126,7 +126,7 @@ class GraspPlanner:
         return self.filter_grasps(candidates)
 
     def compute_post_lateral_grasp(self):
-        return self.compute_lateral_grasp(Valve.lateral_grasp_offset)
+        return self.compute_lateral_grasp(Valve.post_lateral_grasp_offset)
 
     def compute_grasp(self, relative_grasp_rotation, offset=0.0):
         """
