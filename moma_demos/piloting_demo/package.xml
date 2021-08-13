@@ -18,6 +18,7 @@
     <exec_depend>moma_joint_space_controller</exec_depend>
     <exec_depend>moma_sensor_tools</exec_depend>
     <exec_depend>moma_mission</exec_depend>
+    <exec_depend>robotiq_2f_gripper_control</exec_depend>
     <export>
         <metapackage />
     </export>

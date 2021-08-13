@@ -6,6 +6,6 @@
     <node pkg="panda_mpc" type="interactive_target_relay.py" name="interactive_target_ralay">
         <param name="frame_id" value="world"/>
         <param name="in_topic" value="mobile_manipulator_mpc_target"/>
-        <param name="out_topic" value="/mpc_reference_path"/>
+        <param name="out_topic" value="/desired_path"/>
     </node>
 </launch>

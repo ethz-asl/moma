@@ -20,7 +20,7 @@ HOME_ROBOT:
   action_name: /joint_space_controller_server
   controller_name: joint_space_controller
   manager_namespace: ''
-  whitelist: [robotiq_2f_85_controller, joint_state_controller, path_admittance_controller]
+  whitelist: [robotiq_2f_85_controller, franka_state_controller, joint_state_controller, path_admittance_controller]
   joints_configurations:
     - [0, -0.785, 0, -2.1, 0, 1.571, 0]
 
@@ -45,7 +45,7 @@ REACH_VIEWPOINT:
   action_name: /joint_space_controller_server
   controller_name: joint_space_controller
   manager_namespace: ''
-  whitelist: [robotiq_2f_85_controller, joint_state_controller, path_admittance_controller]
+  whitelist: [robotiq_2f_85_controller, franka_state_controller, joint_state_controller, path_admittance_controller]
   joints_configurations:
     - [1.57, -0.785, 0, -2.1, 0, 1.571, 0]
     - [-1.57, -0.785, 0, -2.1, 0, 1.571, 0]
@@ -54,21 +54,21 @@ LATERAL_GRASP:
   default_outcome: None
   controller_name: mpc_controller
   manager_namespace: ''
-  whitelist: [reflex_controller, robotiq_2f_85_controller, joint_state_controller, path_admittance_controller]
+  whitelist: [reflex_controller, robotiq_2f_85_controller, franka_state_controller, joint_state_controller, path_admittance_controller]
   path_topic_name: /desired_path
 
 RESET_LATERAL_GRASP:
   default_outcome: None
   controller_name: mpc_controller
   manager_namespace: ''
-  whitelist: [ robotiq_2f_85_controller, joint_state_controller, path_admittance_controller ]
+  whitelist: [ robotiq_2f_85_controller, franka_state_controller, joint_state_controller, path_admittance_controller ]
   path_topic_name: /desired_path
 
 MANIPULATE_VALVE:
   default_outcome: None
   controller_name: mpc_controller
   manager_namespace: ''
-  whitelist: [robotiq_2f_85_controller, joint_state_controller, path_admittance_controller]
+  whitelist: [robotiq_2f_85_controller, franka_state_controller, joint_state_controller, path_admittance_controller]
 
   angle_step_deg: -60.0   # how much to rotate at once
   angle_end_deg: -118.0    # total desired rotation
