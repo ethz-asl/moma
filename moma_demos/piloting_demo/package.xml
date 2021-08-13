@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<package format="2">
+    <name>piloting_demo</name>
+    <version>0.0.0</version>
+    <description>The piloting_demo package</description>
+
+    <maintainer email="grizzi@ethz.ch">grizzi</maintainer>
+
+    <license>TODO</license>
+
+    <buildtool_depend>catkin</buildtool_depend>
+    <depend>franka_hw</depend>
+    <depend>franka_description</depend>
+    <depend>franka_ros</depend>
+    <depend>franka_control</depend>
+    <depend>panda_mpc</depend>
+    <depend>joint_space_controller</depend>
+    <depend>path_admittance_controller</depend>
+    <depend>moma_sensor_tools</depend>
+    <depend>moma_mission</depend>
+    <export>
+        <metapackage />
+    </export>
+</package>
