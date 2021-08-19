@@ -194,9 +194,10 @@ void PandaMpcController::compute_torque(const ros::Duration& period) {
   velocity_command_ = mpc_controller_->get_velocity_command();
   position_integral_ += velocity_command_ * period.toSec();
 
+  // Do not feedforward velocity to add damping
   for (int i = 0; i < 7; i++){
     position_error_(i) = angles::shortest_angular_distance(position_current_(i), position_integral_(i));
-    velocity_error_(i) = velocity_command_(i) - velocity_current_(i);
+    velocity_error_(i) = /*velocity_command_(i)*/ 0.0 - velocity_current_(i);
   }
 
   if (sim_) {
