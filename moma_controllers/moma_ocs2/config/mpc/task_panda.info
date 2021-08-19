@@ -155,14 +155,14 @@ jointVelocityLimits
     scaling 1e-1
     (0,0) -0.0  ; forward velocity
     (1,0) -0.0  ; turning velocity
-    (2,0) -1.0  ; SH_ROT
-    (3,0) -1.0  ; SH_FLE
-    (4,0) -1.0  ; EL_FLE
-    (5,0) -1.0  ; EL_ROT
-    (6,0) -1.0  ; WR_FLE
-    (7,0) -1.0  ; WR_ROT
-    (8,0) -1.0  ; WR_ROT
-    (9,0) -1.0  ;
+    (2,0) -3.0  ; SH_ROT
+    (3,0) -3.0  ; SH_FLE
+    (4,0) -3.0  ; EL_FLE
+    (5,0) -3.0  ; EL_ROT
+    (6,0) -3.0  ; WR_FLE
+    (7,0) -3.0  ; WR_ROT
+    (8,0) -3.0  ; WR_ROT
+    (9,0) -3.0  ;
   }
 
   upperBound
@@ -170,14 +170,14 @@ jointVelocityLimits
     scaling 1e-1
     (0,0) 0.0  ; forward velocity
     (1,0) 0.0  ; turning velocity
-    (2,0) 1.0  ; SH_ROT
-    (3,0) 1.0  ; SH_FLE
-    (4,0) 1.0  ; EL_FLE
-    (5,0) 1.0  ; EL_ROT
-    (6,0) 1.0  ; WR_FLE
-    (7,0) 1.0  ; WR_ROT
-    (8,0) 1.0  ; WR_ROT
-    (9,0) 1.0
+    (2,0) 3.0  ; SH_ROT
+    (3,0) 3.0  ; SH_FLE
+    (4,0) 3.0  ; EL_FLE
+    (5,0) 3.0  ; EL_ROT
+    (6,0) 3.0  ; WR_FLE
+    (7,0) 3.0  ; WR_ROT
+    (8,0) 3.0  ; WR_ROT
+    (9,0) 3.0
   }
 
   ; relaxed log barrier mu
