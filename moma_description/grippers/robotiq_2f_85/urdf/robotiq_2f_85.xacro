@@ -27,7 +27,7 @@
     <!-- Tool frame used by the arm -->
     <link name="${prefix}tool_frame"/>
     <joint name="${prefix}tool_frame_joint" type="fixed">
-        <origin xyz="0 0 0.135" rpy="0 0 -1.5708" />
+        <origin xyz="0 0 0.125" rpy="0 0 -1.5708" />
         <parent link="robotiq_arg2f_base_link" />
         <child link="${prefix}tool_frame" />
         <axis xyz="0 0 0" />

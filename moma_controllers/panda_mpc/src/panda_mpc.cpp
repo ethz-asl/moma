@@ -183,9 +183,10 @@ void PandaMpcController::starting(const ros::Time& time) {
 
 
 void PandaMpcController::read_state(){
+  static double alpha = 0.99;
   for (size_t i = 0; i < 7; i++) {
     position_current_(i) = joint_handles_[i].getPosition();
-    velocity_current_(i) = joint_handles_[i].getVelocity();
+    velocity_current_(i) = velocity_current_(i) * (1-alpha) + alpha joint_handles_[i].getVelocity();
   }
 }
 
