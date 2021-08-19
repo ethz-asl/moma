@@ -1,11 +1,12 @@
 ### moma_ocs2
 
-This package provides an interface to ocs2 for control of a mobile manipulator. `ocs2` is a general MPC-DDP
-solver. In this implementation the robot is represented as a 7-dof mobile manipulator with differential drive base (this can be easily adapted/changed in the future). 
+This package provides an interface to ocs2 for control of a mobile manipulator. `ocs2` is a general MPC-DDP solver. In this implementation the robot is represented as a 7-dof mobile manipulator with differential drive base (this can be easily adapted/changed in the future). 
 
 The system dynamics consist in the kinematic model. As a consequence the model predictive controller optimizes the joint velocities and the base twist. The solution is subject to velocity constraints.
 
 ### Install
+
+The solver has the potential to check for self collision by specifying which link pair should be checked for self collision. The collision checking library `hpp-fcl` needs therefore to be installed. System modelig (forward kinematics, auto-differentiation and derivatives) uses the `pinocchio` libray that needs to be installed as well. Standard binaries do not work here since, they do not come with support for the collision checking provided by `hpp-fcl`. 
 
 #### Install hpp-fcl
 Add the `robotpkg` repository to the available source. Find the system you are working on:
@@ -34,7 +35,7 @@ Finally run a update to fetch all the information:
 sudo apt-get update
 ```
 
-Lastly install the packages. These are the tested versions. There are newer. These will be tested later on.
+Lastly install the packages. These are the tested versions but there are newer. These will be tested later on.
 
 ```
 sudo apt-get install robotpkg-octomap=1.6.1
@@ -54,11 +55,7 @@ export CMAKE_PREFIX_PATH=/opt/openrobots:$CMAKE_PREFIX_PATH
 #### Install pinocchio
 
 Pinocchio does not come with default hpp-fcl integration and thus needs to be installed from source. 
-First download the repo. 
-```
-https://stack-of-tasks.github.io/pinocchio/download.html
-```
-
+First download the [repo](!https://stack-of-tasks.github.io/pinocchio/download.html). 
 The code has been tested for the current version that you need to checkout:
 ```
 git checkout 29be057af1beb
@@ -82,12 +79,14 @@ export CMAKE_PREFIX_PATH=/usr/local:$CMAKE_PREFIX_PATH
 ```
 #### Install ocs2
 
-You must first ask access to the `ocs2_dev` branch sending an email to (fill) with your bitbucket email address and account name. After being added to the ASL user group, you can clone the `ocs2_dev` in your catkin 
-workspace. Make sure to checkout the latest tested commit:
+Clone this mirror [repository](!git@github.com:grizzi/ocs2.git). Building requires CMake>=3.11. Tested on the panda laptop and since melodic was there at the time, the cmake version is too low. One quick fix is to download a newer CMake binaries and add these at the beginning of the CMAKE_PREFIX_PATH. This step is not required if the system CMake already satisfies the requirements.
 
+#### (optional) Add newer CMake
+
+Download the newer cmake binaries. For example cmake-3.16.3. Assuming that `CMAKE_INSTALL` is the directory containing the binary folders than add the following to the `.bashrc`:
 ```
-git clone (to do)
-git checkout a813a4dc2d1f
+export PATH=$HOME/Programs/$CMAKE_INSTALL/bin:$PATH
+export CMAKE_PREFIX_PATH=$HOME/$CMAKE_INSTALL:$CMAKE_PREFIX_PATH 
 ```
 
 ### Build
