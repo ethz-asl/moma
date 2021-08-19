@@ -62,5 +62,11 @@ def switch_ros_controller(controller_name, manager_namespace='', whitelist=[]):
         rospy.logerr("Failed to switch ros controller")
         return False
 
+    if len(controller_stop_list) > 0:
+        rospy.loginfo("Sleeping 3.0 sec before returning")
+        rospy.sleep(3.0)
+    else:
+        rospy.loginfo("No new controller started")
+        
     rospy.loginfo("Successfully switched controllers")
     return True

@@ -53,7 +53,8 @@ class HomePose(StateRosControl):
                                         target_pose=target_pose,
                                         linear_velocity=0.25, angular_velocity=0.25)
         self.path_publisher.publish(path)
-        if not self.wait_until_reached(target_frame=Frames.tool_frame, target_pose=home_pose, quiet=True):
+        if not self.wait_until_reached(target_frame=Frames.tool_frame, 
+                                       quiet=True):
             return 'Failure'
         else:
             return 'Completed'
@@ -169,6 +170,7 @@ class LateralGraspState(StateRosControl):
         try:
             StateRosControl.__init__(self, ns=ns)
             path_topic_name = self.get_scoped_param("path_topic_name")
+
             self.path_publisher = rospy.Publisher(path_topic_name, Path, queue_size=1)
             self.candidate_poses_publisher = rospy.Publisher("/candidate_poses", Path, queue_size=1)
             self.grasp_planner = GraspPlanner()
@@ -325,7 +327,11 @@ class PostLateralGraspState(StateRosControl):
                                         target_pose=target_pose,
                                         linear_velocity=0.1, angular_velocity=0.1)
         self.path_publisher.publish(path)
-        if not self.wait_until_reached(Frames.tool_frame, target_pose, quiet=True):
+        if not self.wait_until_reached(Frames.tool_frame, 
+                                       target_pose, 
+                                       linear_tolerance=0.02, 
+                                       angular_tolerance=0.2,
+                                       quiet=True):
             return 'Failure'
 
         if self.get_context_data('full_rotation_done'):

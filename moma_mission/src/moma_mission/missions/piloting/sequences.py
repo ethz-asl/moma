@@ -56,11 +56,12 @@ def lateral_manipulation_sequence_factory():
                                                        'Failure': 'Failure'})
 
         lateral_manipulation_sequence.add('OPEN_GRIPPER', GripperUSB,
-                                          transitions={'Completed': 'RESET_LATERAL_GRASP',
+                                          transitions={'Completed': 'POST_LATERAL_GRASP',
                                                        'Failure': 'Failure'})
 
-        lateral_manipulation_sequence.add('RESET_LATERAL_GRASP', PostLateralGraspState,
+        lateral_manipulation_sequence.add('POST_LATERAL_GRASP', PostLateralGraspState,
                                           transitions={'Completed': 'LATERAL_GRASP',
                                                        'Failure': 'Failure',
                                                        'FullRotationDone': 'Success'})
+
     return lateral_manipulation_sequence

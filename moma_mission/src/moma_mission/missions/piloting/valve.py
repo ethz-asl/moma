@@ -22,7 +22,7 @@ class Valve:
     # offsets
     frontal_grasp_offset = -0.1
     lateral_grasp_offset = -0.1
-    post_lateral_grasp_offset = -0.12
+    post_lateral_grasp_offset = -0.1
 
     # detection poses
     det_pose_position_0 = np.array([0.096, 0.266, 0.559])

@@ -58,8 +58,8 @@ class GripperUSB(StateRos):
         cmd.effort.append(self.effort)
         self.command_publisher.publish(cmd)
 
-        rospy.loginfo("Sleeping 5.0s before returning.")
-        rospy.sleep(5.0)
+        rospy.loginfo("Sleeping 3.0s before returning.")
+        rospy.sleep(3.0)
 
         return 'Completed'
 

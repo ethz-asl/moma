@@ -30,13 +30,23 @@ with state_machine:
 
     state_machine.add('LATERAL_MANIPULATION',
                       lateral_manipulation_sequence_factory(),
-                      transitions={'Success': 'HOME_ROBOT_END',
+                      transitions={'Success': 'HOMING_FINAL',
                                    'Failure': 'Failure'})
 
-    smach.StateMachine.add('HOME_ROBOT_END',
-                           homing_sequence_factory(),
-                           transitions={'Success': 'Success',
-                                        'Failure': 'Failure'})
+    homing_sequence_final = StateMachineRos(outcomes=['Success', 'Failure'])
+    with homing_sequence_final:
+        homing_sequence_final.add('OPEN_GRIPPER', GripperUSB,
+                                  transitions={'Completed': 'HOME_ROBOT_FINAL',
+                                               'Failure': 'Failure'})
+
+        homing_sequence_final.add('HOME_ROBOT_FINAL', JointsConfigurationAction,
+                                   transitions={'Completed': 'Success',
+                                                'Failure': 'Failure'})
+
+    state_machine.add('HOMING_FINAL',
+                  homing_sequence_final,
+                  transitions={'Success': 'Success',
+                               'Failure': 'Failure'})
 
 # Create and start the introspection server
 introspection_server = smach_ros.IntrospectionServer('piloting_mission_server', state_machine, '/mission_planner')
