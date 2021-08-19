@@ -55,7 +55,7 @@ export CMAKE_PREFIX_PATH=/opt/openrobots:$CMAKE_PREFIX_PATH
 #### Install pinocchio
 
 Pinocchio does not come with default hpp-fcl integration and thus needs to be installed from source. 
-First download the [repo](!https://stack-of-tasks.github.io/pinocchio/download.html). 
+First download the [repo](https://stack-of-tasks.github.io/pinocchio/download.html). 
 The code has been tested for the current version that you need to checkout:
 ```
 git checkout 29be057af1beb
@@ -79,7 +79,7 @@ export CMAKE_PREFIX_PATH=/usr/local:$CMAKE_PREFIX_PATH
 ```
 #### Install ocs2
 
-Clone this mirror [repository](!git@github.com:grizzi/ocs2.git). Building requires CMake>=3.11. Tested on the panda laptop and since melodic was there at the time, the cmake version is too low. One quick fix is to download a newer CMake binaries and add these at the beginning of the CMAKE_PREFIX_PATH. This step is not required if the system CMake already satisfies the requirements.
+Clone this mirror [repository](github.com/grizzi/ocs2.git). Building requires CMake>=3.11. Tested on the panda laptop and since melodic was there at the time, the cmake version is too low. One quick fix is to download a newer CMake binaries and add these at the beginning of the CMAKE_PREFIX_PATH. This step is not required if the system CMake already satisfies the requirements.
 
 #### (optional) Add newer CMake
 
