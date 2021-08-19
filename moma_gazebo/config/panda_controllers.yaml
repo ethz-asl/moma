@@ -96,13 +96,13 @@ mpc_controller:
   path_topic: /mpc_reference_path
 
   gains:
-    panda_joint1: { p: 100.0, i: 0.0, d: 20.0, i_clamp_min: -100.0, i_clamp_max: 100.0 }
-    panda_joint2: { p: 100.0, i: 0.0, d: 20.0, i_clamp_min: -5.0, i_clamp_max: 5.0 }
-    panda_joint3: { p: 100.0, i: 0.0, d: 20.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
-    panda_joint4: { p: 100.0, i: 0.0, d: 20.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
-    panda_joint5: { p: 100.0, i: 0.0, d: 20.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
-    panda_joint6: { p: 100.0, i: 0.0, d: 20.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
-    panda_joint7: { p: 100.0, i: 0.0, d: 20.0, i_clamp_min: -0.1, i_clamp_max: 0.1 }
+    panda_joint1: { p: 500.0, i: 0.0, d: 150.0, i_clamp_min: -100.0, i_clamp_max: 100.0 }
+    panda_joint2: { p: 500.0, i: 0.0, d: 150.0, i_clamp_min: -5.0, i_clamp_max: 5.0 }
+    panda_joint3: { p: 500.0, i: 0.0, d: 150.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
+    panda_joint4: { p: 500.0, i: 0.0, d: 150.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
+    panda_joint5: { p: 500.0, i: 0.0, d: 150.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
+    panda_joint6: { p: 500.0, i: 0.0, d: 150.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
+    panda_joint7: { p: 500.0, i: 0.0, d: 150.0, i_clamp_min: -0.1, i_clamp_max: 0.1 }
 
 path_admittance_controller:
   type: moma_controllers/PathAdmittanceController
