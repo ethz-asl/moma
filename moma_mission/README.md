@@ -1,21 +1,10 @@
 # moma_mission
 
-This package contains the state machine for mobile manipulator missions
+This package contains the state machine for mobile manipulator missions.
+The core library is not related to a specific mission but is intended to implement general purposes states (relying also on implemented controllers).
 
-### Run the simulation 
 
-On separate terminals:
+Each mission can be implemented as a module of the library and further extend it with 'mission dependent' states. See the [piloting module](src/moma_mission/missions/piloting) for an example.
 
-1. `roslaunch kinova_common run_sim.launch`
-2. `roslaunch kinova_valve_opening mission.launch simulation:=true`
 
-### Run on the hardware
-
-On separate terminals (Robot):
-
-1. `roslaunch kinova_robot robot.launch`
-2. `roslaunch kinova_valve_opening components.launch`
-
-On separate terminals (Operator):
-
-1. `roslaunch kinova_valve_opening mission.launch`
+Then creating a mission is a matter of concatenating states using the `smach` API. The `StateRos` wraps the smach state adding functionality like retrieving params after the state name. This way, parameters can be well structured in the same param file and namescoped with nice readability. See the [piloting mission file](config/state_machine/piloting.yaml) for an example.
