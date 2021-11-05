@@ -2,7 +2,7 @@
     <class name="moma_controllers/PathPassthroughController" type="moma_controllers::PathPassthroughController"
            base_class_type="controller_interface::ControllerBase">
         <description>
-            Controller which passes the path on to the robot
+            Controller which passes the path without modifying it
         </description>
     </class>
 </library>
