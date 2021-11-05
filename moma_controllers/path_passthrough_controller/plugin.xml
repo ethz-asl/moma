@@ -1,0 +1,8 @@
+<library path="lib/libpath_passthrough_controller">
+    <class name="moma_controllers/PathPassthroughController" type="moma_controllers::PathPassthroughController"
+           base_class_type="controller_interface::ControllerBase">
+        <description>
+            Controller which passes the path on to the robot
+        </description>
+    </class>
+</library>
