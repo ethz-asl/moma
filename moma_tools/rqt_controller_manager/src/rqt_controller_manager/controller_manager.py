@@ -103,7 +103,8 @@ class ControllerManager(Plugin):
         self._icons = {'running': QIcon(path + '/resource/led_green.png'),
                        'stopped': QIcon(path + '/resource/led_red.png'),
                        'uninitialized': QIcon(path + '/resource/led_off.png'),
-                       'initialized': QIcon(path + '/resource/led_red.png')}
+                       'initialized': QIcon(path + '/resource/led_red.png'),
+                       'switch': QIcon(path + '/resource/cm_icon.png')}
 
         # Controllers display
         table_view = self._widget.table_view
@@ -165,6 +166,12 @@ class ControllerManager(Plugin):
     def _update_cm_list(self):
         update_combo(self._widget.cm_combo, self._list_cm())
 
+        if self._widget.cm_combo.currentIndex() == -1 and self._widget.cm_combo.count() > 0:
+            relevant_items = [i for i in range(self._widget.cm_combo.count()) if self._widget.cm_combo.itemText(i) == '/controller_manager']
+            if len(relevant_items) > 0:
+                self._widget.cm_combo.setCurrentIndex(relevant_items[0])
+                self._on_cm_change(self._widget.cm_combo.itemText(relevant_items[0]))
+
     def _on_cm_change(self, cm_ns):
         self._cm_ns = cm_ns
 
@@ -203,6 +210,7 @@ class ControllerManager(Plugin):
     def _update_controllers(self):
         # Find controllers associated to the selected controller manager
         controllers = self._list_controllers()
+        controllers.sort(key=lambda controller: (controller.name, controller.state))
 
         # Update controller display, if necessary
         if self._controllers != controllers:
@@ -242,52 +250,82 @@ class ControllerManager(Plugin):
 
     def _on_ctrl_menu(self, pos):
         # Get data of selected controller
-        row = self._widget.table_view.rowAt(pos.y())
-        if row < 0:
-            return  # Cursor is not under a valid item
+        selectionModel = self._widget.table_view.selectionModel()
 
-        ctrl = self._controllers[row]
+        rows = selectionModel.selectedRows()
 
         # Show context menu
         menu = QMenu(self._widget.table_view)
-        if ctrl.state == 'running':
-            action_stop = menu.addAction(self._icons['stopped'], 'Stop')
-            action_kill = menu.addAction(self._icons['uninitialized'],
-                                         'Stop and Unload')
-        elif ctrl.state == 'stopped':
-            action_start = menu.addAction(self._icons['running'],
-                                          'Start again')
-            action_unload = menu.addAction(self._icons['uninitialized'],
-                                           'Unload')
-        elif ctrl.state == 'initialized':
-            action_start = menu.addAction(self._icons['running'], 'Start')
-            action_unload = menu.addAction(self._icons['uninitialized'],
-                                           'Unload')
-        elif ctrl.state == 'uninitialized':
-            action_load = menu.addAction(self._icons['stopped'], 'Load')
-            action_spawn = menu.addAction(self._icons['running'],
-                                          'Load and Start')
 
-        action = menu.exec_(self._widget.table_view.mapToGlobal(pos))
+        if len(rows) > 1:
+            ctrls = [self._controllers[rows[i].row()] for i in range(len(rows))]
+            ctrls_active = [ctrl for ctrl in ctrls if ctrl.state == 'running']
+            ctrls_inactive = [ctrl for ctrl in ctrls if ctrl.state in ['stopped', 'initialized', 'uninitialized']]
+            ctrls_conflicts = self._find_conflicting_controllers(ctrls_inactive)
+            # At the moment, there is no prevention against purposefully starting two conflicting controllers
+            ctrls_conflicts = list(set(ctrls_conflicts) - set(ctrls_active))
+            str_conflicts = '' if len(ctrls_conflicts) == 0 else 'and stop conflicting {}'.format([ctrl_conflict.name for ctrl_conflict in ctrls_conflicts])
 
-        # Evaluate user action
-        if ctrl.state == 'running':
-            if action is action_stop:
-                self._stop_controller(ctrl.name)
-            elif action is action_kill:
-                self._stop_controller(ctrl.name)
-                self._unload_controller(ctrl.name)
-        elif ctrl.state == 'stopped' or ctrl.state == 'initialized':
-            if action is action_start:
-                self._start_controller(ctrl.name)
-            elif action is action_unload:
-                self._unload_controller(ctrl.name)
-        elif ctrl.state == 'uninitialized':
-            if action is action_load:
-                self._load_controller(ctrl.name)
-            if action is action_spawn:
-                self._load_controller(ctrl.name)
-                self._start_controller(ctrl.name)
+            #if len(ctrls_active) < 1 or len(ctrls_inactive) < 1:
+                #return
+
+            action_switch = menu.addAction(self._icons['switch'], 'Switch {}'.format(str_conflicts))
+
+            action = menu.exec_(self._widget.table_view.mapToGlobal(pos))
+
+            # Evaluate user action
+            if action is action_switch:
+                for ctrl_inactive in [ctrl for ctrl in ctrls_inactive if ctrl.state == 'uninitialized']:
+                    self._load_controller(ctrl_inactive.name)
+                self._switch_controllers(ctrls_inactive, ctrls_active)
+
+        elif len(rows) == 1:
+            row = rows[0].row()
+            if not selectionModel.hasSelection():
+                return  # Cursor is not under a valid item
+
+            ctrl = self._controllers[row]
+            ctrls_conflicts = self._find_conflicting_controllers([ctrl])
+            str_conflicts = '' if len(ctrls_conflicts) == 0 else 'and stop conflicting {}'.format([ctrl_conflict.name for ctrl_conflict in ctrls_conflicts])
+
+            if ctrl.state == 'running':
+                action_stop = menu.addAction(self._icons['stopped'], 'Stop')
+                action_kill = menu.addAction(self._icons['uninitialized'],
+                                             'Stop and Unload')
+            elif ctrl.state == 'stopped':
+                action_start = menu.addAction(self._icons['running'],
+                                              'Start again {}'.format(str_conflicts))
+                action_unload = menu.addAction(self._icons['uninitialized'],
+                                               'Unload')
+            elif ctrl.state == 'initialized':
+                action_start = menu.addAction(self._icons['running'], 'Start {}'.format(str_conflicts))
+                action_unload = menu.addAction(self._icons['uninitialized'],
+                                               'Unload')
+            elif ctrl.state == 'uninitialized':
+                action_load = menu.addAction(self._icons['stopped'], 'Load')
+                action_spawn = menu.addAction(self._icons['running'],
+                                              'Load and Start {}'.format(str_conflicts))
+
+            action = menu.exec_(self._widget.table_view.mapToGlobal(pos))
+
+            # Evaluate user action
+            if ctrl.state == 'running':
+                if action is action_stop:
+                    self._stop_controller(ctrl.name)
+                elif action is action_kill:
+                    self._stop_controller(ctrl.name)
+                    self._unload_controller(ctrl.name)
+            elif ctrl.state == 'stopped' or ctrl.state == 'initialized':
+                if action is action_start:
+                    self._switch_controllers([ctrl], ctrls_conflicts)
+                elif action is action_unload:
+                    self._unload_controller(ctrl.name)
+            elif ctrl.state == 'uninitialized':
+                if action is action_load:
+                    self._load_controller(ctrl.name)
+                if action is action_spawn:
+                    self._load_controller(ctrl.name)
+                    self._switch_controllers([ctrl], ctrls_conflicts)
 
     def _on_ctrl_info(self, index):
         popup = self._popup_widget
@@ -327,23 +365,33 @@ class ControllerManager(Plugin):
             else:
                 header.setSectionResizeMode(QHeaderView.ResizeToContents)
 
+    def _find_conflicting_controllers(self, ctrls_new):
+        conflicting = set()
+        for ctrl_new in ctrls_new:
+            for ctrl_running in [controller for controller in self._controllers if controller.state == 'running']:
+                for claimed_new in ctrl_new.claimed_resources:
+                    for claimed_running in ctrl_running.claimed_resources:
+                        if len([resource_new for resource_new in claimed_new.resources if resource_new in claimed_running.resources]) > 0:
+                            conflicting.add(ctrl_running)
+        return conflicting
+
     def _load_controller(self, name):
         self._load_srv.call(LoadControllerRequest(name=name))
 
     def _unload_controller(self, name):
         self._unload_srv.call(UnloadControllerRequest(name=name))
 
-    def _start_controller(self, name):
-        strict = SwitchControllerRequest.STRICT
-        req = SwitchControllerRequest(start_controllers=[name],
-                                      stop_controllers=[],
-                                      strictness=strict)
-        self._switch_srv.call(req)
-
     def _stop_controller(self, name):
         strict = SwitchControllerRequest.STRICT
         req = SwitchControllerRequest(start_controllers=[],
                                       stop_controllers=[name],
+                                      strictness=strict)
+        self._switch_srv.call(req)
+
+    def _switch_controllers(self, start_ctrls, stop_ctrls):
+        strict = SwitchControllerRequest.STRICT
+        req = SwitchControllerRequest(start_controllers=[ctrl.name for ctrl in start_ctrls],
+                                      stop_controllers=[ctrl.name for ctrl in stop_ctrls],
                                       strictness=strict)
         self._switch_srv.call(req)
 

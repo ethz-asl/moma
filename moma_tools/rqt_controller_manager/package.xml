@@ -10,6 +10,7 @@
   <maintainer email="bence.magyar.robotics@gmail.com">Bence Magyar</maintainer>
   <maintainer email="enrique.fernandez.perdomo@gmail.com">Enrique Fernandez</maintainer>
   <maintainer email="mathias.luedtke@ipa.fraunhofer.de">Mathias Lüdtke</maintainer>
+  <maintainer email="jukeller@ethz.ch">Julian Keller</maintainer>
 
   <license>BSD</license>
 
@@ -19,6 +20,7 @@
 
   <author email="kphawkins@gatech.edu">Kelsey Hawkins</author>
   <author email="adolfo.rodriguez@pal-robotics.com">Adolfo Rodríguez Tsouroukdissian</author>
+  <author email="jukeller@ethz.ch">Julian Keller</author>
 
   <buildtool_depend>catkin</buildtool_depend>
   <buildtool_depend condition="$ROS_PYTHON_VERSION == 2">python-setuptools</buildtool_depend>
