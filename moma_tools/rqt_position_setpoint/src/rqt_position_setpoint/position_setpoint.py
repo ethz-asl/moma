@@ -83,4 +83,6 @@ class PositionSetpoint(Plugin):
     def _update_controllers(self):
         controllers = [controller for controller in self._controller_lister() \
                        if controller.name == 'joint_space_controller' and controller.state == 'running']
-        self._widget.controller_missing.setVisible(len(controllers) < 1)
+        running = len(controllers) > 0
+        self._widget.setEnabled(running)
+        self._widget.controller_missing.setVisible(not running)

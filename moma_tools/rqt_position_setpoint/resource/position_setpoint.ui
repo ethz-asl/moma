@@ -2,6 +2,9 @@
 <ui version="4.0">
  <class>position_setpoint</class>
  <widget class="QWidget" name="position_setpoint">
+  <property name="enabled">
+   <bool>false</bool>
+  </property>
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -61,7 +64,7 @@
       <string notr="true">color: red</string>
      </property>
      <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Start the &amp;quot;joint_space_controller&amp;quot; first in order to command joint space presets&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Start the &amp;quot;joint_space_controller&amp;quot; first to be able to send joint space commands&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
      <property name="wordWrap">
       <bool>true</bool>
