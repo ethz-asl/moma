@@ -1,0 +1,16 @@
+<library path="src">
+  <class name="PositionSetpoint" type="rqt_position_setpoint.position_setpoint.PositionSetpoint"
+         base_class_type="rqt_gui_py::Plugin">
+    <description>
+      Send joint position targets to the robot.
+    </description>
+    <qtgui>
+      <group>
+        <label>Robot Tools</label>
+        <icon type="theme">folder</icon>
+        <statustip>Plugins related to robot tools.</statustip>
+      </group>
+      <label>Position Setpoint</label>
+    </qtgui>
+  </class>
+</library>
