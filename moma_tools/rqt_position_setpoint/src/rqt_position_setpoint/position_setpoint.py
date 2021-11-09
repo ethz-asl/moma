@@ -8,7 +8,7 @@ import yaml
 
 from qt_gui.plugin import Plugin
 from python_qt_binding import loadUi
-from python_qt_binding.QtWidgets import QWidget, QHBoxLayout, QPushButton, QSlider, QLabel
+from python_qt_binding.QtWidgets import QWidget, QInputDialog, QHBoxLayout, QPushButton, QSlider, QLabel
 from python_qt_binding.QtCore import Qt, QTimer, QSize
 from python_qt_binding.QtGui import QStandardItemModel, QStandardItem
 
@@ -45,8 +45,8 @@ class PositionSetpoint(Plugin):
 
         self._widget = QWidget()
         # Get path to UI file which should be in the "resource" folder of this package
-        pkg_dir = rospkg.RosPack().get_path('rqt_position_setpoint')
-        ui_file = os.path.join(pkg_dir, 'resource', 'position_setpoint.ui')
+        self.pkg_dir = rospkg.RosPack().get_path('rqt_position_setpoint')
+        ui_file = os.path.join(self.pkg_dir, 'resource', 'position_setpoint.ui')
         # Extend the widget with all attributes and children from UI file
         loadUi(ui_file, self._widget)
         self._widget.setObjectName('PositionSetpointUi')
@@ -63,18 +63,9 @@ class PositionSetpoint(Plugin):
 
         self.lower_limits = rospy.get_param('/joint_space_controller/lower_limit')
         self.upper_limits = rospy.get_param('/joint_space_controller/upper_limit')
-        self.presets = rosparam.load_file(os.path.join(pkg_dir, 'config', 'presets.yaml'))[0][0]
 
-        preset_view = self._widget.preset_view
-        preset_model = QStandardItemModel(preset_view)
-        preset_view.setModel(preset_model)
-        for name, preset in self.presets.items():
-            item = QStandardItem(name)
-            item.setSizeHint(QSize(0, 30))
-            preset_model.appendRow(item)
-            widget = PresetWidget(parent=self._widget)
-            widget.button.clicked.connect((lambda pr: lambda: self._on_preset(pr))(preset))
-            preset_view.setIndexWidget(item.index(), widget)
+        self.presets = {}
+        self._load_presets()
 
         self._dragging = False
         control_view = self._widget.control_view
@@ -94,6 +85,7 @@ class PositionSetpoint(Plugin):
             control_view.setIndexWidget(item.index(), widget)
         self._widget.send_all.clicked.connect(self._on_command)
         self._widget.reset.clicked.connect(self._on_reset)
+        self._widget.add_preset.clicked.connect(self._on_add_preset)
 
         self.pub_goal = rospy.Publisher('/joint_space_controller/goal', JointState, queue_size=1)
         self.sub_pos = rospy.Subscriber('/joint_states', JointState, self._on_joint_state, queue_size=1)
@@ -106,7 +98,26 @@ class PositionSetpoint(Plugin):
         self._update_ctrl_list_timer.start()
 
     def shutdown_plugin(self):
-        pass
+        self.sub_pos.unregister()
+
+    def _load_presets(self):
+        self.presets = rosparam.load_file(os.path.join(self.pkg_dir, 'config', 'presets.yaml'))[0][0]
+
+        preset_view = self._widget.preset_view
+        preset_model = QStandardItemModel(preset_view)
+        preset_view.setModel(preset_model)
+        for name, preset in sorted(self.presets.items()):
+            item = QStandardItem(name)
+            item.setSizeHint(QSize(0, 30))
+            preset_model.appendRow(item)
+            widget = PresetWidget(parent=self._widget)
+            widget.button.clicked.connect((lambda pr: lambda: self._on_preset(pr))(preset))
+            preset_view.setIndexWidget(item.index(), widget)
+
+    def _store_presets(self):
+        with open(os.path.join(self.pkg_dir, 'config', 'presets.yaml'), 'w') as outfile:
+            yaml.dump(self.presets, outfile, default_flow_style=False)
+        self._load_presets()
 
     def _all_sliders(function):
         def wrapper(self, *args, **kwargs):
@@ -129,6 +140,16 @@ class PositionSetpoint(Plugin):
             goal.position.append(position)
         self.pub_goal.publish(goal)
         self._set_dragging(False)
+
+    def _on_add_preset(self):
+        text, ok = QInputDialog.getText(self._widget, 'Add Preset', 'Enter Preset Name:')
+        if ok:
+            preset = JointState()
+            self._get_goal_positions(preset)
+            self.presets[str(text)] = {
+                'joint_positions': {idx: position for idx, position in enumerate(preset.position)}
+            }
+            self._store_presets()
 
     def _on_slider(self):
         self._set_dragging(True)
