@@ -8,7 +8,7 @@ import yaml
 
 from qt_gui.plugin import Plugin
 from python_qt_binding import loadUi
-from python_qt_binding.QtWidgets import QWidget, QHBoxLayout, QPushButton, QSlider
+from python_qt_binding.QtWidgets import QWidget, QHBoxLayout, QPushButton, QSlider, QLabel
 from python_qt_binding.QtCore import Qt, QTimer, QSize
 from python_qt_binding.QtGui import QStandardItemModel, QStandardItem
 
@@ -30,9 +30,13 @@ class ControlWidget(QWidget):
         super(ControlWidget, self).__init__(parent)
         self.slider = QSlider(Qt.Horizontal)
         self.slider.setFixedHeight(30)
+        self.lower_limit = QLabel()
+        self.upper_limit = QLabel()
         lay = QHBoxLayout(self)
-        lay.addWidget(self.slider, alignment=Qt.AlignRight)
-        lay.setContentsMargins(0, 0, 0, 0)
+        lay.addWidget(self.lower_limit, alignment=Qt.AlignRight)
+        lay.addWidget(self.slider)
+        lay.addWidget(self.upper_limit, alignment=Qt.AlignLeft)
+        lay.setContentsMargins(30, 0, 0, 0)
 
 class PositionSetpoint(Plugin):
     def __init__(self, context):
@@ -57,6 +61,8 @@ class PositionSetpoint(Plugin):
         # Add widget to the user interface
         context.add_widget(self._widget)
 
+        self.lower_limits = rospy.get_param('/joint_space_controller/lower_limit')
+        self.upper_limits = rospy.get_param('/joint_space_controller/upper_limit')
         self.presets = rosparam.load_file(os.path.join(pkg_dir, 'config', 'presets.yaml'))[0][0]
 
         preset_view = self._widget.preset_view
@@ -73,11 +79,16 @@ class PositionSetpoint(Plugin):
         control_view = self._widget.control_view
         control_model = QStandardItemModel(control_view)
         control_view.setModel(control_model)
-        for joint_name in sorted(self.presets.values()[0]['joint_positions'].keys()):
-            item = QStandardItem(joint_name)
+        #for idx, joint_name in enumerate(sorted(self.presets.values()[0]['joint_positions'].keys())):
+        for idx in range(len(self.lower_limits)):
+            item = QStandardItem('J{}'.format(idx + 1))
             item.setSizeHint(QSize(0, 30))
             control_model.appendRow(item)
             widget = ControlWidget(parent=self._widget)
+            widget.slider.setMinimum(self.lower_limits[idx] * 100)
+            widget.slider.setMaximum(self.upper_limits[idx] * 100)
+            widget.lower_limit.setText(str(self.lower_limits[idx]))
+            widget.upper_limit.setText(str(self.upper_limits[idx]))
             control_view.setIndexWidget(item.index(), widget)
         self._widget.send_all.clicked.connect(self._on_command)
 
@@ -107,7 +118,7 @@ class PositionSetpoint(Plugin):
         for i in range(model.rowCount()):
             item = model.item(i)
             widget = control_view.indexWidget(item.index())
-            goal.position.append(widget.slider.value())
+            goal.position.append(widget.slider.value() / 100.0)
         self.pub_goal.publish(goal)
 
     def _update_controllers(self):
