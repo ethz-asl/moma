@@ -44,7 +44,7 @@ install_pinocchio() {
   git submodule update --init --recursive
   mkdir build
   cd build
-  cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local -DBUILD_WITH_COLLISION_SUPPORT=ON || fail
+  cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local -DBUILD_WITH_COLLISION_SUPPORT=ON || fail "Please resource ~/.bashrc and restart the script"
   make -j4 || fail "Error building pinocchio"
   sudo make install || fail "Error installing pinocchio"
 
