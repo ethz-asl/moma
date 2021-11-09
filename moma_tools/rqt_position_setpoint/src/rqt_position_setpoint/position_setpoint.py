@@ -76,6 +76,7 @@ class PositionSetpoint(Plugin):
             widget.button.clicked.connect((lambda pr: lambda: self._on_preset(pr))(preset))
             preset_view.setIndexWidget(item.index(), widget)
 
+        self._dragging = False
         control_view = self._widget.control_view
         control_model = QStandardItemModel(control_view)
         control_view.setModel(control_model)
@@ -87,12 +88,15 @@ class PositionSetpoint(Plugin):
             widget = ControlWidget(parent=self._widget)
             widget.slider.setMinimum(self.lower_limits[idx] * 100)
             widget.slider.setMaximum(self.upper_limits[idx] * 100)
+            widget.slider.sliderPressed.connect(self._on_slider)
             widget.lower_limit.setText(str(self.lower_limits[idx]))
             widget.upper_limit.setText(str(self.upper_limits[idx]))
             control_view.setIndexWidget(item.index(), widget)
         self._widget.send_all.clicked.connect(self._on_command)
+        self._widget.reset.clicked.connect(self._on_reset)
 
         self.pub_goal = rospy.Publisher('/joint_space_controller/goal', JointState, queue_size=1)
+        self.sub_pos = rospy.Subscriber('/joint_states', JointState, self._on_joint_state, queue_size=1)
 
         self._controller_lister = ControllerLister('/controller_manager')
         # Timer for running controller updates
@@ -104,22 +108,49 @@ class PositionSetpoint(Plugin):
     def shutdown_plugin(self):
         pass
 
+    def _all_sliders(function):
+        def wrapper(self, *args, **kwargs):
+            control_view = self._widget.control_view
+            model = control_view.model()
+            for i in range(model.rowCount()):
+                item = model.item(i)
+                widget = control_view.indexWidget(item.index())
+                function(self, i, widget, *args, **kwargs)
+        return wrapper
+
+    def _set_dragging(self, dragging):
+        self._dragging = dragging
+        self._widget.reset.setEnabled(dragging)
+
     def _on_preset(self, preset):
         goal = JointState()
         for name, position in sorted(preset['joint_positions'].items()):
             #goal.name.append(name)
             goal.position.append(position)
         self.pub_goal.publish(goal)
+        self._set_dragging(False)
+
+    def _on_slider(self):
+        self._set_dragging(True)
+
+    def _on_reset(self):
+        self._set_dragging(False)
 
     def _on_command(self):
         goal = JointState()
-        control_view = self._widget.control_view
-        model = control_view.model()
-        for i in range(model.rowCount()):
-            item = model.item(i)
-            widget = control_view.indexWidget(item.index())
-            goal.position.append(widget.slider.value() / 100.0)
+        self._get_goal_positions(goal)
         self.pub_goal.publish(goal)
+        self._set_dragging(False)
+
+    @_all_sliders
+    def _get_goal_positions(self, i, widget, goal):
+        goal.position.append(widget.slider.value() / 100.0)
+
+    @_all_sliders
+    def _on_joint_state(self, i, widget, data):
+        if not self._dragging:
+            # Hack to bypass finger joint which is returned at index 0
+            widget.slider.setValue(data.position[i + 1] * 100.0)
 
     def _update_controllers(self):
         controllers = [controller for controller in self._controller_lister() \
