@@ -46,13 +46,23 @@
           <bool>true</bool>
          </property>
          <property name="selectionMode">
-          <enum>QAbstractItemView::NoSelection</enum>
+          <enum>QAbstractItemView::ExtendedSelection</enum>
+         </property>
+         <property name="selectionBehavior">
+          <enum>QAbstractItemView::SelectRows</enum>
          </property>
          <property name="resizeMode">
           <enum>QListView::Adjust</enum>
          </property>
          <property name="uniformItemSizes">
           <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="reload">
+         <property name="text">
+          <string>Reload</string>
          </property>
         </widget>
        </item>

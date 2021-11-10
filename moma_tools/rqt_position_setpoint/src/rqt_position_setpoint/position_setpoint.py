@@ -8,7 +8,7 @@ import yaml
 
 from qt_gui.plugin import Plugin
 from python_qt_binding import loadUi
-from python_qt_binding.QtWidgets import QWidget, QInputDialog, QHBoxLayout, QPushButton, QSlider, QLabel
+from python_qt_binding.QtWidgets import QWidget, QMenu, QInputDialog, QHBoxLayout, QPushButton, QSlider, QLabel
 from python_qt_binding.QtCore import Qt, QTimer, QSize
 from python_qt_binding.QtGui import QStandardItemModel, QStandardItem
 
@@ -46,6 +46,7 @@ class PositionSetpoint(Plugin):
         self._widget = QWidget()
         # Get path to UI file which should be in the "resource" folder of this package
         self.pkg_dir = rospkg.RosPack().get_path('rqt_position_setpoint')
+        self.presets_file = os.path.join(self.pkg_dir, 'config', 'presets.yaml')
         ui_file = os.path.join(self.pkg_dir, 'resource', 'position_setpoint.ui')
         # Extend the widget with all attributes and children from UI file
         loadUi(ui_file, self._widget)
@@ -65,7 +66,10 @@ class PositionSetpoint(Plugin):
         self.upper_limits = rospy.get_param('/joint_space_controller/upper_limit')
 
         self.presets = {}
+        self._widget.preset_view.setContextMenuPolicy(Qt.CustomContextMenu)
+        self._widget.preset_view.customContextMenuRequested.connect(self._on_preset_menu)
         self._load_presets()
+        self._widget.reload.clicked.connect(self._load_presets)
 
         self._dragging = False
         control_view = self._widget.control_view
@@ -79,7 +83,7 @@ class PositionSetpoint(Plugin):
             widget = ControlWidget(parent=self._widget)
             widget.slider.setMinimum(self.lower_limits[idx] * 100)
             widget.slider.setMaximum(self.upper_limits[idx] * 100)
-            widget.slider.sliderPressed.connect(self._on_slider)
+            widget.slider.sliderMoved.connect(self._on_slider)
             widget.lower_limit.setText(str(self.lower_limits[idx]))
             widget.upper_limit.setText(str(self.upper_limits[idx]))
             control_view.setIndexWidget(item.index(), widget)
@@ -101,7 +105,7 @@ class PositionSetpoint(Plugin):
         self.sub_pos.unregister()
 
     def _load_presets(self):
-        self.presets = rosparam.load_file(os.path.join(self.pkg_dir, 'config', 'presets.yaml'))[0][0]
+        self.presets = rosparam.load_file(self.presets_file)[0][0]
 
         preset_view = self._widget.preset_view
         preset_model = QStandardItemModel(preset_view)
@@ -115,7 +119,7 @@ class PositionSetpoint(Plugin):
             preset_view.setIndexWidget(item.index(), widget)
 
     def _store_presets(self):
-        with open(os.path.join(self.pkg_dir, 'config', 'presets.yaml'), 'w') as outfile:
+        with open(self.presets_file, 'w') as outfile:
             yaml.dump(self.presets, outfile, default_flow_style=False)
         self._load_presets()
 
@@ -140,6 +144,20 @@ class PositionSetpoint(Plugin):
             goal.position.append(position)
         self.pub_goal.publish(goal)
         self._set_dragging(False)
+
+    def _on_preset_menu(self, pos):
+        selectionModel = self._widget.preset_view.selectionModel()
+        rows = selectionModel.selectedRows()
+        menu = QMenu(self._widget.preset_view)
+
+        if len(rows) > 0:
+            action_delete = menu.addAction('Delete')
+            action = menu.exec_(self._widget.preset_view.mapToGlobal(pos))
+
+            if action is action_delete:
+                for row in rows:
+                    self.presets.pop(row.data())
+                self._store_presets()
 
     def _on_add_preset(self):
         text, ok = QInputDialog.getText(self._widget, 'Add Preset', 'Enter Preset Name:')
