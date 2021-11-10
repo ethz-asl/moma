@@ -2,8 +2,18 @@ import actionlib
 import numpy as np
 import rospy
 
-from franka_gripper.msg import *
-from franka_msgs.msg import *
+from franka_gripper.msg import (
+    GraspAction,
+    GraspGoal,
+    GraspEpsilon,
+    StopAction,
+    StopGoal,
+    MoveAction,
+    MoveGoal,
+    HomingAction,
+    HomingGoal,
+)
+from franka_msgs.msg import ErrorRecoveryAction, ErrorRecoveryActionGoal, FrankaState
 from sensor_msgs.msg import JointState
 from control_msgs.msg import GripperCommand, GripperCommandAction, GripperCommandGoal
 
@@ -44,7 +54,7 @@ class PandaArmClient:
         rospy.Subscriber("joint_states", JointState, self._joint_state_cb)
         rospy.wait_for_message("joint_states", JointState)
         rospy.Subscriber(
-            "franka_state_controller/franka_states", FrankaState, self._robot_state_cb,
+            "franka_state_controller/franka_states", FrankaState, self._robot_state_cb
         )
 
     def _init_recovery(self):
@@ -74,17 +84,20 @@ class PandaGripperClient:
         self.homing_client.wait_for_result(rospy.Duration.from_sec(20.0))
         rospy.loginfo("Panda gripper homed")
 
-    def move(self, width, speed=0.1):
+    def move(self, width, speed=0.05):
         msg = MoveGoal(width, speed)
         self.move_client.send_goal(msg)
         self.move_client.wait_for_result(rospy.Duration.from_sec(2.0))
 
     def grasp(self, width=0.0, e_inner=0.1, e_outer=0.1, speed=0.1, force=10.0):
-        # msg = GraspGoal(width, GraspEpsilon(e_inner, e_outer), speed, force)
-        # self.grasp_client.send_goal(msg)
-        # self.grasp_client.wait_for_result(rospy.Duration(2.0))
         rospy.loginfo("Closing gripper")
         self.move_gripper2(0.0)
+
+    def grasp2(self, width=0.0, e_inner=0.1, e_outer=0.1, speed=0.1, force=10.0):
+        rospy.loginfo("Closing gripper")
+        msg = GraspGoal(width, GraspEpsilon(e_inner, e_outer), speed, force)
+        self.grasp_client.send_goal(msg)
+        self.grasp_client.wait_for_result(rospy.Duration(2.0))
 
     def release(self):
         # self.move(0.08)
@@ -106,11 +119,11 @@ class PandaGripperClient:
         self._joint_state_msg = msg
 
     def _init_action_clients(self, ns="franka_gripper/"):
-        # self.move_client = actionlib.SimpleActionClient(ns + "move", MoveAction)
-        # self.grasp_client = actionlib.SimpleActionClient(ns + "grasp", GraspAction)
-        # self.stop_client = actionlib.SimpleActionClient(ns + "stop", StopAction)
-        # rospy.loginfo("Waiting for franka_gripper/move")
-        # self.move_client.wait_for_server()
+        self.move_client = actionlib.SimpleActionClient(ns + "move", MoveAction)
+        self.grasp_client = actionlib.SimpleActionClient(ns + "grasp", GraspAction)
+        self.stop_client = actionlib.SimpleActionClient(ns + "stop", StopAction)
+        rospy.loginfo("Waiting for franka_gripper/move")
+        self.move_client.wait_for_server()
 
         name = ns + "gripper_action"
         self.gripper_client1 = actionlib.SimpleActionClient(name, GripperCommandAction)
