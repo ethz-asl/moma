@@ -11,7 +11,7 @@ This quick start procedure is designed for and tested on Ubuntu Bionic (18.04) w
 - Follow the installation instructions of the repository root. In particular, install all main dependencies using [install_dependencies.sh](../../install_dependencies.sh) in the root folder.
 - Ensure to have your Git ssh credentials set up.
 - Set the environment variable `$CATKIN_WS` to the root of your catkin workspace, for example `export CATKIN_WS=~/moma_ws`.
-- Install the dependencies of this project by running `./install_dependencies.sh`. DO NOT run this script with `sudo`. It will request these privileges as needed. The script checks the current system state before doing any installation and can be run again after fixing potential errors. Also, it should be run every time after pulling an update of this repository. The script should terminate with "Installation successful".
+- Install the dependencies of this project by running `./install_dependencies.sh` and following the instructions on the screen. DO NOT run this script with `sudo`. It will request these privileges as needed. The script checks the current system state before doing any installation and can be run again after fixing potential errors. Also, it should be run every time after pulling an update of this repository. If everything works out, the script should terminate with "Installation successful".
 - Build the main package by `catkin build moma_ocs2`.
 - Source your `~/.bashrc` file.
 

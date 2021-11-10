@@ -31,7 +31,7 @@ export LD_LIBRARY_PATH=/opt/openrobots/lib:\$LD_LIBRARY_PATH
 export PYTHONPATH=/opt/openrobots/lib/python3.8/site-packages:\$PYTHONPATH
 export CMAKE_PREFIX_PATH=/opt/openrobots:\$CMAKE_PREFIX_PATH
 EOF
-  . ~/.bashrc
+  source ~/.bashrc
 }
 
 install_pinocchio() {
@@ -44,6 +44,7 @@ install_pinocchio() {
   git submodule update --init --recursive
   mkdir build
   cd build
+  # Fails if run for the first time, because hpp-fcl is not found. A resource of the bashrc fixes it.
   cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local -DBUILD_WITH_COLLISION_SUPPORT=ON || fail "Please resource ~/.bashrc and restart the script"
   make -j4 || fail "Error building pinocchio"
   sudo make install || fail "Error installing pinocchio"
@@ -55,7 +56,7 @@ export LD_LIBRARY_PATH=/usr/local/lib:\$LD_LIBRARY_PATH
 export PYTHONPATH=\$PYTHONPATH:/usr/local/lib/python2.7/dist-packages
 export CMAKE_PREFIX_PATH=/usr/local:\$CMAKE_PREFIX_PATH
 EOF
-  . ~/.bashrc
+  source ~/.bashrc
 }
 
 install_cmake() {
@@ -75,7 +76,7 @@ install_ocs2() {
   git clone --recurse-submodules http://github.com/grizzi/ocs2.git $CATKIN_WS/src/ocs2
   cd $CATKIN_WS/src/ocs2 || fail
   catkin config --cmake-args -DCMAKE_BUILD_TYPE=RelWithDebInfo || fail
-  . ~/.bashrc
+  source ~/.bashrc
 }
 
 if [ "$DISTRIB_RELEASE" == "18.04" ] && [ "$ROS_DISTRO" == "melodic" ]; then
