@@ -1,0 +1,39 @@
+# If you come from bash you might have to change your $PATH.
+# export PATH=$HOME/bin:/usr/local/bin:$PATH
+
+# Path to your oh-my-zsh installation.
+export ZSH="/home/franka/.oh-my-zsh"
+
+# Set name of the theme to load
+ZSH_THEME="robbyrussell"
+
+# Which plugins would you like to load?
+plugins=(git)
+
+source $ZSH/oh-my-zsh.sh
+
+# User configuration
+
+# No shared history, meh
+unsetopt share_history
+
+# Setup IPs
+export FRANKA_IP=172.16.0.2
+
+# Source ROS melodic
+source /opt/ros/melodic/setup.zsh
+echo "Sourced ROS melodic"
+
+alias rosrun='noglob rosrun'
+alias scp='noglob scp'
+alias ssh='noglob ssh'
+
+# Use a local ROS master by default
+export ROS_MASTER_URI=http://asl-panda:11311
+
+# User envfile
+if [[ $1 == source ]]
+then
+	"$@"
+set -- 
+fi
