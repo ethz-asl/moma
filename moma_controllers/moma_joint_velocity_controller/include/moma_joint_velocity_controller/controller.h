@@ -50,6 +50,7 @@ class JointVelocityController
 
   double gain_;
   double max_acceleration_;
+  double max_deceleration_;
   Eigen::VectorXd q_;
   Eigen::VectorXd qd_;
 

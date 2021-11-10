@@ -40,6 +40,11 @@ bool JointVelocityController::init(hardware_interface::RobotHW* hw, ros::NodeHan
     return false;
   }
 
+  if (!controller_nh.getParam("max_deceleration", max_deceleration_) || max_deceleration_ < 0) {
+    ROS_ERROR_STREAM("Failed to get max_deceleration or invalid param");
+    return false;
+  }
+
   if (!controller_nh.getParam("gain", gain_) || gain_ < 0) {
     ROS_ERROR_STREAM("Failed to get gain or invalid param");
     return false;
@@ -130,15 +135,17 @@ void JointVelocityController::update(const ros::Time& time, const ros::Duration&
     read_state();
     for (int i = 0; i < n_joints_; i++) {
 
+      const double acc_dec = (velocity_desired_[i] < velocity_command_[i] && velocity_command_[i] > 0)
+          || (velocity_desired_[i] > velocity_command_[i] && velocity_command_[i] < 0) ? max_deceleration_ : max_acceleration_;
       const double velocity_desired_with_vmax_amax = std::min(
           {
             std::max({
               velocity_desired_[i],
               -max_velocity_,
-              velocity_command_[i] - max_acceleration_ * dt
+              velocity_command_[i] - acc_dec * dt
             }),
             max_velocity_,
-            velocity_command_[i] + max_acceleration_ * dt
+            velocity_command_[i] + acc_dec * dt
           });
 
       position_command_[i] = position_command_[i] + velocity_desired_with_vmax_amax * dt * gain_;
