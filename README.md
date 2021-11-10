@@ -2,7 +2,6 @@
 
 Main repository of the mobile manipulation (moma) team at ASL containing launch files, robot descriptions, utilities, controllers, and documentation for robot operation.
 
-
 ## Packages
 
 - [`moma_bringup`](moma_bringup/README.md): Launch files and configurations for interfacing with the real robots.
