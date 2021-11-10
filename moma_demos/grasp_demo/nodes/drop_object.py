@@ -36,8 +36,8 @@ class DropActionNode(object):
         ori = Rotation.from_quat([1.000, 0.0, 0.0, 0.0])
         pos = [0.307, 0.0, 0.487]
         pos[0] += np.random.uniform(0.05, 0.25)
-        pos[1] += np.random.uniform(-0.2, 0.0)
-        pos[2] -= 0.3
+        pos[1] += np.random.uniform(-0.2, -0.4)
+        pos[2] -= 0.2
 
         self.moveit.goto(Transform(ori, pos), velocity_scaling=self.velocity_scaling)
         self.gripper.release()

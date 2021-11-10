@@ -13,9 +13,9 @@
   <depend>actionlib</depend>
   <depend>actionlib_msgs</depend>
   <depend>geometry_msgs</depend>
-  <depend>gpd_ros</depend>
   <depend>roscpp</depend>
   <depend>rospy</depend>
+  <depend>gpd_ros</depend>
   <depend>sensor_msgs</depend>
   <depend>vpp_msgs</depend>
   <depend>std_srvs</depend>
