@@ -75,6 +75,31 @@ joint_space_controller:
     panda_joint6: { p: 200.0, i: 0.0, d: 10.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
     panda_joint7: { p: 100.0, i: 0.0, d: 10.0, i_clamp_min: -0.1, i_clamp_max: 0.1 }
 
+joint_velocity_controller:
+  simulation: true
+  type: moma_controllers/JointVelocityController
+  joint_names:
+    - panda_joint1
+    - panda_joint2
+    - panda_joint3
+    - panda_joint4
+    - panda_joint5
+    - panda_joint6
+    - panda_joint7
+  lower_limit: [-2.8973, -1.7628, -2.8973, -3.0718, -2.8973, -0.0175, -2.8973]
+  upper_limit: [2.8973, 1.7628, 2.8973, 0.0698, 2.8973, 3.7525, 2.8973]
+  max_velocity: 0.3
+  max_acceleration: 0.1
+  gain: 1.0
+  pid_gains:
+    panda_joint1: { p: 100.0, i: 0.0, d: 10.0, i_clamp_min: -100.0, i_clamp_max: 100.0 }
+    panda_joint2: { p: 100.0, i: 0.0, d: 10.0, i_clamp_min: -5.0, i_clamp_max: 5.0 }
+    panda_joint3: { p: 100.0, i: 0.0, d: 10.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
+    panda_joint4: { p: 100.0, i: 0.0, d: 10.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
+    panda_joint5: { p: 200.0, i: 0.0, d: 0.2, i_clamp_min: -1.0, i_clamp_max: 1.0 }
+    panda_joint6: { p: 200.0, i: 0.0, d: 10.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
+    panda_joint7: { p: 100.0, i: 0.0, d: 10.0, i_clamp_min: -0.1, i_clamp_max: 0.1 }
+
 mpc_controller:
   type: moma_controllers/PandaMpcController
   simulation: true
