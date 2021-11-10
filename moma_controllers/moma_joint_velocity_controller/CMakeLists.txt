@@ -5,7 +5,6 @@ set(CMAKE_CXX_STANDARD 17)
 find_package(Eigen3 3.3 REQUIRED)
 
 set(PROJECT_DEPENDENCIES
-        actionlib
         moma_msgs
         controller_interface
         hardware_interface
@@ -13,8 +12,7 @@ set(PROJECT_DEPENDENCIES
         roscpp
         robot_control
         realtime_tools
-        angles
-        actionlib_msgs)
+        angles)
 
 
 find_package(catkin REQUIRED COMPONENTS ${PROJECT_DEPENDENCIES})

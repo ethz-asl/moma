@@ -19,8 +19,6 @@
   <depend>robot_control</depend>
   <depend>realtime_tools</depend>
   <depend>angles</depend>
-  <depend>actionlib</depend>
-  <depend>actionlib_msgs</depend>
   <depend>moma_msgs</depend>
 
   <export>

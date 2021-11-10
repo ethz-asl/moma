@@ -6,8 +6,6 @@
 #include <hardware_interface/joint_command_interface.h>
 #include <sensor_msgs/JointState.h>
 
-#include <moma_msgs/JointAction.h>
-
 #include <mutex>
 
 namespace moma_controllers {
