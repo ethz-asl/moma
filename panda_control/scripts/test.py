@@ -14,7 +14,7 @@ while True:
         gc.grasp2()
     elif res == "b":
         # gc.release()
-        gc.move(0.08)
+        gc.move(0.1)
     elif res == "s":
         gc.stop()
     else:

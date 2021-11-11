@@ -84,7 +84,7 @@ class PandaGripperClient:
         self.homing_client.wait_for_result(rospy.Duration.from_sec(20.0))
         rospy.loginfo("Panda gripper homed")
 
-    def move(self, width, speed=0.05):
+    def move(self, width, speed=0.1):
         msg = MoveGoal(width, speed)
         self.move_client.send_goal(msg)
         self.move_client.wait_for_result(rospy.Duration.from_sec(2.0))
