@@ -2,24 +2,24 @@
 <launch>
   <arg name="launch_rviz" default="true" />
 
-  <param name="robot_description" command="$(find xacro)/xacro $(find moma_description)/urdf/panda.urdf.xacro use_nominal_extrinsics:=true use_fixed_realsense:=false"/>
+<!--  <param name="robot_description" command="$(find xacro)/xacro $(find moma_description)/urdf/panda.urdf.xacro use_nominal_extrinsics:=true use_fixed_realsense:=false"/>-->
 
-  <!-- Launch the panda control node -->
-  <include file="$(find panda_control)/launch/panda_control.launch">
-    <arg name="robot_description" value="$(find moma_description)/urdf/panda.urdf.xacro"/>
-    <arg name="load_robot_description" value="false"/>
-  </include>
+  <group ns="panda_moveit">
+    <!-- Launch control -->
+    <include file="$(find franka_control)/launch/franka_control.launch" >
+      <arg name="robot_ip" value="$(arg robot_ip)" />
+      <arg name="load_gripper" value="true" />
+    </include>
 
-  <!-- Start a joint trajectory controller -->
-  <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="position_joint_trajectory_controller"/>
+    <!-- Start required controller -->
+    <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="position_joint_trajectory_controller"/>
 
-  <!-- Launch MoveIt -->
-  <include file="$(find panda_moveit_config)/launch/move_group.launch">
-    <arg name="load_robot_description" value="false"/>
-  </include>
+    <!-- Launch MoveIt -->
+    <include file="$(find panda_moveit_config)/launch/move_group.launch" />
 
-  <!-- If desired, launch a preconfigured Rviz -->
-  <include if="$(arg launch_rviz)" file="$(find panda_moveit_config)/launch/moveit_rviz.launch">
-    <arg name="rviz_config" value="$(find panda_moveit_config)/launch/moveit.rviz" />
-  </include>
+    <!-- If desired, launch a preconfigured Rviz -->
+    <node if="$(arg launch_rviz)" name="$(anon rviz)" pkg="rviz" type="rviz" respawn="false" args="-d $(find moma_bringup)/config/panda_moveit.rviz" output="screen">
+      <rosparam command="load" file="$(find panda_moveit_config)/config/kinematics.yaml"/>
+    </node>
+  </group>
 </launch>

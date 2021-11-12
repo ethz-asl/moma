@@ -93,7 +93,7 @@
     <!-- Launch MoveIt -->
     <include file="$(find moma_gazebo)/launch/move_group_gazebo.launch"/>
 
-    <node name="$(anon rviz)" pkg="rviz" type="rviz" respawn="false" args="-d $(find moma_gazebo)/config/panda_gazebo.rviz" output="screen">
+    <node if="$(arg launch_rviz)" name="$(anon rviz)" pkg="rviz" type="rviz" respawn="false" args="-d $(find moma_bringup)/config/panda_moveit.rviz" output="screen">
       <rosparam command="load" file="$(find panda_moveit_config)/config/kinematics.yaml"/>
     </node>
   </group>
