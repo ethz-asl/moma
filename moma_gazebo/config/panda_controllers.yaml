@@ -61,7 +61,7 @@ joint_space_controller:
     - panda_joint6
     - panda_joint7
   lower_limit: [-2.8973, -1.7628, -2.8973, -3.0718, -2.8973, -0.0175, -2.8973]
-  upper_limit: [2.8973, 1.7628, 2.8973, 0.0698, 2.8973, 3.7525, 2.8973]
+  upper_limit: [2.8973, 1.7628, 2.8973, -0.0698, 2.8973, 3.7525, 2.8973]
   max_velocity: 0.3
   max_acceleration: 0.1
   gain: 1.0
