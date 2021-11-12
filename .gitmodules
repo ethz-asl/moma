@@ -6,9 +6,6 @@
 	path = submodules/ridgeback
 	url = git@github.com:ethz-asl/ridgeback.git
 	branch = kinetic-devel
-[submodule "realsense-ros"]
-	path = submodules/realsense-ros
-	url = git@github.com:IntelRealSense/realsense-ros.git
 [submodule "submodules/gpd"]
 	path = submodules/gpd
 	url = https://github.com/kekeblom/gpd

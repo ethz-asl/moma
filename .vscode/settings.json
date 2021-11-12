@@ -1,9 +1,0 @@
-{
-    "files.insertFinalNewline": true,
-    "editor.formatOnSave": true,
-    "python.formatting.provider": "black",
-    "python.formatting.blackPath": "/usr/local/bin/black",
-    "python.linting.pylintEnabled": true,
-    "python.linting.enabled": true,
-    "python.pythonPath": ".venv/bin/python2.7",
-}

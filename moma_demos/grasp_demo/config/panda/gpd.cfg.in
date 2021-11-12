@@ -47,7 +47,7 @@ min_viable = 6
 #   workspace_grasps: dimensions of a cube centered at origin of point cloud; should be smaller than <workspace>
 min_aperture = 0.0
 max_aperture = 0.08
-workspace_grasps = 0.2 0.8 -0.4 0.4 0.22 1
+workspace_grasps = 0.2 0.8 -0.4 0.4 0.02 1
 
 # Filtering of candidates based on their approach direction
 #   filter_approach_direction: turn filtering on/off

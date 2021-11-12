@@ -13,13 +13,15 @@
   <depend>actionlib</depend>
   <depend>actionlib_msgs</depend>
   <depend>geometry_msgs</depend>
-  <depend>gpd_ros</depend>
   <depend>roscpp</depend>
   <depend>rospy</depend>
+  <depend>gpd_ros</depend>
   <depend>sensor_msgs</depend>
   <depend>vpp_msgs</depend>
   <depend>std_srvs</depend>
   <depend>tf2_ros</depend>
+  <depend>realsense2_camera</depend>
+  <depend>vgn</depend>
 
   <build_depend>message_generation</build_depend>
 
@@ -32,7 +34,7 @@
   <exec_depend>message_runtime</exec_depend>
   <exec_depend>rviz</exec_depend>
   <exec_depend>panda_moveit_config</exec_depend>
-  
+
   <export>
     <rviz plugin="${prefix}/plugin_description.xml" />
   </export>

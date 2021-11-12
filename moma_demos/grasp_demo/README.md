@@ -2,28 +2,37 @@
 
 ## Install
 
-This package has a few python dependencies. It is recommended to install them in a virtual environment in the project root:
+## Instructions
+
+For the following instructions, it is assumed that the user is logged into `asl-panda` and has sourced the catkin workspace containing the demo package.
+
+Frist, launch the hardware drivers and nodes.
 
 ```bash
-cd moma
-virtualenv -p /usr/bin/python2 --system-site-packages .venv
-source .venv/bin/activate
-cd ./moma_demos/grasp_demo
-pip install -r requirements.txt
+roslaunch grasp_demo grasp_demo.launch [semantic:=true] [detect_grasps_with:=vgn]
 ```
 
-## Run
+* To run the demo in Gazebo, add `simulation_mode:=true` to the above command.
+* If `semantic:=true` is set, make sure to also launch voxblox++ on `asl-dell` with `roslaunch gsm_node panda.launch`.
+* `detect_grasps_with:=vgn` requires `semantic:=true` as it relies on the TSDF map from voxblox++.
 
-To run the demo on the real robot, use the command
+Next, for interacting with the demo through Rviz, run 
 
-```bash
-mon launch grasp_demo grasp_demo.launch
+```
+ rosrun grasp_demo run_bt.py __ns:=manipulator
 ```
 
-The demo can also be run in simulation (Gazebo). For this, run
+Or alternatively, to run the demo continuously, use
 
-```bash
-mon launch grasp_demo grasp_demo.launch simulation_mode:=true
+```
+rosrun grasp_demo run_plan.py __ns:=manipulator
 ```
 
-Of course, you can also replace the command `mon launch` with `roslaunch` if you prefer that.
+## Troubleshooting
+
+- Make sure that `ROS_MASTER_URI` is properly set in all terminal sessions.
+- Restart the ROS core.
+
+## To Do
+
+- [ ] Semantic grasp selection

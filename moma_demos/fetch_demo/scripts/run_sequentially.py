@@ -26,7 +26,7 @@ from grasp_demo.msg import (
 )
 from std_msgs.msg import Empty
 
-# from vpp_msgs.srv import GetListSemanticInstances
+from vpp_msgs.srv import GetListSemanticInstances
 
 WAIT_FOR_ENTER = True
 
@@ -80,10 +80,8 @@ class SequentialRunner:
         print("Started demo sequence")
 
         # Set the initial action
-        if len(sys.argv) > 1:
-            current_action = sys.argv[1]
-        else:
-            current_action = "search"
+        current_action = "search"
+
         wait_for_enter(current_action)
 
         while True:

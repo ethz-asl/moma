@@ -18,4 +18,5 @@ sudo apt-get install \
 	ros-$ROS_DISTRO-ddynamic-reconfigure \
 	ros-$ROS_DISTRO-lms1xx \
 	ros-$ROS_DISTRO-interactive-marker-twist-server \
+	ros-$ROS_DISTRO-ros-numpy \
 	qtbase5-dev

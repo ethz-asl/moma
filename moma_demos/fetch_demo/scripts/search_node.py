@@ -39,6 +39,7 @@ class SearchActionServer(MovingActionServer):
         waypoints = rospy.get_param("search_waypoints")
         self._initial_waypoints = waypoints["initial"]
         self._loop_waypoints = waypoints["loop"]
+        rospy.loginfo("Got waypoints")
 
     def _read_joint_configurations(self):
         self._robot_arm_names = rospy.get_param("robot_arm_names")
@@ -57,7 +58,8 @@ class SearchActionServer(MovingActionServer):
                 "home_joints_" + arm, default=None
             )
 
-        self._first_scan_joint = rospy.get_param("scan_joint_values")[0]
+        # TODO JF: make generic
+        self._first_scan_joint = rospy.get_param("scan_joints_arm")[0]
 
     def _subscribe_object_detection(self):
         self._result = None
@@ -110,8 +112,8 @@ class SearchActionServer(MovingActionServer):
             )
 
         try:
-            for waypoint in self._initial_waypoints:
-                self._handle_waypoint(waypoint)
+            # for waypoint in self._initial_waypoints:
+            #     self._handle_waypoint(waypoint)
 
             while True:
                 for waypoint in self._loop_waypoints:

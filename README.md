@@ -2,6 +2,7 @@
 
 Main repository of the mobile manipulation (moma) team at ASL containing launch files, robot descriptions, utilities, controllers, and documentation for robot operation.
 
+
 ## Packages
 
 - [`moma_bringup`](moma_bringup/README.md): Launch files and configurations for interfacing with the real robots.
@@ -46,8 +47,6 @@ When building a package that relies on GPD (e.g. `fetch_demo` or `grasp_demo`), 
 ### Wiki
 
 Before you start developing, familiarize yourself with the [robotic platform](https://github.com/ethz-asl/moma/wiki/Robots) you will be working with and make sure to checkout the [development](https://github.com/ethz-asl/moma/wiki/Development) section of our wiki.
-
-
 
 ## Documentation
 

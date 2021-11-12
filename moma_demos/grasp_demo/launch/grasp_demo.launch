@@ -1,33 +1,35 @@
 <?xml version="1.0" ?>
 <launch>
 
-    <!-- ======== Arguments ======== -->
+    <!-- Arguments -->
 
     <!-- Select a robot. Can be "yumi" or "panda". -->
     <arg name="robot_name" default="panda"/>
-
-    <!-- Choose whether to use voxblox++ for scanning. If set to false, will fall back to point cloud stitching. -->
-    <arg name="scan_using_voxbloxpp" default="false"/>
-
-    <arg name="semantic_grasping" default="false"/>
-    <arg name="launch_rviz" default="true"/>
-
+    <!-- Choose whether to use voxblox++ for semantic scene reconstruction and grasp selection -->
+    <arg name="semantic" default="false"/>
+    <arg name="detect_grasps_with" default="gpd" />
+    <arg name="launch_rviz" default="false"/>
     <!-- Simulation mode (when set to true, the demo is run in Gazebo) -->
     <arg name="simulation_mode" default="false"/>
 
     <!-- ======== Launch everything ======== -->
 
     <!-- Load parameters -->
-    <rosparam command="load" file="$(find grasp_demo)/config/$(arg robot_name)/grasp_demo.yaml" ns="moma_demo"/>
+    <rosparam command="load" file="$(find grasp_demo)/config/$(arg robot_name)/grasp_demo.yaml" ns="manipulator/moma_demo"/>
 
     <!-- Launch camera -->
     <include file="$(find realsense2_camera)/launch/rs_camera.launch" unless="$(arg simulation_mode)">
+        <arg name="depth_width" value="640"/>
+        <arg name="depth_height" value="480"/>
+        <arg name="depth_fps" value="30"/>
         <arg name="enable_pointcloud" value="true"/>
         <arg name="filters" value="temporal"/>
+        <arg name="tf_prefix" value="wrist_camera"/>
+        <arg name="publish_tf" value="true"/>
     </include>
 
     <!-- Bringup robot -->
-    <include unless="$(arg simulation_mode)" file="$(find moma_bringup)/launch/$(arg robot_name)_control_moveit_rviz.launch">
+    <include unless="$(arg simulation_mode)" file="$(find moma_bringup)/launch/$(arg robot_name)_control_moveit_rviz.launch" ns="manipulator">
         <arg name="launch_rviz" value="false"/>
     </include>
     <include if="$(arg simulation_mode)" file="$(find moma_gazebo)/launch/$(arg robot_name)_example.launch">
@@ -38,35 +40,24 @@
     </include>
 
     <!-- Launch GPD -->
-    <node name="detect_grasps" pkg="gpd_ros" type="detect_grasps" output="screen">
+    <node name="detect_grasps" if="$(eval arg('detect_grasps_with') == 'gpd')" pkg="gpd_ros" type="detect_grasps" ns="manipulator" output="screen">
         <param name="cloud_type" value="0"/>
-        <param name="cloud_topic" value="/cloud_stitched"/>
+        <param name="cloud_topic" value="cloud_stitched"/>
         <param name="samples_topic" value=""/>
         <param name="config_file" value="$(find grasp_demo)/config/$(arg robot_name)/gpd.cfg"/>
         <param name="rviz_topic" value="plot_grasps"/>
     </node>
 
     <!-- Launch action scripts -->
-    <node pkg="grasp_demo" type="simple_scan.py" name="scan_action_node" args="$(arg robot_name)"
-            unless="$(arg scan_using_voxbloxpp)" output="screen"/>
-    <node pkg="grasp_demo" type="voxbloxpp_scan.py" name="scan_action_node" args="$(arg robot_name)"
-            if="$(arg scan_using_voxbloxpp)" output="screen"/>
-    <node pkg="grasp_demo" type="grasp_execution.py" name="grasp_execution_action_node"
-            args="$(arg robot_name)" output="screen"/>
-    <node pkg="grasp_demo" type="drop_node.py" name="drop_action_node"
-            args="$(arg robot_name)" output="screen"/>
+    <node pkg="grasp_demo" type="reset.py" name="reset" ns="manipulator" output="screen"/>
+    <node pkg="grasp_demo" type="reconstruct_scene.py" name="scan_action_node" args="$(arg semantic)" ns="manipulator" output="screen" />
+    <node pkg="grasp_demo" type="plan_grasp.py" name="plan_grasp" args="$(arg detect_grasps_with)" ns="manipulator" output="screen"/>
+    <node pkg="grasp_demo" type="execute_grasp.py" name="execute_grasp" ns="manipulator" output="screen"/>
+    <node pkg="grasp_demo" type="drop_object.py" name="drop_object" ns="manipulator" output="screen"/>
 
-    <group if="$(arg semantic_grasping)">
-        <node pkg="grasp_demo" type="semantic_grasp_selection.py" name="semantic_grasp_selection_node" output="screen" />
-    </group>
-    <group unless="$(arg semantic_grasping)">
-        <node pkg="grasp_demo" type="grasp_selection.py" name="grasp_selection_action_node" args="$(arg robot_name)" output="screen"/>
-    </group>
-
-    <node pkg="grasp_demo" type="run_bt.py" name="behaviour_tree_node" output="screen"/>
-    <!-- <node pkg="rqt_py_trees" type="rqt_py_trees" name="rqt_viewer"/> -->
+    <node pkg="grasp_demo" type="run_plan.py" name="grasp_demo" ns="manipulator" output="screen"/>
 
     <!-- Open rviz if desired -->
-    <node if="$(arg launch_rviz)" type="rviz" name="rviz" pkg="rviz" args="-d $(find grasp_demo)/config/$(arg robot_name)/rviz.rviz"/>
+    <node if="$(arg launch_rviz)" type="rviz" name="rviz" pkg="rviz" args="-d $(find grasp_demo)/config/$(arg robot_name)/rviz.rviz" ns="manipulator"/>
 
 </launch>
