@@ -3,6 +3,8 @@ controller_list:
     action_ns: follow_joint_trajectory
     type: FollowJointTrajectory
     default: true
+    allowed_execution_duration_scaling: 1.2
+    allowed_goal_duration_margin: 1.0
     joints:
       - panda_joint1
       - panda_joint2

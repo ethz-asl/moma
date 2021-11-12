@@ -51,7 +51,7 @@
     <arg name="moveit_controller_manager" default="moveit_simple_controller_manager/MoveItSimpleControllerManager" />
     <param name="moveit_controller_manager" value="$(arg moveit_controller_manager)"/>
 
-    <rosparam file="$(find moma_gazebo)/config/panda_moveit_controller_config.yaml" subst_value="true" />
+    <rosparam file="$(find moma_bringup)/config/panda_moveit_controller_config.yaml" subst_value="true" />
   </group>
 
   <!-- Sensors Functionality -->

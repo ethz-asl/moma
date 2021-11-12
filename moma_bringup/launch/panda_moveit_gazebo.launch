@@ -49,7 +49,7 @@
 
     <rosparam file="$(find franka_gazebo)/config/franka_hw_sim.yaml" subst_value="true" />
     <rosparam file="$(find franka_gazebo)/config/sim_controllers.yaml" subst_value="true" />
-    <rosparam file="$(find moma_gazebo)/config/panda_controllers.yaml" subst_value="true" />
+    <rosparam file="$(find moma_bringup)/config/panda_controllers.yaml" subst_value="true" />
 
     <node name="$(arg arm_id)_model_spawner"
           pkg="gazebo_ros"
@@ -91,9 +91,9 @@
     </node>
 
     <!-- Launch MoveIt -->
-    <include file="$(find moma_gazebo)/launch/move_group_gazebo.launch"/>
+    <include file="$(find moma_bringup)/launch/move_group_gazebo.launch"/>
 
-    <node if="$(arg launch_rviz)" name="$(anon rviz)" pkg="rviz" type="rviz" respawn="false" args="-d $(find moma_bringup)/config/panda_moveit.rviz" output="screen">
+    <node if="$(arg rviz)" name="$(anon rviz)" pkg="rviz" type="rviz" respawn="false" args="-d $(find moma_bringup)/config/panda_moveit.rviz" output="screen">
       <rosparam command="load" file="$(find panda_moveit_config)/config/kinematics.yaml"/>
     </node>
   </group>
