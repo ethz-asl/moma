@@ -24,10 +24,6 @@ export FRANKA_IP=172.16.0.2
 source /opt/ros/melodic/setup.zsh
 echo "Sourced ROS melodic"
 
-alias rosrun='noglob rosrun'
-alias scp='noglob scp'
-alias ssh='noglob ssh'
-
 # Use a local ROS master by default
 export ROS_MASTER_URI=http://asl-panda:11311
 
