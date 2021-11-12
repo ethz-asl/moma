@@ -60,6 +60,7 @@ class JointVelocityController
   Eigen::VectorXd velocity_command_;
 
   double max_velocity_;
+  double safety_margin_;
   std::vector<double> lower_limit_;
   std::vector<double> upper_limit_;
 

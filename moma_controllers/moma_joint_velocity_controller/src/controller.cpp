@@ -30,6 +30,11 @@ bool JointVelocityController::init(hardware_interface::RobotHW* hw, ros::NodeHan
     return false;
   }
 
+  if (!controller_nh.getParam("safety_margin", safety_margin_) || safety_margin_ < 0) {
+    ROS_ERROR_STREAM("Failed to get safety_margin_ or invalid param");
+    return false;
+  }
+
   if (!controller_nh.getParam("max_velocity", max_velocity_) || max_velocity_ < 0) {
     ROS_ERROR_STREAM("Failed to get max_velocity or invalid param");
     return false;
@@ -137,19 +142,21 @@ void JointVelocityController::update(const ros::Time& time, const ros::Duration&
 
       const double acc_dec = (velocity_desired_[i] < velocity_command_[i] && velocity_command_[i] > 0)
           || (velocity_desired_[i] > velocity_command_[i] && velocity_command_[i] < 0) ? max_deceleration_ : max_acceleration_;
-      const double velocity_desired_with_vmax_amax = std::min(
+      const double velocity_desired_with_vmax_amax_limits = std::min(
           {
             std::max({
-              velocity_desired_[i],
-              -max_velocity_,
-              velocity_command_[i] - acc_dec * dt
+              velocity_desired_[i], // Try to reach target velocity
+              -max_velocity_, // Do not exceed maximum velocity
+              velocity_command_[i] - acc_dec * dt, // Respect maximum acceleration / deceleration
+              -sqrt(2.0 * std::max(q_[i] - lower_limit_[i] - safety_margin_, 0.0) * max_deceleration_) // Start decelerating in time before hitting limit
             }),
             max_velocity_,
-            velocity_command_[i] + acc_dec * dt
+            velocity_command_[i] + acc_dec * dt,
+            sqrt(2.0 * std::max(upper_limit_[i] - q_[i] - safety_margin_, 0.0) * max_deceleration_)
           });
 
-      position_command_[i] = position_command_[i] + velocity_desired_with_vmax_amax * dt * gain_;
-      velocity_command_[i] = velocity_desired_with_vmax_amax;
+      position_command_[i] = position_command_[i] + velocity_desired_with_vmax_amax_limits * dt * gain_;
+      velocity_command_[i] = velocity_desired_with_vmax_amax_limits;
     }
   } else {
     velocity_command_.setZero();
