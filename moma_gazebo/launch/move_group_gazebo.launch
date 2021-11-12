@@ -32,12 +32,24 @@
   </include>
 
   <!-- Trajectory Execution Functionality -->
-  <include ns="move_group" file="$(find panda_moveit_config)/launch/trajectory_execution.launch.xml" if="$(arg allow_trajectory_execution)">
-    <arg name="moveit_manage_controllers" value="true" />
-    <arg name="moveit_controller_manager" value="panda" if="$(eval not arg('fake_execution') and not arg('load_gripper'))"/>
-    <arg name="moveit_controller_manager" value="panda_gripper" if="$(eval not arg('fake_execution') and arg('load_gripper'))"/>
-    <arg name="moveit_controller_manager" value="fake" if="$(arg fake_execution)"/>
-  </include>
+  <group ns="move_group">
+    <!-- Flag indicating whether MoveIt! is allowed to load/unload  or switch controllers -->
+    <arg name="moveit_manage_controllers" default="true"/>
+    <param name="moveit_manage_controllers" value="$(arg moveit_manage_controllers)"/>
+
+    <!-- When determining the expected duration of a trajectory, this multiplicative factor is applied to get the allowed duration of execution -->
+    <param name="trajectory_execution/allowed_execution_duration_scaling" value="1.2"/> <!-- default 1.2 -->
+    <!-- Allow more than the expected execution time before triggering a trajectory cancel (applied after scaling) -->
+    <param name="trajectory_execution/allowed_goal_duration_margin" value="0.5"/> <!-- default 0.5 -->
+    <!-- Allowed joint-value tolerance for validation that trajectory's first point matches current robot state -->
+    <param name="trajectory_execution/allowed_start_tolerance" value="0.01"/> <!-- default 0.01 -->
+
+    <!-- Set the param that trajectory_execution_manager needs to find the controller plugin -->
+    <arg name="moveit_controller_manager" default="moveit_simple_controller_manager/MoveItSimpleControllerManager" />
+    <param name="moveit_controller_manager" value="$(arg moveit_controller_manager)"/>
+
+    <rosparam file="$(find moma_gazebo)/config/panda_moveit_controller_config.yaml" subst_value="true" />
+  </group>
 
   <!-- Sensors Functionality -->
   <include ns="move_group" file="$(find panda_moveit_config)/launch/sensor_manager.launch.xml" if="$(arg allow_trajectory_execution)">
