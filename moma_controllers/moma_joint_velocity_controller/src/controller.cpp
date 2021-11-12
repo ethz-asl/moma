@@ -139,21 +139,21 @@ void JointVelocityController::update(const ros::Time& time, const ros::Duration&
     const double dt = period.toSec();
     read_state();
     for (int i = 0; i < n_joints_; i++) {
-
-      const double acc_dec = (velocity_desired_[i] < velocity_command_[i] && velocity_command_[i] > 0)
-          || (velocity_desired_[i] > velocity_command_[i] && velocity_command_[i] < 0) ? max_deceleration_ : max_acceleration_;
-      const double velocity_desired_with_vmax_amax_limits = std::min(
-          {
-            std::max({
-              velocity_desired_[i], // Try to reach target velocity
-              -max_velocity_, // Do not exceed maximum velocity
-              velocity_command_[i] - acc_dec * dt, // Respect maximum acceleration / deceleration
-              -sqrt(2.0 * std::max(q_[i] - lower_limit_[i] - safety_margin_, 0.0) * max_deceleration_) // Start decelerating in time before hitting limit
-            }),
-            max_velocity_,
-            velocity_command_[i] + acc_dec * dt,
-            sqrt(2.0 * std::max(upper_limit_[i] - q_[i] - safety_margin_, 0.0) * max_deceleration_)
-          });
+      // Control goals, in ascending order of importance
+      // Try to reach target velocity
+      double velocity_desired_with_vmax_amax_limits = velocity_desired_[i];
+      // Respect maximum acceleration / deceleration
+      velocity_desired_with_vmax_amax_limits = std::clamp(velocity_desired_with_vmax_amax_limits,
+                                                          velocity_command_[i] < 0 ? velocity_command_[i] - max_acceleration_ * dt : velocity_command_[i] - max_deceleration_ * dt,
+                                                          velocity_command_[i] < 0 ? velocity_command_[i] + max_deceleration_ * dt : velocity_command_[i] + max_acceleration_ * dt);
+      // Start decelerating in time before hitting limit
+      velocity_desired_with_vmax_amax_limits = std::clamp(velocity_desired_with_vmax_amax_limits,
+                                                          -sqrt(2.0 * std::max(q_[i] - lower_limit_[i] - safety_margin_, 0.0) * max_deceleration_),
+                                                          sqrt(2.0 * std::max(upper_limit_[i] - q_[i] - safety_margin_, 0.0) * max_deceleration_));
+      // Do not exceed maximum velocity
+      velocity_desired_with_vmax_amax_limits = std::clamp(velocity_desired_with_vmax_amax_limits,
+                                                          -max_velocity_,
+                                                          max_velocity_);
 
       position_command_[i] = position_command_[i] + velocity_desired_with_vmax_amax_limits * dt * gain_;
       velocity_command_[i] = velocity_desired_with_vmax_amax_limits;
