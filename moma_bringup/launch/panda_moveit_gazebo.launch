@@ -1,6 +1,8 @@
 <?xml version="1.0"?>
 <launch>
 
+<!-- Adapted from franka_gazebo/launch/panda.launch to use moveit instead of a franke_example_controller -->
+
   <!-- Gazebo & GUI Configuration -->
   <arg name="gazebo"      default="true"  doc="Should the gazebo simulation be launched? Use false in case if you want to include this file and launch gazebo yourself" />
   <arg name="headless"    default="false" doc="Should the gazebo GUI be launched?" />
@@ -66,7 +68,6 @@
                 ">
     </node>
 
-
     <!-- Spawn required ROS controllers -->
     <node pkg="controller_manager"
           type="spawner"
@@ -83,8 +84,6 @@
           args="franka_state_controller effort_joint_trajectory_controller"
     />
 
-<!--    <remap to="cartesian_impedance_example_controller/equilibrium_pose" from="equilibrium_pose" />-->
-
     <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
     <node name="joint_state_publisher" type="joint_state_publisher" pkg="joint_state_publisher">
       <rosparam param="source_list">[franka_state_controller/joint_states, franka_gripper/joint_states] </rosparam>
@@ -94,14 +93,8 @@
     <!-- Launch MoveIt -->
     <include file="$(find moma_gazebo)/launch/move_group_gazebo.launch"/>
 
-    <!-- Start only if cartesian_impedance_example_controller -->
-<!--    <node name="interactive_marker"-->
-<!--          pkg="franka_example_controllers"-->
-<!--          type="interactive_marker.py"-->
-<!--          if="$(eval arg('controller') == 'cartesian_impedance_example_controller')">-->
-<!--      <param name="link_name" value="$(arg arm_id)_link0" />-->
-<!--    </node>-->
-
-    <include if="$(arg rviz)" file="$(find panda_moveit_config)/launch/moveit_rviz.launch" />
+    <node name="$(anon rviz)" pkg="rviz" type="rviz" respawn="false" args="-d $(find moma_gazebo)/config/panda_gazebo.rviz" output="screen">
+      <rosparam command="load" file="$(find panda_moveit_config)/config/kinematics.yaml"/>
+    </node>
   </group>
 </launch>
