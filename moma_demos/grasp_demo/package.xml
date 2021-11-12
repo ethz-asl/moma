@@ -15,7 +15,6 @@
   <depend>geometry_msgs</depend>
   <depend>roscpp</depend>
   <depend>rospy</depend>
-  <depend>gpd_ros</depend>
   <depend>sensor_msgs</depend>
   <depend>vpp_msgs</depend>
   <depend>std_srvs</depend>
