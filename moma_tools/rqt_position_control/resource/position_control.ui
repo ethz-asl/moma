@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>position_setpoint</class>
- <widget class="QWidget" name="position_setpoint">
+ <class>position_control</class>
+ <widget class="QWidget" name="position_control">
   <property name="enabled">
    <bool>false</bool>
   </property>
@@ -14,7 +14,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Position setpoint</string>
+   <string>Position Control</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>

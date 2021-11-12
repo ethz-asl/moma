@@ -38,19 +38,19 @@ class ControlWidget(QWidget):
         lay.addWidget(self.upper_limit, alignment=Qt.AlignLeft)
         lay.setContentsMargins(30, 0, 0, 0)
 
-class PositionSetpoint(Plugin):
+class PositionControl(Plugin):
     def __init__(self, context):
-        super(PositionSetpoint, self).__init__(context)
-        self.setObjectName('PositionSetpoint')
+        super(PositionControl, self).__init__(context)
+        self.setObjectName('PositionControl')
 
         self._widget = QWidget()
         # Get path to UI file which should be in the "resource" folder of this package
-        self.pkg_dir = rospkg.RosPack().get_path('rqt_position_setpoint')
+        self.pkg_dir = rospkg.RosPack().get_path('rqt_position_control')
         self.presets_file = os.path.join(self.pkg_dir, 'config', 'presets.yaml')
-        ui_file = os.path.join(self.pkg_dir, 'resource', 'position_setpoint.ui')
+        ui_file = os.path.join(self.pkg_dir, 'resource', 'position_control.ui')
         # Extend the widget with all attributes and children from UI file
         loadUi(ui_file, self._widget)
-        self._widget.setObjectName('PositionSetpointUi')
+        self._widget.setObjectName('PositionControlUi')
 
         # Show _widget.windowTitle on left-top of each plugin (when
         # it's set in _widget). This is useful when you open multiple

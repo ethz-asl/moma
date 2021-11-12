@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(rqt_position_setpoint)
+project(rqt_position_control)
 
 find_package(catkin REQUIRED)
 
@@ -18,7 +18,7 @@ install(DIRECTORY resource
         )
 
 # Install python scripts
-catkin_install_python(PROGRAMS scripts/rqt_position_setpoint
+catkin_install_python(PROGRAMS scripts/rqt_position_control
         DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
         )
 
