@@ -148,8 +148,8 @@ void JointVelocityController::update(const ros::Time& time, const ros::Duration&
                                                           velocity_command_[i] < 0 ? velocity_command_[i] + max_deceleration_ * dt : velocity_command_[i] + max_acceleration_ * dt);
       // Start decelerating in time before hitting limit
       velocity_desired_with_vmax_amax_limits = std::clamp(velocity_desired_with_vmax_amax_limits,
-                                                          -sqrt(2.0 * std::max(q_[i] - lower_limit_[i] - safety_margin_, 0.0) * max_deceleration_),
-                                                          sqrt(2.0 * std::max(upper_limit_[i] - q_[i] - safety_margin_, 0.0) * max_deceleration_));
+                                                          -sqrt(2.0 * std::max(q_(i) - lower_limit_[i] - safety_margin_, 0.0) * max_deceleration_),
+                                                          sqrt(2.0 * std::max(upper_limit_[i] - q_(i) - safety_margin_, 0.0) * max_deceleration_));
       // Do not exceed maximum velocity
       velocity_desired_with_vmax_amax_limits = std::clamp(velocity_desired_with_vmax_amax_limits,
                                                           -max_velocity_,
@@ -218,7 +218,7 @@ void JointVelocityController::cleanup() {
 
   for (size_t i = 0; i < n_joints_; i++) {
     joint_handles_[i].setCommand(0.0);
-    position_command_[i] = q_[i];
+    position_command_[i] = q_(i);
     velocity_command_[i] = 0.0;
   }
 };
