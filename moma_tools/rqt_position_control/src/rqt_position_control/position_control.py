@@ -103,6 +103,7 @@ class PositionControl(Plugin):
 
     def shutdown_plugin(self):
         self.sub_pos.unregister()
+        self._update_ctrl_list_timer.stop()
 
     def _load_presets(self):
         self.presets = rosparam.load_file(self.presets_file)[0][0]
