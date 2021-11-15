@@ -7,6 +7,7 @@ Main repository of the mobile manipulation (moma) team at ASL containing launch 
 - [`moma_bringup`](moma_bringup/README.md): Launch files and configurations for interfacing with the real robots.
 - [`moma_description`](moma_description/README.md): Unified Description Formats (URDFs) of our robots.
 - [`moma_gazebo`](moma_gazebo/README.md): Launch files, virtual worlds and plugins for Gazebo simulation (work in progress).
+- [`moma_tools`](moma_tools/README.md): User interfaces and tools for real-time robot state visualization and interaction.
 - [`moma_utils`](moma_utils/README.md): Python utilities commonly used within moma projects.
 - `panda_control`: Wrappers and custom controllers for controlling panda.
 - `panda_moveit_config`: MoveIt configuration for our panda setup.
