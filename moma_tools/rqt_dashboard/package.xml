@@ -17,6 +17,9 @@
 
   <buildtool_depend>catkin</buildtool_depend>
   <exec_depend>rosparam</exec_depend>
+  <exec_depend>rqt_controller_manager</exec_depend>
+  <exec_depend>rqt_position_control</exec_depend>
+  <exec_depend>rqt_velocity_control</exec_depend>
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>
