@@ -18,10 +18,6 @@
       <origin rpy="0.0 0.0 -0.785" xyz="0.0 0.0 0.103"/>
     </joint>
 
-    <!-- Gazebo tags -->
-    <!-- <xacro:include filename="$(find moma_description)/urdf/panda_arm.gazebo.xacro"/>
-    <xacro:panda_gazebo arm_id="panda" include_gazebo_control="${include_gazebo_control}"/> -->
-
     <!-- wrist realsense -->
     <xacro:include filename="$(find realsense2_description)/urdf/_d435.urdf.xacro" />
     <xacro:include filename="$(find moma_description)/urdf/realsense.gazebo.xacro" />
