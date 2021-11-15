@@ -35,22 +35,32 @@
   <!-- start joint position trajectory controller -->
   <rosparam file="$(find moma_gazebo)/config/panda_controllers.yaml" command="load" />
   <rosparam file="$(find moma_gazebo)/config/gripper_controllers.yaml" command="load" />
-  <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="joint_state_controller effort_joint_trajectory_controller" />
+  <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="joint_state_controller effort_joint_trajectory_controller" >
+    <param name="capability_group" value="Controller"/>
+  </node>
 
   <!-- Load but do not start these controllers -->
   <arg name="controllers_load_list" value="joint_space_controller mpc_controller"/>
-  <node name="controller_loader" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="--stopped $(arg controllers_load_list)" />
+  <node name="controller_loader" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="--stopped $(arg controllers_load_list)" >
+    <param name="capability_group" value="Controller"/>
+  </node>
  
   <!-- Already start these controllers -->
   <arg name="controllers_start_list" value="path_admittance_controller"/>
-  <node name="controller_starter" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="$(arg controllers_start_list)" />
+  <node name="controller_starter" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="$(arg controllers_start_list)" >
+    <param name="capability_group" value="Controller"/>
+  </node>
 
   <group if="$(eval arg('tool') == 'panda_hand')">
-    <node name="gripper_controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="franka_gripper" />
+    <node name="gripper_controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="franka_gripper" >
+      <param name="capability_group" value="Controller"/>
+    </node>
   </group>
 
   <group if="$(eval arg('tool') in ['robotiq_2f_85', 'robotiq_2f_toolset'])">
-    <node name="gripper_controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="robotiq_2f_85_controller" />
+    <node name="gripper_controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="robotiq_2f_85_controller" >
+      <param name="capability_group" value="Controller"/>
+    </node>
   </group>
   
   <!-- start a robot state publisher -->
@@ -61,7 +71,9 @@
   </node>
 
   <!-- start rviz -->
-  <node if="$(arg rviz)" name="rviz" pkg="rviz" type="rviz" args="-d $(find moma_gazebo)/config/piloting.rviz" />
+  <node if="$(arg rviz)" name="rviz" pkg="rviz" type="rviz" args="-d $(find moma_gazebo)/config/piloting.rviz" >
+    <param name="capability_group" value="Visualization"/>
+  </node>
 
   <node name="rqt_controller_manager" type="rqt_controller_manager" pkg="rqt_controller_manager"/>
 
