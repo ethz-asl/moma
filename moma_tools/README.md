@@ -1,6 +1,8 @@
 # moma_tools
 
-User interfaces and tools for real-time robot state display, manual interaction and debugging.
+A dashboard, user interfaces and tools for real-time robot state display, manual interaction and debugging.
+
+![rqt_dashboard](rqt_dashboard/resources/dashboard.png)
 
 ## Installation
 
