@@ -16,6 +16,6 @@
   <depend>roboticsgroup_gazebo_plugins</depend>
   <depend>ridgeback_control</depend>
   <depend>royalpanda_moveit_config</depend>
-  <depend>rqt_dashboard</depend>
+  <depend>moma_dashboard</depend>
 
 </package>

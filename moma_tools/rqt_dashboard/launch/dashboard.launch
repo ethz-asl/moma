@@ -1,5 +1,0 @@
-<launch>
-    <node name="rqt_dashboard" pkg="rqt_gui" type="rqt_gui" args="--perspective-file $(find rqt_dashboard)/config/dashboard.perspective">
-        <param name="capability_group" value="GUI"/>
-    </node>
-</launch>
