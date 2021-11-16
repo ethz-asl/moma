@@ -39,6 +39,9 @@ class ControlWidget(QWidget):
         lay.setContentsMargins(30, 0, 0, 0)
 
 class PositionControl(Plugin):
+    # Slider returns only int, so scale it up
+    _slider_scale = 100
+
     def __init__(self, context):
         super(PositionControl, self).__init__(context)
         self.setObjectName('PositionControl')
@@ -81,9 +84,8 @@ class PositionControl(Plugin):
             item.setSizeHint(QSize(0, 30))
             control_model.appendRow(item)
             widget = ControlWidget(parent=self._widget)
-            # Slider returns only int, so scale it up
-            widget.slider.setMinimum(self.lower_limits[idx] * 100)
-            widget.slider.setMaximum(self.upper_limits[idx] * 100)
+            widget.slider.setMinimum(self.lower_limits[idx] * self._slider_scale)
+            widget.slider.setMaximum(self.upper_limits[idx] * self._slider_scale)
             widget.slider.sliderMoved.connect(self._on_slider)
             widget.lower_limit.setText(str(self.lower_limits[idx]))
             widget.upper_limit.setText(str(self.upper_limits[idx]))
@@ -98,7 +100,6 @@ class PositionControl(Plugin):
         self._controller_lister = ControllerLister('/controller_manager')
         # Timer for running controller updates
         self._update_ctrl_list_timer = QTimer(self)
-        # Slider returns only int, so scale it up
         self._update_ctrl_list_timer.setInterval(1000.0)
         self._update_ctrl_list_timer.timeout.connect(self._update_controllers)
         self._update_ctrl_list_timer.start()
@@ -186,15 +187,13 @@ class PositionControl(Plugin):
 
     @_all_sliders
     def _get_goal_positions(self, i, widget, goal):
-        # Slider returns only int, so scale it
-        goal.position.append(widget.slider.value() / 100.0)
+        goal.position.append(widget.slider.value() / float(self._slider_scale))
 
     @_all_sliders
     def _on_joint_state(self, i, widget, data):
         if not self._dragging:
             # Hack to bypass finger joint which is returned at index 0
-            # Slider returns only int, so scale it up
-            widget.slider.setValue(data.position[i + 1] * 100.0)
+            widget.slider.setValue(data.position[i + 1] * float(self._slider_scale))
 
     def _update_controllers(self):
         controllers = [controller for controller in self._controller_lister() \

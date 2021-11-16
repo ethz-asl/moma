@@ -30,6 +30,9 @@ class ControlWidget(QWidget):
         lay.setContentsMargins(30, 0, 0, 0)
 
 class VelocityControl(Plugin):
+    # Slider returns only int, so scale it up
+    _slider_scale = 100
+
     def __init__(self, context):
         super(VelocityControl, self).__init__(context)
         self.setObjectName('VelocityControl')
@@ -64,9 +67,8 @@ class VelocityControl(Plugin):
             item.setSizeHint(QSize(0, 30))
             control_model.appendRow(item)
             widget = ControlWidget(parent=self._widget)
-            # Slider returns only int, so scale it up
-            widget.slider.setMinimum(-self.max_velocity * 100)
-            widget.slider.setMaximum(self.max_velocity * 100)
+            widget.slider.setMinimum(-self.max_velocity * self._slider_scale)
+            widget.slider.setMaximum(self.max_velocity * self._slider_scale)
             widget.slider.valueChanged.connect((lambda joint: lambda value: self._on_slider(joint, value))(idx))
             widget.slider.sliderReleased.connect((lambda joint: lambda: self._on_slider(joint, 0))(idx))
             widget.lower_limit.setText(str(-self.max_velocity))
@@ -93,8 +95,7 @@ class VelocityControl(Plugin):
             sender.setValue(value)
         goal = JointState()
         goal.velocity = [0] * (len(self.lower_limits))
-        # Slider returns only int, so scale it
-        goal.velocity[joint] = value / 100.0
+        goal.velocity[joint] = value / float(self._slider_scale)
         self.pub_goal.publish(goal)
 
     def _update_controllers(self):
