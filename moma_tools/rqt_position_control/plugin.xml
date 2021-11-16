@@ -11,6 +11,7 @@
         <statustip>Plugins related to robot tools.</statustip>
       </group>
       <label>Position Control</label>
+      <icon type="file">resource/position_icon.png</icon>
     </qtgui>
   </class>
 </library>

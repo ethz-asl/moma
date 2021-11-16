@@ -11,6 +11,7 @@
         <statustip>Plugins related to robot tools.</statustip>
       </group>
       <label>Velocity Control</label>
+      <icon type="file">resource/velocity_icon.png</icon>
     </qtgui>
   </class>
 </library>
