@@ -34,7 +34,7 @@ class JointVelocityController
 
   bool add_command_handles(hardware_interface::RobotHW* hw);
   void read_state();
-  void write_command();
+  void write_command(const ros::Duration& period);
   void cleanup();
 
   void joint_callback(const sensor_msgs::JointStateConstPtr& msg);

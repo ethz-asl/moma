@@ -40,7 +40,7 @@ class JointSpaceController
 
   bool add_command_handles(hardware_interface::RobotHW* hw);
   void read_state();
-  void write_command();
+  void write_command(const ros::Duration& period);
   void cleanup();
 
   void compute_profile(const Eigen::VectorXd& goal);
