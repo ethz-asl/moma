@@ -47,7 +47,6 @@ void PathPassthroughController::update(const ros::Time& time, const ros::Duratio
 }
 
 void PathPassthroughController::path_callback(const nav_msgs::PathConstPtr& msg){
-  std::cout << "Path received!" << std::endl;
   std::unique_lock<std::mutex> lock(pathMutex_);
   receivedPath_ = *msg;
   path_received_ = true;
