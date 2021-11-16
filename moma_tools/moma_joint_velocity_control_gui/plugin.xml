@@ -1,0 +1,17 @@
+<library path="src">
+  <class name="VelocityControl" type="moma_joint_velocity_control_gui.velocity_control.VelocityControl"
+         base_class_type="rqt_gui_py::Plugin">
+    <description>
+      Send real-time velocity targets to the robot.
+    </description>
+    <qtgui>
+      <group>
+        <label>Robot Tools</label>
+        <icon type="theme">folder</icon>
+        <statustip>Plugins related to robot tools.</statustip>
+      </group>
+      <label>Joint Velocity Control</label>
+      <icon type="file">resource/velocity_icon.png</icon>
+    </qtgui>
+  </class>
+</library>
