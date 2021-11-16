@@ -274,7 +274,7 @@ class ControllerManager(Plugin):
             action = menu.exec_(self._widget.table_view.mapToGlobal(pos))
 
             # Evaluate user action
-            if action is action_switch:
+            if action == action_switch:
                 for ctrl_inactive in [ctrl for ctrl in ctrls_inactive if ctrl.state == 'uninitialized']:
                     self._load_controller(ctrl_inactive.name)
                 self._switch_controllers(ctrls_inactive, ctrls_active)
@@ -310,20 +310,20 @@ class ControllerManager(Plugin):
 
             # Evaluate user action
             if ctrl.state == 'running':
-                if action is action_stop:
+                if action == action_stop:
                     self._stop_controller(ctrl.name)
-                elif action is action_kill:
+                elif action == action_kill:
                     self._stop_controller(ctrl.name)
                     self._unload_controller(ctrl.name)
             elif ctrl.state == 'stopped' or ctrl.state == 'initialized':
-                if action is action_start:
+                if action == action_start:
                     self._switch_controllers([ctrl], ctrls_conflicts)
-                elif action is action_unload:
+                elif action == action_unload:
                     self._unload_controller(ctrl.name)
             elif ctrl.state == 'uninitialized':
-                if action is action_load:
+                if action == action_load:
                     self._load_controller(ctrl.name)
-                if action is action_spawn:
+                if action == action_spawn:
                     self._load_controller(ctrl.name)
                     self._switch_controllers([ctrl], ctrls_conflicts)
 
@@ -359,7 +359,7 @@ class ControllerManager(Plugin):
         action = menu.exec_(header.mapToGlobal(pos))
 
         # Evaluate user action
-        if action is action_toggle_auto_resize:
+        if action == action_toggle_auto_resize:
             if header.resizeMode(0) == QHeaderView.ResizeToContents:
                 header.setSectionResizeMode(QHeaderView.Interactive)
             else:

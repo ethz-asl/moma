@@ -155,7 +155,7 @@ class PositionControl(Plugin):
             action_delete = menu.addAction('Delete')
             action = menu.exec_(self._widget.preset_view.mapToGlobal(pos))
 
-            if action is action_delete:
+            if action == action_delete:
                 for row in rows:
                     self.presets.pop(row.data())
                 self._store_presets()
