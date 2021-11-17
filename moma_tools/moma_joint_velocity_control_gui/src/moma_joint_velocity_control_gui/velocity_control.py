@@ -3,8 +3,6 @@
 import os
 import rospy
 import rospkg
-import rosparam
-import yaml
 
 from qt_gui.plugin import Plugin
 from python_qt_binding import loadUi

@@ -9,7 +9,7 @@ import yaml
 from qt_gui.plugin import Plugin
 from python_qt_binding import loadUi
 from python_qt_binding.QtWidgets import QWidget, QMenu, QInputDialog, QHBoxLayout, QPushButton, QSlider, QLabel
-from python_qt_binding.QtCore import Qt, QTimer, QSize
+from python_qt_binding.QtCore import Qt, QObject, Signal, QTimer, QSize
 from python_qt_binding.QtGui import QStandardItemModel, QStandardItem
 
 from controller_manager_msgs.utils import ControllerLister
@@ -44,6 +44,9 @@ class ControlWidget(QWidget):
 class PositionControl(Plugin):
     # Slider returns only int, so scale it up
     _slider_scale = 100
+
+    class Signals(QObject):
+        pos = Signal(JointState)
 
     def __init__(self, context):
         super(PositionControl, self).__init__(context)
@@ -103,8 +106,10 @@ class PositionControl(Plugin):
         self._widget.reset.clicked.connect(self._on_reset)
         self._widget.add_preset.clicked.connect(self._on_add_preset)
 
+        self.signals = PositionControl.Signals()
+        self.signals.pos.connect(self._on_joint_state)
+        self.sub_pos = rospy.Subscriber('/joint_states', JointState, lambda msg: self.signals.pos.emit(msg), queue_size=1)
         self.pub_goal = rospy.Publisher('/{}/goal'.format(self.controller_name), JointState, queue_size=1)
-        self.sub_pos = rospy.Subscriber('/joint_states', JointState, self._on_joint_state, queue_size=1)
 
         self._controller_lister = ControllerLister(self.controller_namespace)
         # Timer for running controller updates
