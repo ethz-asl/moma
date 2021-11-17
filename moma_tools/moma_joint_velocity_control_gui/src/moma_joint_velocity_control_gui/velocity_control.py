@@ -16,6 +16,7 @@ from controller_manager_msgs.utils import ControllerLister
 
 from sensor_msgs.msg import JointState
 
+
 class ControlWidget(QWidget):
     def __init__(self, parent=None):
         super(ControlWidget, self).__init__(parent)
@@ -28,6 +29,7 @@ class ControlWidget(QWidget):
         lay.addWidget(self.slider)
         lay.addWidget(self.upper_limit, alignment=Qt.AlignLeft)
         lay.setContentsMargins(30, 0, 0, 0)
+
 
 class VelocityControl(Plugin):
     # Slider returns only int, so scale it up
@@ -55,29 +57,34 @@ class VelocityControl(Plugin):
         # Add widget to the user interface
         context.add_widget(self._widget)
 
-        self.lower_limits = rospy.get_param('/joint_velocity_controller/lower_limit')
-        self.upper_limits = rospy.get_param('/joint_velocity_controller/upper_limit')
-        self.max_velocity = rospy.get_param('/joint_velocity_controller/max_velocity')
+        self.controller_name = rospy.get_param('/moma_joint_velocity_control_gui/controller_name')
+        self.controller_namespace = rospy.get_param('/moma_joint_velocity_control_gui/controller_namespace',
+                                                    '/controller_manager')
+        # To avoid redundancy, fetch all parameters that the controllers already have directly from them
+        self.joint_names = rospy.get_param('/{}/joint_names'.format(self.controller_name))
+        self.lower_limits = rospy.get_param('/{}/lower_limit'.format(self.controller_name))
+        self.upper_limits = rospy.get_param('/{}/upper_limit'.format(self.controller_name))
+        self.max_velocity = rospy.get_param('/{}/max_velocity'.format(self.controller_name))
 
         control_view = self._widget.control_view
         control_model = QStandardItemModel(control_view)
         control_view.setModel(control_model)
-        for idx in range(len(self.lower_limits)):
+        for idx, name in enumerate(self.joint_names):
             item = QStandardItem('J{}'.format(idx + 1))
             item.setSizeHint(QSize(0, 30))
             control_model.appendRow(item)
             widget = ControlWidget(parent=self._widget)
             widget.slider.setMinimum(-self.max_velocity * self._slider_scale)
             widget.slider.setMaximum(self.max_velocity * self._slider_scale)
-            widget.slider.valueChanged.connect((lambda joint: lambda value: self._on_slider(joint, value))(idx))
-            widget.slider.sliderReleased.connect((lambda joint: lambda: self._on_slider(joint, 0))(idx))
+            widget.slider.valueChanged.connect((lambda joint: lambda value: self._on_slider(joint, value))(name))
+            widget.slider.sliderReleased.connect((lambda joint: lambda: self._on_slider(joint, 0))(name))
             widget.lower_limit.setText(str(-self.max_velocity))
             widget.upper_limit.setText(str(self.max_velocity))
             control_view.setIndexWidget(item.index(), widget)
 
-        self.pub_goal = rospy.Publisher('/joint_velocity_controller/goal', JointState, queue_size=1)
+        self.pub_goal = rospy.Publisher('/{}/goal'.format(self.controller_name), JointState, queue_size=1)
 
-        self._controller_lister = ControllerLister('/controller_manager')
+        self._controller_lister = ControllerLister(self.controller_namespace)
         # Timer for running controller updates
         self._update_ctrl_list_timer = QTimer(self)
         self._update_ctrl_list_timer.setInterval(1000.0)
@@ -87,20 +94,23 @@ class VelocityControl(Plugin):
     def shutdown_plugin(self):
         self._update_ctrl_list_timer.stop()
 
-    def _on_slider(self, joint, value):
+    def _on_slider(self, name, value):
         sender = self.sender()
         # Prevent mouse wheel and bar clicking
         if not sender.isSliderDown():
             value = 0
             sender.setValue(value)
         goal = JointState()
-        goal.velocity = [0] * (len(self.lower_limits))
-        goal.velocity[joint] = value / float(self._slider_scale)
+        # Sort the joints because some controllers might depend on the correct ordering of velocities in the list
+        # and the default yaml reader sometimes mixes them up
+        for n in sorted(self.joint_names):
+            goal.name.append(n)
+            goal.velocity.append(value / float(self._slider_scale) if n == name else 0)
         self.pub_goal.publish(goal)
 
     def _update_controllers(self):
-        controllers = [controller for controller in self._controller_lister() \
-                       if controller.name == 'joint_velocity_controller' and controller.state == 'running']
+        controllers = [controller for controller in self._controller_lister()
+                       if controller.name == self.controller_name and controller.state == 'running']
         running = len(controllers) > 0
         self._widget.setEnabled(running)
         self._widget.controller_missing.setVisible(not running)

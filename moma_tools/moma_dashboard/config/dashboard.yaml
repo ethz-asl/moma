@@ -1,0 +1,7 @@
+moma_joint_position_control_gui:
+  controller_name: joint_space_controller
+  controller_namespace: /controller_manager
+
+moma_joint_velocity_control_gui:
+  controller_name: joint_velocity_controller
+  controller_namespace: /controller_manager

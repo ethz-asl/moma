@@ -16,6 +16,7 @@ from controller_manager_msgs.utils import ControllerLister
 
 from sensor_msgs.msg import JointState
 
+
 class PresetWidget(QWidget):
     def __init__(self, parent=None):
         super(PresetWidget, self).__init__(parent)
@@ -24,6 +25,7 @@ class PresetWidget(QWidget):
         lay = QHBoxLayout(self)
         lay.addWidget(self.button, alignment=Qt.AlignRight)
         lay.setContentsMargins(0, 0, 0, 0)
+
 
 class ControlWidget(QWidget):
     def __init__(self, parent=None):
@@ -37,6 +39,7 @@ class ControlWidget(QWidget):
         lay.addWidget(self.slider)
         lay.addWidget(self.upper_limit, alignment=Qt.AlignLeft)
         lay.setContentsMargins(30, 0, 0, 0)
+
 
 class PositionControl(Plugin):
     # Slider returns only int, so scale it up
@@ -65,8 +68,13 @@ class PositionControl(Plugin):
         # Add widget to the user interface
         context.add_widget(self._widget)
 
-        self.lower_limits = rospy.get_param('/joint_space_controller/lower_limit')
-        self.upper_limits = rospy.get_param('/joint_space_controller/upper_limit')
+        self.controller_name = rospy.get_param('/moma_joint_position_control_gui/controller_name')
+        self.controller_namespace = rospy.get_param('/moma_joint_position_control_gui/controller_namespace',
+                                                    '/controller_manager')
+        # To avoid redundancy, fetch all parameters that the controllers already have directly from them
+        self.joint_names = rospy.get_param('/{}/joint_names'.format(self.controller_name))
+        self.lower_limits = rospy.get_param('/{}/lower_limit'.format(self.controller_name))
+        self.upper_limits = rospy.get_param('/{}/upper_limit'.format(self.controller_name))
 
         self.presets = {}
         self._widget.preset_view.setContextMenuPolicy(Qt.CustomContextMenu)
@@ -75,29 +83,30 @@ class PositionControl(Plugin):
         self._widget.reload.clicked.connect(self._load_presets)
 
         self._dragging = False
+        self._control_widgets = dict()
         control_view = self._widget.control_view
         control_model = QStandardItemModel(control_view)
         control_view.setModel(control_model)
-        #for idx, joint_name in enumerate(sorted(self.presets.values()[0]['joint_positions'].keys())):
-        for idx in range(len(self.lower_limits)):
+        for idx, (name, lower_limit, upper_limit) in enumerate(zip(self.joint_names, self.lower_limits, self.upper_limits)):
             item = QStandardItem('J{}'.format(idx + 1))
             item.setSizeHint(QSize(0, 30))
             control_model.appendRow(item)
             widget = ControlWidget(parent=self._widget)
-            widget.slider.setMinimum(self.lower_limits[idx] * self._slider_scale)
-            widget.slider.setMaximum(self.upper_limits[idx] * self._slider_scale)
+            widget.slider.setMinimum(lower_limit * self._slider_scale)
+            widget.slider.setMaximum(upper_limit * self._slider_scale)
             widget.slider.sliderMoved.connect(self._on_slider)
-            widget.lower_limit.setText(str(self.lower_limits[idx]))
-            widget.upper_limit.setText(str(self.upper_limits[idx]))
+            widget.lower_limit.setText(str(lower_limit))
+            widget.upper_limit.setText(str(upper_limit))
             control_view.setIndexWidget(item.index(), widget)
+            self._control_widgets[name] = widget
         self._widget.send_all.clicked.connect(self._on_command)
         self._widget.reset.clicked.connect(self._on_reset)
         self._widget.add_preset.clicked.connect(self._on_add_preset)
 
-        self.pub_goal = rospy.Publisher('/joint_space_controller/goal', JointState, queue_size=1)
+        self.pub_goal = rospy.Publisher('/{}/goal'.format(self.controller_name), JointState, queue_size=1)
         self.sub_pos = rospy.Subscriber('/joint_states', JointState, self._on_joint_state, queue_size=1)
 
-        self._controller_lister = ControllerLister('/controller_manager')
+        self._controller_lister = ControllerLister(self.controller_namespace)
         # Timer for running controller updates
         self._update_ctrl_list_timer = QTimer(self)
         self._update_ctrl_list_timer.setInterval(1000.0)
@@ -127,31 +136,32 @@ class PositionControl(Plugin):
             yaml.dump(self.presets, outfile, default_flow_style=False)
         self._load_presets()
 
-    def _all_sliders(function):
-        def wrapper(self, *args, **kwargs):
-            control_view = self._widget.control_view
-            model = control_view.model()
-            for i in range(model.rowCount()):
-                item = model.item(i)
-                widget = control_view.indexWidget(item.index())
-                function(self, i, widget, *args, **kwargs)
-        return wrapper
-
     def _set_dragging(self, dragging):
         self._dragging = dragging
         self._widget.reset.setEnabled(dragging)
 
+    def _get_joint_states(self, iterable):
+        state = JointState()
+        # Sort the iterable because some controllers might depend on the correct ordering of positions in the list
+        # and the default yaml reader sometimes mixes them up
+        for name, position in sorted(iterable):
+            state.name.append(name)
+            state.position.append(position)
+        return state
+
+    def _get_joint_states_from_sliders(self):
+        iterable = [(name, widget.slider.value() / float(self._slider_scale))
+                    for (name, widget) in self._control_widgets.items()]
+        return self._get_joint_states(iterable)
+
     def _on_preset(self, preset):
-        goal = JointState()
-        for name, position in sorted(preset['joint_positions'].items()):
-            #goal.name.append(name)
-            goal.position.append(position)
+        goal = self._get_joint_states(preset['joint_positions'].items())
         self.pub_goal.publish(goal)
         self._set_dragging(False)
 
     def _on_preset_menu(self, pos):
-        selectionModel = self._widget.preset_view.selectionModel()
-        rows = selectionModel.selectedRows()
+        selection_model = self._widget.preset_view.selectionModel()
+        rows = selection_model.selectedRows()
         menu = QMenu(self._widget.preset_view)
 
         if len(rows) > 0:
@@ -166,10 +176,9 @@ class PositionControl(Plugin):
     def _on_add_preset(self):
         text, ok = QInputDialog.getText(self._widget, 'Add Preset', 'Enter Preset Name:')
         if ok:
-            preset = JointState()
-            self._get_goal_positions(preset)
+            joint_states = self._get_joint_states_from_sliders()
             self.presets[str(text)] = {
-                'joint_positions': {idx: position for idx, position in enumerate(preset.position)}
+                'joint_positions': {name: position for (name, position) in zip(joint_states.name, joint_states.position)}
             }
             self._store_presets()
 
@@ -180,24 +189,19 @@ class PositionControl(Plugin):
         self._set_dragging(False)
 
     def _on_command(self):
-        goal = JointState()
-        self._get_goal_positions(goal)
+        goal = self._get_joint_states_from_sliders()
         self.pub_goal.publish(goal)
         self._set_dragging(False)
 
-    @_all_sliders
-    def _get_goal_positions(self, i, widget, goal):
-        goal.position.append(widget.slider.value() / float(self._slider_scale))
-
-    @_all_sliders
-    def _on_joint_state(self, i, widget, data):
+    def _on_joint_state(self, msg):
         if not self._dragging:
-            # Hack to bypass finger joint which is returned at index 0
-            widget.slider.setValue(data.position[i + 1] * float(self._slider_scale))
+            for name, position in zip(msg.name, msg.position):
+                if name in self._control_widgets:
+                    self._control_widgets[name].slider.setValue(position * self._slider_scale)
 
     def _update_controllers(self):
-        controllers = [controller for controller in self._controller_lister() \
-                       if controller.name == 'joint_space_controller' and controller.state == 'running']
+        controllers = [controller for controller in self._controller_lister()
+                       if controller.name == self.controller_name and controller.state == 'running']
         running = len(controllers) > 0
         self._widget.setEnabled(running)
         self._widget.controller_missing.setVisible(not running)
