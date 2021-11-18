@@ -1,8 +1,8 @@
-# MoveIt-specific simulation settings
+# Simulation settings for using moveit_sim_controllers
 moveit_sim_hw_interface:
-  joint_model_group: controllers_initial_group_
-  joint_model_group_pose: controllers_initial_pose_
-# Settings for ros_control control loop
+  joint_model_group: panda_arm
+  joint_model_group_pose: ready
+# Settings for ros_control_boilerplate control loop
 generic_hw_control_loop:
   loop_hz: 300
   cycle_time_error_threshold: 0.01
@@ -24,7 +24,7 @@ joint_state_controller:
   type: joint_state_controller/JointStateController
   publish_rate: 50
 controller_list:
-  - name: position_joint_trajectory_controller
+  - name: effort_joint_trajectory_controller
     action_ns: follow_joint_trajectory
     default: True
     type: FollowJointTrajectory
@@ -36,3 +36,19 @@ controller_list:
       - panda_joint5
       - panda_joint6
       - panda_joint7
+franka_gripper:
+  type: GripperCommand
+  joints:
+    - panda_finger_joint1
+    - panda_finger_joint2
+  gains:
+    panda_finger_joint1:
+      p: 100
+      d: 1
+      i: 1
+      i_clamp: 1
+    panda_finger_joint2:
+      p: 100
+      d: 1
+      i: 1
+      i_clamp: 1

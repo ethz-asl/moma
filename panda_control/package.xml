@@ -5,6 +5,7 @@
   <description>The panda_control package</description>
 
   <maintainer email="michel.breyer@mavt.ethz.ch">Michel Breyer</maintainer>
+  <maintainer email="julian.foerster@mavt.ethz.ch">Julian Foerster</maintainer>
 
   <license>TODO</license>
 
@@ -18,7 +19,10 @@
   <depend>franka_control</depend>
   <depend>franka_description</depend>
   <depend>franka_hw</depend>
+  <depend>franka_msgs</depend>
+  <depend>franka_gripper</depend>
   <depend>geometry_msgs</depend>
+  <depend>sensor_msgs</depend>
   <depend>message_runtime</depend>
   <depend>roscpp</depend>
   <depend>rospy</depend>

@@ -2,10 +2,10 @@ moveit_setup_assistant_config:
   URDF:
     package: moma_description
     relative_path: urdf/panda.urdf.xacro
-    xacro_args: use_nominal_extrinsics:=false use_fixed_realsense:=false
+    xacro_args: use_nominal_extrinsics:=false use_fixed_realsense:=false hand:=true
   SRDF:
     relative_path: config/panda.srdf
   CONFIG:
     author_name: Michel Breyer
     author_email: mbreyer@ethz.ch
-    generated_timestamp: 1589994547
+    generated_timestamp: 1637250097

@@ -50,7 +50,7 @@ class ResetNode(object):
         if self.arm.has_error:
             self.arm.recover()
         self.moveit.goto("ready", velocity_scaling=0.2)
-        self.gripper.home()
+        # self.gripper.home()
         self.gripper.grasp()
         return TriggerResponse()
 

@@ -1,0 +1,33 @@
+<?xml version="1.0" ?>
+<launch>
+  <arg name="launch_rviz" default="true"/>
+  <arg name="robot_ip" default="$(env FRANKA_IP)"/>
+  <arg name="publish_world_link" default="false"/>
+
+  <!-- Load robot description -->
+  <param name="robot_description" command="xacro $(find moma_description)/urdf/panda.urdf.xacro hand:=true gazebo:=true">
+  </param>
+
+  <!-- Launch control -->
+  <include file="$(find franka_control)/launch/franka_control.launch">
+    <arg name="robot_ip" value="$(arg robot_ip)"/>
+    <arg name="load_gripper" value="true"/>
+    <arg name="load_description" value="false"/>
+  </include>
+
+  <!-- Start required controller -->
+  <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="effort_joint_trajectory_controller"/>
+
+  <!-- Fix panda to world -->
+  <node if="$(arg publish_world_link)" pkg="tf" type="static_transform_publisher" name="world_link_broadcaster" args="0 0 0 0 0 0 1 world panda_link0 100"/>
+
+  <!-- Launch MoveIt -->
+  <include file="$(find panda_moveit_config)/launch/move_group.launch">
+    <arg name="load_robot_description" value="false"/>
+  </include>
+
+  <!-- If desired, launch a preconfigured Rviz -->
+  <node if="$(arg launch_rviz)" name="$(anon rviz)" pkg="rviz" type="rviz" respawn="false" args="-d $(find moma_bringup)/config/panda_moveit.rviz" output="screen">
+    <rosparam command="load" file="$(find panda_moveit_config)/config/kinematics.yaml"/>
+  </node>
+</launch>

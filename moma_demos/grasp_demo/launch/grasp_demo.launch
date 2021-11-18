@@ -6,8 +6,8 @@
     <!-- Select a robot. Can be "yumi" or "panda". -->
     <arg name="robot_name" default="panda"/>
     <!-- Choose whether to use voxblox++ for semantic scene reconstruction and grasp selection -->
-    <arg name="semantic" default="false"/>
-    <arg name="detect_grasps_with" default="gpd" />
+    <arg name="semantic" default="true"/>
+    <arg name="detect_grasps_with" default="vgn" />
     <arg name="launch_rviz" default="false"/>
     <!-- Simulation mode (when set to true, the demo is run in Gazebo) -->
     <arg name="simulation_mode" default="false"/>
@@ -29,7 +29,7 @@
     </include>
 
     <!-- Bringup robot -->
-    <include unless="$(arg simulation_mode)" file="$(find moma_bringup)/launch/$(arg robot_name)_control_moveit_rviz.launch" ns="manipulator">
+    <include unless="$(arg simulation_mode)" file="$(find moma_bringup)/launch/$(arg robot_name)_moveit_real.launch" ns="manipulator">
         <arg name="launch_rviz" value="false"/>
     </include>
     <include if="$(arg simulation_mode)" file="$(find moma_gazebo)/launch/$(arg robot_name)_example.launch">

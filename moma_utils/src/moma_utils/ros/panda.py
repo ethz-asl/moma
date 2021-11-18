@@ -2,10 +2,19 @@ import actionlib
 import numpy as np
 import rospy
 
-from franka_gripper.msg import *
-from franka_msgs.msg import *
+from franka_gripper.msg import (
+    GraspAction,
+    GraspGoal,
+    GraspEpsilon,
+    StopAction,
+    StopGoal,
+    MoveAction,
+    MoveGoal,
+    HomingAction,
+    HomingGoal,
+)
+from franka_msgs.msg import ErrorRecoveryAction, ErrorRecoveryActionGoal, FrankaState
 from sensor_msgs.msg import JointState
-from control_msgs.msg import GripperCommand, GripperCommandAction, GripperCommandGoal
 
 
 class PandaArmClient:
@@ -44,7 +53,7 @@ class PandaArmClient:
         rospy.Subscriber("joint_states", JointState, self._joint_state_cb)
         rospy.wait_for_message("joint_states", JointState)
         rospy.Subscriber(
-            "franka_state_controller/franka_states", FrankaState, self._robot_state_cb,
+            "franka_state_controller/franka_states", FrankaState, self._robot_state_cb
         )
 
     def _init_recovery(self):
@@ -79,22 +88,20 @@ class PandaGripperClient:
         self.move_client.send_goal(msg)
         self.move_client.wait_for_result(rospy.Duration.from_sec(2.0))
 
-    def grasp(self, width=0.0, e_inner=0.1, e_outer=0.1, speed=0.1, force=10.0):
-        # msg = GraspGoal(width, GraspEpsilon(e_inner, e_outer), speed, force)
-        # self.grasp_client.send_goal(msg)
-        # self.grasp_client.wait_for_result(rospy.Duration(2.0))
+    def grasp(self, width=0.0, e_inner=0.1, e_outer=0.1, speed=0.1, force=5.0):
         rospy.loginfo("Closing gripper")
-        self.move_gripper2(0.0)
+        msg = GraspGoal(width, GraspEpsilon(e_inner, e_outer), speed, force)
+        self.grasp_client.send_goal(msg)
+        self.grasp_client.wait_for_result(rospy.Duration(2.0))
 
     def release(self):
-        # self.move(0.08)
         rospy.loginfo("Opening gripper")
-        self.move_gripper1(0.035)
+        self.move(0.1)
 
     def stop(self):
         msg = StopGoal()
         self.stop_client.send_goal(msg)
-        self.stop_client.wait_for_result(timeout=rospy.Duration(5.0))
+        self.stop_client.wait_for_result(timeout=rospy.Duration(2.0))
 
     def read(self):
         return self._joint_state_msg.position[7] + self._joint_state_msg.position[8]
@@ -106,49 +113,13 @@ class PandaGripperClient:
         self._joint_state_msg = msg
 
     def _init_action_clients(self, ns="franka_gripper/"):
-        # self.move_client = actionlib.SimpleActionClient(ns + "move", MoveAction)
-        # self.grasp_client = actionlib.SimpleActionClient(ns + "grasp", GraspAction)
-        # self.stop_client = actionlib.SimpleActionClient(ns + "stop", StopAction)
-        # rospy.loginfo("Waiting for franka_gripper/move")
-        # self.move_client.wait_for_server()
-
-        name = ns + "gripper_action"
-        self.gripper_client1 = actionlib.SimpleActionClient(name, GripperCommandAction)
-        self.gripper_client1.wait_for_server()
-        name = ns + "grasp"
-        self.gripper_client2 = actionlib.SimpleActionClient(name, GraspAction)
-        self.gripper_client2.wait_for_server()
-        name = ns + "stop"
-        self.gripper_stop_client = actionlib.SimpleActionClient(name, StopAction)
-        self.gripper_stop_client.wait_for_server()
-        name = ns + "homing"
-        self.homing_client = actionlib.SimpleActionClient(name, HomingAction)
+        self.move_client = actionlib.SimpleActionClient(ns + "move", MoveAction)
+        self.grasp_client = actionlib.SimpleActionClient(ns + "grasp", GraspAction)
+        self.stop_client = actionlib.SimpleActionClient(ns + "stop", StopAction)
+        self.homing_client = actionlib.SimpleActionClient(ns + "homing", HomingAction)
+        rospy.loginfo("Waiting for franka_gripper")
+        self.move_client.wait_for_server()
+        self.grasp_client.wait_for_server()
+        self.stop_client.wait_for_server()
         self.homing_client.wait_for_server()
         rospy.loginfo("Gripper connected")
-
-    def move_gripper1(self, width, max_effort=10):
-        command = GripperCommand(width, max_effort)
-        rospy.loginfo("width: {}".format(width))
-        goal = GripperCommandGoal(command)
-        self.gripper_client1.send_goal(goal)
-        self.gripper_client1.wait_for_result(timeout=rospy.Duration(5.0))
-        res = self.gripper_client1.get_result()
-        rospy.loginfo("Gripper res: {}".format(res.reached_goal))
-
-    def move_gripper2(self, width, max_effort=10):
-        msg = GraspGoal()
-        msg.width = width
-        rospy.loginfo("Going to width {}".format(width))
-        msg.speed = 0.1
-        msg.force = max_effort
-        msg.epsilon.inner = 10
-        msg.epsilon.outer = 10
-        self.gripper_client2.send_goal(msg)
-        self.gripper_client2.wait_for_result(timeout=rospy.Duration(5.0))
-        res = self.gripper_client2.get_result()
-        if res is None:
-            rospy.loginfo("Timeout")
-            return
-        rospy.loginfo("Gripper res: {}".format(res.success))
-        if not res.success:
-            rospy.logwarn("Gripper issued warning: {}".format(res.error))

@@ -9,6 +9,12 @@ import rospy
 import numpy as np
 
 
+"""
+THIS IS DEPRECATED. PLEASE DO NOT USE THIS.
+Instead, use moma_utils/src/moma_utils/ros/panda.py to control the panda arm. 
+"""
+
+
 class PandaCommander(object):
     """
     TODO(mbreyer): write docstrings

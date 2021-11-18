@@ -11,9 +11,10 @@ gc.home()
 while True:
     res = raw_input("a: close, b: open")
     if res == "a":
-        gc.grasp()
+        gc.grasp2()
     elif res == "b":
-        gc.release()
+        # gc.release()
+        gc.move(0.1)
     elif res == "s":
         gc.stop()
     else:

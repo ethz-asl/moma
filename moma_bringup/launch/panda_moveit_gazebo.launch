@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<launch>
+
+  <arg name="rviz" default="true"/>
+
+  <arg name="arm_id"            default="panda" doc="Name of the panda robot to spawn" />
+  <arg name="use_gripper"       default="true"  doc="Should a franka hand be mounted on the flange?" />
+  <arg name="x"                 default="0"     doc="How far forward to place the base of the robot in [m]?" />
+  <arg name="y"                 default="0"     doc="How far leftwards to place the base of the robot in [m]?" />
+  <arg name="z"                 default="0"     doc="How far upwards to place the base of the robot in [m]?" />
+  <arg name="roll"              default="0"     doc="How much to rotate the base of the robot around its X-axis in [rad]?" />
+  <arg name="pitch"             default="0"     doc="How much to rotate the base of the robot around its Y-axis in [rad]?" />
+  <arg name="yaw"               default="0"     doc="How much to rotate the base of the robot around its Z-axis in [rad]?" />
+  <param name="robot_description"
+         command="xacro $(find moma_description)/urdf/panda.urdf.xacro
+                  gazebo:=true
+                  hand:=$(arg use_gripper)
+                  arm_id:=$(arg arm_id)
+                  xyz:='$(arg x) $(arg y) $(arg z)'
+                  rpy:='$(arg roll) $(arg pitch) $(arg yaw)'">
+  </param>
+
+  <include file="$(find franka_gazebo)/launch/panda.launch">
+    <arg name="arm_id" value="$(arg arm_id)"/>
+    <arg name="use_gripper" value="$(arg use_gripper)"/>
+    <arg name="load_description" value="false"/>
+    <arg name="controller" value="effort_joint_trajectory_controller"/>
+  </include>
+
+    <!-- Launch MoveIt -->
+   <include file="$(find panda_moveit_config)/launch/move_group.launch">
+      <arg name="load_robot_description" value="false"/>
+   </include>
+
+    <node if="$(arg rviz)" name="$(anon rviz)" pkg="rviz" type="rviz" respawn="false" args="-d $(find moma_bringup)/config/panda_moveit.rviz" output="screen">
+      <rosparam command="load" file="$(find panda_moveit_config)/config/kinematics.yaml"/>
+    </node>
+</launch>
