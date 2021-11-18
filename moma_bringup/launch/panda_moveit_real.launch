@@ -4,6 +4,10 @@
   <arg name="robot_ip" default="$(env FRANKA_IP)"/>
   <arg name="publish_world_link" default="false"/>
 
+  <!-- Load robot description -->
+  <param name="robot_description" command="xacro $(find moma_description)/urdf/panda.urdf.xacro hand:=true gazebo:=true">
+  </param>
+
   <!-- Launch control -->
   <include file="$(find franka_control)/launch/franka_control.launch">
     <arg name="robot_ip" value="$(arg robot_ip)"/>
@@ -12,14 +16,14 @@
   </include>
 
   <!-- Start required controller -->
-  <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="position_joint_trajectory_controller"/>
+  <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="effort_joint_trajectory_controller"/>
 
   <!-- Fix panda to world -->
   <node if="$(arg publish_world_link)" pkg="tf" type="static_transform_publisher" name="world_link_broadcaster" args="0 0 0 0 0 0 1 world panda_link0 100"/>
 
   <!-- Launch MoveIt -->
   <include file="$(find panda_moveit_config)/launch/move_group.launch">
-      <arg name="load_robot_description" value="false"/>
+    <arg name="load_robot_description" value="false"/>
   </include>
 
   <!-- If desired, launch a preconfigured Rviz -->
