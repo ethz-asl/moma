@@ -2,14 +2,5 @@
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="panda">
   <xacro:arg name="use_fixed_realsense" default="false"/>
   <xacro:include filename="$(find moma_description)/urdf/panda.xacro"/>
-
-  <link name="world"/>
-  <link name="base_link"/>
-  <joint name="base_link_joint" type="fixed">
-    <parent link="world"/>
-    <child link="base_link"/>
-    <origin rpy="0 0 0" xyz="0 0 0"/>
-  </joint>
-  <xacro:panda connected_to="base_link" use_fixed_realsense="$(arg use_fixed_realsense)"/>
-
+  <xacro:moma_panda use_fixed_realsense="$(arg use_fixed_realsense)"/>
 </robot>

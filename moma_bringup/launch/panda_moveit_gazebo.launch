@@ -39,7 +39,7 @@
 
   <group ns="$(arg arm_id)">
     <param name="robot_description"
-           command="xacro $(find franka_description)/robots/panda_arm.urdf.xacro
+           command="xacro $(find moma_description)/urdf/panda.urdf.xacro
                     gazebo:=true
                     hand:=$(arg use_gripper)
                     arm_id:=$(arg arm_id)
