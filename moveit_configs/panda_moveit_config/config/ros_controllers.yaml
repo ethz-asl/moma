@@ -24,10 +24,12 @@ joint_state_controller:
   type: joint_state_controller/JointStateController
   publish_rate: 50
 controller_list:
-  - name: position_joint_trajectory_controller
+  - name: effort_joint_trajectory_controller
     action_ns: follow_joint_trajectory
-    default: True
     type: FollowJointTrajectory
+    default: true
+    allowed_execution_duration_scaling: 2.0
+    allowed_goal_duration_margin: 5.0
     joints:
       - panda_joint1
       - panda_joint2
@@ -36,3 +38,10 @@ controller_list:
       - panda_joint5
       - panda_joint6
       - panda_joint7
+  - name: franka_gripper
+    action_ns: gripper_action
+    type: GripperCommand
+    default: true
+    joints:
+      - panda_finger_joint1
+      - panda_finger_joint2
