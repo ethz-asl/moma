@@ -4,7 +4,7 @@
 
   <arg name="execution_type" default="interpolate" />
 
-  <!-- Flag indicating whether MoveIt! is allowed to load/unload  or switch controllers -->
+  <!-- Flag indicating whether MoveIt is allowed to load/unload  or switch controllers -->
   <arg name="moveit_manage_controllers" default="true"/>
   <param name="moveit_manage_controllers" value="$(arg moveit_manage_controllers)"/>
 
