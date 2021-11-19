@@ -160,26 +160,14 @@ std::unique_ptr<ocs2::MPC_DDP> MobileManipulatorInterface::getMpc() {
 /******************************************************************************************************/
 /******************************************************************************************************/
 PinocchioInterface MobileManipulatorInterface::buildPinocchioInterface(const std::string& urdfPath) {
-  // add 3 DOF for wheelbase
-  pinocchio::JointModelComposite rootJoint(3);
-  rootJoint.addJoint(pinocchio::JointModelPX());
-  rootJoint.addJoint(pinocchio::JointModelPY());
-  rootJoint.addJoint(pinocchio::JointModelRZ());
-
-  return getPinocchioInterfaceFromUrdfFile(urdfPath, rootJoint);
+  return getPinocchioInterfaceFromUrdfFile(urdfPath);
 }
 
 /******************************************************************************************************/
 /******************************************************************************************************/
 /******************************************************************************************************/
 PinocchioInterface MobileManipulatorInterface::buildPinocchioInterfaceFromXML(const std::string& xmlString) {
-  // add 3 DOF for wheelbase
-  pinocchio::JointModelComposite rootJoint(3);
-  rootJoint.addJoint(pinocchio::JointModelPX());
-  rootJoint.addJoint(pinocchio::JointModelPY());
-  rootJoint.addJoint(pinocchio::JointModelRZ());
-
-  return getPinocchioInterfaceFromUrdfString(xmlString, rootJoint);
+  return getPinocchioInterfaceFromUrdfString(xmlString);
 }
 
 /******************************************************************************************************/

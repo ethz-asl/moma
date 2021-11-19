@@ -102,7 +102,7 @@ int main(int argc, char** argv) {
 
   gInterface.reset(new PinocchioGeometryInterface(*pInterface, selfCollisionLinkPairs, selfCollisionObjectPairs));
 
-  vInterface.reset(new GeometryInterfaceVisualization(*pInterface, *gInterface, nodeHandle, "arm_base"));
+  vInterface.reset(new GeometryInterfaceVisualization(*pInterface, *gInterface, nodeHandle));
 
   ros::Subscriber sub = nodeHandle.subscribe("joint_states", 1, &jointStateCallback);
 

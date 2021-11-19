@@ -76,7 +76,7 @@ class MobileManipulatorDummyVisualization final : public DummyObserver {
 };
 
 // TODO(mspieler): move somewhere else
-Eigen::VectorXd getArmJointPositions(Eigen::VectorXd state);
+Eigen::VectorXd getJointPositions(Eigen::VectorXd state);
 Eigen::Vector3d getBasePosition(Eigen::VectorXd state);
 Eigen::Quaterniond getBaseOrientation(Eigen::VectorXd state);
 
