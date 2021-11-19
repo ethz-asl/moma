@@ -58,6 +58,8 @@ class VelocityControl(Plugin):
         self.controller_name = rospy.get_param('/moma_joint_velocity_control_gui/controller_name')
         self.controller_namespace = rospy.get_param('/moma_joint_velocity_control_gui/controller_namespace',
                                                     '/controller_manager')
+        self.goal_topic = rospy.get_param('/moma_joint_velocity_control_gui/goal_topic',
+                                          '/{}/goal'.format(self.controller_name))
         # To avoid redundancy, fetch all parameters that the controllers already have directly from them
         self.joint_names = rospy.get_param('/{}/joint_names'.format(self.controller_name))
         self.lower_limits = rospy.get_param('/{}/lower_limit'.format(self.controller_name))
@@ -80,7 +82,7 @@ class VelocityControl(Plugin):
             widget.upper_limit.setText(str(self.max_velocity))
             control_view.setIndexWidget(item.index(), widget)
 
-        self.pub_goal = rospy.Publisher('/{}/goal'.format(self.controller_name), JointState, queue_size=1)
+        self.pub_goal = rospy.Publisher(self.goal_topic, JointState, queue_size=1)
 
         self._controller_lister = ControllerLister(self.controller_namespace)
         # Timer for running controller updates

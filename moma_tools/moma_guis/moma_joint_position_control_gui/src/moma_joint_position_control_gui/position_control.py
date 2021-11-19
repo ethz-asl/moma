@@ -74,6 +74,11 @@ class PositionControl(Plugin):
         self.controller_name = rospy.get_param('/moma_joint_position_control_gui/controller_name')
         self.controller_namespace = rospy.get_param('/moma_joint_position_control_gui/controller_namespace',
                                                     '/controller_manager')
+        self.goal_topic = rospy.get_param('/moma_joint_position_control_gui/goal_topic',
+                                          '/{}/goal'.format(self.controller_name))
+        self.states_topic = rospy.get_param('/moma_joint_position_control_gui/states_topic',
+                                            '/joint_states')
+
         # To avoid redundancy, fetch all parameters that the controllers already have directly from them
         self.joint_names = rospy.get_param('/{}/joint_names'.format(self.controller_name))
         self.lower_limits = rospy.get_param('/{}/lower_limit'.format(self.controller_name))
@@ -108,8 +113,8 @@ class PositionControl(Plugin):
 
         self.signals = PositionControl.Signals()
         self.signals.pos.connect(self._on_joint_state)
-        self.sub_pos = rospy.Subscriber('/joint_states', JointState, lambda msg: self.signals.pos.emit(msg), queue_size=1)
-        self.pub_goal = rospy.Publisher('/{}/goal'.format(self.controller_name), JointState, queue_size=1)
+        self.sub_pos = rospy.Subscriber(self.states_topic, JointState, lambda msg: self.signals.pos.emit(msg), queue_size=1)
+        self.pub_goal = rospy.Publisher(self.goal_topic, JointState, queue_size=1)
 
         self._controller_lister = ControllerLister(self.controller_namespace)
         # Timer for running controller updates
