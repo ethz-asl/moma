@@ -104,6 +104,12 @@ mpc_controller:
     panda_joint6: { p: 500.0, i: 0.0, d: 150.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
     panda_joint7: { p: 500.0, i: 0.0, d: 150.0, i_clamp_min: -0.1, i_clamp_max: 0.1 }
 
+path_passthrough_controller:
+  type: moma_controllers/PathPassthroughController
+
+  path_in_topic: /desired_path
+  path_out_topic: /mpc_reference_path
+
 path_admittance_controller:
   type: moma_controllers/PathAdmittanceController
 
