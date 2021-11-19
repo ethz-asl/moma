@@ -7,7 +7,6 @@
     <arg name="robot_name" default="panda"/>
     <!-- Choose whether to use voxblox++ for semantic scene reconstruction and grasp selection -->
     <arg name="semantic" default="true"/>
-    <arg name="detect_grasps_with" default="vgn" />
     <arg name="launch_rviz" default="false"/>
     <!-- Simulation mode (when set to true, the demo is run in Gazebo) -->
     <arg name="simulation_mode" default="false"/>
@@ -39,19 +38,10 @@
         <arg name="use_fixed_realsense" value="true"/>
     </include>
 
-    <!-- Launch GPD -->
-    <node name="detect_grasps" if="$(eval arg('detect_grasps_with') == 'gpd')" pkg="gpd_ros" type="detect_grasps" ns="manipulator" output="screen">
-        <param name="cloud_type" value="0"/>
-        <param name="cloud_topic" value="cloud_stitched"/>
-        <param name="samples_topic" value=""/>
-        <param name="config_file" value="$(find grasp_demo)/config/$(arg robot_name)/gpd.cfg"/>
-        <param name="rviz_topic" value="plot_grasps"/>
-    </node>
-
     <!-- Launch action scripts -->
     <node pkg="grasp_demo" type="reset.py" name="reset" ns="manipulator" output="screen"/>
     <node pkg="grasp_demo" type="reconstruct_scene.py" name="scan_action_node" args="$(arg semantic)" ns="manipulator" output="screen" />
-    <node pkg="grasp_demo" type="plan_grasp.py" name="plan_grasp" args="$(arg detect_grasps_with)" ns="manipulator" output="screen"/>
+    <node pkg="grasp_demo" type="plan_grasp.py" name="plan_grasp" ns="manipulator" output="screen"/>
     <node pkg="grasp_demo" type="execute_grasp.py" name="execute_grasp" ns="manipulator" output="screen"/>
     <node pkg="grasp_demo" type="drop_object.py" name="drop_object" ns="manipulator" output="screen"/>
 

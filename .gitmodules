@@ -6,12 +6,6 @@
 	path = submodules/ridgeback
 	url = git@github.com:ethz-asl/ridgeback.git
 	branch = kinetic-devel
-[submodule "submodules/gpd"]
-	path = submodules/gpd
-	url = https://github.com/kekeblom/gpd
-[submodule "submodules/gpd_ros"]
-	path = submodules/gpd_ros
-	url = ssh://git@github.com/kekeblom/gpd_ros
 [submodule "submodules/yumi"]
 	path = submodules/yumi
 	url = git@github.com:ethz-asl/yumi.git
@@ -22,3 +16,4 @@
 [submodule "submodules/vpp_msgs"]
 	path = submodules/vpp_msgs
 	url = git@github.com:ethz-asl/vpp_msgs.git
+
