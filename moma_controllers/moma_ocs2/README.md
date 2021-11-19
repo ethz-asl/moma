@@ -4,17 +4,6 @@ This package provides an interface to ocs2 for control of a mobile manipulator. 
 
 The system dynamics consist in the kinematic model. As a consequence the model predictive controller optimizes the joint velocities and the base twist. The solution is subject to velocity constraints.
 
-### Quick Start
-
-This quick start procedure is designed for and tested on Ubuntu Bionic (18.04) with ROS Melodic.
-
-- Follow the installation instructions of the repository root. In particular, install all main dependencies using [install_dependencies.sh](../../install_dependencies.sh) in the root folder.
-- Ensure to have your Git ssh credentials set up.
-- Set the environment variable `$CATKIN_WS` to the root of your catkin workspace, for example `export CATKIN_WS=~/moma_ws`.
-- Install the dependencies of this project by running `./install_dependencies.sh` and following the instructions on the screen. DO NOT run this script with `sudo`. It will request these privileges as needed. The script checks the current system state before doing any installation and can be run again after fixing potential errors. Also, it should be run every time after pulling an update of this repository. If everything works out, the script should terminate with "Installation successful".
-- Build the main package by `catkin build moma_ocs2`.
-- Source your `~/.bashrc` file.
-
 ### Manual Install
 
 The solver has the potential to check for self collision by specifying which link pair should be checked for self collision. The collision checking library `hpp-fcl` needs therefore to be installed. System modelig (forward kinematics, auto-differentiation and derivatives) uses the `pinocchio` libray that needs to be installed as well. Standard binaries do not work here since, they do not come with support for the collision checking provided by `hpp-fcl`. 

@@ -21,10 +21,17 @@ First, clone this repository and its submodules into the `src` folder of a new o
 git clone --recurse-submodules git@github.com:ethz-asl/moma.git
 ```
 
-Install some general system dependencies.
+Install some general system and ROS dependencies. First initialize the workspace with wstool. If this is already done skip this steps. To install `wstool`: `sudo apt-get install python3-wstool`.
+```
+cd ~/catkin_ws
+wstool init src
+```
+
+Then, install depetendencies using the provided script. 
 
 ```bash
-./install_dependencies.sh
+cd ~/catkin_ws/src
+./moma/install_dependencies.sh
 ```
 
 Set the build type to `release` for faster execution.

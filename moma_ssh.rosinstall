@@ -1,0 +1,36 @@
+- git:
+    local-name: robot_control
+    uri: git@github.com:ethz-asl/robot_control.git
+    version: master
+- git:
+    local-name: yumi
+    uri: git@github.com:ethz-asl/yumi.git
+    version: 18a2b06413
+- git:
+    local-name: vpp_msgs
+    uri: git@github.com:ethz-asl/vpp_msgs.git
+    version: 6aff4c33a0
+- git:
+    local-name: roboticsgroup_gazebo_plugins
+    uri: git@github.com:roboticsgroup/roboticsgroup_gazebo_plugins.git
+    version: 4d93ecd
+- git:
+    local-name: gpd
+    uri: git@github.com:kekeblom/gpd.git
+    version: ab8d2ca
+- git:
+    local-name: gpd_ros
+    uri: git@github.com:kekeblom/gpd_ros.git
+    version: 42f4e07
+- git:
+    local-name: ocs2
+    uri: git@github.com:grizzi/ocs2.git
+    version: main
+- git:
+    local-name: ridgeback_simulator
+    uri: git@github.com:ridgeback/ridgeback_simulator.git
+    version: noetic-wip
+- git: 
+    local-name: ridgeback_desktop
+    uri: git@github.com:ridgeback/ridgeback_desktop.git
+    version: melodic-devel
