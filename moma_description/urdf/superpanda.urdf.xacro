@@ -30,9 +30,22 @@
         <axis xyz="0 0 1"/>
         <limit effort="0" velocity="0"/>
     </joint>
-    <link name="base_theta" />
+    <link name="base_theta">
+        <visual>
+          <origin xyz="0 0 0.1"/>
+          <geometry>
+            <box size="0.5 0.3 0.2"/>
+          </geometry>
+        </visual>
+    </link>
+    <joint name="base_to_panda" type="fixed">
+        <parent link="base_theta" />
+        <child link="arm_root" />
+        <origin xyz="0 0 0.2" rpy="0 0 0"/>
+    </joint>
+    <link name="arm_root" />
 
     <xacro:include filename="$(find moma_description)/urdf/panda.xacro"/>
-    <xacro:panda connected_to="base_theta" tool="$(arg tool)"/>
+    <xacro:panda connected_to="arm_root" tool="$(arg tool)"/>
 
 </robot>
