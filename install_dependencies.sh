@@ -35,7 +35,6 @@ export LD_LIBRARY_PATH=/opt/openrobots/lib:\$LD_LIBRARY_PATH
 export PYTHONPATH=/opt/openrobots/lib/python3.8/site-packages:\$PYTHONPATH
 export CMAKE_PREFIX_PATH=/opt/openrobots:\$CMAKE_PREFIX_PATH
 EOF
-  source ~/.moma_bashrc
 }
 
 install_pinocchio() {
@@ -44,16 +43,22 @@ install_pinocchio() {
   mkdir -p ~/git
   git clone git@github.com:stack-of-tasks/pinocchio.git ~/git/pinocchio
   cd ~/git/pinocchio || fail
-  git checkout 29be057af1beb
+  git checkout v2.6.4
   git submodule update --init --recursive
   
+  # Remove install dir if already exists
+  if [ -d install ]; then rm -Rf install; fi
+  rm -r install
   mkdir install
   PINOCCHIO_INSTALL_PREFIX=${HOME}/git/pinocchio/install
   PINOCCHIO_INSTALL_PREFIX_STR=\${HOME}/git/pinocchio/install
 
 
+  # Remove build dir if it already exists
+  if [ -d build ]; then rm -Rf build; fi
   mkdir build
   cd build
+  
   # Fails if run for the first time, because hpp-fcl is not found. A resource of the bashrc fixes it.
   cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${PINOCCHIO_INSTALL_PREFIX} -DBUILD_WITH_COLLISION_SUPPORT=ON || fail "Please resource ~/.moma_bashrc and restart the script"
   make -j4 || fail "Error building pinocchio"
@@ -66,18 +71,13 @@ export LD_LIBRARY_PATH=${PINOCCHIO_INSTALL_PREFIX_STR}/lib:\$LD_LIBRARY_PATH
 export PYTHONPATH=\$PYTHONPATH:${PINOCCHIO_INSTALL_PREFIX_STR}/lib/python2.7/dist-packages
 export CMAKE_PREFIX_PATH=${PINOCCHIO_INSTALL_PREFIX_STR}:\$CMAKE_PREFIX_PATH
 EOF
-  source ~/.moma_bashrc
 }
 
 
 install_control() {
   ROBOTPKG_NAMES=("robotpkg-octomap" "robotpkg-hpp-fcl")
   dpkg -s "${ROBOTPKG_NAMES[@]}" >/dev/null 2>&1 || install_robotpkg
-
   [ -d "${HOME}/git/pinocchio/install/share/pinocchio" ] || install_pinocchio
-  
-  [ -d "${CATKIN_WS}/src/ocs2" ] || install_ocs2
-
   info "Control dependencies installation successful"
 }
 
