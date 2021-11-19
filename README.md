@@ -34,12 +34,6 @@ cd ~/catkin_ws/src
 ./moma/install_dependencies.sh
 ```
 
-Set the build type to `release` for faster execution.
-
-```bash
-catkin config -DCMAKE_BUILD_TYPE=Release
-```
-
 Then, use catkin to build the desired packages, e.g.
 
 ```bash
