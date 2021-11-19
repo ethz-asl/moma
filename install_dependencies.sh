@@ -162,7 +162,7 @@ then
 fi
 
 info "Sourcing moma workspace"
-echo "source ${CATKIN_WS}/devel/setub.bash" >> ~/.moma_bashrc
+echo "source ${CATKIN_WS}/devel/setup.bash" >> ~/.moma_bashrc
 source ~/.moma_bashrc
 
 catkin config --cmake-args -DCMAKE_BUILD_TYPE=RelWithDebInfo || fail
