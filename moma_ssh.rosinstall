@@ -34,3 +34,9 @@
     local-name: ridgeback_desktop
     uri: git@github.com:ridgeback/ridgeback_desktop.git
     version: melodic-devel
+- git:
+    local-name: catkin_simple
+    uri: git@github.com:catkin/catkin_simple.git
+- git:
+    local-name: realsense-ros
+    uri: git@github.com:IntelRealSense/realsense-ros.git
