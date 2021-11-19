@@ -2,19 +2,15 @@
 #include <robot_control/modeling/robot_wrapper.h>
 #include <control_toolbox/pid.h>
 
-#include <actionlib/server/simple_action_server.h>
 #include <controller_interface/multi_interface_controller.h>
 #include <hardware_interface/joint_command_interface.h>
 #include <sensor_msgs/JointState.h>
-
-#include <moma_msgs/JointAction.h>
-#include "moma_joint_space_controller/trajectory_generator.h"
 
 #include <mutex>
 
 namespace moma_controllers {
 
-class JointSpaceController
+class JointVelocityController
     : public controller_interface::MultiInterfaceController<
           hardware_interface::JointStateInterface,
           hardware_interface::VelocityJointInterface,
@@ -24,12 +20,10 @@ class JointSpaceController
       controller_interface::MultiInterfaceController<hardware_interface::JointStateInterface,
                                            hardware_interface::VelocityJointInterface,
                                            hardware_interface::EffortJointInterface>;
-  using ActionServer =
-      actionlib::SimpleActionServer<moma_msgs::JointAction>;
 
   // not all interfaces are mandatory
-  JointSpaceController() : BASE(true){};
-  ~JointSpaceController() = default;
+  JointVelocityController() : BASE(true){};
+  ~JointVelocityController() = default;
 
  private:
   bool init(hardware_interface::RobotHW* hw, ros::NodeHandle& root_nh,
@@ -43,9 +37,7 @@ class JointSpaceController
   void write_command(const ros::Duration& period);
   void cleanup();
 
-  void compute_profile(const Eigen::VectorXd& goal);
   void joint_callback(const sensor_msgs::JointStateConstPtr& msg);
-  void execute_callback(const moma_msgs::JointGoalConstPtr& goal);
 
  protected:
   bool sim_;
@@ -53,29 +45,24 @@ class JointSpaceController
   std::string robot_description_;
   std::vector<std::string> joint_names_;
 
-  std::mutex generator_mutex_;
-  std::unique_ptr<TrajectoryGenerator> generator_;
-
-  std::atomic_bool trajectory_available_;
-  ros::Subscriber trajectory_subscriber_;
+  std::atomic_bool velocity_available_;
+  ros::Subscriber velocity_subscriber_;
 
   double gain_;
+  double max_acceleration_;
+  double max_deceleration_;
   Eigen::VectorXd q_;
   Eigen::VectorXd qd_;
 
-  Eigen::VectorXd joint_desired_;
-  Eigen::VectorXd joint_current_;
+  Eigen::VectorXd velocity_desired_;
 
   Eigen::VectorXd position_command_;
   Eigen::VectorXd velocity_command_;
 
-  double tolerance_;
   double max_velocity_;
+  double safety_margin_;
   std::vector<double> lower_limit_;
   std::vector<double> upper_limit_;
-
-  std::atomic_bool success_ = false;
-  std::unique_ptr<ActionServer> action_server_;
 
   std::vector<hardware_interface::JointHandle> joint_handles_;
   

@@ -175,10 +175,10 @@ void JointSpaceController::update(const ros::Time& time, const ros::Duration& pe
   } else {
     velocity_command_.setZero();
   }
-  write_command();
+  write_command(period);
 }
 
-void JointSpaceController::write_command() {
+void JointSpaceController::write_command(const ros::Duration& period) {
   if (!sim_) {
     for (int i = 0; i < n_joints_; i++) {
       joint_handles_[i].setCommand(velocity_command_[i]);
@@ -199,7 +199,7 @@ void JointSpaceController::write_command() {
           q_(i), position_command_(i), lower_limit_[i], upper_limit_[i], position_error(i));
       velocity_error(i) = 0.0 - qd_(i);
       pd_term(i) = pid_controllers_[i].computeCommand(position_error(i), velocity_error(i),
-                                                      ros::Duration(0.001));
+                                                      period);
     }
 
     Eigen::VectorXd tau = model_->getInertia().block(0, 0, n_joints_, n_joints_) * pd_term + gravity_and_coriolis;
