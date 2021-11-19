@@ -160,9 +160,10 @@ class PositionControl(Plugin):
         return self._get_joint_states(iterable)
 
     def _on_preset(self, preset):
-        goal = self._get_joint_states(preset['joint_positions'].items())
-        self.pub_goal.publish(goal)
-        self._set_dragging(False)
+        if 'joint_positions' in preset:
+            goal = self._get_joint_states(preset['joint_positions'].items())
+            self.pub_goal.publish(goal)
+            self._set_dragging(False)
 
     def _on_preset_menu(self, pos):
         selection_model = self._widget.preset_view.selectionModel()
