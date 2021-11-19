@@ -1,0 +1,17 @@
+<library path="src">
+  <class name="JointStates" type="moma_joint_states_display_gui.joint_states.JointStates"
+         base_class_type="rqt_gui_py::Plugin">
+    <description>
+      Joint states display.
+    </description>
+    <qtgui>
+      <group>
+        <label>Robot Tools</label>
+        <icon type="theme">folder</icon>
+        <statustip>Plugins related to robot tools.</statustip>
+      </group>
+      <label>Joint States Display</label>
+      <icon type="file">resource/state_icon.png</icon>
+    </qtgui>
+  </class>
+</library>
