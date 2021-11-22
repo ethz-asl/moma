@@ -17,7 +17,7 @@
   </include>
 
   <!-- spawn panda -->
-  <include file="$(find moma_gazebo)/launch/spawn_panda.launch">
+  <include file="$(find moma_gazebo)/launch/spawn_superpanda.launch">
     <arg name="z" value="$(arg panda_z_position)"/>
     <arg name="use_fixed_realsense" value="$(arg use_fixed_realsense)"/>
     <arg name="control_mode" value="Effort"/>
