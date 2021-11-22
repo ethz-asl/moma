@@ -42,7 +42,8 @@ class MobileManipulatorDynamics final : public SystemDynamicsBaseAD {
   using Base = SystemDynamicsBaseAD;
 
   explicit MobileManipulatorDynamics(const std::string& modelName, const std::string& modelFolder = "/tmp/ocs2",
-                                     bool recompileLibraries = true, bool verbose = true);
+                                     bool recompileLibraries = true, bool verbose = true,
+                                     BaseType baseType = BaseType::none);
   ~MobileManipulatorDynamics() override = default;
   MobileManipulatorDynamics* clone() const override { return new MobileManipulatorDynamics(*this); }
 
@@ -51,6 +52,7 @@ class MobileManipulatorDynamics final : public SystemDynamicsBaseAD {
 
  private:
   MobileManipulatorDynamics(const MobileManipulatorDynamics& rhs) = default;
+  BaseType baseType_;
 };
 
 }  // namespace mobile_manipulator

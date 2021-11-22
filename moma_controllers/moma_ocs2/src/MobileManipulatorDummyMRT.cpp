@@ -57,9 +57,15 @@ int main(int argc, char** argv) {
     ROS_ERROR("Failed to retrieve /ocs2_mpc/robot_description_ocs2 from param server.");
     return 0;
   }
+  int baseTypeInt;
+  if (!nodeHandle.param("/ocs2_mpc/base_type", baseTypeInt, 0)){
+    ROS_ERROR("Failed to retrieve /ocs2_mpc/base_type from param server.");
+    return 0;
+  }
+  BaseType baseType = static_cast<BaseType>(baseTypeInt);
 
   // Robot Interface
-  mobile_manipulator::MobileManipulatorInterface interface(taskFile, urdfXML);
+  mobile_manipulator::MobileManipulatorInterface interface(taskFile, urdfXML, baseType);
 
   // MRT
   MRT_ROS_Interface mrt("mobile_manipulator");
