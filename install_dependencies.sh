@@ -26,7 +26,7 @@ EOF
 
   sudo apt-get -qq update
 
-  sudo apt-get -qq install robotpkg-octomap=1.9.6 robotpkg-hpp-fcl=1.7.5 || fail "Error installing robotpkg libraries"
+  sudo apt-get -qq install robotpkg-octomap=1.9.6 robotpkg-hpp-fcl=1.7.8 || fail "Error installing robotpkg libraries"
 
   cat << EOF >> ~/.moma_bashrc
 export PATH=/opt/openrobots/bin:\$PATH
@@ -42,27 +42,30 @@ install_pinocchio() {
 
   mkdir -p ~/git
   git clone git@github.com:stack-of-tasks/pinocchio.git ~/git/pinocchio
-  cd ~/git/pinocchio || fail
+  cd ~/git/pinocchio || fail "Failed to clone pinocchio repo"
   git checkout v2.6.4
   git submodule update --init --recursive
   
-  # Remove install dir if already exists
-  if [ -d install ]; then rm -Rf install; fi
-  rm -r install
-  mkdir install
   PINOCCHIO_INSTALL_PREFIX=${HOME}/git/pinocchio/install
   PINOCCHIO_INSTALL_PREFIX_STR=\${HOME}/git/pinocchio/install
 
-
-  # Remove build dir if it already exists
-  if [ -d build ]; then rm -Rf build; fi
-  mkdir build
-  cd build
-  
   # Fails if run for the first time, because hpp-fcl is not found. A resource of the bashrc fixes it.
-  cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${PINOCCHIO_INSTALL_PREFIX} -DBUILD_WITH_COLLISION_SUPPORT=ON || fail "Please resource ~/.moma_bashrc and restart the script"
-  make -j4 || fail "Error building pinocchio"
-  sudo make install || fail "Error installing pinocchio"
+  # If no previous install is found build the package again
+  if [[ ! -d install ]]
+  then
+      [ ! -d build ] || rm -r build
+      mkdir build 
+      cd build
+
+      cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${PINOCCHIO_INSTALL_PREFIX} -DBUILD_WITH_COLLISION_SUPPORT=ON -DBUILD_PYTHON_INTERFACE=OFF || fail "Please resource ~/.moma_bashrc and restart the script"
+      make -j4 || fail "Error building pinocchio"
+
+      mkdir install
+      make install || fail "Error installing pinocchio"
+  else
+    info "Previos pinocchio installation found at ${PINOCCHIO_INSTALL_PREFIX}"
+  fi
+
 
   cat << EOF >> ~/.moma_bashrc
 export PATH=${PINOCCHIO_INSTALL_PREFIX}/bin:\$PATH
@@ -77,7 +80,7 @@ EOF
 install_control() {
   ROBOTPKG_NAMES=("robotpkg-octomap" "robotpkg-hpp-fcl")
   dpkg -s "${ROBOTPKG_NAMES[@]}" >/dev/null 2>&1 || install_robotpkg
-  [ -d "${HOME}/git/pinocchio/install/share/pinocchio" ] || install_pinocchio
+  install_pinocchio
   info "Control dependencies installation successful"
 }
 
@@ -105,8 +108,7 @@ sudo apt-get install \
 
 
 install_external() {
-	wstool merge -t . ./moma/moma_ssh.rosinstall || fail "Error merging rosinstall"
-	wstool update || fail "Error updating wstool. Installing external dependencies failed"
+	vcs import --recursive --input moma/moma_core.repos || fail "Error importing dependencies"
 }
 
 usage="$(basename "$0") [-h] [-c --control] -- moma stack installation script\n
@@ -155,7 +157,7 @@ touch ~/.moma_bashrc
 
 install_system_deps
 install_external
-if [ $INSTALL_CONTROL_DEPS ]
+if $INSTALL_CONTROL_DEPS
 then
   info "Installing control dependencies"
   install_control
