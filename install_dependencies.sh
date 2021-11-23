@@ -78,8 +78,9 @@ EOF
 
 
 install_control() {
-  ROBOTPKG_NAMES=("robotpkg-octomap" "robotpkg-hpp-fcl")
-  dpkg -s "${ROBOTPKG_NAMES[@]}" >/dev/null 2>&1 || install_robotpkg
+  #ROBOTPKG_NAMES=("robotpkg-octomap" "robotpkg-hpp-fcl")
+  #dpkg -s "${ROBOTPKG_NAMES[@]}" >/dev/null 2>&1 || install_robotpkg
+  install_robotpkg
   install_pinocchio
   info "Control dependencies installation successful"
 }
