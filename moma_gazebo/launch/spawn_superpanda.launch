@@ -2,7 +2,7 @@
 <launch>
   <arg name="x" default="0.0"/>
   <arg name="y" default="0.0"/>
-  <arg name="z" default="0.0"/>
+  <arg name="z" default="0.5"/>
   <arg name="use_fixed_realsense" default="false"/>
   <arg name="control_mode" default='Position'/>
   <arg name="tool" default="panda_hand"/>
@@ -23,4 +23,5 @@
       -J panda_joint5 0
       -J panda_joint6 1.571
       -J panda_joint7 0.785" />
+
 </launch>

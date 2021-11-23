@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="royalpanda">
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="superpanda">
 
   <!-- SMB Arguments -->
   <xacro:arg name="wheel_joint_type"          default="continuous"/>
   <xacro:arg name="simulation"                default="true"/>
-  <xacro:arg name="use_ros_skid_steer"        default="false"/> <!-- Specify one! -->
+  <xacro:arg name="use_ros_skid_steer"        default="false"/>  <!-- Specify one! -->
   <xacro:arg name="use_ros_control"           default="true"/>
   <xacro:arg name="lidar"                     default="true"/>
   <xacro:arg name="robot_namespace"           default=""/>
   <xacro:arg name="description_name_xacro"    default="robot_description"/>
-  <xacro:arg name="publish_tf"                default="false"/>
+  <xacro:arg name="publish_tf"                default="true"/>
   <xacro:arg name="tracking_camera"           default="true"/>
   <xacro:property name="lidar" value="$(arg lidar)"/>
 
   <!-- SMB Includes -->
-  <xacro:include filename="$(find smb_description)/urdf/smb_big_properties.urdf.xacro" />
+  <xacro:include filename="$(find smb_description)/urdf/smb_piloting_properties.urdf.xacro" />
   <xacro:if value="$(arg simulation)">
     <xacro:include filename="$(find smb_description)/urdf/smb_gazebo_addins.urdf.xacro"/>
   </xacro:if>
@@ -26,11 +26,11 @@
   <xacro:smb wheel_joint_type="$(arg wheel_joint_type)" simulation="$(arg simulation)" tracking_camera="$(arg tracking_camera)"/>
 
   <!-- Rigid fix between SMB and Panda -->
-  <link name="franka_mount_link" />
+  <link name="arm_mount_link"/>
   <joint name="arm_mount_joint" type="fixed">
       <parent link="base_link" />
-      <child link="franka_mount_link" />
-      <origin xyz="0.21 0.0 0.3" rpy="0 0 0"/>
+      <child link="arm_mount_link" />
+      <origin xyz="0.115 0.0 ${0.228+chassisHeight/2.0}" rpy="0 0 0"/>
   </joint>
 
   <!-- Panda Arguments -->
@@ -39,7 +39,7 @@
   <xacro:arg name="control_mode" default='Position'/>
   
   <xacro:include filename="$(find moma_description)/urdf/panda.xacro"/>
-  <xacro:panda connected_to="base_link" use_fixed_realsense="$(arg use_fixed_realsense)" control_mode="$(arg control_mode)" tool="$(arg tool)"/>
+  <xacro:panda connected_to="arm_mount_link" use_fixed_realsense="$(arg use_fixed_realsense)" control_mode="$(arg control_mode)" tool="$(arg tool) include_gazebo_control:=false"/>
 
     
 </robot>
