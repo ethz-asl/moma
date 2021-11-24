@@ -23,7 +23,7 @@ git clone --recurse-submodules git@github.com:ethz-asl/moma.git
 
 To download the dependency packages, the vcs command-line tools will be used. For more information about the tool you can check this [link](http://wiki.ros.org/vcstool).
 ```bash
-sudo apt install python3-wstool
+sudo apt install python3-vcstool
 ```
 To download the moma packages by using vcs tool run the following terminal commands in order.
 ```
