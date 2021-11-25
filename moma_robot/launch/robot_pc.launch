@@ -36,6 +36,14 @@
   <!-- Load all available controllers -->
   <rosparam command="load" file="$(find momba_robot)/config/controllers.yaml" />
 
+  <!-- Load but do not start these controllers -->
+  <arg name="controllers_load_list" value="joint_space_controller joint_velocity_controller mpc_controller path_admittance_controller"/>
+  <node name="controller_loader" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="--stopped $(arg controllers_load_list)" />
+
+  <!-- Already start these controllers -->
+  <arg name="controllers_start_list" value="path_passthrough_controller"/>
+  <node name="controller_starter" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="$(arg controllers_start_list)" />
+
    <!-- OCS2 params -->
   <param name="ocs2_mpc/task_file"  value="$(find moma_ocs2)/config/mpc/task_panda.info"/>
   <param name="ocs2_mpc/robot_description_ocs2" command="$(find xacro)/xacro $(find moma_description)/urdf/superpanda.urdf.xacro use_nominal_extrinsics:=true tool:='none'"/>
