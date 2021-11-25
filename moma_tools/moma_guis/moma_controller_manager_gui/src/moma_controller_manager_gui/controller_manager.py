@@ -47,6 +47,12 @@ from controller_manager_msgs.utils\
 from .update_combo import update_combo
 
 
+def __hash__(self):
+    return hash(self.name)
+
+# Fix for ROS noetic
+setattr(ControllerState, '__hash__', __hash__)
+
 class ControllerManager(Plugin):
     """
     Graphical frontend for managing ros_control controllers.
