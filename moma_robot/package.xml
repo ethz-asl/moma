@@ -16,11 +16,14 @@
   <license>TODO</license>
 
   <buildtool_depend>catkin</buildtool_depend>
+  <exec_depend>xacro</exec_depend>
   <exec_depend>rosparam</exec_depend>
+  <exec_depend>moma_description</exec_depend>
   <exec_depend>controller_manager</exec_depend>
   <exec_depend>robot_state_publisher</exec_depend>
   <exec_depend>joint_state_publisher</exec_depend>
   <exec_depend>franka_control</exec_depend>
+  <exec_depend>franka_gripper</exec_depend>
   <exec_depend>path_passthrough_controller</exec_depend>
   <exec_depend>moma_joint_space_controller</exec_depend>
   <exec_depend>moma_joint_velocity_controller</exec_depend>
