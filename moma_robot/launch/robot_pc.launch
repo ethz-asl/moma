@@ -34,7 +34,7 @@
   </node>
 
   <!-- Load all available controllers -->
-  <rosparam command="load" file="$(find momba_robot)/config/controllers.yaml" />
+  <rosparam command="load" file="$(find moma_robot)/config/controllers.yaml" />
 
   <!-- Load but do not start these controllers -->
   <arg name="controllers_load_list" value="joint_space_controller joint_velocity_controller mpc_controller path_admittance_controller"/>

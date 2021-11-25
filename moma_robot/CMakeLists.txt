@@ -6,7 +6,7 @@ find_package(catkin REQUIRED)
 
 catkin_package(
 #  INCLUDE_DIRS include
-#  LIBRARIES moma_dashboard
+#  LIBRARIES moma_robot
 #  CATKIN_DEPENDS other_catkin_pkg
 #  DEPENDS system_lib
 )
