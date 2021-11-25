@@ -20,6 +20,7 @@
   <exec_depend>moma_controller_manager_gui</exec_depend>
   <exec_depend>moma_joint_position_control_gui</exec_depend>
   <exec_depend>moma_joint_velocity_control_gui</exec_depend>
+  <exec_depend>moma_joint_states_display_gui</exec_depend>
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>
