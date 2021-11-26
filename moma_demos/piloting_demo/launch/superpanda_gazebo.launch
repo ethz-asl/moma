@@ -15,17 +15,16 @@
   <param name="robot_description" command="$(find xacro)/xacro $(find moma_description)/urdf/superpanda.urdf.xacro use_nominal_extrinsics:=true use_fixed_realsense:=$(arg use_fixed_realsense)
     control_mode:=$(arg control_mode) tool:=$(arg tool)"/>
 
- <!--  <param name="control/robot_description" command="$(find xacro)/xacro $(find moma_description)/urdf/superpanda.urdf.xacro use_nominal_extrinsics:=true use_fixed_realsense:=$(arg use_fixed_realsense)
-    control_mode:=$(arg control_mode) tool:=$(arg tool)"/>
--->
+  <!-- This remap needs to be here to be parsed by gazebo controllers -->  
   <remap from="/control/robot_description" to="robot_description"/>
  
   <!-- start gazebo -->
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
     <arg name="use_sim_time" value="true" />
-    <arg name="paused" value="true" />
-    <arg name="gui" value="$(arg gui)" />
-    <arg name="debug" value="false"/>
+    <arg name="paused"      value="true" />
+    <arg name="gui"         value="$(arg gui)" />
+    <arg name="debug"       value="false"/>
+    <arg name="world_name"  value="$(find moma_gazebo)/worlds/planner_tutorial.world"/>
   </include>
 
   <!-- spawn robot in gazebo -->
