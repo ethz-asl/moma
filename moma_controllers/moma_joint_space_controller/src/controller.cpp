@@ -253,6 +253,7 @@ void JointSpaceController::read_state() {
 }
 
 void JointSpaceController::cleanup() {
+  trajectory_available_ = false;
   if (sim_) return;
 
   for (size_t i = 0; i < n_joints_; i++) {
