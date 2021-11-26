@@ -3,13 +3,30 @@
   <arg name="x" default="0.0"/>
   <arg name="y" default="0.0"/>
   <arg name="z" default="0.5"/>
+  <arg name="gui" default="false"/>
   <arg name="use_fixed_realsense" default="false"/>
   <arg name="control_mode" default='Position'/>
   <arg name="tool" default="panda_hand"/>
    
+
+  <env name="GAZEBO_MODEL_PATH" value="${GAZEBO_MODEL_PATH}:$(find moma_gazebo)/models"/>
+
   <!-- send the robot XML to param server -->
   <param name="robot_description" command="$(find xacro)/xacro $(find moma_description)/urdf/superpanda.urdf.xacro use_nominal_extrinsics:=true use_fixed_realsense:=$(arg use_fixed_realsense)
     control_mode:=$(arg control_mode) tool:=$(arg tool)"/>
+
+ <!--  <param name="control/robot_description" command="$(find xacro)/xacro $(find moma_description)/urdf/superpanda.urdf.xacro use_nominal_extrinsics:=true use_fixed_realsense:=$(arg use_fixed_realsense)
+    control_mode:=$(arg control_mode) tool:=$(arg tool)"/>
+-->
+  <remap from="/control/robot_description" to="robot_description"/>
+ 
+  <!-- start gazebo -->
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="use_sim_time" value="true" />
+    <arg name="paused" value="true" />
+    <arg name="gui" value="$(arg gui)" />
+    <arg name="debug" value="false"/>
+  </include>
 
   <!-- spawn robot in gazebo -->
   <node name="spawn_panda" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen" args="-urdf -param robot_description -model superpanda

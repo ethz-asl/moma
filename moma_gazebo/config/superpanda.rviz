@@ -6,6 +6,7 @@ Panels:
       Expanded:
         - /Global Options1
         - /World1
+        - /World1/TF1
         - /World1/TF1/Frames1
         - /Controllers1
         - /Controllers1/MPC1
@@ -62,84 +63,66 @@ Visualization Manager:
           Frame Timeout: 15
           Frames:
             All Enabled: false
-            LF_WHEEL:
-              Value: true
-            LH_WHEEL:
-              Value: true
-            RF_WHEEL:
-              Value: true
-            RH_WHEEL:
-              Value: true
             arm_mount_link:
-              Value: true
+              Value: false
             base_inertia:
-              Value: true
+              Value: false
             base_link:
               Value: false
             blackfly0_link:
-              Value: true
+              Value: false
             blackfly0_optical_link:
-              Value: true
+              Value: false
             blackfly1_link:
-              Value: true
+              Value: false
             blackfly1_optical_link:
-              Value: true
+              Value: false
             blackfly_left_link:
-              Value: true
+              Value: false
             blackfly_left_optical_link:
-              Value: true
+              Value: false
             blackfly_right_link:
-              Value: true
+              Value: false
             blackfly_right_optical_link:
-              Value: true
+              Value: false
             camera_imu_optical_frame:
-              Value: true
+              Value: false
             camera_pose_frame:
-              Value: true
+              Value: false
             camera_pose_frame_odom:
-              Value: true
+              Value: false
             imu:
-              Value: true
+              Value: false
             imu_link:
-              Value: true
+              Value: false
             lidar_mount_link:
-              Value: true
+              Value: false
             mono_link:
-              Value: true
+              Value: false
+            odom:
+              Value: false
             panda_default_ee:
               Value: false
             panda_hand:
-              Value: false
+              Value: true
             panda_link0:
-              Value: false
-            panda_link1:
-              Value: false
-            panda_link2:
-              Value: false
-            panda_link3:
-              Value: false
-            panda_link4:
-              Value: false
-            panda_link5:
-              Value: false
-            panda_link6:
               Value: false
             panda_link7:
               Value: false
             panda_link8:
               Value: false
             realsense_t265:
-              Value: true
+              Value: false
             realsense_t265_odom_frame:
-              Value: true
+              Value: false
             rslidar:
-              Value: true
+              Value: false
             rslidar_base_link:
-              Value: true
+              Value: false
             top:
-              Value: true
+              Value: false
             tracking_camera_odom:
-              Value: true
+              Value: false
             wrist_camera_bottom_screw_frame:
               Value: false
             wrist_camera_link:
@@ -151,66 +134,45 @@ Visualization Manager:
           Show Axes: true
           Show Names: false
           Tree:
-            base_link:
-              LF_WHEEL:
-                {}
-              LH_WHEEL:
-                {}
-              RF_WHEEL:
-                {}
-              RH_WHEEL:
-                {}
-              arm_mount_link:
-                panda_link0:
-                  panda_link1:
-                    panda_link2:
-                      panda_link3:
-                        panda_link4:
-                          panda_link5:
-                            panda_link6:
-                              panda_link7:
-                                panda_link8:
-                                  panda_default_ee:
-                                    {}
-                                  panda_hand:
-                                    {}
-                                wrist_camera_bottom_screw_frame:
-                                  wrist_camera_link:
-                                    {}
-              base_inertia:
-                {}
-              blackfly0_link:
-                blackfly0_optical_link:
-                  {}
-              blackfly1_link:
-                blackfly1_optical_link:
-                  {}
-              blackfly_left_link:
-                blackfly_left_optical_link:
-                  {}
-              blackfly_right_link:
-                blackfly_right_optical_link:
-                  {}
-              imu_link:
-                imu:
-                  {}
-                realsense_t265:
-                  camera_pose_frame:
+            odom:
+              base_link:
+                arm_mount_link:
+                  panda_link0:
                     {}
-                  realsense_t265_odom_frame:
-                    camera_imu_optical_frame:
+                base_inertia:
+                  {}
+                blackfly0_link:
+                  blackfly0_optical_link:
+                    {}
+                blackfly1_link:
+                  blackfly1_optical_link:
+                    {}
+                blackfly_left_link:
+                  blackfly_left_optical_link:
+                    {}
+                blackfly_right_link:
+                  blackfly_right_optical_link:
+                    {}
+                imu_link:
+                  imu:
+                    {}
+                  realsense_t265:
+                    camera_pose_frame:
                       {}
-              lidar_mount_link:
-                rslidar_base_link:
-                  rslidar:
-                    {}
-              mono_link:
-                {}
-              top:
-                {}
-              tracking_camera_odom:
-                camera_pose_frame_odom:
+                    realsense_t265_odom_frame:
+                      camera_imu_optical_frame:
+                        {}
+                lidar_mount_link:
+                  rslidar_base_link:
+                    rslidar:
+                      {}
+                mono_link:
                   {}
+                top:
+                  {}
+                tracking_camera_odom:
+                  camera_pose_frame_odom:
+                    {}
           Update Interval: 0
           Value: true
         - Alpha: 1
@@ -418,22 +380,6 @@ Visualization Manager:
           Show Visual Aids: false
           Update Topic: /simple_marker/update
           Value: true
-        - Alpha: 1
-          Class: rviz/RobotModel
-          Collision Enabled: false
-          Enabled: true
-          Links:
-            All Links Enabled: true
-            Expand Joint Details: false
-            Expand Link Details: false
-            Expand Tree: false
-            Link Tree Style: Links in Alphabetic Order
-          Name: ValveModel
-          Robot Description: valve_description
-          TF Prefix: ""
-          Update Interval: 0
-          Value: true
-          Visual Enabled: true
       Enabled: true
       Name: World
     - Class: rviz/Group
@@ -520,7 +466,7 @@ Visualization Manager:
   Global Options:
     Background Color: 48; 48; 48
     Default Light: true
-    Fixed Frame: tracking_camera_odom
+    Fixed Frame: odom
     Frame Rate: 30
   Name: root
   Tools:
@@ -544,7 +490,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 2.2147562503814697
+      Distance: 3.21237850189209
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -552,17 +498,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 0.11948928982019424
-        Y: 0.00034981081262230873
-        Z: 0.4798562824726105
+        X: 0.4340877830982208
+        Y: -0.7418645620346069
+        Z: 0.9950282573699951
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.3497970700263977
+      Pitch: 0.26979702711105347
       Target Frame: <Fixed Frame>
-      Yaw: 4.788583278656006
+      Yaw: 4.983588695526123
     Saved: ~
 Window Geometry:
   Displays:

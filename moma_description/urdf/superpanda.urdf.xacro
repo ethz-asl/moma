@@ -4,8 +4,8 @@
   <!-- SMB Arguments -->
   <xacro:arg name="wheel_joint_type"          default="continuous"/>
   <xacro:arg name="simulation"                default="true"/>
-  <xacro:arg name="use_ros_skid_steer"        default="false"/>  <!-- Specify one! -->
-  <xacro:arg name="use_ros_control"           default="true"/>
+  <xacro:arg name="use_ros_skid_steer"        default="false"/>  <!-- This does not work nicely -->
+  <xacro:arg name="use_ros_control"           default="false"/>  <!-- Set to faulse as we import already a plugin for the arm-->
   <xacro:arg name="lidar"                     default="true"/>
   <xacro:arg name="robot_namespace"           default=""/>
   <xacro:arg name="description_name_xacro"    default="robot_description"/>
@@ -39,7 +39,7 @@
   <xacro:arg name="control_mode" default='Position'/>
   
   <xacro:include filename="$(find moma_description)/urdf/panda.xacro"/>
-  <xacro:panda connected_to="arm_mount_link" use_fixed_realsense="$(arg use_fixed_realsense)" control_mode="$(arg control_mode)" tool="$(arg tool) include_gazebo_control:=false"/>
+  <xacro:panda connected_to="arm_mount_link" use_fixed_realsense="$(arg use_fixed_realsense)" control_mode="$(arg control_mode)" tool="$(arg tool)" include_gazebo_control="true" robot_namespace="" control_namespace="control"/>
 
     
 </robot>

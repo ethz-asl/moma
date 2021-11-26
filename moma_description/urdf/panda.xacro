@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="panda">
-  <xacro:macro name="panda" params="connected_to:='' rpy:='0 0 0' xyz:='0 0 0' use_fixed_realsense:=false include_gazebo_control:=true tool:='panda_hand' control_mode:='Position'">
+  <xacro:macro name="panda" params="connected_to:='' rpy:='0 0 0' xyz:='0 0 0' use_fixed_realsense:=false include_gazebo_control:=true tool:='panda_hand' control_mode:='Position' robot_namespace:='' control_namespace:=''">
 
     <!-- panda arm  -->
     <xacro:include filename="$(find franka_description)/robots/panda_arm.xacro"/>
@@ -49,7 +49,8 @@
 
     <!-- Gazebo tags -->
     <xacro:include filename="$(find moma_description)/urdf/panda_arm.gazebo.xacro"/>
-    <xacro:panda_gazebo arm_id="panda" include_gazebo_control="${include_gazebo_control}" control_mode="${control_mode}"/>
+    <xacro:panda_gazebo arm_id="panda" include_gazebo_control="${include_gazebo_control}" control_mode="${control_mode}"
+      robot_namespace="${robot_namespace}" control_namespace="${control_namespace}"/>
 
     <!-- wrist realsense -->
     <xacro:include filename="$(find realsense2_description)/urdf/_d435.urdf.xacro" />
