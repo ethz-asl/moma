@@ -43,6 +43,12 @@ cd $CATKIN_WS/src
 ./moma/install_dependencies.sh
 ```
 
+Ensure to build in `RelWithDebInfo` mode. Otherwise, many controllers are very slow.
+
+```bash
+catkin config --cmake-args -DCMAKE_BUILD_TYPE=RelWithDebInfo
+```
+
 ### Wiki
 
 Before you start developing, familiarize yourself with the [robotic platform](https://github.com/ethz-asl/moma/wiki/Robots) you will be working with and make sure to checkout the [development](https://github.com/ethz-asl/moma/wiki/Development) section of our wiki.
