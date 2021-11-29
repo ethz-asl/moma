@@ -1,0 +1,60 @@
+repositories: 
+  ocs2:
+    type: git
+    url: git@github.com:grizzi/ocs2.git
+    version: main
+  
+  compslam:
+    type: git
+    url: https://bitbucket.org/leggedrobotics/compslam_rss.git
+    version: master
+  
+  smb_common:
+    type: git
+    url: git@github.com:grizzi/smb_common.git
+    version: master
+  
+  robosense_simulator:
+    type: git
+    url: https://github.com/tomlogan501/robosense_simulator.git
+    version: master
+  
+  smb_path_planner:
+    type: git
+    url: https://github.com/VIS4ROB-lab/smb_path_planner.git
+    version: master
+  
+  teb_local_planner:
+    type: git
+    url: https://github.com/leggedrobotics/teb_local_planner.git
+    version: feature/correct_local_plan_timestamps
+  
+  icp_localization:
+    type: git
+    url: https://github.com/leggedrobotics/icp_localization.git
+    version: master
+  
+  libpointmatcher:
+    type: git
+    url: https://github.com/leggedrobotics/libpointmatcher
+    version: master
+  
+  libnabo:
+    type: git
+    url: https://github.com/ANYbotics/libnabo.git
+    version: master
+  
+  pointmatcher_ros:
+    type: git
+    url: https://github.com/leggedrobotics/pointmatcher-ros
+    version: master
+  
+  smb_powerstatus:
+    type: git
+    url: https://github.com/ETHZ-RobotX/smb_powerstatus
+    version: main
+  
+  smb_rviz_plugins:
+    type: git  
+    url: https://github.com/ETHZ-RobotX/smb_rviz_plugins
+    version: master

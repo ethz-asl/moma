@@ -63,6 +63,6 @@
   <!-- start rviz -->
   <node if="$(arg rviz)" name="rviz" pkg="rviz" type="rviz" args="-d $(find moma_gazebo)/config/piloting.rviz" />
 
-  <node name="rqt_controller_manager" type="rqt_controller_manager" pkg="rqt_controller_manager"/>
+  <include file="$(find moma_dashboard)/launch/dashboard.launch"/>
 
 </launch>
