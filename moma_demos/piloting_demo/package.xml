@@ -18,7 +18,8 @@
     <exec_depend>moma_joint_space_controller</exec_depend>
     <exec_depend>moma_sensor_tools</exec_depend>
     <exec_depend>moma_mission</exec_depend>
-    
+    <exec_depend>odometry_conversion</exec_depend>
+
     <!-- smb dependencies -->
     <exec_depend>smb_control</exec_depend>
     <exec_depend>smb_description</exec_depend>
