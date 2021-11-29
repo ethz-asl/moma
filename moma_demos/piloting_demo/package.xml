@@ -22,5 +22,6 @@
     <!-- smb dependencies -->
     <exec_depend>smb_control</exec_depend>
     <exec_depend>smb_description</exec_depend>
+    <exec_depend>smb_gazebo</exec_depend>
     <exec_depend>smb_path_planner</exec_depend>
 </package>
