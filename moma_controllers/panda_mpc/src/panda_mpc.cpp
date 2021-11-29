@@ -17,6 +17,8 @@
 
 namespace moma_controllers {
 
+constexpr double PandaMpcController::kDeltaTauMax;
+
 bool PandaMpcController::init(hardware_interface::RobotHW* robot_hw,
                                    ros::NodeHandle& node_handle,
                                    ros::NodeHandle& controller_nh) {
