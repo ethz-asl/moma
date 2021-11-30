@@ -1,31 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <launch>
     <!--    Args-->
+    <arg name="sensor" default="none"/>  <!-- only 'rokubimini' supported for now -->
     <arg name="test" default="false"/>
     <arg name="debug" default="false"/>
 
-    <arg name="sensor_frame" default="ft_sensor0_wrench"/>
-    <arg name="gravity_aligned_frame" default="world"/>
-    <arg name="calibration_file" default="$(find moma_sensor_tools)/config/force_torque_calibration.yaml"/>
-    <arg name="raw_wrench_topic" default="/rokubimini/ft_sensor0/ft_sensor_readings/wrench"/>
-    <arg name="out_wrench_topic" default="/ft_compensated"/>
-    <arg name="imu_topic" default="/kinova_ros_control/imu"/>
     <arg name="launch_prefix" default="" unless="$(arg debug)"/>
     <arg name="launch_prefix" default="gdb -ex run --args" if="$(arg debug)"/>
 
     <!--    Force torque sensor ROS bridge-->
-    <include file="$(find moma_sensor_tools)/launch/rokubimini.launch"/>
-
-    <!--    Gravity compensation and filtering-->
+    <include file="$(find moma_sensor_tools)/launch/rokubimini.launch" if="$(arg(sensor) == 'rokubimini')"/>
+  
+    <!--    Gravity compensation and filtering params -->
+    <arg name="calibration_file" value="$(find moma_sensor_tools)/config/payload_calibration/calibration.yaml">
+    
+    <!--  Gravity compensation and filtering node -->
     <node pkg="moma_sensor_tools" name="ft_sensor_node" type="ft_sensor_node" output="screen"
           launch-prefix="$(arg launch_prefix)">
-        <param name="sensor_frame" value="$(arg sensor_frame)"/>
-        <param name="calibration_file" value="$(arg calibration_file)"/>
-        <param name="raw_wrench_topic" value="$(arg raw_wrench_topic)"/>
-        <param name="out_wrench_topic" value="$(arg out_wrench_topic)"/>
-        <param name="gravity_aligned_frame" value="$(arg gravity_aligned_frame)"/>
-        <param name="imu_topic" value="$(arg imu_topic)"/>
-        <param name="estimate_bias_at_startup" value="true"/>
-        <param name="filter_constant" value="0.05"/>
+        <rosparam command="load" file="$(arg calibration_file)" subst_value="true"/>
         <param name="debug" value="true"/>
     </node>
 
