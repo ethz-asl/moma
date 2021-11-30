@@ -10,9 +10,10 @@
     <group ns="ocs2_mpc">
         <param name="task_file" value="$(arg task_file)"/>
         <param name="robot_description_ocs2" command="$(find xacro)/xacro $(find moma_ocs2)/urdf/kinova.urdf" if="$(eval robot_name == 'kinova')"/>
-        <param name="robot_description_ocs2" command="$(find xacro)/xacro $(find moma_description)/urdf/superpanda.urdf.xacro use_nominal_extrinsics:=true tool:='none'" if="$(eval robot_name == 'panda')"/>
-        <param name="base_type" value="$(arg base_type)"/>
+        <param name="robot_description_ocs2" command="$(find xacro)/xacro $(find moma_description)/urdf/panda.urdf.xacro mpc_model:=true use_nominal_extrinsics:=true tool:='none'" if="$(eval robot_name == 'panda')"/>
     </group>
+
+    <param name="robot_description" command="$(find xacro)/xacro $(find moma_description)/urdf/superpanda.urdf.xacro use_nominal_extrinsics:=true tool:='none'" if="$(eval robot_name == 'panda')"/>
 
     <group if="$(arg rviz)">
       <include file="$(find moma_ocs2)/launch/visualize.launch">
