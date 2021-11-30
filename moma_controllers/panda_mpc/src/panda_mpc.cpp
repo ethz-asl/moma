@@ -27,8 +27,8 @@ bool PandaMpcController::init(hardware_interface::RobotHW* robot_hw,
   if (!init_franka_interfaces(robot_hw)) return false;
 
   std::string arm_description;
-  if (!node_handle.getParam("/robot_description", arm_description)) {
-    ROS_ERROR("Could not find arm_description on the param server.");
+  if (!node_handle.getParam("/ocs2_mpc/robot_description_ocs2", arm_description)) {
+    ROS_ERROR("Failed to retrieve /ocs2_mpc/robot_description_ocs2 from param server.");
     return false;
   }
   robot_model_ = std::make_unique<rc::RobotWrapper>();
@@ -70,7 +70,7 @@ bool PandaMpcController::init_parameters(ros::NodeHandle& node_handle) {
   }
 
   for (size_t i = 0; i < ocs2::mobile_manipulator::ARM_INPUT_DIM; i++) {
-    if (!pid_controllers_[i].init(ros::NodeHandle("/mpc_controller/gains/" + joint_names_[i]),
+    if (!pid_controllers_[i].init(ros::NodeHandle(node_handle, node_handle.getNamespace() + "/gains/" + joint_names_[i]),
                                   false)) {
       ROS_ERROR_STREAM("Failed to load PID parameters from " << joint_names_[i] + "/pid");
       return false;
