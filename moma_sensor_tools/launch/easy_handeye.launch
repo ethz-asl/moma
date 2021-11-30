@@ -1,0 +1,48 @@
+<?xml version="1.0" ?>
+<launch>
+
+    <!-- Setting calibration namespace -->
+    <arg name="eye_on_hand" value="true"/>
+
+    <!-- The prefix of the namespace the node will run in, and of the folder in which the result will be saved" -->
+    <arg name="namespace_prefix" default="easy_handeye"/> 
+    
+    <!-- The namespace the node will run in, and the folder in which the result will be saved  -->
+    <arg name="namespace" value="$(arg namespace_prefix)_eye_on_hand" if="$(arg eye_on_hand)" />
+
+    <!-- The input reference frames -->
+    <arg name="robot_base_frame" default="base_link" />
+    <arg name="robot_effector_frame" default="tool0" />
+    <arg name="tracking_base_frame" default="tracking_origin" />
+    <arg name="tracking_marker_frame" default="tracking_target" />
+    
+    <!-- If true, a dummy calibration will be published to keep all frames in a single tf tree, hence visualized in RViz -->
+    <arg name="publish_dummy" default="true"/>
+    
+    <!-- GUI arguments -->
+    <arg name="start_rviz" default="true" doc="if true, rviz will be started with the provided config file" />
+    <arg name="rviz_config_file" default="$(find easy_handeye)/launch/rviz_easy_handeye.config" doc="the path to the rviz config file to be opened" />
+    <arg name="start_sampling_gui" default="true" doc="if true, rqt will be started with the provided perspective" />
+    <arg name="rqt_perspective_file" default="$(find easy_handeye)/launch/rqt_easy_handeye.perspective" doc="the path to the rqt perspective file to be opened" />
+    
+    <!-- Dummy calibration to have a fully connected tf tree and see all frames -->
+    <node if="$(arg publish_dummy)" name="dummy_handeye" pkg="tf" type="static_transform_publisher" 
+        args="0 0 0.05 0 0 0 $(arg robot_effector_frame) $(arg tracking_base_frame) 10" />
+    
+    <group ns="$(arg namespace)">
+
+        <!-- Store the parameters in the calibration's namespace-->
+        <param name="eye_on_hand" value="$(arg eye_on_hand)"/>
+        <param name="robot_base_frame" value="$(arg robot_base_frame)" />
+        <param name="robot_effector_frame" value="$(arg robot_effector_frame)" />
+        <param name="tracking_base_frame" value="$(arg tracking_base_frame)" />
+        <param name="tracking_marker_frame" value="$(arg tracking_marker_frame)" />
+
+        <!-- Start the backend -->
+        <node name="easy_handeye_calibration_server" pkg="easy_handeye" type="calibrate.py" output="screen" />
+
+        <!-- start rqt GUI for taking_samples -->
+        <node if="$(arg start_sampling_gui)" name="$(anon namespace)_rqt" pkg="rqt_easy_handeye" type="rqt_easy_handeye" respawn="false" output="screen" />
+    </group>
+
+</launch>
