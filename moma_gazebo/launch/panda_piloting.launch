@@ -2,7 +2,6 @@
 <launch>
   <arg name="gui" default="false" />
   <arg name="rviz" default="true" />
-  <arg name="panda_z_position" default="0.0"/>
   <arg name="use_fixed_realsense" default="false"/>
   <arg name="tool" default="none"/>
 
@@ -18,7 +17,6 @@
 
   <!-- spawn panda -->
   <include file="$(find moma_gazebo)/launch/spawn_panda.launch">
-    <arg name="z" value="$(arg panda_z_position)"/>
     <arg name="use_fixed_realsense" value="$(arg use_fixed_realsense)"/>
     <arg name="control_mode" value="Effort"/>
     <arg name="tool" value="$(arg tool)"/>
