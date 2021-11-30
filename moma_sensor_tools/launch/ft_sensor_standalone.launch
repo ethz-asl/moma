@@ -9,10 +9,10 @@
     <arg name="launch_prefix" default="gdb -ex run --args" if="$(arg debug)"/>
 
     <!--    Force torque sensor ROS bridge-->
-    <include file="$(find moma_sensor_tools)/launch/rokubimini.launch" if="$(arg(sensor) == 'rokubimini')"/>
+    <include file="$(find moma_sensor_tools)/launch/rokubimini.launch" if="$(eval arg('sensor') == 'rokubimini')"/>
   
     <!--    Gravity compensation and filtering params -->
-    <arg name="calibration_file" value="$(find moma_sensor_tools)/config/payload_calibration/calibration.yaml">
+    <arg name="calibration_file" value="$(find moma_sensor_tools)/config/ft_sensor_params.yaml"/>
     
     <!--  Gravity compensation and filtering node -->
     <node pkg="moma_sensor_tools" name="ft_sensor_node" type="ft_sensor_node" output="screen"

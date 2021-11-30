@@ -75,6 +75,7 @@ bool ForceTorqueSensor::init() {
   raw_wrench_subscriber_ = nh_.subscribe(so);
   wrench_received_ = false;
 
+  bias_.setZero();
   estimate_bias_measurements_ = 0;
   estimate_bias_ = (estimate_bias_at_startup) ? true : false;
   estimate_bias_service_ = nh_.advertiseService("/estimate_bias", &ForceTorqueSensor::estimate_bias_callback, this);

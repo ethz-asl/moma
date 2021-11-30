@@ -2,7 +2,7 @@ has_payload: false
 sensor_frame: panda_EE
 gravity_aligned_frame: world
 calibration_file: $(find moma_sensor_tools)/config/payload_calibration/calibration.yaml
-raw_wrench_topic: franka_state_controller/TODO
+raw_wrench_topic: /franka_state_controller/F_ext
 out_wrench_topic: /ft_compensated
 estimate_bias_at_startup: true
 filter_constant: 0.05
