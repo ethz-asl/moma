@@ -23,7 +23,8 @@
 #include <franka_hw/franka_cartesian_command_interface.h>
 #include <franka_hw/franka_model_interface.h>
 
-#include <geometry_msgs/TwistStamped.h>
+#include <nav_msgs/Odometry.h>
+#include <geometry_msgs/Twist.h>
 
 namespace moma_controllers {
 
@@ -37,7 +38,7 @@ class PandaMpcController
       controller_interface::MultiInterfaceController<franka_hw::FrankaModelInterface,
                                                      hardware_interface::EffortJointInterface,
                                                      franka_hw::FrankaStateInterface>;
-  PandaMpcController() : BASE(true){};
+  PandaMpcController() : BASE(true)/*, tfListener_(tfBuffer_)*/{};
 
   bool init(hardware_interface::RobotHW* robot_hw, ros::NodeHandle& node_handle,
             ros::NodeHandle& controller_nh) override;
@@ -51,8 +52,10 @@ class PandaMpcController
   bool init_franka_interfaces(hardware_interface::RobotHW* robot_hw);
 
   void write_command();
-  void compute_torque(const ros::Duration& period);
+  void compute_command(const ros::Duration& period);
   void read_state();
+
+  void odom_callback(const nav_msgs::Odometry::ConstPtr& msg);
 
   // Saturation
   void saturate_torque_rate(const std::array<double, ocs2::mobile_manipulator::ARM_INPUT_DIM>& tau_J_d);
@@ -60,9 +63,21 @@ class PandaMpcController
  private:
   bool sim_;
 
+  //tf2_ros::Buffer tfBuffer_;
+  //tf2_ros::TransformListener tfListener_;
+
+  //std::string world_frame_;
+  //std::string base_link_;
+  std::string odom_topic_;
+  std::string command_base_topic_;
+  ros::Subscriber odom_sub_;
+  ros::Publisher command_base_pub_;
+  geometry_msgs::Twist base_velocity_command_;
+
   // dynamic model
   std::unique_ptr<rc::RobotWrapper> robot_model_;
-  std::array<control_toolbox::Pid, ocs2::mobile_manipulator::ARM_INPUT_DIM> pid_controllers_;
+  std::array<control_toolbox::Pid, ocs2::mobile_manipulator::BASE_INPUT_DIM> base_pid_controllers_;
+  std::array<control_toolbox::Pid, ocs2::mobile_manipulator::ARM_INPUT_DIM> arm_pid_controllers_;
   MpcController::state_vector_t position_command_;
   MpcController::input_vector_t velocity_command_;
   MpcController::state_vector_t position_error_;

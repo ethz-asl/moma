@@ -83,7 +83,6 @@ class MpcController{
  protected:
   double start_time_;
 
-  std::string base_link_;
   std::string tool_link_;
   std::string robot_description_;
 
@@ -123,7 +122,6 @@ class MpcController{
   tf2_ros::Buffer tf_buffer_;
   tf2_ros::TransformListener tf_listener_;
   Eigen::Affine3d T_tool_ee_;   // transform from frame tracked by MPC to the actual tool frame
-  Eigen::Affine3d T_base_x_;    // transform from reference frame incoming trajectory and arm base
   Eigen::Affine3d T_x_tool_;    // transfrom from point in the path to the path reference frame
   Eigen::Affine3d T_base_ee_;   // transform from base to desired end effector pose
 
