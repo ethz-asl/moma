@@ -37,7 +37,6 @@ bool MpcController::init() {
   mpcPtr_ = mm_interface_->getMpc();
 
   nh_.param<std::string>("/robot_description_mpc", robot_description_, "");
-  nh_.param<std::string>("/mpc_controller/base_link", base_link_, "base_link");
   nh_.param<std::string>("/mpc_controller/tool_link", tool_link_, "tool_frame");
   nh_.param<double>("/mpc_controller/mpc_frequency", mpcFrequency_, -1);
   nh_.param<double>("/mpc_controller/publish_ros_frequency", publishRosFrequency_, 20);
@@ -269,22 +268,9 @@ bool MpcController::sanityCheck(const nav_msgs::Path& path) {
 }
 
 void MpcController::transformPath(nav_msgs::Path& desiredPath) {
-  ROS_DEBUG_STREAM("[MPC_Controller::transformPath] Transforming path from "
-                  << desiredPath.header.frame_id << " to " << base_link_);
-  geometry_msgs::TransformStamped transformStamped;
-  try {
-    // target_frame, source_frame ...
-    transformStamped = tf_buffer_.lookupTransform(base_link_, desiredPath.header.frame_id,
-                                                  ros::Time(0), ros::Duration(3.0));
-  } catch (tf2::TransformException& ex) {
-    ROS_WARN("%s", ex.what());
-  }
-  tf::transformMsgToEigen(transformStamped.transform, T_base_x_);
-
-  desiredPath.header.frame_id = base_link_;
   for (auto& pose : desiredPath.poses) {
     tf::poseMsgToEigen(pose.pose, T_x_tool_);
-    T_base_ee_ = T_base_x_ * T_x_tool_ * T_tool_ee_;
+    T_base_ee_ = T_x_tool_ * T_tool_ee_;
     tf::poseEigenToMsg(T_base_ee_, pose.pose);
   }
 }

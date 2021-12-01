@@ -30,7 +30,7 @@
   <group ns="ocs2_mpc">
     <param name="task_file" value="$(find moma_ocs2)/config/mpc/task_panda.info"/>
     <param name="robot_description_ocs2" command="$(find xacro)/xacro $(find moma_description)/urdf/superpanda.urdf.xacro mpc_model:=true use_nominal_extrinsics:=true tool:='none'"/>
-    <param name="base_type" value="0"/>
+    <param name="base_type" value="1"/>
   </group>
 
   <group ns="control">
@@ -61,14 +61,14 @@
     <arg name="global_frame" value="tracking_camera_odom"/>
   </include>
 
-  <!-- Give a static transform between world and odom frame -->
+  <!-- start rviz -->
+  <node if="$(arg rviz)" name="rviz" pkg="rviz" type="rviz" args="-d $(find piloting_demo)/config/rviz/superpanda_sim.rviz" />
+
+  <!-- Give a static transform between world and odom frame, since the "world" frame is hardcoded in ocs2_ros_interfaces -->
   <node pkg="tf2_ros"
         type="static_transform_publisher"
         name="depth2_depth_opt_rebroadcaster"
-        args="0 0 0 0 0 0 1 world odom" />
-
-  <!-- start rviz -->
-  <node if="$(arg rviz)" name="rviz" pkg="rviz" type="rviz" args="-d $(find piloting_demo)/config/rviz/superpanda_sim.rviz" />
+        args="0 0 0 0 0 0 1 tracking_camera_odom world" />
   <include file="$(find panda_mpc)/launch/interactive_marker.launch"/>
 
 </launch>
