@@ -38,6 +38,7 @@ constexpr size_t ARM_INPUT_DIM = 7;              // 7 DOF arm
 constexpr size_t STATE_DIM = ARM_INPUT_DIM + 3;  // arm pos. + 2D pos. + heading
 constexpr size_t INPUT_DIM = ARM_INPUT_DIM + 3;  // arm vel. + forward vel. + sideways vel. (ignored if non-hol.) + rotational vel.
 
+constexpr size_t BASE_TYPE_COUNT = 3;
 enum class BaseType {
   none = 0,
   skidsteer = 1,
