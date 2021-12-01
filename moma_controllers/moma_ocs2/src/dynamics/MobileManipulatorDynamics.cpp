@@ -33,8 +33,8 @@ namespace ocs2 {
 namespace mobile_manipulator {
 
 MobileManipulatorDynamics::MobileManipulatorDynamics(const std::string& modelName, const std::string& modelFolder /*= "/tmp/ocs2"*/,
-                                                     bool recompileLibraries /*= true*/, bool verbose /*= true*/,
-                                                     BaseType baseType /*= BaseType::none */)
+                                                     bool recompileLibraries /*= true*/, BaseType baseType /*= BaseType::none */,
+                                                     bool verbose /*= true*/)
     : SystemDynamicsBaseAD() {
   baseType_ = baseType;
   Base::initialize(STATE_DIM, INPUT_DIM, modelName, modelFolder, recompileLibraries, verbose);
