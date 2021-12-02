@@ -37,6 +37,10 @@ bool MpcController::init() {
     ROS_ERROR("Failed to retrieve /ocs2_mpc/base_type from param server.");
     return 0;
   }
+  if (baseTypeInt >= ocs2::mobile_manipulator::BASE_TYPE_COUNT){
+    ROS_ERROR("The value of base_type is not supported.");
+    return 0;
+  }
   ocs2::mobile_manipulator::BaseType baseType = static_cast<ocs2::mobile_manipulator::BaseType>(baseTypeInt);
 
   mm_interface_.reset(

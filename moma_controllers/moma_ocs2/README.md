@@ -4,7 +4,7 @@ This package provides an interface to ocs2 for control of a mobile manipulator. 
 
 The system dynamics consist in the kinematic model. As a consequence the model predictive controller optimizes the joint velocities and the base twist. The solution is subject to velocity constraints.
 
-### Install
+### Manual Install
 
 The solver has the potential to check for self collision by specifying which link pair should be checked for self collision. The collision checking library `hpp-fcl` needs therefore to be installed. System modelig (forward kinematics, auto-differentiation and derivatives) uses the `pinocchio` libray that needs to be installed as well. Standard binaries do not work here since, they do not come with support for the collision checking provided by `hpp-fcl`. 
 
