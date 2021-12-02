@@ -8,7 +8,7 @@ Install from source on noetic, since the default Ubuntu package does not work:
   - `sudo rosdep init`
   - `rosdep update`
   - `rosdep install -i --as-root pip:false --reinstall --from-paths multimaster_fkie`
-  - `catkin build fkie_node_manager`(`_daemon`)
+  - `catkin build fkie_node_manager`(`_daemon`)` fkie_multimaster`
 
 ## Configuration
 Configure all PCs you want to manage using node manager:
