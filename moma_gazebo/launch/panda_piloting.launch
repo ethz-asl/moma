@@ -5,6 +5,8 @@
   <arg name="panda_z_position" default="0.0"/>
   <arg name="use_fixed_realsense" default="false"/>
   <arg name="tool" default="none"/>
+  <!-- 0 = none, 1 = skidsteer, 2 = holonomic -->
+  <arg name="base_type" default="0"/>
 
   <env name="GAZEBO_MODEL_PATH" value="${GAZEBO_MODEL_PATH}:$(find moma_gazebo)/models"/>
 
@@ -30,6 +32,7 @@
   <!-- OCS2 params -->
   <param name="ocs2_mpc/task_file"  value="$(find moma_ocs2)/config/mpc/task_panda.info"/>
   <param name="ocs2_mpc/robot_description_ocs2" command="$(find xacro)/xacro $(find moma_description)/urdf/superpanda.urdf.xacro use_nominal_extrinsics:=true tool:='none'"/>
+  <param name="ocs2_mpc/base_type" value="$(arg base_type)"/>
   <include file="$(find panda_mpc)/launch/interactive_marker.launch"/>
 
   <!-- start joint position trajectory controller -->
@@ -40,7 +43,7 @@
   <!-- Load but do not start these controllers -->
   <arg name="controllers_load_list" value="joint_space_controller joint_velocity_controller path_admittance_controller mpc_controller"/>
   <node name="controller_loader" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="--stopped $(arg controllers_load_list)" />
- 
+
   <!-- Already start these controllers -->
   <arg name="controllers_start_list" value="path_passthrough_controller"/>
   <node name="controller_starter" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="$(arg controllers_start_list)" />

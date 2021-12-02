@@ -72,7 +72,7 @@ namespace mobile_manipulator {
 /******************************************************************************************************/
 /******************************************************************************************************/
 /******************************************************************************************************/
-MobileManipulatorInterface::MobileManipulatorInterface(const std::string& taskFile,  const std::string& urdfXML) {
+MobileManipulatorInterface::MobileManipulatorInterface(const std::string& taskFile, const std::string& urdfXML, const BaseType& baseType) {
     // check that task file exists
   boost::filesystem::path taskFilePath(taskFile);
   if (boost::filesystem::exists(taskFilePath)) {
@@ -91,6 +91,7 @@ MobileManipulatorInterface::MobileManipulatorInterface(const std::string& taskFi
   std::cerr << "Generated library path: " << libraryFolder_ << std::endl;
 
   urdfXML_ = urdfXML;
+  baseType_ = baseType;
   pinocchioInterfacePtr_.reset(new PinocchioInterface(buildPinocchioInterfaceFromXML(urdfXML_)));
   pinocchioDesiredInterfacePtr_.reset(new PinocchioInterface(buildPinocchioInterfaceFromXML(urdfXML_)));
   std::cerr << *pinocchioInterfacePtr_;
@@ -132,7 +133,7 @@ MobileManipulatorInterface::MobileManipulatorInterface(const std::string& taskFi
                                                                                     usePreComputation, libraryFolder_, recompileLibraries));
 
   // Dynamics
-  problem_.dynamicsPtr.reset(new MobileManipulatorDynamics("mobile_manipulator_dynamics", libraryFolder_, recompileLibraries, true));
+  problem_.dynamicsPtr.reset(new MobileManipulatorDynamics("mobile_manipulator_dynamics", libraryFolder_, recompileLibraries, baseType, true));
 
   /*
    * Pre-computation
@@ -211,11 +212,11 @@ std::unique_ptr<StateCost> MobileManipulatorInterface::getEndEffectorConstraint(
 
   std::unique_ptr<StateConstraint> constraint;
   if (usePreComputation) {
-    MobileManipulatorPinocchioMapping<scalar_t> pinocchioMapping;
+    MobileManipulatorPinocchioMapping<scalar_t> pinocchioMapping(baseType_);
     PinocchioEndEffectorKinematics eeKinematics(pinocchioInterface, pinocchioMapping, {eeFrame_});
     constraint.reset(new EndEffectorConstraint(eeKinematics, *referenceManagerPtr_));
   } else {
-    MobileManipulatorPinocchioMapping<ad_scalar_t> pinocchioMappingCppAd;
+    MobileManipulatorPinocchioMapping<ad_scalar_t> pinocchioMappingCppAd(baseType_);
     PinocchioEndEffectorKinematicsCppAd eeKinematics(pinocchioInterface, pinocchioMappingCppAd, {eeFrame_}, STATE_DIM, INPUT_DIM,
                                                      "end_effector_kinematics", libraryFolder, recompileLibraries, false);
     constraint.reset(new EndEffectorConstraint(eeKinematics, *referenceManagerPtr_));
@@ -261,10 +262,10 @@ std::unique_ptr<StateCost> MobileManipulatorInterface::getSelfCollisionConstrain
   std::unique_ptr<StateConstraint> constraint;
   if (usePreComputation) {
     constraint = std::unique_ptr<StateConstraint>(new MobileManipulatorSelfCollisionConstraint(
-        MobileManipulatorPinocchioMapping<scalar_t>(), std::move(geometryInterface), minimumDistance));
+        MobileManipulatorPinocchioMapping<scalar_t>(baseType_), std::move(geometryInterface), minimumDistance));
   } else {
     constraint = std::unique_ptr<StateConstraint>(
-        new SelfCollisionConstraintCppAd(pinocchioInterface, MobileManipulatorPinocchioMapping<scalar_t>(), std::move(geometryInterface),
+        new SelfCollisionConstraintCppAd(pinocchioInterface, MobileManipulatorPinocchioMapping<scalar_t>(baseType_), std::move(geometryInterface),
                                          minimumDistance, "self_collision", libraryFolder, recompileLibraries, false));
   }
 

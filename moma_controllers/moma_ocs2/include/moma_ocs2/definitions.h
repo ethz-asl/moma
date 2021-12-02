@@ -34,9 +34,16 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace ocs2 {
 namespace mobile_manipulator {
 
-constexpr size_t STATE_DIM = 7 + 3;  // 7 DOF arm + 2D position + heading
-constexpr size_t INPUT_DIM = 7 + 2;  // 7 DOF arm vel. + forward vel. + rotational vel.
-constexpr size_t ARM_INPUT_DIM = 7;
+constexpr size_t ARM_INPUT_DIM = 7;              // 7 DOF arm
+constexpr size_t STATE_DIM = ARM_INPUT_DIM + 3;  // arm pos. + 2D pos. + heading
+constexpr size_t INPUT_DIM = ARM_INPUT_DIM + 3;  // arm vel. + forward vel. + sideways vel. (ignored if non-hol.) + rotational vel.
+
+constexpr size_t BASE_TYPE_COUNT = 3;
+enum class BaseType {
+  none = 0,
+  skidsteer = 1,
+  holonomic = 2
+};
 
 }  // namespace mobile_manipulator
 }  // namespace ocs2
