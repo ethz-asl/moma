@@ -30,7 +30,11 @@
     <!-- Dummy calibration to have a fully connected tf tree and see all frames -->
     <node if="$(arg publish_dummy)" name="dummy_handeye" pkg="tf" type="static_transform_publisher" 
         args="0 0 0.05 0 0 0 $(arg robot_effector_frame) $(arg tracking_base_frame) 10" />
-    
+
+    <!-- This needs to go onto the robot -->    
+    <!-- start the robot (and an extra Rviz instance, sadly) -->
+    <include file="$(find moveit_resources_panda_moveit_config)/launch/demo.launch" />
+
     <group ns="$(arg namespace)">
 
         <!-- Store the parameters in the calibration's namespace-->
@@ -40,9 +44,11 @@
         <param name="tracking_base_frame" value="$(arg tracking_base_frame)" />
         <param name="tracking_marker_frame" value="$(arg tracking_marker_frame)" />
 
-        <param name="move_group_namespace" value="move_group"/>
-        <param name="move_group" value="move_group"/>
-        <param name="freehand_robot_movement" value="true" />
+        <param name="move_group"                value="panda_arm"/>
+        <param name="move_group_namespace"      value="/"/>
+        <arg name="freehand_robot_movement"     value="false" />
+        <arg name="robot_velocity_scaling"      value="0.5" />
+        <arg name="robot_acceleration_scaling"  value="0.2" />
 
         <!-- Start the backend -->
         <node name="easy_handeye_calibration_server" pkg="easy_handeye" type="calibrate.py" output="screen" />
