@@ -1,0 +1,36 @@
+<?xml version="1.0" ?>
+<launch>
+	<include file="$(find easy_handeye)/launch/publish.launch">
+      <arg name="calibration_file" value="$(find moma_sensor_tools)/config/handeye_calibration.yaml"/>
+      <arg name="eye_on_hand" value="true"/>
+	</include>
+
+	<node pkg="rviz" type="rviz" name="$(anon rviz)" args="-d $(find moma_sensor_tools)/config/rviz/apriltag.rviz"/>
+
+	<arg name="camera_name"       default="hand_eye" />
+  	<arg name="image_topic"       default="color/image_raw" />
+  	<arg name="rviz"              default="false"/>
+
+  <include file="$(find realsense2_camera)/launch/rs_camera.launch">
+    <arg name="camera"        value="$(arg camera_name)"/>
+    <arg name="enable_depth"  value="true"/>
+    <arg name="enable_pointcloud" value="true"/>
+    <arg name="enable_sync" value="true"/>
+  </include>
+
+<arg name="launch_prefix"     default="" /> 
+  <node pkg="apriltag_ros" type="apriltag_ros_continuous_node" name="apriltag_ros" clear_params="true" output="screen" launch-prefix="$(arg launch_prefix)" >
+    
+    <rosparam command="load" file="$(find moma_sensor_tools)/config/apriltag/settings.yaml"/>
+    <rosparam command="load" file="$(find moma_sensor_tools)/config/apriltag/tags.yaml"/>
+  
+    <!-- Remap topics from those used in code to those on the ROS network -->
+    <remap from="image_rect" to="$(arg camera_name)/$(arg image_topic)" />
+    <remap from="camera_info" to="$(arg camera_name)/camera_info" />
+
+    <param name="camera_frame" value="$(arg camera_name)_color_optical_frame" />
+    <param name="publish_tag_detections_image" type="bool" value="true" />      <!-- default: false -->
+  </node>
+
+
+</launch>
