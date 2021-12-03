@@ -28,6 +28,7 @@
   <exec_depend>moma_joint_space_controller</exec_depend>
   <exec_depend>moma_joint_velocity_controller</exec_depend>
   <exec_depend>moma_dashboard</exec_depend>
+  <exec_depend>smb_description</exec_depend>
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>
