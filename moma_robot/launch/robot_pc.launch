@@ -4,7 +4,7 @@
   <arg name="robot_ip" default="192.168.1.12"/>
 
   <!-- Load the robot description -->
-  <arg name="tool" default="robotiq_2f_toolset"/>
+  <arg name="tool" default="panda_hand"/>
 
   <!-- 0 = none, 1 = skidsteer, 2 = holonomic -->
   <arg name="base_type" default="0"/>
