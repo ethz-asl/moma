@@ -27,6 +27,7 @@
   <exec_depend>path_passthrough_controller</exec_depend>
   <exec_depend>moma_joint_space_controller</exec_depend>
   <exec_depend>moma_joint_velocity_controller</exec_depend>
+  <exec_depend>moveit_resources_panda_moveit_config</exec_depend>
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>

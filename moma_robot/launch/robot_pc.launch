@@ -8,6 +8,9 @@
 
   <!-- 0 = none, 1 = skidsteer, 2 = holonomic -->
   <arg name="base_type" default="0"/>
+
+  <!-- run moveit? requires the joint position controller -->
+  <arg name="moveit" default="false"/>
    
   <!-- send the robot XML to param server -->
   <param name="robot_description" command="$(find xacro)/xacro $(find moma_description)/urdf/panda.urdf.xacro use_nominal_extrinsics:=true use_fixed_realsense:=false tool:=$(arg tool)"/>
@@ -37,7 +40,13 @@
   <rosparam command="load" file="$(find moma_robot)/config/controllers.yaml" />
 
   <!-- Load but do not start these controllers -->
-  <arg name="controllers_load_list" value="joint_space_controller joint_velocity_controller mpc_controller path_admittance_controller"/>
+  <arg name="controllers_load_list" 
+    value="joint_space_controller 
+           joint_velocity_controller 
+           mpc_controller 
+           path_admittance_controller
+           position_joint_trajectory_controller"/>
+
   <node name="controller_loader" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="--stopped $(arg controllers_load_list)" />
 
   <!-- Already start these controllers -->
@@ -51,5 +60,9 @@
 
   <!-- An interactive marker for the mpc controller-->
   <include file="$(find panda_mpc)/launch/interactive_marker.launch"/>
+
+
+  <!-- Launch MoveIt, needed for example for automated hand-eye calibration -->
+  <include file="$(find panda_moveit_config)/launch/move_group.launch" if="$(arg moveit)"/>
 
 </launch>
