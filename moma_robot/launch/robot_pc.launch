@@ -22,34 +22,35 @@
     <param name="robot_ip" value="$(arg robot_ip)" />
   </node>
 
-  <rosparam command="load" file="$(find franka_control)/config/default_controllers.yaml" />
-  <node name="state_controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="franka_state_controller"/>
-  
-  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" output="screen"/>
-  
-  <node name="joint_state_publisher" type="joint_state_publisher" pkg="joint_state_publisher" output="screen">
-    <rosparam if="$(arg load_gripper)" param="source_list">[franka_state_controller/joint_states, franka_gripper/joint_states] </rosparam>
-    <rosparam unless="$(arg load_gripper)" param="source_list">[franka_state_controller/joint_states] </rosparam>
-    <param name="rate" value="30"/>
-  </node>
+  <!-- OCS2 params -->
+  <group ns="ocs2_mpc">
+    <param name="task_file" value="$(find moma_ocs2)/config/mpc/task_panda.info"/>
+    <param name="robot_description_ocs2" command="$(find xacro)/xacro $(find moma_description)/urdf/superpanda.urdf.xacro mpc_model:=true use_nominal_extrinsics:=true tool:='none'"/>
+    <param name="base_type" value="$(arg base_type)"/>
+  </group>
 
-  <!-- Load all available controllers -->
-  <rosparam command="load" file="$(find moma_robot)/config/controllers.yaml" />
+  <group ns="control">
+      <rosparam command="load" file="$(find franka_control)/config/default_controllers.yaml" />
+      <node name="state_controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="franka_state_controller"/>
 
-  <!-- Load but do not start these controllers -->
-  <arg name="controllers_load_list" value="joint_space_controller joint_velocity_controller mpc_controller path_admittance_controller"/>
-  <node name="controller_loader" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="--stopped $(arg controllers_load_list)" />
+      <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" output="screen"/>
 
-  <!-- Already start these controllers -->
-  <arg name="controllers_start_list" value="path_passthrough_controller"/>
-  <node name="controller_starter" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="$(arg controllers_start_list)" />
+      <node name="joint_state_publisher" type="joint_state_publisher" pkg="joint_state_publisher" output="screen">
+        <rosparam if="$(arg load_gripper)" param="source_list">[franka_state_controller/joint_states, franka_gripper/joint_states] </rosparam>
+        <rosparam unless="$(arg load_gripper)" param="source_list">[franka_state_controller/joint_states] </rosparam>
+        <param name="rate" value="30"/>
+      </node>
 
-   <!-- OCS2 params -->
-  <param name="ocs2_mpc/task_file"  value="$(find moma_ocs2)/config/mpc/task_panda.info"/>
-  <param name="ocs2_mpc/robot_description_ocs2" command="$(find xacro)/xacro $(find moma_description)/urdf/superpanda.urdf.xacro use_nominal_extrinsics:=true tool:='none'"/>
-  <param name="ocs2_mpc/base_type" value="$(arg base_type)"/>
+      <!-- Load all available controllers -->
+      <rosparam command="load" file="$(find moma_robot)/config/controllers.yaml" />
 
-  <!-- An interactive marker for the mpc controller-->
-  <include file="$(find panda_mpc)/launch/interactive_marker.launch"/>
+      <!-- Load but do not start these controllers -->
+      <arg name="controllers_load_list" value="joint_space_controller joint_velocity_controller mpc_controller path_admittance_controller"/>
+      <node name="controller_loader" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="--stopped $(arg controllers_load_list)" />
+
+      <!-- Already start these controllers -->
+      <arg name="controllers_start_list" value="path_passthrough_controller"/>
+      <node name="controller_starter" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="$(arg controllers_start_list)" />
+  </group>
 
 </launch>
