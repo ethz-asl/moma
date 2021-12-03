@@ -1,10 +1,10 @@
 <?xml version="1.0" ?>
 <launch>
-  <arg name="load_gripper" default="true"/>
-  <arg name="robot_ip" default="172.16.0.2"/>
+  <arg name="load_gripper" default="false"/>
+  <arg name="robot_ip" default="192.168.1.12"/>
 
   <!-- Load the robot description -->
-  <arg name="tool" default="panda_hand"/>
+  <arg name="tool" default="robotiq_2f_toolset"/>
 
   <!-- 0 = none, 1 = skidsteer, 2 = holonomic -->
   <arg name="base_type" default="0"/>
@@ -36,6 +36,14 @@
   <!-- Load all available controllers -->
   <rosparam command="load" file="$(find moma_robot)/config/controllers.yaml" />
 
+  <!-- Load but do not start these controllers -->
+  <arg name="controllers_load_list" value="joint_space_controller joint_velocity_controller mpc_controller path_admittance_controller"/>
+  <node name="controller_loader" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="--stopped $(arg controllers_load_list)" />
+
+  <!-- Already start these controllers -->
+  <arg name="controllers_start_list" value="path_passthrough_controller"/>
+  <node name="controller_starter" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="$(arg controllers_start_list)" />
+
    <!-- OCS2 params -->
   <param name="ocs2_mpc/task_file"  value="$(find moma_ocs2)/config/mpc/task_panda.info"/>
   <param name="ocs2_mpc/robot_description_ocs2" command="$(find xacro)/xacro $(find moma_description)/urdf/superpanda.urdf.xacro use_nominal_extrinsics:=true tool:='none'"/>
@@ -44,16 +52,4 @@
   <!-- An interactive marker for the mpc controller-->
   <include file="$(find panda_mpc)/launch/interactive_marker.launch"/>
 
-  <!--    Force sensor and filtering/compensation relay node-->
-  <include file="$(find moma_sensor_tools)/launch/ft_sensor_standalone.launch"/>
-    
-  <!--  Gripper driver -->
-  <node name="robotiq_2f_gripper_driver" pkg="robotiq_2f_gripper_control" type="Robotiq2FGripperRtuNode.py" args="/dev/r2Fg" output="screen"/>
-  
-  <!-- Gripper control -->
-  <node name="robotiq_2f_gripper_commander" pkg="moma_mission" type="gripper_commander.py" output="screen" respawn="true"/>
-
-  <node name="valve_tf_publisher" type="static_transform_publisher" pkg="tf2_ros" args="0.488 -0.040 0.298 0.707 0 -0.707 0 base_link valve_base"/>
-
-    
 </launch>
