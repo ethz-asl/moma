@@ -1,0 +1,10 @@
+<?xml version="1.0" ?>
+<launch>
+  <include file="$(find moma_dashboard)/launch/dashboard.launch"/>
+
+  <!-- start rviz -->
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find moma_robot)/config/operator_pc.rviz" />
+
+  <!-- An interactive marker for the mpc controller-->
+  <include file="$(find panda_mpc)/launch/interactive_marker.launch"/>
+</launch>
