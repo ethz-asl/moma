@@ -31,10 +31,6 @@
     <node if="$(arg publish_dummy)" name="dummy_handeye" pkg="tf" type="static_transform_publisher" 
         args="0 0 0.05 0 0 0 $(arg robot_effector_frame) $(arg tracking_base_frame) 10" />
 
-    <!-- This needs to go onto the robot -->    
-    <!-- start the robot (and an extra Rviz instance, sadly) -->
-    <include file="$(find moveit_resources_panda_moveit_config)/launch/demo.launch" />
-
     <group ns="$(arg namespace)">
 
         <!-- Store the parameters in the calibration's namespace-->
