@@ -52,11 +52,12 @@
 
   <!-- SMB Includes -->
   <xacro:include filename="$(find smb_description)/urdf/smb_piloting_properties.urdf.xacro" />
-  <xacro:if value="$(arg simulation)">
-    <xacro:include filename="$(find smb_description)/urdf/smb_gazebo_addins.urdf.xacro"/>
-  </xacro:if>
 
   <xacro:unless value="$(arg mpc_model)">
+
+    <xacro:if value="$(arg simulation)">
+      <xacro:include filename="$(find smb_description)/urdf/smb_gazebo_addins.urdf.xacro"/>
+    </xacro:if>
 
     <!-- SMB -->
     <xacro:include filename="$(find smb_description)/urdf/smb.urdf.xacro">
