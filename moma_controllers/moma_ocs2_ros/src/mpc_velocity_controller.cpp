@@ -37,6 +37,10 @@ bool MpcController::init() {
     ROS_ERROR("Failed to retrieve /ocs2_mpc/base_type from param server.");
     return 0;
   }
+  if (baseTypeInt >= ocs2::mobile_manipulator::BASE_TYPE_COUNT){
+    ROS_ERROR("The value of base_type is not supported.");
+    return 0;
+  }
   ocs2::mobile_manipulator::BaseType baseType = static_cast<ocs2::mobile_manipulator::BaseType>(baseTypeInt);
 
   mm_interface_.reset(
@@ -45,7 +49,7 @@ bool MpcController::init() {
 
   nh_.param<std::string>("/robot_description_mpc", robot_description_, "");
   nh_.param<std::string>("/mpc_controller/tool_link", tool_link_, "tool_frame");
-  nh_.param<double>("/mpc_controller/mpc_frequency", mpcFrequency_, -1);
+  nh_.param<double>("/mpc_controller/mpc_frequency", mpcFrequency_, 1e3);
   nh_.param<double>("/mpc_controller/publish_ros_frequency", publishRosFrequency_, 20);
 
   std::string commandTopic;
@@ -158,6 +162,7 @@ void MpcController::advanceMpc() {
     mpcTimer_.endTimer();
     ROS_INFO_STREAM_THROTTLE(10.0, "Mpc update took " << mpcTimer_.getLastIntervalInMilliseconds() << " ms.");
     policyReady_ = true;
+    std::this_thread::sleep_for(std::chrono::milliseconds((int)(1e3 / mpcFrequency_)));
   }
 }
 
