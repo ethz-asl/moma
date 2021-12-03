@@ -69,6 +69,6 @@
         type="static_transform_publisher"
         name="depth2_depth_opt_rebroadcaster"
         args="0 0 0 0 0 0 1 tracking_camera_odom world" />
-  <include file="$(find panda_mpc)/launch/interactive_marker.launch"/>
+  <include if="$(arg rviz)" file="$(find panda_mpc)/launch/interactive_marker.launch"/>
 
 </launch>
