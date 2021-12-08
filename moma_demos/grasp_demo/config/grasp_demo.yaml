@@ -1,5 +1,3 @@
-robot_arm_names: ["arm"]
-
 scan_joints_arm: 
     - [0.010523236721068734, -1.4790833239639014, 0.10027132190633238, -2.416246868493765, 0.08994288870361117, 1.4022499498261343, 0.8516519819506339]
     - [-0.5204305512655648, -0.7962560020246003, 0.9121961832112832, -1.6720657872605567, 0.0914094145960278, 1.2810500415696036, 0.8710614908889162]
@@ -15,9 +13,8 @@ base_frame_id: "panda_link0"
 arm_velocity_scaling_drop: 0.3
 arm_velocity_scaling_grasp: 0.2
 
-table_height: -0.05   # Measured from the base frame specified above
+table_height: 0.01   # Measured from the base frame specified above
 
 grasp_selection_method: "auto"    # choice: manual, auto
 pregrasp_offset_z: -0.05
 grasp_offset_z: 0.05  # grasp frame is defined at the gripper's palm
-

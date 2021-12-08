@@ -5,7 +5,6 @@ import sys
 from actionlib import SimpleActionServer
 import numpy as np
 from geometry_msgs.msg import *
-from gpd_ros.msg import GraspConfigList
 import rospy
 from sensor_msgs.msg import PointCloud2
 import tf
@@ -22,17 +21,11 @@ from vpp_msgs.srv import GetMap
 
 
 class PlanGraspNode(object):
-    def __init__(self, method):
+    def __init__(self):
         self._read_parameters()
         self._init_visualization()
         self.listener = tf.TransformListener()
-
-        if method == "gpd":
-            self._init_gpd()
-        elif method == "vgn":
-            self._init_vgn()
-        else:
-            raise ValueError("Invalid grasp detection method")
+        self._init_vgn()
 
         self.action_server = SimpleActionServer(
             "grasp_selection_action",
@@ -65,24 +58,6 @@ class PlanGraspNode(object):
             "moma_demo/grasp_selection_method"
         )
 
-    def _init_gpd(self):
-        self.gpd_cloud_pub = rospy.Publisher(
-            "detect_grasps/cloud_stitched", PointCloud2, queue_size=10
-        )  # publishing a cloud to this topic triggers GPD
-        self.detect_grasps = self._detect_grasps_with_gpd
-
-    def _detect_grasps_with_gpd(self, cloud):
-        self.gpd_cloud_pub.publish(cloud)
-        try:
-            grasp_config_list = rospy.wait_for_message(
-                "detect_grasps/clustered_grasps", GraspConfigList, timeout=120
-            )
-        except rospy.ROSException:
-            return []
-        grasps, scores = grasp_config_list_to_pose_array(grasp_config_list)
-        grasps.header.frame_id = self.base_frame_id
-        return grasps, scores
-
     def _init_vgn(self):
         rospy.sleep(
             2.0
@@ -91,7 +66,7 @@ class PlanGraspNode(object):
         self.get_map_srv = rospy.ServiceProxy("/gsm_node/get_map", GetMap)
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.net = ConvNet()
-        model_path = "/home/franka/catkin_ws/src/vgn_private/data/models/vgn_conv.pth"
+        model_path = "/home/franka/moma_ws/src/vgn_private/data/models/vgn_conv.pth"
         self.net.load_state_dict(torch.load(model_path, map_location=self.device))
         self.detect_grasps = self._detect_grasps_with_vgn
 
@@ -201,38 +176,9 @@ class PlanGraspNode(object):
         self.selected_grasp_pub.publish(selected_grasp)
 
 
-def grasp_config_list_to_pose_array(grasp_config_list):
-    pose_array_msg = PoseArray()
-    pose_array_msg.header.stamp = rospy.Time.now()
-    scores = []
-    for grasp in grasp_config_list.grasps:
-        x_axis = np.r_[grasp.axis.x, grasp.axis.y, grasp.axis.z]
-        y_axis = np.r_[grasp.binormal.x, grasp.binormal.y, grasp.binormal.z]
-        z_axis = np.r_[grasp.approach.x, grasp.approach.y, grasp.approach.z]
-        rot_mat = np.vstack([x_axis, y_axis, z_axis]).T
-        if np.linalg.det(rot_mat) < 0:
-            # Not a right-handed system, flipping y-axis
-            y_axis *= -1
-            rot_mat = np.vstack([x_axis, y_axis, z_axis]).T
-        rot = Rotation.from_dcm(rot_mat)
-        if x_axis[0] < 0:
-            # X-axis pointing in negative direction, rotating around Z axis
-            rot = rot * Rotation.from_euler("z", 180, degrees=True)
-
-        msg = Pose()
-        msg.orientation = to_quat_msg(rot)
-        msg.position = grasp.position
-
-        pose_array_msg.poses.append(msg)
-        scores.append(grasp.score)
-
-    return pose_array_msg, scores
-
-
 def main():
     rospy.init_node("grasp_selection_action_node")
-    method = sys.argv[1]
-    PlanGraspNode(method)
+    PlanGraspNode()
     rospy.spin()
 
 

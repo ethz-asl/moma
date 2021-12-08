@@ -2,20 +2,14 @@
 <launch>
 
     <!-- Arguments -->
-
-    <!-- Select a robot. Can be "yumi" or "panda". -->
-    <arg name="robot_name" default="panda"/>
-    <!-- Choose whether to use voxblox++ for semantic scene reconstruction and grasp selection -->
-    <arg name="semantic" default="true"/>
-    <arg name="detect_grasps_with" default="vgn" />
+    <arg name="semantic" default="true" doc="Use Voxblox++ for semantic scene reconstruction" />
     <arg name="launch_rviz" default="false"/>
-    <!-- Simulation mode (when set to true, the demo is run in Gazebo) -->
     <arg name="simulation_mode" default="false"/>
 
     <!-- ======== Launch everything ======== -->
 
     <!-- Load parameters -->
-    <rosparam command="load" file="$(find grasp_demo)/config/$(arg robot_name)/grasp_demo.yaml" ns="manipulator/moma_demo"/>
+    <rosparam command="load" file="$(find grasp_demo)/config/grasp_demo.yaml" ns="manipulator/moma_demo"/>
 
     <!-- Launch camera -->
     <include file="$(find realsense2_camera)/launch/rs_camera.launch" unless="$(arg simulation_mode)">
@@ -29,35 +23,26 @@
     </include>
 
     <!-- Bringup robot -->
-    <include unless="$(arg simulation_mode)" file="$(find moma_bringup)/launch/$(arg robot_name)_moveit_real.launch" ns="manipulator">
+    <include unless="$(arg simulation_mode)" file="$(find moma_bringup)/launch/panda_moveit_real.launch" ns="manipulator">
         <arg name="launch_rviz" value="false"/>
     </include>
-    <include if="$(arg simulation_mode)" file="$(find moma_gazebo)/launch/$(arg robot_name)_example.launch">
+    <include if="$(arg simulation_mode)" file="$(find moma_gazebo)/launch/panda_example.launch">
         <arg name="rviz" value="false"/>
         <arg name="world_name" value="$(find moma_gazebo)/worlds/table_top_1.world"/>
         <arg name="panda_z_position" value="0.8"/>
         <arg name="use_fixed_realsense" value="true"/>
     </include>
 
-    <!-- Launch GPD -->
-    <node name="detect_grasps" if="$(eval arg('detect_grasps_with') == 'gpd')" pkg="gpd_ros" type="detect_grasps" ns="manipulator" output="screen">
-        <param name="cloud_type" value="0"/>
-        <param name="cloud_topic" value="cloud_stitched"/>
-        <param name="samples_topic" value=""/>
-        <param name="config_file" value="$(find grasp_demo)/config/$(arg robot_name)/gpd.cfg"/>
-        <param name="rviz_topic" value="plot_grasps"/>
-    </node>
-
     <!-- Launch action scripts -->
     <node pkg="grasp_demo" type="reset.py" name="reset" ns="manipulator" output="screen"/>
     <node pkg="grasp_demo" type="reconstruct_scene.py" name="scan_action_node" args="$(arg semantic)" ns="manipulator" output="screen" />
-    <node pkg="grasp_demo" type="plan_grasp.py" name="plan_grasp" args="$(arg detect_grasps_with)" ns="manipulator" output="screen"/>
+    <node pkg="grasp_demo" type="plan_grasp.py" name="plan_grasp" ns="manipulator" output="screen"/>
     <node pkg="grasp_demo" type="execute_grasp.py" name="execute_grasp" ns="manipulator" output="screen"/>
     <node pkg="grasp_demo" type="drop_object.py" name="drop_object" ns="manipulator" output="screen"/>
 
     <node pkg="grasp_demo" type="run_plan.py" name="grasp_demo" ns="manipulator" output="screen"/>
 
     <!-- Open rviz if desired -->
-    <node if="$(arg launch_rviz)" type="rviz" name="rviz" pkg="rviz" args="-d $(find grasp_demo)/config/$(arg robot_name)/rviz.rviz" ns="manipulator"/>
+    <node if="$(arg launch_rviz)" type="rviz" name="rviz" pkg="rviz" args="-d $(find grasp_demo)/config/grasp_demo.rviz" ns="manipulator"/>
 
 </launch>
