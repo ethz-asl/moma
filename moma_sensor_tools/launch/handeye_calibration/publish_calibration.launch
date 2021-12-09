@@ -22,7 +22,7 @@
 
   <!-- April tag tf published from optical center to the tag. Tag should not move in a fixed reference frame -->
   <include file="$(find moma_sensor_tools)/launch/handeye_calibration/apriltag_tracking.launch" if="$(arg debug_apriltag)">
-    <arg name="launch_realsense"  value="true"/>
+    <arg name="launch_realsense"  value="false"/>
     <arg name="camera_name"       value="hand_eye"/>
     <arg name="image_topic"       value="color/image_raw"/>
     <arg name="rviz"              value="false"/>

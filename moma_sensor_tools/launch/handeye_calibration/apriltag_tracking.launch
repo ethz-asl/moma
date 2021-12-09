@@ -14,8 +14,8 @@
     
     <param name="camera_frame" value="$(arg camera_name)_color_optical_frame" />
     <param name="publish_tag_detections_image" type="bool" value="true" />      <!-- default: false -->
-    <rosparam command="load" file="$(find moma_sensor_tools)/config/apriltag/apriltag_settings.yaml"/>
-    <rosparam command="load" file="$(find moma_sensor_tools)/config/apriltag/apriltags.yaml"/>  
+    <rosparam command="load" file="$(find moma_sensor_tools)/config/handeye_calibration/apriltag_settings.yaml"/>
+    <rosparam command="load" file="$(find moma_sensor_tools)/config/handeye_calibration/apriltags.yaml"/>  
   </node>
 
   <!-- Optionally run the realsense-->
