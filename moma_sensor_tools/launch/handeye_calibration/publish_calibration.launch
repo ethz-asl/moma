@@ -4,7 +4,7 @@
   <arg name="launch_realsense"  default="false"/> <!-- launch also realsense from here -->
   <arg name="debug_apriltag"    default="false"/> <!-- run tracker to debug calibration -->
   <arg name="debug_pcl"         default="false"/> <!-- show point cloud to debug calibration -->
-  <arg name="calibration_file"  default="$(find moma_sensor_tools)/config/handeye_calibration.yaml"/>
+  <arg name="calibration_file"  default="$(find moma_sensor_tools)/config/handeye_calibration/handeye_calibration.yaml"/>
 
   <!-- Read calibration from file and publish tf -->
 	<include file="$(find easy_handeye)/launch/publish.launch">
@@ -14,7 +14,7 @@
 
   <!-- Optionally launch the realsense from this launch script -->
   <include file="$(find realsense2_camera)/launch/rs_camera.launch" if="$(arg launch_realsense)">
-    <arg name="camera"                value="$(arg camera_name)"/>
+    <arg name="camera"                value="hand_eye"/>
     <arg name="enable_depth"          value="$(arg debug_pcl)"/>
     <arg name="enable_pointcloud"     value="$(arg debug_pcl)"/>
     <arg name="enable_sync"           value="true"/>
