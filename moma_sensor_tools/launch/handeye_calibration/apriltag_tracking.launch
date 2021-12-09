@@ -25,5 +25,5 @@
   </include>
 
   <!-- Rviz helper visualization -->
-  <node pkg="rviz" type="rviz" name="$(anon rviz)" args="-d $(find moma_sensor_tools)/config/rviz/apriltag.rviz" if="$(arg rviz)"/>
+  <node pkg="rviz" type="rviz" name="$(anon rviz)" args="-d $(find moma_sensor_tools)/config/rviz/hand_eye.rviz" if="$(arg rviz)"/>
 </launch>
