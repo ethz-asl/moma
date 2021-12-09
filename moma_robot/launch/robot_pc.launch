@@ -52,7 +52,7 @@
 
   <!-- Already start these controllers -->
   <arg name="controllers_start_list" value="path_passthrough_controller"/>
-  <node name="controller_starter" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="$(arg controllers_start_list)" />
+  <!-- <node name="controller_starter" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="$(arg controllers_start_list)" /> -->
 
    <!-- OCS2 params -->
   <param name="ocs2_mpc/task_file"  value="$(find moma_ocs2)/config/mpc/task_panda.info"/>
