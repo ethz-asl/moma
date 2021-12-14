@@ -1,0 +1,17 @@
+<?xml version="1.0" ?>
+<launch>
+  <arg name="image_topic"           default="/hand_eye/color/image_raw"/>   
+  <arg name="camera_optical_frame"  default="hand_eye_color_optical_frame"/>
+  
+  <!-- we use a monocular setup ==> left = right image -->
+  <node name="valve_keypoints_tracker" pkg="object_keypoints_ros" type="run_pipeline.py" output="screen">
+    <param name="left_image_topic"    value="$(arg image_topic)" />
+    <param name="right_image_topic"   value="$(arg image_topic)" />
+    <param name="left_camera_frame"   value="$(arg camera_optical_frame)" />
+    <param name="load_model"          value="$(find object_keypoints_ros)/models/modelv2.pt" />
+    <param name="calibration"         value="$(find moma_launch)/config/keypoints/intrinsics_rs_435.yaml" />
+    <param name="keypoints"           value="$(find moma_launch)/config/keypoints/valve_keypoints.json" />
+    <param name="pnp"                 value="false"   type="bool" />
+    <param name="gpu"                 value="false"   type="bool" />
+  </node>
+</launch>

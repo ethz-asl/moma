@@ -1,0 +1,79 @@
+# Output of camera_info message
+# header: 
+#   seq: 2292
+#   stamp: 
+#     secs: 1639136564
+#     nsecs: 790462732
+#   frame_id: "hand_eye_color_optical_frame"
+# height: 720
+# width: 1280
+# distortion_model: "plumb_bob"
+# D: [0.13577574491500854, -0.41805607080459595, 0.00055683747632429, 0.00012352768681012094, 0.33240196108818054]
+# K: [916.5718994140625, 0.0, 632.3677978515625, 0.0, 915.8968505859375, 360.9848937988281, 0.0, 0.0, 1.0]
+# R: [1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
+# P: [916.5718994140625, 0.0, 632.3677978515625, 0.0, 0.0, 915.8968505859375, 360.9848937988281, 0.0, 0.0, 0.0, 1.0, 0.0]
+# binning_x: 0
+# binning_y: 0
+# roi: 
+#   x_offset: 0
+#   y_offset: 0
+#   height: 0
+#   width: 0
+#   do_rectify: False
+
+cam0:
+  cam_overlaps:
+  - 1
+  camera_model: pinhole
+  distortion_coeffs:
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  distortion_model: plumb_bob
+  intrinsics:
+  - 916.5718994140625
+  - 915.8968505859375
+  - 632.3677978515625
+  - 360.9848937988281
+  resolution:
+  - 1280
+  - 720
+  rostopic: /hand_eye/color/image_raw
+
+cam1:
+  T_cn_cnm1:
+  - - 1.0
+    - 0.0
+    - 0.0
+    - 0.0
+  - - 0.0
+    - 1.0
+    - 0.0
+    - 0.0
+  - - 0.0
+    - 0.0
+    - 1.0
+    - 0.0
+  - - 0.0
+    - 0.0
+    - 0.0
+    - 1.0
+  cam_overlaps:
+  - 0
+  camera_model: pinhole
+  distortion_coeffs:
+  - 0.0
+  - 0.0
+  - 0.0
+  - 0.0
+  distortion_model: plumb_bob
+  intrinsics:
+  - 695.4962586601407
+  - 694.7575730655351
+  - 646.8392006664676
+  - 367.6212371061266
+  resolution:
+  - 1280
+  - 720
+  rostopic: /hand_eye/color/image_raw

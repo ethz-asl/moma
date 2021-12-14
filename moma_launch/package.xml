@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>moma_launch</name>
+  <version>0.0.0</version>
+  <description>The moma_launch package</description>
+
+  <maintainer email="grizzi@ethz.ch">Giuseppe Rizzi</maintainer>
+  <license>TODO</license>
+
+  <author >Giuseppe Rizzi</author>
+  <buildtool_depend>catkin</buildtool_depend>
+</package>
