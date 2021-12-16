@@ -32,8 +32,6 @@ class PandaMpcController
           franka_hw::FrankaModelInterface, hardware_interface::EffortJointInterface,
           franka_hw::FrankaStateInterface> {
  public:
-  using joint_vector_t = Eigen::Matrix<double, 7, 1>;
-
   // explicit controller to allow for a missing hardware interface
   using BASE =
       controller_interface::MultiInterfaceController<franka_hw::FrankaModelInterface,
@@ -57,20 +55,20 @@ class PandaMpcController
   void read_state();
 
   // Saturation
-  void saturate_torque_rate(const std::array<double, 7>& tau_J_d);
+  void saturate_torque_rate(const std::array<double, ocs2::mobile_manipulator::ARM_INPUT_DIM>& tau_J_d);
 
  private:
   bool sim_;
 
   // dynamic model
   std::unique_ptr<rc::RobotWrapper> robot_model_;
-  std::array<control_toolbox::Pid, 7> pid_controllers_;
-  joint_vector_t position_command_;
-  joint_vector_t velocity_command_;
-  joint_vector_t position_error_;
-  joint_vector_t velocity_error_;
-  joint_vector_t gravity_and_coriolis_;
-  joint_vector_t tau_;
+  std::array<control_toolbox::Pid, ocs2::mobile_manipulator::ARM_INPUT_DIM> pid_controllers_;
+  MpcController::state_vector_t position_command_;
+  MpcController::input_vector_t velocity_command_;
+  MpcController::state_vector_t position_error_;
+  MpcController::input_vector_t velocity_error_;
+  MpcController::joint_vector_t arm_gravity_and_coriolis_;
+  MpcController::joint_vector_t arm_tau_;
 
   // Keep state dynamic vector to account for eventual gripper case
   Eigen::VectorXd position_current_;
@@ -85,7 +83,7 @@ class PandaMpcController
 
   std::string arm_id_;
   std::vector<std::string> joint_names_;
-  std::array<double, 7> coriolis_;
+  std::array<double, ocs2::mobile_manipulator::ARM_INPUT_DIM> coriolis_;
   double coriolis_factor_ = 1.0;
   franka::RobotState robot_state_;
 
