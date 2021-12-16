@@ -6,6 +6,7 @@
 
 #include <mutex>
 
+#include <moma_ocs2/definitions.h>
 #include <moma_ocs2/MobileManipulatorInterface.h>
 
 #include <ocs2_core/misc/Benchmark.h>
@@ -27,25 +28,32 @@ namespace moma_controllers {
 
 class MpcController{
  public:
-  using joint_vector_t = Eigen::Matrix<double, 7, 1>;
+  using state_vector_t = Eigen::Matrix<double, ocs2::mobile_manipulator::STATE_DIM, 1>;
+  using input_vector_t = Eigen::Matrix<double, ocs2::mobile_manipulator::INPUT_DIM, 1>;
+  using joint_vector_t = Eigen::Matrix<double, ocs2::mobile_manipulator::ARM_INPUT_DIM, 1>;
+  using base_vector_t = Eigen::Matrix<double, ocs2::mobile_manipulator::BASE_INPUT_DIM, 1>;
 
   MpcController() = delete;
   explicit MpcController(const ros::NodeHandle& nh);
   ~MpcController();
 
   bool init();
-  void start(const joint_vector_t& initial_observation);
-  void update(const ros::Time& time, const joint_vector_t& observation);
+  void start(const state_vector_t& initial_observation);
+  void update(const ros::Time& time, const state_vector_t& observation);
   void stop();
   /**
    * Updates the desired cost trajectories from path message.
    * @param desiredPath
    */
   void pathCallback(const nav_msgs::PathConstPtr& desiredPath);
-  inline Eigen::VectorXd get_position_command() const { return positionCommand_; }
-  inline Eigen::VectorXd get_velocity_command() const { return velocityCommand_; }
-  inline const ros::NodeHandle& get_node_handle() { return nh_; }
-  inline std::string get_description() { return robot_description_; }
+  inline state_vector_t getPositionCommand() const { return positionCommand_; }
+  inline input_vector_t getVelocityCommand() const { return velocityCommand_; }
+  /*inline joint_vector_t getArmPositionCommand() const { return positionCommand_.tail<ocs2::mobile_manipulator::ARM_INPUT_DIM>(); }
+  inline joint_vector_t getArmVelocityCommand() const { return velocityCommand_.tail<ocs2::mobile_manipulator::ARM_INPUT_DIM>(); }
+  inline base_vector_t getBasePositionCommand() const { return positionCommand_.head<ocs2::mobile_manipulator::BASE_INPUT_DIM>(); }
+  inline base_vector_t getBaseVelocityCommand() const { return velocityCommand_.head<ocs2::mobile_manipulator::BASE_INPUT_DIM>(); }*/
+  inline const ros::NodeHandle& getNodeHandle() { return nh_; }
+  inline std::string getDescription() { return robot_description_; }
 
  protected:
 
@@ -57,7 +65,7 @@ class MpcController{
 
  private:
   void advanceMpc();
-  void setObservation(const joint_vector_t& q);
+  void setObservation(const state_vector_t& q);
   void updateCommand();
   void writeDesiredPath(const nav_msgs::Path& path);
   void publishObservation();
@@ -79,9 +87,9 @@ class MpcController{
   std::string tool_link_;
   std::string robot_description_;
 
-  joint_vector_t jointInitialState_;
-  joint_vector_t positionCommand_;
-  joint_vector_t velocityCommand_;
+  state_vector_t initialState_;
+  state_vector_t positionCommand_;
+  input_vector_t velocityCommand_;
   std::vector<std::string> jointNames_;
 
   ros::NodeHandle nh_;
@@ -93,7 +101,6 @@ class MpcController{
   std::atomic_bool stopped_;
   std::unique_ptr<ocs2::MPC_DDP> mpcPtr_;
   double mpcFrequency_;
-  std::string taskFile_;
 
   std::atomic_bool policyReady_;
   std::atomic_bool referenceEverReceived_;
@@ -124,7 +131,6 @@ class MpcController{
   double publishRosFrequency_;
   std::thread publishRosThread_;
   realtime_tools::RealtimePublisher<nav_msgs::Path> command_path_publisher_;
-  realtime_tools::RealtimePublisher<nav_msgs::Path> desired_path_publisher_;
   realtime_tools::RealtimePublisher<nav_msgs::Path> rollout_publisher_;
 
 };  

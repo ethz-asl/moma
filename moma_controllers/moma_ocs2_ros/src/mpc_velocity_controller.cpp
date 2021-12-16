@@ -9,6 +9,7 @@
 #include <pinocchio/algorithm/kinematics.hpp>
 
 #include "moma_ocs2_ros/mpc_velocity_controller.h"
+#include <moma_ocs2/definitions.h>
 #include <eigen_conversions/eigen_msg.h>
 #include <geometry_msgs/TransformStamped.h>
 #include <ros/package.h>
@@ -31,15 +32,25 @@ bool MpcController::init() {
     ROS_ERROR("Failed to retrieve /ocs2_mpc/robot_description_ocs2 from param server.");
     return 0;
   }
+  int baseTypeInt;
+  if (!nh_.param("/ocs2_mpc/base_type", baseTypeInt, 0)){
+    ROS_ERROR("Failed to retrieve /ocs2_mpc/base_type from param server.");
+    return 0;
+  }
+  if (baseTypeInt >= ocs2::mobile_manipulator::BASE_TYPE_COUNT){
+    ROS_ERROR("The value of base_type is not supported.");
+    return 0;
+  }
+  ocs2::mobile_manipulator::BaseType baseType = static_cast<ocs2::mobile_manipulator::BaseType>(baseTypeInt);
 
   mm_interface_.reset(
-      new ocs2::mobile_manipulator::MobileManipulatorInterface(taskFile, urdfXML));
+      new ocs2::mobile_manipulator::MobileManipulatorInterface(taskFile, urdfXML, baseType));
   mpcPtr_ = mm_interface_->getMpc();
 
   nh_.param<std::string>("/robot_description_mpc", robot_description_, "");
   nh_.param<std::string>("/mpc_controller/base_link", base_link_, "base_link");
   nh_.param<std::string>("/mpc_controller/tool_link", tool_link_, "tool_frame");
-  nh_.param<double>("/mpc_controller/mpc_frequency", mpcFrequency_, -1);
+  nh_.param<double>("/mpc_controller/mpc_frequency", mpcFrequency_, 1e3);
   nh_.param<double>("/mpc_controller/publish_ros_frequency", publishRosFrequency_, 20);
 
   std::string commandTopic;
@@ -57,10 +68,10 @@ bool MpcController::init() {
   rollout_publisher_.init(nh_, "/mpc_rollout", 10);
 
   observation_.time = ros::Time::now().toSec();
-  observation_.state.setZero(10);
-  observation_.input.setZero(9);
-  positionCommand_.setZero(10);
-  velocityCommand_.setZero(9);
+  observation_.state.setZero(ocs2::mobile_manipulator::STATE_DIM);
+  observation_.input.setZero(ocs2::mobile_manipulator::INPUT_DIM);
+  positionCommand_.setZero();
+  velocityCommand_.setZero();
   stopped_ = true;
 
   // get static transform from tool to tracked MPC frame
@@ -87,7 +98,7 @@ MpcController::~MpcController(){
   mpcThread_.join();
 }
 
-void MpcController::start(const joint_vector_t& initial_observation) {
+void MpcController::start(const state_vector_t& initial_observation) {
   // initial observation
   if (!stopped_) return;
 
@@ -96,7 +107,7 @@ void MpcController::start(const joint_vector_t& initial_observation) {
   referenceEverReceived_ = false;
   observationEverReceived_ = false;
 
-  jointInitialState_ = initial_observation;
+  initialState_ = initial_observation;
   setObservation(initial_observation);
 
   // mpc solution update thread
@@ -152,18 +163,19 @@ void MpcController::advanceMpc() {
     mpcTimer_.endTimer();
     ROS_INFO_STREAM_THROTTLE(10.0, "Mpc update took " << mpcTimer_.getLastIntervalInMilliseconds() << " ms.");
     policyReady_ = true;
+    std::this_thread::sleep_for(std::chrono::milliseconds((int)(1e3 / mpcFrequency_)));
   }
 }
 
-void MpcController::update(const ros::Time& time, const joint_vector_t& observation) {
+void MpcController::update(const ros::Time& time, const state_vector_t& observation) {
   std::unique_lock<std::mutex> lock(observationMutex_);
   setObservation(observation);
   updateCommand();
 }
 
-void MpcController::setObservation(const joint_vector_t& observation) {
+void MpcController::setObservation(const state_vector_t& observation) {
   observation_.time = ros::Time::now().toSec();
-  observation_.state.tail(7) = observation;
+  observation_.state = observation;
   observationEverReceived_ = true;
 }
 
@@ -179,7 +191,7 @@ void MpcController::updateCommand() {
   static size_t mode;
 
   if (!referenceEverReceived_ || !policyReady_) {
-    positionCommand_ = jointInitialState_;
+    positionCommand_ = initialState_;
     velocityCommand_.setZero();
     return;
   }
@@ -187,8 +199,8 @@ void MpcController::updateCommand() {
   mpc_mrt_interface_->updatePolicy();
   mpc_mrt_interface_->evaluatePolicy(observation_.time, observation_.state, mpcState, mpcInput,
                                        mode);
-  positionCommand_ = mpcState.tail(7);
-  velocityCommand_ = mpcInput.tail(7);
+  positionCommand_ = mpcState;
+  velocityCommand_ = mpcInput;
 }
 
 void MpcController::adjustPathTime(nav_msgs::Path& desiredPath) const {
