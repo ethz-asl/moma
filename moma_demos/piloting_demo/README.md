@@ -25,7 +25,7 @@ launch simulation (arm + base + localization + planner + base control):
     ```
     The last step should spawn something like this in rviz (note the additional navigation pluing):
 
-    ![alt text](../docs/navigation_demo.png)
+    ![alt text](docs/navigation_demo.png)
 
     Make sure the correct odom frame is set in the navigation panel. After that, one can click on Edit to move the 2d interactive marker to set a new base pose, and after that Start Planning to generate a global path which is then followed by the base (tracking is not perfect and the base will stop moving in a certain tolerance).
 
