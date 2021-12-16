@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>moma_joint_position_control_gui</name>
+  <version>0.1.0</version>
+  <description>Send joint position targets to the robot.</description>
+
+  <maintainer email="jukeller@ethz.ch">Julian Keller</maintainer>
+
+  <license>TODO</license>
+
+  <author email="jukeller@ethz.ch">Julian Keller</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <exec_depend>rospy</exec_depend>
+  <exec_depend>rqt_gui</exec_depend>
+  <exec_depend>rqt_gui_py</exec_depend>
+  <exec_depend>rosparam</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>moma_joint_space_controller</exec_depend>
+
+  <export>
+    <rqt_gui plugin="${prefix}/plugin.xml"/>
+  </export>
+</package>

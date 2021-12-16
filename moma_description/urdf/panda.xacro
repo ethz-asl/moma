@@ -6,6 +6,15 @@
     <xacro:include filename="$(find franka_description)/robots/panda_arm.xacro"/>
     <xacro:panda_arm connected_to="${connected_to}" rpy="${rpy}" xyz="${xyz}"/>
 
+    <!-- no tool frame -->
+    <xacro:if value="${tool == 'none' or tool == 'panda_hand'}">
+      <link name="tool_frame"/>
+      <joint name="tool_frame_joint" type="fixed">
+        <parent link="panda_link8"/>
+        <child link="tool_frame"/>
+      </joint>
+    </xacro:if>
+
     <!-- panda hand -->
     <xacro:if value="${tool == 'panda_hand'}">
       <xacro:include filename="$(find franka_description)/robots/hand.xacro"/>

@@ -55,10 +55,20 @@ int main(int argc, char** argv) {
     ROS_ERROR("Failed to retrieve /ocs2_mpc/robot_description_ocs2 from param server.");
     return 0;
   }
+  int baseTypeInt;
+  if (!nodeHandle.param("/ocs2_mpc/base_type", baseTypeInt, 0)){
+    ROS_ERROR("Failed to retrieve /ocs2_mpc/base_type from param server.");
+    return 0;
+  }
+  if (baseTypeInt >= BASE_TYPE_COUNT){
+      ROS_ERROR("The value of base_type is not supported.");
+      return 0;
+  }
+  BaseType baseType = static_cast<BaseType>(baseTypeInt);
   const std::string libFolder = ros::package::getPath("moma_ocs2") + "/auto_generated";
 
   // Robot interface
-  MobileManipulatorInterface interface(taskFile, urdfXML);
+  MobileManipulatorInterface interface(taskFile, urdfXML, baseType);
 
   // ROS ReferenceManager
   std::shared_ptr<ocs2::RosReferenceManager> rosReferenceManagerPtr(

@@ -40,6 +40,4 @@
   
   <xacro:include filename="$(find moma_description)/urdf/panda.xacro"/>
   <xacro:panda connected_to="arm_mount_link" use_fixed_realsense="$(arg use_fixed_realsense)" control_mode="$(arg control_mode)" tool="$(arg tool)" include_gazebo_control="true" robot_namespace="" control_namespace="control"/>
-
-    
 </robot>

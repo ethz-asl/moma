@@ -24,6 +24,7 @@
   <depend>franka</depend>
   <depend>robot_control</depend>
   <depend>moma_ocs2_ros</depend>
+  <depend>path_passthrough_controller</depend>
 
   <export>
     <controller_interface plugin="${prefix}/plugins.xml"/>

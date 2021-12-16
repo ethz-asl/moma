@@ -9,6 +9,7 @@
 #include <pinocchio/algorithm/kinematics.hpp>
 
 #include "moma_ocs2_ros/mpc_velocity_controller.h"
+#include <moma_ocs2/definitions.h>
 #include <eigen_conversions/eigen_msg.h>
 #include <geometry_msgs/TransformStamped.h>
 #include <ros/package.h>
@@ -31,9 +32,19 @@ bool MpcController::init() {
     ROS_ERROR("Failed to retrieve /ocs2_mpc/robot_description_ocs2 from param server.");
     return 0;
   }
+  int baseTypeInt;
+  if (!nh_.param("/ocs2_mpc/base_type", baseTypeInt, 0)){
+    ROS_ERROR("Failed to retrieve /ocs2_mpc/base_type from param server.");
+    return 0;
+  }
+  if (baseTypeInt >= ocs2::mobile_manipulator::BASE_TYPE_COUNT){
+    ROS_ERROR("The value of base_type is not supported.");
+    return 0;
+  }
+  ocs2::mobile_manipulator::BaseType baseType = static_cast<ocs2::mobile_manipulator::BaseType>(baseTypeInt);
 
   mm_interface_.reset(
-      new ocs2::mobile_manipulator::MobileManipulatorInterface(taskFile, urdfXML));
+      new ocs2::mobile_manipulator::MobileManipulatorInterface(taskFile, urdfXML, baseType));
   mpcPtr_ = mm_interface_->getMpc();
 
   nh_.param<std::string>("/robot_description_mpc", robot_description_, "");

@@ -52,8 +52,8 @@ namespace mobile_manipulator {
 /******************************************************************************************************/
 /******************************************************************************************************/
 /******************************************************************************************************/
-Eigen::VectorXd getArmJointPositions(Eigen::VectorXd state) {
-  return state.tail(STATE_DIM-3);
+Eigen::VectorXd getJointPositions(Eigen::VectorXd state) {
+  return state;
 }
 
 /******************************************************************************************************/
@@ -170,23 +170,12 @@ void MobileManipulatorDummyVisualization::update(const SystemObservation& observ
 /******************************************************************************************************/
 /******************************************************************************************************/
 void MobileManipulatorDummyVisualization::publishObservation(const ros::Time& timeStamp, const SystemObservation& observation) {
-  // publish world -> base transform
-  const auto position = getBasePosition(observation.state);
-  const auto orientation = getBaseOrientation(observation.state);
-
-  geometry_msgs::TransformStamped base_tf;
-  base_tf.header.stamp = timeStamp;
-  base_tf.header.frame_id = "world";
-  base_tf.child_frame_id = "arm_base";
-  base_tf.transform.translation = ros_msg_helpers::getVectorMsg(position);
-  base_tf.transform.rotation = ros_msg_helpers::getOrientationMsg(orientation);
-  tfBroadcaster_.sendTransform(base_tf);
-
-  // publish joints transforms
+  // publish all joints transforms
   int idx = 0;
-  const auto j_arm = getArmJointPositions(observation.state);
+  const auto j_arm = getJointPositions(observation.state);
   for (const auto& jointName : jointNames_){
     jointPositions_[jointName] = j_arm[idx];
+    jointState_.name[idx] = jointName;
     jointState_.position[idx] = j_arm[idx];
     idx++;
   }

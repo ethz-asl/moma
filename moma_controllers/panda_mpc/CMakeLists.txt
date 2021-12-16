@@ -19,6 +19,7 @@ set(PACKAGE_DEPENDENCIES
     hardware_interface
     control_toolbox
     moma_ocs2_ros
+    path_passthrough_controller
 )
 
 find_package(catkin REQUIRED COMPONENTS ${PACKAGE_DEPENDENCIES})

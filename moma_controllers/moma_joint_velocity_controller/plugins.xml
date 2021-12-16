@@ -1,0 +1,11 @@
+<library path="lib/libmoma_joint_velocity_controller">
+    <class name="moma_controllers/JointVelocityController"
+           type="moma_controllers::JointVelocityController"
+           base_class_type="controller_interface::ControllerBase">
+        <description>
+            Joint Velocity Controller
+        </description>
+    </class>
+</library>
+
+
