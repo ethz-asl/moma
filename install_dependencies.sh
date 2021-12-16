@@ -19,4 +19,6 @@ sudo apt-get install \
 	ros-$ROS_DISTRO-lms1xx \
 	ros-$ROS_DISTRO-interactive-marker-twist-server \
 	ros-$ROS_DISTRO-ros-numpy \
+	ros-$ROS_DISTRO-smach\
+	ros-$ROS_DISTRO-smach-ros\
 	qtbase5-dev
