@@ -2,5 +2,6 @@
 ---
 # Define the result
 sensor_msgs/PointCloud2 pointcloud_scene
+float64 voxel_size
 ---
 # Define the feedback
