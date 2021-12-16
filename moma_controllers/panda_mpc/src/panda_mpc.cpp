@@ -92,14 +92,6 @@ bool PandaMpcController::init_parameters(ros::NodeHandle& node_handle) {
     command_base_pub_ = node_handle.advertise<geometry_msgs::Twist>(command_base_topic_, 1);
   }
 
-  for (size_t i = 0; i < ocs2::mobile_manipulator::BASE_INPUT_DIM; i++) {
-    if (!base_pid_controllers_[i].init(ros::NodeHandle(node_handle, node_handle.getNamespace() + "/gains/base_" + char('x' + i)),
-                                      false)) {
-      ROS_ERROR_STREAM("Failed to load PID parameters from base");
-      return false;
-    }
-  }
-
   for (size_t i = 0; i < ocs2::mobile_manipulator::ARM_INPUT_DIM; i++) {
     if (!arm_pid_controllers_[i].init(ros::NodeHandle(node_handle, node_handle.getNamespace() + "/gains/" + joint_names_[i]),
                                       false)) {
@@ -296,9 +288,6 @@ void PandaMpcController::compute_command(const ros::Duration& period) {
   }
 
   assert(ocs2::mobile_manipulator::BASE_INPUT_DIM == 3);
-  /*base_velocity_command_.linear.x =  base_pid_controllers_[0].computeCommand(position_error_(0), velocity_error_(0), period);
-  base_velocity_command_.linear.y =  base_pid_controllers_[1].computeCommand(position_error_(1), velocity_error_(1), period);
-  base_velocity_command_.angular.z = base_pid_controllers_[2].computeCommand(position_error_(2), velocity_error_(2), period);*/
   base_velocity_command_.linear.x =  velocity_command_(0);
   base_velocity_command_.linear.y =  velocity_command_(1);
   base_velocity_command_.angular.z = velocity_command_(2);

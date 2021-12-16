@@ -76,7 +76,6 @@ class PandaMpcController
 
   // dynamic model
   std::unique_ptr<rc::RobotWrapper> robot_model_;
-  std::array<control_toolbox::Pid, ocs2::mobile_manipulator::BASE_INPUT_DIM> base_pid_controllers_;
   std::array<control_toolbox::Pid, ocs2::mobile_manipulator::ARM_INPUT_DIM> arm_pid_controllers_;
   MpcController::state_vector_t position_command_;
   MpcController::input_vector_t velocity_command_;
