@@ -1,6 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="panda">
-  <xacro:macro name="panda_gazebo" params="arm_id include_gazebo_control:=true control_mode:='Position'">
+  <xacro:macro name="panda_gazebo" params="arm_id include_gazebo_control:=true control_mode:='Position'
+    robot_namespace:='' control_namespace:=''">
 
     <gazebo reference="${arm_id}_link0"/>
     <gazebo reference="${arm_id}_link1"/>
@@ -35,7 +36,9 @@
     <xacro:if value="${include_gazebo_control}">
       <gazebo>
         <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
-          <robotNamespace>/</robotNamespace>
+          <robotNamespace>${robot_namespace}/${control_namespace}</robotNamespace>
+          <robotDescription>robot_description</robotDescription>
+          <robotSimType>gazebo_ros_control/DefaultRobotHWSim</robotSimType>
         </plugin>
       </gazebo>
     </xacro:if>

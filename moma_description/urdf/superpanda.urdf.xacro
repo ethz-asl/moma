@@ -1,51 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
-<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="royalpanda">
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="superpanda">
 
-    <!-- Do NOT add further movable joints here, as the MPC controller relies on a total of 10 movable joints,
-         or if so, make them not load by default -->
+  <!-- SMB Arguments -->
+  <xacro:arg name="wheel_joint_type"          default="continuous"/>
+  <xacro:arg name="simulation"                default="true"/>
+  <xacro:arg name="use_ros_skid_steer"        default="false"/>  <!-- This does not work nicely -->
+  <xacro:arg name="use_ros_control"           default="false"/>  <!-- Set to faulse as we import already a plugin for the arm-->
+  <xacro:arg name="lidar"                     default="true"/>
+  <xacro:arg name="robot_namespace"           default=""/>
+  <xacro:arg name="description_name_xacro"    default="robot_description"/>
+  <xacro:arg name="publish_tf"                default="true"/>
+  <xacro:arg name="tracking_camera"           default="true"/>
+  <xacro:property name="lidar" value="$(arg lidar)"/>
 
-    <xacro:arg name="tool" default="none" />
+  <!-- SMB Includes -->
+  <xacro:include filename="$(find smb_description)/urdf/smb_piloting_properties.urdf.xacro" />
+  <xacro:if value="$(arg simulation)">
+    <xacro:include filename="$(find smb_description)/urdf/smb_gazebo_addins.urdf.xacro"/>
+  </xacro:if>
 
-    <link name="world" />
-    <joint name="base_prismatic_x" type="prismatic">
-        <parent link="world" />
-        <child link="base_x" />
-        <origin xyz="0 0 0" rpy="0 0 0"/>
-        <axis xyz="1 0 0"/>
-        <limit effort="0" velocity="0"/>
-    </joint>
-    <link name="base_x" />
-    <joint name="base_prismatic_y" type="prismatic">
-        <parent link="base_x" />
-        <child link="base_y" />
-        <origin xyz="0 0 0" rpy="0 0 0"/>
-        <axis xyz="0 1 0"/>
-        <limit effort="0" velocity="0"/>
-    </joint>
-    <link name="base_y" />
-    <joint name="base_revolute_theta" type="revolute">
-        <parent link="base_y" />
-        <child link="base_theta" />
-        <origin xyz="0 0 0" rpy="0 0 0"/>
-        <axis xyz="0 0 1"/>
-        <limit effort="0" velocity="0"/>
-    </joint>
-    <link name="base_theta">
-        <visual>
-          <origin xyz="0 0 0.1"/>
-          <geometry>
-            <box size="0.5 0.3 0.2"/>
-          </geometry>
-        </visual>
-    </link>
-    <joint name="base_to_panda" type="fixed">
-        <parent link="base_theta" />
-        <child link="arm_root" />
-        <origin xyz="0 0 0.2" rpy="0 0 0"/>
-    </joint>
-    <link name="arm_root" />
+  <!-- SMB -->
+  <xacro:include filename="$(find smb_description)/urdf/smb.urdf.xacro">
+    <xacro:arg name="lidar" default="$(arg lidar)"/>
+  </xacro:include>
+  <xacro:smb wheel_joint_type="$(arg wheel_joint_type)" simulation="$(arg simulation)" tracking_camera="$(arg tracking_camera)"/>
 
-    <xacro:include filename="$(find moma_description)/urdf/panda.xacro"/>
-    <xacro:panda connected_to="arm_root" tool="$(arg tool)"/>
+  <!-- Rigid fix between SMB and Panda -->
+  <link name="arm_mount_link"/>
+  <joint name="arm_mount_joint" type="fixed">
+      <parent link="base_link" />
+      <child link="arm_mount_link" />
+      <origin xyz="0.115 0.0 ${0.228+chassisHeight/2.0}" rpy="0 0 0"/>
+  </joint>
 
+  <!-- Panda Arguments -->
+  <xacro:arg name="use_fixed_realsense" default="false"/>
+  <xacro:arg name="tool" default="panda_hand"/>
+  <xacro:arg name="control_mode" default='Position'/>
+  
+  <xacro:include filename="$(find moma_description)/urdf/panda.xacro"/>
+  <xacro:panda connected_to="arm_mount_link" use_fixed_realsense="$(arg use_fixed_realsense)" control_mode="$(arg control_mode)" tool="$(arg tool)" include_gazebo_control="true" robot_namespace="" control_namespace="control"/>
 </robot>
