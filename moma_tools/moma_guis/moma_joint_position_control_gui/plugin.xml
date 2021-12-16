@@ -1,0 +1,17 @@
+<library path="src">
+  <class name="PositionControl" type="moma_joint_position_control_gui.position_control.PositionControl"
+         base_class_type="rqt_gui_py::Plugin">
+    <description>
+      Send joint position targets to the robot.
+    </description>
+    <qtgui>
+      <group>
+        <label>Robot Tools</label>
+        <icon type="theme">folder</icon>
+        <statustip>Plugins related to robot tools.</statustip>
+      </group>
+      <label>Joint Position Control</label>
+      <icon type="file">resource/position_icon.png</icon>
+    </qtgui>
+  </class>
+</library>

@@ -37,12 +37,14 @@ namespace mobile_manipulator {
 
 template <typename SCALAR>
 class MobileManipulatorPinocchioMapping final : public PinocchioStateInputMapping<SCALAR> {
+ private:
+  BaseType baseType_;
  public:
   using Base = PinocchioStateInputMapping<SCALAR>;
   using typename Base::matrix_t;
   using typename Base::vector_t;
 
-  MobileManipulatorPinocchioMapping() = default;
+  MobileManipulatorPinocchioMapping(BaseType baseType = BaseType::none) : baseType_(baseType) {};
   ~MobileManipulatorPinocchioMapping() override = default;
   MobileManipulatorPinocchioMapping<SCALAR>* clone() const override { return new MobileManipulatorPinocchioMapping<SCALAR>(*this); }
 
@@ -51,21 +53,55 @@ class MobileManipulatorPinocchioMapping final : public PinocchioStateInputMappin
   vector_t getPinocchioJointVelocity(const vector_t& state, const vector_t& input) const override {
     vector_t dxdt(STATE_DIM);
     const auto theta = state(2);
-    const auto v = input(0);  // forward velocity in base frame
-    dxdt << cos(theta) * v, sin(theta) * v, input(1), input.tail(INPUT_DIM-2);
+    typename vector_t::Scalar vx;      // forward velocity in base frame
+    typename vector_t::Scalar vy;      // sideways velocity in base frame
+    typename vector_t::Scalar vtheta;  // angular velocity
+    switch(baseType_) {
+      case BaseType::holonomic:
+        vx = input(0);
+        vy = input(1);
+        vtheta = input(2);
+        break;
+      case BaseType::skidsteer:
+        vx = input(0);
+        vy = typename vector_t::Scalar(0.0);
+        vtheta = input(2);
+        break;
+      case BaseType::none:
+      default:
+        vx = typename vector_t::Scalar(0.0);
+        vy = typename vector_t::Scalar(0.0);
+        vtheta = typename vector_t::Scalar(0.0);
+    }
+    dxdt << cos(theta) * vx - sin(theta) * vy, sin(theta) * vx + cos(theta) * vy, vtheta, input.tail(ARM_INPUT_DIM);
     return dxdt;
   }
 
   std::pair<matrix_t, matrix_t> getOcs2Jacobian(const vector_t& state, const matrix_t& Jq, const matrix_t& Jv) const override {
     matrix_t dfdu(Jv.rows(), INPUT_DIM);
-    Eigen::Matrix<SCALAR, 3, 2> dvdu_base;
+    Eigen::Matrix<SCALAR, 3, 3> dvdu_base;
     const SCALAR theta = state(2);
-    // clang-format off
-    dvdu_base << cos(theta), 0,
-                 sin(theta), 0,
-                 0, 1.0;
+    switch(baseType_) {
+      case BaseType::holonomic:
+        // clang-format off
+        dvdu_base << cos(theta), -sin(theta), 0.0,
+                     sin(theta), cos(theta), 0.0,
+                     0.0, 0.0, 1.0;
+        break;
+      case BaseType::skidsteer:
+        // clang-format off
+        dvdu_base << cos(theta), 0.0, 0.0,
+                     sin(theta), 0.0, 0.0,
+                     0.0, 0.0, 1.0;
+        break;
+      case BaseType::none:
+      default:
+        // clang-format off
+        dvdu_base.setZero();
+    }
+
     // clang-format on
-    dfdu.template leftCols<2>() = Jv.template leftCols<3>() * dvdu_base;
+    dfdu.template leftCols<3>() = Jv.template leftCols<3>() * dvdu_base;
     dfdu.template rightCols(ARM_INPUT_DIM) = Jv.template rightCols(ARM_INPUT_DIM);
     return {Jq, dfdu};
   }

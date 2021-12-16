@@ -1,0 +1,137 @@
+{
+  "keys": {},
+  "groups": {
+    "mainwindow": {
+      "keys": {
+        "geometry": {
+          "repr(QByteArray.hex)": "QtCore.QByteArray(b'01d9d0cb000300000000005f0000002b000003f7000003880000008500000066000003d100000362000000000000000006400000008500000066000003d100000362')",
+          "type": "repr(QByteArray.hex)",
+          "pretty-print": "     _ +       f   b    @   f   b"
+        },
+        "state": {
+          "repr(QByteArray.hex)": "QtCore.QByteArray(b'000000ff00000000fd00000001000000030000034d000002d3fc0100000001fc000000000000034d0000027a00fffffffc0100000002fb0000008c006d006f006d0061005f0063006f006e00740072006f006c006c00650072005f006d0061006e0061006700650072005f006700750069005f005f0043006f006e00740072006f006c006c00650072004d0061006e0061006700650072005f005f0031005f005f0043006f006e00740072006f006c006c00650072004d0061006e0061006700650072005500690100000000000001790000011200fffffffc0000017f000001ce0000016200fffffffc0200000002fb00000078006d006f006d0061005f006a006f0069006e0074005f007300740061007400650073005f0064006900730070006c00610079005f006700750069005f005f004a006f0069006e0074005300740061007400650073005f005f0031005f005f004a006f0069006e0074005300740061007400650073005500690100000014000001260000008100fffffffc00000140000001a7000000ce0100001afa000000000100000002fb0000008c006d006f006d0061005f006a006f0069006e0074005f0070006f0073006900740069006f006e005f0063006f006e00740072006f006c005f006700750069005f005f0050006f0073006900740069006f006e0043006f006e00740072006f006c005f005f0031005f005f0050006f0073006900740069006f006e0043006f006e00740072006f006c00550069010000017e000001d00000016200fffffffb0000008c006d006f006d0061005f006a006f0069006e0074005f00760065006c006f0063006900740079005f0063006f006e00740072006f006c005f006700750069005f005f00560065006c006f00630069007400790043006f006e00740072006f006c005f005f0031005f005f00560065006c006f00630069007400790043006f006e00740072006f006c005500690100000000ffffffff000000f600ffffff0000034d0000000000000004000000040000000800000008fc00000001000000030000000100000036004d0069006e0069006d0069007a006500640044006f0063006b00570069006400670065007400730054006f006f006c0062006100720000000000ffffffff0000000000000000')",
+          "type": "repr(QByteArray.hex)",
+          "pretty-print": "                   M z                                                                                 y                 xmoma_joint_states_display_gui__JointStates__1__JointStatesUi          @                                                                                     ~   b                                                                                    M                                                      "
+        }
+      },
+      "groups": {
+        "toolbar_areas": {
+          "keys": {
+            "MinimizedDockWidgetsToolbar": {
+              "repr": "8",
+              "type": "repr"
+            }
+          },
+          "groups": {}
+        }
+      }
+    },
+    "pluginmanager": {
+      "keys": {
+        "running-plugins": {
+          "repr": "{'moma_controller_manager_gui/ControllerManager': [1], 'moma_joint_position_control_gui/PositionControl': [1], 'moma_joint_states_display_gui/JointStates': [1], 'moma_joint_velocity_control_gui/VelocityControl': [1]}",
+          "type": "repr"
+        }
+      },
+      "groups": {
+        "plugin__moma_controller_manager_gui__ControllerManager__1": {
+          "keys": {},
+          "groups": {
+            "dock_widget__ControllerManagerUi": {
+              "keys": {
+                "dock_widget_title": {
+                  "repr": "'Controller manager'",
+                  "type": "repr"
+                },
+                "dockable": {
+                  "repr": "True",
+                  "type": "repr"
+                },
+                "parent": {
+                  "repr": "None",
+                  "type": "repr"
+                }
+              },
+              "groups": {}
+            },
+            "plugin": {
+              "keys": {
+                "cm_ns": {
+                  "repr": "'/controller_manager'",
+                  "type": "repr"
+                }
+              },
+              "groups": {}
+            }
+          }
+        },
+        "plugin__moma_joint_position_control_gui__PositionControl__1": {
+          "keys": {},
+          "groups": {
+            "dock_widget__PositionControlUi": {
+              "keys": {
+                "dock_widget_title": {
+                  "repr": "'Joint Position Control'",
+                  "type": "repr"
+                },
+                "dockable": {
+                  "repr": "True",
+                  "type": "repr"
+                },
+                "parent": {
+                  "repr": "None",
+                  "type": "repr"
+                }
+              },
+              "groups": {}
+            }
+          }
+        },
+        "plugin__moma_joint_states_display_gui__JointStates__1": {
+          "keys": {},
+          "groups": {
+            "dock_widget__JointStatesUi": {
+              "keys": {
+                "dock_widget_title": {
+                  "repr": "'Joint States Display'",
+                  "type": "repr"
+                },
+                "dockable": {
+                  "repr": "True",
+                  "type": "repr"
+                },
+                "parent": {
+                  "repr": "None",
+                  "type": "repr"
+                }
+              },
+              "groups": {}
+            }
+          }
+        },
+        "plugin__moma_joint_velocity_control_gui__VelocityControl__1": {
+          "keys": {},
+          "groups": {
+            "dock_widget__VelocityControlUi": {
+              "keys": {
+                "dock_widget_title": {
+                  "repr": "'Joint Velocity Control'",
+                  "type": "repr"
+                },
+                "dockable": {
+                  "repr": "True",
+                  "type": "repr"
+                },
+                "parent": {
+                  "repr": "None",
+                  "type": "repr"
+                }
+              },
+              "groups": {}
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -7,6 +7,7 @@ Main repository of the mobile manipulation (moma) team at ASL containing launch 
 - [`moma_bringup`](moma_bringup/README.md): Launch files and configurations for interfacing with the real robots.
 - [`moma_description`](moma_description/README.md): Unified Description Formats (URDFs) of our robots.
 - [`moma_gazebo`](moma_gazebo/README.md): Launch files, virtual worlds and plugins for Gazebo simulation (work in progress).
+- [`moma_tools`](moma_tools/README.md): User interfaces and tools for real-time robot state visualization and interaction.
 - [`moma_utils`](moma_utils/README.md): Python utilities commonly used within moma projects.
 - `panda_control`: Wrappers and custom controllers for controlling panda.
 - `panda_moveit_config`: MoveIt configuration for our panda setup.
@@ -21,33 +22,38 @@ First, clone this repository and its submodules into the `src` folder of a new o
 git clone --recurse-submodules git@github.com:ethz-asl/moma.git
 ```
 
-Install some general system dependencies.
-
+To download the dependency packages, the vcs command-line tools will be used. For more information about the tool you can check this [link](http://wiki.ros.org/vcstool).
 ```bash
-./install_dependencies.sh
+sudo apt install python3-wstool
+```
+To download the moma packages by using vcs tool run the following terminal commands in order.
+```
+cd ~/catkin_ws/src
+vcs import --recursive --input moma/moma_core.repos
 ```
 
-Set the build type to `release` for faster execution.
+Install the remaning dependencies using the provided script. 
 
 ```bash
-catkin config -DCMAKE_BUILD_TYPE=Release
+cd ~/catkin_ws/src
+./moma/install_dependencies.sh
 ```
-
-Then, use catkin to build the desired packages, e.g.
-
-```bash
-catkin build grasp_demo
-```
-
-### GPD
-
-When building a package that relies on GPD (e.g. `fetch_demo` or `grasp_demo`), GPD needs to be built separately first. For the installation instructions, refer to `submodules/gpd/README.md`.
 
 ### Wiki
 
 Before you start developing, familiarize yourself with the [robotic platform](https://github.com/ethz-asl/moma/wiki/Robots) you will be working with and make sure to checkout the [development](https://github.com/ethz-asl/moma/wiki/Development) section of our wiki.
 
+### Grasp demo
 
+__Update needed__
+
+~~Then, use catkin to build the desired packages, e.g.~~
+
+```bash
+catkin build grasp_demo
+```
+
+~~When building a package that relies on GPD (e.g. `fetch_demo` or `grasp_demo`), GPD needs to be built separately first. For the installation instructions, refer to `submodules/gpd/README.md`.~~
 
 ## Documentation
 

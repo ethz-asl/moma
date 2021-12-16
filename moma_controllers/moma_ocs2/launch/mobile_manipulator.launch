@@ -1,14 +1,17 @@
 <?xml version="1.0"?>
 <launch>
-    <arg name="robot_name" default="panda"/>
-    <arg name="rviz"       default="true" />
-    <arg name="task_file"  default="$(find moma_ocs2)/config/mpc/task_$(arg robot_name).info"/>
-    <arg name="debug"      default="false" />
+    <arg name="robot_name"  default="panda"/>
+    <arg name="rviz"        default="true" />
+    <arg name="task_file"   default="$(find moma_ocs2)/config/mpc/task_$(arg robot_name).info"/>
+    <arg name="debug"       default="false" />
+    <!-- 0 = none, 1 = skidsteer, 2 = holonomic -->
+    <arg name="base_type"   default="0"/>
 
     <group ns="ocs2_mpc">
         <param name="task_file" value="$(arg task_file)"/>
         <param name="robot_description_ocs2" command="$(find xacro)/xacro $(find moma_ocs2)/urdf/kinova.urdf" if="$(eval robot_name == 'kinova')"/>
         <param name="robot_description_ocs2" command="$(find xacro)/xacro $(find moma_description)/urdf/superpanda.urdf.xacro use_nominal_extrinsics:=true tool:='none'" if="$(eval robot_name == 'panda')"/>
+        <param name="base_type" value="$(arg base_type)"/>
     </group>
 
     <group if="$(arg rviz)">

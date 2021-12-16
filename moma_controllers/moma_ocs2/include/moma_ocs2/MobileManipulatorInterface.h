@@ -64,7 +64,7 @@ class MobileManipulatorInterface final : public RobotInterface {
    * @param [in] libraryFolder: The absolute path to the directory to generate CppAD library into.
    * @param [in] urdfXML: The URDF description string for the robot.
    */
-  explicit MobileManipulatorInterface(const std::string& taskFile, const std::string& urdfXML);
+  explicit MobileManipulatorInterface(const std::string& taskFile, const std::string& urdfXML, const BaseType& baseType);
 
   const vector_t& getInitialState() { return initialState_; }
 
@@ -101,6 +101,7 @@ class MobileManipulatorInterface final : public RobotInterface {
                                                         bool recompileLibraries);
   std::unique_ptr<StateInputCost> getJointVelocityLimitConstraint(const std::string& taskFile);
 
+  BaseType baseType_;
   std::string urdfXML_;
   std::string taskFile_;
   std::string libraryFolder_;
