@@ -4,7 +4,7 @@
   <arg name="robot_ip" default="192.168.1.12"/>
 
   <!-- Load the robot description -->
-  <arg name="tool" default="robotiq_2f_toolset"/>
+  <arg name="tool" default="panda_hand"/>
 
   <!-- 0 = none, 1 = skidsteer, 2 = holonomic -->
   <arg name="base_type" default="0"/>
@@ -22,6 +22,12 @@
     <param name="robot_ip" value="$(arg robot_ip)" />
   </node>
 
+  <node name="joint_state_publisher" type="joint_state_publisher" pkg="joint_state_publisher" output="screen">
+    <rosparam if="$(arg load_gripper)" param="source_list">[franka_state_controller/joint_states, franka_gripper/joint_states] </rosparam>
+    <rosparam unless="$(arg load_gripper)" param="source_list">[franka_state_controller/joint_states] </rosparam>
+    <param name="rate" value="30"/>
+  </node>
+
   <!-- OCS2 params -->
   <group ns="ocs2_mpc">
     <param name="task_file" value="$(find moma_ocs2)/config/mpc/task_panda.info"/>
@@ -29,17 +35,11 @@
     <param name="base_type" value="$(arg base_type)"/>
   </group>
 
-  <group ns="control">
+  <!--<group ns="control">-->
       <rosparam command="load" file="$(find franka_control)/config/default_controllers.yaml" />
       <node name="state_controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="franka_state_controller"/>
 
       <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" output="screen"/>
-
-      <node name="joint_state_publisher" type="joint_state_publisher" pkg="joint_state_publisher" output="screen">
-        <rosparam if="$(arg load_gripper)" param="source_list">[franka_state_controller/joint_states, franka_gripper/joint_states] </rosparam>
-        <rosparam unless="$(arg load_gripper)" param="source_list">[franka_state_controller/joint_states] </rosparam>
-        <param name="rate" value="30"/>
-      </node>
 
       <!-- Load all available controllers -->
       <rosparam command="load" file="$(find moma_robot)/config/controllers.yaml" />
@@ -51,6 +51,6 @@
       <!-- Already start these controllers -->
       <arg name="controllers_start_list" value="path_passthrough_controller"/>
       <node name="controller_starter" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="$(arg controllers_start_list)" />
-  </group>
+  <!--</group>-->
 
 </launch>
