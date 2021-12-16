@@ -62,6 +62,10 @@ int main(int argc, char** argv) {
     ROS_ERROR("Failed to retrieve /ocs2_mpc/base_type from param server.");
     return 0;
   }
+  if (baseTypeInt >= BASE_TYPE_COUNT){
+    ROS_ERROR("The value of base_type is not supported.");
+    return 0;
+  }
   BaseType baseType = static_cast<BaseType>(baseTypeInt);
 
   // Robot Interface

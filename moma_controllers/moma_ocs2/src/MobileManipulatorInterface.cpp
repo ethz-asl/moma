@@ -133,7 +133,7 @@ MobileManipulatorInterface::MobileManipulatorInterface(const std::string& taskFi
                                                                                     usePreComputation, libraryFolder_, recompileLibraries));
 
   // Dynamics
-  problem_.dynamicsPtr.reset(new MobileManipulatorDynamics("mobile_manipulator_dynamics", libraryFolder_, recompileLibraries, true, baseType));
+  problem_.dynamicsPtr.reset(new MobileManipulatorDynamics("mobile_manipulator_dynamics", libraryFolder_, recompileLibraries, baseType, true));
 
   /*
    * Pre-computation
