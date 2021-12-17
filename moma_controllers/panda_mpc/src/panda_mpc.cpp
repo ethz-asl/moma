@@ -220,9 +220,9 @@ void PandaMpcController::odom_callback(const nav_msgs::Odometry::ConstPtr& msg) 
   tf2::Quaternion rot(msg->pose.pose.orientation.x, msg->pose.pose.orientation.y,
                       msg->pose.pose.orientation.z, msg->pose.pose.orientation.w);
   tf2::Matrix3x3 mat(rot);
-  double r, p, y;
-  mat.getRPY(r, p, y);
-  position_current_(2) = y;
+  const tf2::Vector3 ix = mat.getColumn(0);
+  const double theta  = std::atan2(ix.y(), ix.x());
+  position_current_(2) = theta;
   velocity_current_(0) = msg->twist.twist.linear.x;
   velocity_current_(1) = msg->twist.twist.linear.y;
   velocity_current_(2) = msg->twist.twist.angular.z;
