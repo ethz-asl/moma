@@ -106,6 +106,12 @@ bool PandaMpcController::init_parameters(ros::NodeHandle& node_handle) {
         << coriolis_factor_);
   }
 
+  if (!node_handle.getParam("measurement_trust_factor", measurement_trust_factor_)) {
+    ROS_INFO_STREAM(
+        "PandaMpcController: measurement_trust_factor not found. Defaulting to "
+            << measurement_trust_factor_);
+  }
+
   ROS_INFO(
       "[PandaMpcController::init_parameters]: Parameters successfully "
       "initialized.");
@@ -230,8 +236,6 @@ void PandaMpcController::odom_callback(const nav_msgs::Odometry::ConstPtr& msg) 
 
 
 void PandaMpcController::read_state(){
-  static double alpha = 0.99;
-
   /*// Alternative reading of odometry
   geometry_msgs::TransformStamped world_to_base;
   try {
@@ -250,7 +254,7 @@ void PandaMpcController::read_state(){
 
   for (size_t i = 0; i < ocs2::mobile_manipulator::ARM_INPUT_DIM; i++) {
     position_current_(i + ocs2::mobile_manipulator::BASE_INPUT_DIM) = joint_handles_[i].getPosition();
-    velocity_current_(i + ocs2::mobile_manipulator::BASE_INPUT_DIM) = velocity_current_(i) * (1-alpha) + alpha * joint_handles_[i].getVelocity();
+    velocity_current_(i + ocs2::mobile_manipulator::BASE_INPUT_DIM) = velocity_current_(i) * (1-measurement_trust_factor_) + measurement_trust_factor_ * joint_handles_[i].getVelocity();
   }
 }
 

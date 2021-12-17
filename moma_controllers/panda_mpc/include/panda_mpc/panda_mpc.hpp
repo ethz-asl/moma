@@ -99,6 +99,7 @@ class PandaMpcController
   std::vector<std::string> joint_names_;
   std::array<double, ocs2::mobile_manipulator::ARM_INPUT_DIM> coriolis_;
   double coriolis_factor_ = 1.0;
+  double measurement_trust_factor_ = 0.99;
   franka::RobotState robot_state_;
 
   bool started_;
