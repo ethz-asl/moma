@@ -63,8 +63,10 @@ mpc_controller:
   arm_id: panda
 
   robot_name: "panda"
-  base_link: base_link
-  tool_link: tool_frame
+  base_link: "tracking_camera_odom"
+  tool_link: "tool_frame"
+  odom_topic: "/base_odom"
+  command_base_topic: "/smb_mpc/command_twist"
   joint_names:
     - panda_joint1
     - panda_joint2

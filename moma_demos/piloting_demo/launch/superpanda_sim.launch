@@ -4,6 +4,7 @@
   <arg name="rviz" default="true" />
   <arg name="use_fixed_realsense" default="false"/>
   <arg name="tool" default="none"/>
+  <arg name="mpc" default="false"/>
 
   <!-- spawn panda in siumulation -->
   <include file="$(find piloting_demo)/launch/superpanda_gazebo.launch">
@@ -12,7 +13,7 @@
     <arg name="tool" value="$(arg tool)"/>
     <arg name="gui"  value="false"/>
   </include>
-  
+
   <!-- smb control -->
   <include file="$(find smb_control)/launch/smb_control.launch">
     <arg name="description_name"        value="smb_description"/>
@@ -27,6 +28,12 @@
   <!-- Publish camera odometry tf-->
   <node pkg="odometry_conversion" type="odometry_conversion_node" name="tracking_camera_odometry_conversion" output="screen"/>
 
+  <group ns="ocs2_mpc">
+    <param name="task_file" value="$(find moma_ocs2)/config/mpc/task_panda.info"/>
+    <param name="robot_description_ocs2" command="$(find xacro)/xacro $(find moma_description)/urdf/superpanda.urdf.xacro mpc_model:=true use_nominal_extrinsics:=true tool:='none'"/>
+    <param name="base_type" value="1"/>
+  </group>
+
   <group ns="control">
     <group if="$(eval arg('tool') == 'panda_hand')">
       <node name="gripper_controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="franka_gripper" />
@@ -35,16 +42,18 @@
     <group if="$(eval arg('tool') in ['robotiq_2f_85', 'robotiq_2f_toolset'])">
       <node name="gripper_controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="robotiq_2f_85_controller" />
     </group>
-    
+
     <!-- start a robot state publisher -->
     <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="true" output="screen" />
 
     <!-- start joint position trajectory controller -->
     <rosparam file="$(find moma_gazebo)/config/panda_controllers.yaml" command="load" />
     <rosparam file="$(find moma_gazebo)/config/gripper_controllers.yaml" command="load" />
-    <node name="arm_controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="joint_state_controller effort_joint_trajectory_controller" />
+
+    <node unless="$(arg mpc)" name="arm_controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="joint_state_controller effort_joint_trajectory_controller" />
+    <node if="$(arg mpc)" name="arm_controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="joint_state_controller mpc_controller" />
   </group>
-  
+
   <node name="unpause_gazebo" pkg="moma_gazebo" type="unpause_gazebo.py">
     <param name="wait_before_unpause" value="8.0"/>
   </node>
@@ -57,5 +66,14 @@
 
   <!-- start rviz -->
   <node if="$(arg rviz)" name="rviz" pkg="rviz" type="rviz" args="-d $(find piloting_demo)/config/rviz/superpanda_sim.rviz" />
-  
+
+  <group if="$(arg mpc)">
+      <!-- Give a static transform between world and odom frame, since the "world" frame is hardcoded in ocs2_ros_interfaces -->
+      <node pkg="tf2_ros"
+            type="static_transform_publisher"
+            name="depth2_depth_opt_rebroadcaster"
+            args="0 0 0 0 0 0 1 tracking_camera_odom world" />
+      <include if="$(arg rviz)" file="$(find panda_mpc)/launch/interactive_marker.launch"/>
+  </group>
+
 </launch>

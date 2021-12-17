@@ -4,7 +4,6 @@
 
 #include <panda_mpc/panda_mpc.hpp>
 
-#include <cmath>
 #include <memory>
 #include <chrono>
 
@@ -14,6 +13,8 @@
 #include <angles/angles.h>
 
 #include <franka/robot_state.h>
+#include <tf2/transform_datatypes.h>
+//#include <geometry_msgs/TransformStamped.h>
 
 namespace moma_controllers {
 
@@ -54,6 +55,15 @@ bool PandaMpcController::init_parameters(ros::NodeHandle& node_handle) {
     return false;
   }
 
+  /*if (!node_handle.getParam("world_frame", world_frame_)) {
+    ROS_ERROR("PandaMpcController: Could not read parameter world_frame");
+    return false;
+  }
+
+  if (!node_handle.getParam("base_link", base_link_)) {
+    ROS_ERROR("PandaMpcController: Could not read parameter base_link");
+    return false;
+  }*/
 
   if (!node_handle.getParam("arm_id", arm_id_)) {
     ROS_ERROR("PandaMpcController: Could not read parameter arm_id");
@@ -69,9 +79,22 @@ bool PandaMpcController::init_parameters(ros::NodeHandle& node_handle) {
     return false;
   }
 
+  if (!node_handle.getParam("odom_topic", odom_topic_)) {
+    ROS_WARN("PandaMpcController: Could not read parameter odom_topic, ignoring");
+  } else {
+    odom_sub_ = node_handle.subscribe(odom_topic_, 1,
+                                      &PandaMpcController::odom_callback, this);
+  }
+
+  if (!node_handle.getParam("command_base_topic", command_base_topic_)) {
+    ROS_WARN("PandaMpcController: Could not read parameter command_base_topic, ignoring");
+  } else {
+    command_base_pub_ = node_handle.advertise<geometry_msgs::Twist>(command_base_topic_, 1);
+  }
+
   for (size_t i = 0; i < ocs2::mobile_manipulator::ARM_INPUT_DIM; i++) {
-    if (!pid_controllers_[i].init(ros::NodeHandle(node_handle, node_handle.getNamespace() + "/gains/" + joint_names_[i]),
-                                  false)) {
+    if (!arm_pid_controllers_[i].init(ros::NodeHandle(node_handle, node_handle.getNamespace() + "/gains/" + joint_names_[i]),
+                                      false)) {
       ROS_ERROR_STREAM("Failed to load PID parameters from " << joint_names_[i] + "/pid");
       return false;
     }
@@ -81,6 +104,12 @@ bool PandaMpcController::init_parameters(ros::NodeHandle& node_handle) {
     ROS_INFO_STREAM(
         "PandaMpcController: coriolis_factor not found. Defaulting to "
         << coriolis_factor_);
+  }
+
+  if (!node_handle.getParam("measurement_trust_factor", measurement_trust_factor_)) {
+    ROS_INFO_STREAM(
+        "PandaMpcController: measurement_trust_factor not found. Defaulting to "
+            << measurement_trust_factor_);
   }
 
   ROS_INFO(
@@ -165,7 +194,10 @@ bool PandaMpcController::init_franka_interfaces(
 
 void PandaMpcController::write_command(){
 
-  // TODO Send motion commands to base
+  // Send motion commands to base
+  if (command_base_pub_) {
+    command_base_pub_.publish(base_velocity_command_);
+  }
 
   for (size_t i = 0; i < ocs2::mobile_manipulator::ARM_INPUT_DIM; i++) {
     joint_handles_[i].setCommand(arm_tau_(i));
@@ -187,24 +219,57 @@ void PandaMpcController::starting(const ros::Time& time) {
 }
 
 
-void PandaMpcController::read_state(){
-  static double alpha = 0.99;
+void PandaMpcController::odom_callback(const nav_msgs::Odometry::ConstPtr& msg) {
+  assert(ocs2::mobile_manipulator::BASE_INPUT_DIM == 3);
+  position_current_(0) = msg->pose.pose.position.x;
+  position_current_(1) = msg->pose.pose.position.y;
+  tf2::Quaternion rot(msg->pose.pose.orientation.x, msg->pose.pose.orientation.y,
+                      msg->pose.pose.orientation.z, msg->pose.pose.orientation.w);
+  tf2::Matrix3x3 mat(rot);
+  const tf2::Vector3 ix = mat.getColumn(0);
+  const double theta  = std::atan2(ix.y(), ix.x());
+  position_current_(2) = theta;
+  velocity_current_(0) = msg->twist.twist.linear.x;
+  velocity_current_(1) = msg->twist.twist.linear.y;
+  velocity_current_(2) = msg->twist.twist.angular.z;
+}
 
-  // TODO Add reading of odometry
+
+void PandaMpcController::read_state(){
+  /*// Alternative reading of odometry
+  geometry_msgs::TransformStamped world_to_base;
+  try {
+    world_to_base =
+        tfBuffer_.lookupTransform(base_link_, world_frame_, ros::Time(0));
+    position_current_(0) = world_to_base.transform.translation.x;
+    position_current_(1) = world_to_base.transform.translation.y;
+    tf2::Quaternion rot(world_to_base.transform.rotation.x, world_to_base.transform.rotation.y,
+                        world_to_base.transform.rotation.z, world_to_base.transform.rotation.w);
+    position_current_(2) = rot.getAngle();
+  }
+  catch (tf2::TransformException &ex) {
+    ROS_ERROR("Could not read world to base transform");
+  }*/
+
 
   for (size_t i = 0; i < ocs2::mobile_manipulator::ARM_INPUT_DIM; i++) {
     position_current_(i + ocs2::mobile_manipulator::BASE_INPUT_DIM) = joint_handles_[i].getPosition();
-    velocity_current_(i + ocs2::mobile_manipulator::BASE_INPUT_DIM) = velocity_current_(i) * (1-alpha) + alpha * joint_handles_[i].getVelocity();
+    velocity_current_(i + ocs2::mobile_manipulator::BASE_INPUT_DIM) = velocity_current_(i) * (1-measurement_trust_factor_) + measurement_trust_factor_ * joint_handles_[i].getVelocity();
   }
 }
 
-void PandaMpcController::compute_torque(const ros::Duration& period) {
+void PandaMpcController::compute_command(const ros::Duration& period) {
   position_command_ = mpc_controller_->getPositionCommand();
   velocity_command_ = mpc_controller_->getVelocityCommand();
   position_integral_ += velocity_command_ * period.toSec();
 
+  // x, y error
+  assert(ocs2::mobile_manipulator::BASE_INPUT_DIM == 3);
+  for (int i = 0; i < ocs2::mobile_manipulator::BASE_INPUT_DIM; i++){
+    position_error_(i) = position_integral_(i) - position_current_(i);
+  }
   // Do not feedforward velocity to add damping
-  for (int i = 0; i < ocs2::mobile_manipulator::STATE_DIM; i++){
+  for (int i = ocs2::mobile_manipulator::BASE_INPUT_DIM; i < ocs2::mobile_manipulator::STATE_DIM; i++){
     position_error_(i) = angles::shortest_angular_distance(position_current_(i), position_integral_(i));
   }
   for (int i = 0; i < ocs2::mobile_manipulator::INPUT_DIM; i++){
@@ -226,10 +291,14 @@ void PandaMpcController::compute_torque(const ros::Duration& period) {
     }
   }
 
+  assert(ocs2::mobile_manipulator::BASE_INPUT_DIM == 3);
+  base_velocity_command_.linear.x =  velocity_command_(0);
+  base_velocity_command_.linear.y =  velocity_command_(1);
+  base_velocity_command_.angular.z = velocity_command_(2);
 
   for (int i = 0; i < ocs2::mobile_manipulator::ARM_INPUT_DIM; i++){
-    arm_tau_(i) = pid_controllers_[i].computeCommand(position_error_(i + ocs2::mobile_manipulator::BASE_INPUT_DIM),
-                                                     velocity_error_(i + ocs2::mobile_manipulator::BASE_INPUT_DIM), period)
+    arm_tau_(i) = arm_pid_controllers_[i].computeCommand(position_error_(i + ocs2::mobile_manipulator::BASE_INPUT_DIM),
+                                                         velocity_error_(i + ocs2::mobile_manipulator::BASE_INPUT_DIM), period)
                                                      + arm_gravity_and_coriolis_(i);
   }
   // Maximum torque difference with a sampling rate of 1 kHz. The maximum
@@ -243,7 +312,7 @@ void PandaMpcController::update(const ros::Time& time,
                                      const ros::Duration& period) {
   read_state();
   mpc_controller_->update(time, position_current_.head<ocs2::mobile_manipulator::STATE_DIM>());
-  compute_torque(period);
+  compute_command(period);
   write_command();
 }
 
