@@ -44,7 +44,7 @@ TargetTrajectories goalPoseToTargetTrajectories(const Eigen::Vector3d& position,
   const vector_t target = (vector_t(7) << position, orientation.coeffs()).finished();
   const vector_array_t stateTrajectory{target};
   // input trajectory
-  const vector_array_t inputTrajectory{vector_t::Zero(INPUT_DIM)};
+  const vector_array_t inputTrajectory{vector_t::Zero(INPUT_DIM(7 /* TODO: HARD-CODED TO 7 ROBOT ARM JOINTS */))};
 
   return {timeTrajectory, stateTrajectory, inputTrajectory};
 }

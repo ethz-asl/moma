@@ -20,13 +20,13 @@ bool UrMpcController::init(hardware_interface::VelocityJointInterface* hw, ros::
   if (!init_parameters(nh)) return false;
   if (!init_common_interfaces(hw)) return false;
 
-  arm_vel_buffer_.writeFromNonRT(std::vector<double>(ocs2::mobile_manipulator::ARM_INPUT_DIM, 0.0));
+  arm_vel_buffer_.writeFromNonRT(std::vector<double>(armInputDim_, 0.0));
 
-  position_current_ = Eigen::VectorXd::Zero(ocs2::mobile_manipulator::STATE_DIM);
-  velocity_current_ = Eigen::VectorXd::Zero(ocs2::mobile_manipulator::STATE_DIM);
+  position_current_ = Eigen::VectorXd::Zero(ocs2::mobile_manipulator::STATE_DIM(armInputDim_));
+  velocity_current_ = Eigen::VectorXd::Zero(ocs2::mobile_manipulator::STATE_DIM(armInputDim_));
   ROS_INFO("[UrMpc::init] robot model successfully initialized");
 
-  mpc_controller_ = std::unique_ptr<moma_controllers::MpcController>(new moma_controllers::MpcController(nh));
+  mpc_controller_ = std::unique_ptr<moma_controllers::MpcController<armInputDim_>>(new moma_controllers::MpcController<armInputDim_>(nh));
   if (!mpc_controller_->init()) {
     ROS_ERROR("Failed to initialize the MPC controller");
     return false;
@@ -39,7 +39,7 @@ bool UrMpcController::init(hardware_interface::VelocityJointInterface* hw, ros::
 
 bool UrMpcController::init_parameters(ros::NodeHandle& nh) {
   if (!nh.getParam("joint_names", joint_names_) ||
-      joint_names_.size() != ocs2::mobile_manipulator::ARM_INPUT_DIM) {
+      joint_names_.size() != armInputDim_) {
     ROS_ERROR(
         "UrMpcController: Invalid or no joint_names parameters "
         "provided, aborting "
@@ -60,7 +60,7 @@ bool UrMpcController::init_parameters(ros::NodeHandle& nh) {
     command_base_pub_ = nh.advertise<geometry_msgs::Twist>(command_base_topic_, 1);
   }
 
-  for (size_t i = 0; i < ocs2::mobile_manipulator::ARM_INPUT_DIM; i++) {
+  for (size_t i = 0; i < armInputDim_; i++) {
     if (!arm_pid_controllers_[i].init(ros::NodeHandle(nh, nh.getNamespace() + "/gains/" + joint_names_[i]),
                                       false)) {
       ROS_ERROR_STREAM("Failed to load PID parameters from " << joint_names_[i] + "/pid");
@@ -81,7 +81,7 @@ bool UrMpcController::init_parameters(ros::NodeHandle& nh) {
 }
 
 bool UrMpcController::init_common_interfaces(hardware_interface::VelocityJointInterface* hw) {
-  for(unsigned int i = 0; i < ocs2::mobile_manipulator::ARM_INPUT_DIM; ++i)
+  for(unsigned int i = 0; i < armInputDim_; ++i)
   {
     try
     {
@@ -108,7 +108,7 @@ void UrMpcController::write_command() {
   }
 
   std::vector<double>& arm_vel = *arm_vel_buffer_.readFromRT();
-  for (size_t i = 0; i < ocs2::mobile_manipulator::ARM_INPUT_DIM; i++) {
+  for (size_t i = 0; i < armInputDim_; i++) {
     joint_handles_[i].setCommand(arm_vel[i]);
   }
 }
@@ -119,11 +119,11 @@ void UrMpcController::starting(const ros::Time& time) {
     return;
   }
   // Start controller with 0.0 velocities
-  arm_vel_buffer_.readFromRT()->assign(ocs2::mobile_manipulator::ARM_INPUT_DIM, 0.0);
+  arm_vel_buffer_.readFromRT()->assign(armInputDim_, 0.0);
   read_state();
 
   ROS_DEBUG_STREAM("[UrMpcController::starting] Starting with current joint position: " << position_current_.transpose());
-  mpc_controller_->start(position_current_.head<ocs2::mobile_manipulator::STATE_DIM>());
+  mpc_controller_->start(position_current_.head<ocs2::mobile_manipulator::STATE_DIM(armInputDim_)>());
   position_integral_ = position_current_;
 
   started_ = true;
@@ -149,7 +149,7 @@ void UrMpcController::odom_callback(const nav_msgs::Odometry::ConstPtr& msg) {
 
 
 void UrMpcController::read_state() {
-  for (size_t i = 0; i < ocs2::mobile_manipulator::ARM_INPUT_DIM; i++) {
+  for (size_t i = 0; i < armInputDim_; i++) {
     position_current_(i + ocs2::mobile_manipulator::BASE_INPUT_DIM) = joint_handles_[i].getPosition();
     velocity_current_(i + ocs2::mobile_manipulator::BASE_INPUT_DIM) = velocity_current_(i) * (1-measurement_trust_factor_) + measurement_trust_factor_ * joint_handles_[i].getVelocity();
   }
@@ -166,10 +166,10 @@ void UrMpcController::compute_command(const ros::Duration& period) {
     position_error_(i) = position_integral_(i) - position_current_(i);
   }
   // Do not feedforward velocity to add damping
-  for (int i = ocs2::mobile_manipulator::BASE_INPUT_DIM; i < ocs2::mobile_manipulator::STATE_DIM; i++) {
+  for (int i = ocs2::mobile_manipulator::BASE_INPUT_DIM; i < ocs2::mobile_manipulator::STATE_DIM(armInputDim_); i++) {
     position_error_(i) = angles::shortest_angular_distance(position_current_(i), position_integral_(i));
   }
-  for (int i = 0; i < ocs2::mobile_manipulator::INPUT_DIM; i++) {
+  for (int i = 0; i < ocs2::mobile_manipulator::INPUT_DIM(armInputDim_); i++) {
     velocity_error_(i) = /*velocity_command_(i)*/ 0.0 - velocity_current_(i);
   }
 
@@ -178,8 +178,8 @@ void UrMpcController::compute_command(const ros::Duration& period) {
   base_velocity_command_.linear.y =  velocity_command_(1);
   base_velocity_command_.angular.z = velocity_command_(2);
 
-  std::vector<double> arm_vel(ocs2::mobile_manipulator::ARM_INPUT_DIM);
-  for (int i = 0; i < ocs2::mobile_manipulator::ARM_INPUT_DIM; i++) {
+  std::vector<double> arm_vel(armInputDim_);
+  for (int i = 0; i < armInputDim_; i++) {
     arm_vel[i] = arm_pid_controllers_[i].computeCommand(position_error_(i + ocs2::mobile_manipulator::BASE_INPUT_DIM),
                                                         velocity_error_(i + ocs2::mobile_manipulator::BASE_INPUT_DIM), period);
   }
@@ -188,8 +188,8 @@ void UrMpcController::compute_command(const ros::Duration& period) {
 
 void UrMpcController::update(const ros::Time& time, const ros::Duration& period) {
   read_state();
-  //ROS_INFO_STREAM_THROTTLE(0.5, "State is: " << position_current_.head<ocs2::mobile_manipulator::STATE_DIM>());
-  mpc_controller_->update(time, position_current_.head<ocs2::mobile_manipulator::STATE_DIM>());
+  //ROS_INFO_STREAM_THROTTLE(0.5, "State is: " << position_current_.head<ocs2::mobile_manipulator::STATE_DIM(armInputDim_)>());
+  mpc_controller_->update(time, position_current_.head<ocs2::mobile_manipulator::STATE_DIM(armInputDim_)>());
   compute_command(period);
   write_command();
 }

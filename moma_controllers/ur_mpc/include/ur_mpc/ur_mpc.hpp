@@ -8,8 +8,6 @@
 #include <string>
 #include <vector>
 
-#include <robot_control/modeling/robot_wrapper.h>
-
 #include <moma_ocs2_ros/mpc_velocity_controller.h>
 #include <control_toolbox/pid.h>
 #include <controller_interface/controller.h>
@@ -33,6 +31,8 @@ namespace moma_controllers {
 class UrMpcController
     : public controller_interface::Controller<hardware_interface::VelocityJointInterface> {
  public:
+  static constexpr size_t armInputDim_ = 6;
+
   UrMpcController() : started_(false) {};
 
   bool init(hardware_interface::VelocityJointInterface* hw, ros::NodeHandle& nh) override;
@@ -60,11 +60,11 @@ class UrMpcController
   geometry_msgs::Twist base_velocity_command_;
 
   // dynamic model
-  std::array<control_toolbox::Pid, ocs2::mobile_manipulator::ARM_INPUT_DIM> arm_pid_controllers_;
-  MpcController::state_vector_t position_command_;
-  MpcController::input_vector_t velocity_command_;
-  MpcController::state_vector_t position_error_;
-  MpcController::input_vector_t velocity_error_;
+  std::array<control_toolbox::Pid, armInputDim_> arm_pid_controllers_;
+  MpcController<armInputDim_>::state_vector_t position_command_;
+  MpcController<armInputDim_>::input_vector_t velocity_command_;
+  MpcController<armInputDim_>::state_vector_t position_error_;
+  MpcController<armInputDim_>::input_vector_t velocity_error_;
   realtime_tools::RealtimeBuffer<std::vector<double>> arm_vel_buffer_;
 
   // Keep state dynamic vector to account for eventual gripper case
@@ -77,7 +77,7 @@ class UrMpcController
   double measurement_trust_factor_ = 0.99;
 
   bool started_;
-  std::unique_ptr<moma_controllers::MpcController> mpc_controller_;
+  std::unique_ptr<moma_controllers::MpcController<armInputDim_>> mpc_controller_;
 };
 
 }  // namespace moma_controllers

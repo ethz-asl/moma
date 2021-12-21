@@ -20,7 +20,6 @@
   <depend>hardware_interface</depend>
   <depend>pluginlib</depend>
   <depend>realtime_tools</depend>
-  <depend>robot_control</depend>
   <depend>moma_ocs2_ros</depend>
   <depend>path_admittance_controller</depend>
   <depend>path_passthrough_controller</depend>

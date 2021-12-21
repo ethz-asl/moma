@@ -12,7 +12,6 @@ set(PACKAGE_DEPENDENCIES
     roscpp
     roslib
     roscpp
-    robot_control
     controller_interface
     hardware_interface
     control_toolbox
