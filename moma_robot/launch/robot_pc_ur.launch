@@ -9,6 +9,7 @@
   <!-- From ur_description/launch/load_ur5e.launch -->
   <!--ur5e parameters files -->
   <arg name="joint_limit_params" default="$(find ur_description)/config/ur5e/joint_limits.yaml"/>
+  <!-- !!! DO NOT FORGET TO PROVIDE PROPER CALIBRATION FILE TO kinematics_params !!! -->
   <arg name="kinematics_params" default="$(find ur_description)/config/ur5e/default_kinematics.yaml"/>
   <arg name="physical_params" default="$(find ur_description)/config/ur5e/physical_parameters.yaml"/>
   <arg name="visual_params" default="$(find ur_description)/config/ur5e/visual_parameters.yaml"/>
@@ -33,6 +34,7 @@
   <!-- Launch UR files -->
   <include file="$(find ur_robot_driver)/launch/$(arg robot_type)_bringup.launch">
     <arg name="robot_ip" value="$(arg robot_ip)" />
+    <arg name="kinematics_config" value="$(arg kinematics_params)" />
     <!--<arg name="robot_description_file" value="" />-->
   </include>
 
