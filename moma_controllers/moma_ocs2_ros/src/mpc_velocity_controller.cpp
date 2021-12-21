@@ -47,18 +47,16 @@ bool MpcController::init() {
       new ocs2::mobile_manipulator::MobileManipulatorInterface(taskFile, urdfXML, baseType));
   mpcPtr_ = mm_interface_->getMpc();
 
-  nh_.param<std::string>("/robot_description_mpc", robot_description_, "");
-  nh_.param<std::string>("/mpc_controller/base_link", base_link_, "tracking_camera_odom");
-  nh_.param<std::string>("/mpc_controller/tool_link", tool_link_, "tool_frame");
-  nh_.param<double>("/mpc_controller/mpc_frequency", mpcFrequency_, 1e3);
-  nh_.param<double>("/mpc_controller/publish_ros_frequency", publishRosFrequency_, 20);
+  nh_.param<std::string>("tool_link", tool_link_, "tool_frame");
+  nh_.param<double>("mpc_frequency", mpcFrequency_, 1e3);
+  nh_.param<double>("publish_ros_frequency", publishRosFrequency_, 20);
 
   std::string commandTopic;
-  nh_.param<std::string>("/mpc_controller/command_topic", commandTopic, "/command");
+  nh_.param<std::string>("command_topic", commandTopic, "/command");
   commandPublisher_ = nh_.advertise<std_msgs::Float64MultiArray>(commandTopic, 1);
 
   std::string pathTopic;
-  nh_.param<std::string>("/mpc_controller/path_topic", pathTopic, "/desired_path");
+  nh_.param<std::string>("path_topic", pathTopic, "/desired_path");
   targetPathSubscriber_ = nh_.subscribe(pathTopic, 10, &MpcController::pathCallback, this);
 
   observationPublisher_ =
@@ -281,22 +279,13 @@ bool MpcController::sanityCheck(const nav_msgs::Path& path) {
 }
 
 void MpcController::transformPath(nav_msgs::Path& desiredPath) {
-  ROS_DEBUG_STREAM("[MPC_Controller::transformPath] Transforming path from "
-                       << desiredPath.header.frame_id << " to " << base_link_);
-  geometry_msgs::TransformStamped transformStamped;
-  try {
-    // target_frame, source_frame ...
-    transformStamped = tf_buffer_.lookupTransform(base_link_, desiredPath.header.frame_id,
-                                                  ros::Time(0), ros::Duration(3.0));
-  } catch (tf2::TransformException& ex) {
-    ROS_WARN("%s", ex.what());
+  if (desiredPath.header.frame_id != "world") {
+    ROS_ERROR("[MpcController::transformPath] Desired path must be in world frame.");
   }
-  tf::transformMsgToEigen(transformStamped.transform, T_base_x_);
 
-  desiredPath.header.frame_id = base_link_;
   for (auto& pose : desiredPath.poses) {
     tf::poseMsgToEigen(pose.pose, T_x_tool_);
-    T_base_ee_ = T_base_x_ * T_x_tool_ * T_tool_ee_;
+    T_base_ee_ = T_x_tool_ * T_tool_ee_;
     tf::poseEigenToMsg(T_base_ee_, pose.pose);
   }
 }
