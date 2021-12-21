@@ -38,16 +38,6 @@ bool UrMpcController::init(hardware_interface::VelocityJointInterface* hw, ros::
 }
 
 bool UrMpcController::init_parameters(ros::NodeHandle& nh) {
-  /*if (!nh.getParam("world_frame", world_frame_)) {
-    ROS_ERROR("UrMpcController: Could not read parameter world_frame");
-    return false;
-  }
-
-  if (!nh.getParam("base_link", base_link_)) {
-    ROS_ERROR("UrMpcController: Could not read parameter base_link");
-    return false;
-  }*/
-
   if (!nh.getParam("joint_names", joint_names_) ||
       joint_names_.size() != ocs2::mobile_manipulator::ARM_INPUT_DIM) {
     ROS_ERROR(

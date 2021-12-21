@@ -53,11 +53,6 @@ class UrMpcController
  private:
   ros::Time last_start_time_;
 
-  //tf2_ros::Buffer tfBuffer_;
-  //tf2_ros::TransformListener tfListener_;
-
-  //std::string world_frame_;
-  //std::string base_link_;
   std::string odom_topic_;
   std::string command_base_topic_;
   ros::Subscriber odom_sub_;
