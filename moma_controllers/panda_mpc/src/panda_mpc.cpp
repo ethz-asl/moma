@@ -207,6 +207,7 @@ void PandaMpcController::write_command(){
 void PandaMpcController::starting(const ros::Time& time) {
   if (started_){
     ROS_INFO("[PandaMpcController::starting] Controller already started.");
+    return;
   };
   read_state();
 
@@ -215,6 +216,7 @@ void PandaMpcController::starting(const ros::Time& time) {
   position_integral_ = position_current_;
 
   started_ = true;
+  last_start_time_ = ros::Time::now();
   ROS_INFO("[PandaMpcController::starting] Controller started!");
 }
 
@@ -317,8 +319,17 @@ void PandaMpcController::update(const ros::Time& time,
 }
 
 void PandaMpcController::stopping(const ros::Time& time) {
-  ROS_INFO("Stopping Mpc Controller!");
+  if ((ros::Time::now() - last_start_time_).toSec() < 1) {
+    ROS_WARN("[PandaMpcController::stopping] Ignoring controller stop");
+    return;
+  }
+  if (!started_){
+    ROS_WARN("[PandaMpcController::stopping] Controller already stopped.");
+    return;
+  };
+  ROS_INFO("[PandaMpcController::stopping] Stopping Mpc Controller!");
   mpc_controller_->stop();
+  started_ = false;
 }
 
 void PandaMpcController::saturate_torque_rate(

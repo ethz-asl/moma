@@ -63,6 +63,7 @@ class PandaMpcController
   void saturate_torque_rate(const std::array<double, armInputDim_>& tau_J_d);
 
  private:
+  ros::Time last_start_time_;
   bool sim_;
 
   //tf2_ros::Buffer tfBuffer_;

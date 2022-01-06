@@ -441,7 +441,7 @@ class MpcController {
   }
 
  protected:
-  double start_time_;
+  double startTime_;
 
   std::string tool_link_;
   std::string robot_description_;
@@ -457,6 +457,7 @@ class MpcController {
   ros::Subscriber targetPathSubscriber_;
 
  private:
+  std::atomic_bool unloaded_;
   std::atomic_bool stopped_;
   std::unique_ptr<ocs2::MPC_DDP> mpcPtr_;
   double mpcFrequency_;
@@ -465,11 +466,16 @@ class MpcController {
   std::atomic_bool referenceEverReceived_;
   std::atomic_bool observationEverReceived_;
 
+  std::string taskFile_;
+  std::string urdfXML_;
+  ocs2::mobile_manipulator::BaseType baseType_;
+
   std::thread mpcThread_;
   ocs2::benchmark::RepeatedTimer mpcTimer_;
 
   std::mutex observationMutex_;
   ocs2::SystemObservation observation_;
+  ocs2::SystemObservation observation_tmp_;
 
   std::mutex desiredPathMutex_;
   nav_msgs::Path desiredPath_;
