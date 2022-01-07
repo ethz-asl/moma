@@ -8,10 +8,12 @@
     <param name="left_image_topic"    value="$(arg image_topic)" />
     <param name="right_image_topic"   value="$(arg image_topic)" />
     <param name="left_camera_frame"   value="$(arg camera_optical_frame)" />
-    <param name="load_model"          value="$(find object_keypoints_ros)/models/modelv2.pt" />
+    <param name="load_model"          value="$(find object_keypoints_ros)/models/valve_depth.pt" />
     <param name="calibration"         value="$(find moma_launch)/config/keypoints/intrinsics_rs_435.yaml" />
     <param name="keypoints"           value="$(find moma_launch)/config/keypoints/valve_keypoints.json" />
     <param name="pnp"                 value="false"   type="bool" />
     <param name="gpu"                 value="false"   type="bool" />
   </node>
+
+  <node name="$(anon rviz)" type="rviz" pkg="rviz" args="-d $(find moma_launch)/config/keypoints/keypoints.rviz"/>
 </launch>
