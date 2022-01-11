@@ -7,6 +7,7 @@ from matplotlib.patches import Patch
 from mpl_toolkits import mplot3d
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 from numpy import linalg
+from numpy.core.fromnumeric import shape
 from numpy.linalg.linalg import inv
 
 from scipy.spatial.transform import Rotation as R
@@ -38,15 +39,29 @@ def _set_axes_radius(ax, origin, radius):
     ax.set_ylim3d([y - radius, y + radius])
     ax.set_zlim3d([z - radius, z + radius])
 
+def skew(v):
+    return np.array([[0, -v[2], v[1]],
+                     [v[2], 0, -v[0]],
+                     [-v[1], v[0], 0]])
+
 def to_homogeneous(v):
+    if len(v.shape) > 1:
+        return np.vstack((v, np.ones((v.shape[1],))))
     return np.hstack((v, 1.0))
-    
+
+def add_noise(v, low, high):
+    return v + np.random.randint(low=low, high=high, size=v.shape)
+
+def point_line_distance(p, l):
+    return np.abs(np.dot(to_homogeneous(p), l))/np.sqrt(l[0]**2 + l[1]**2)
+
 class Camera:
     # taken from https://github.com/demul/extrinsic2pyramid
     def __init__(self, K, resolution):
         self.K = K
         self.resolution = resolution
         self.T = np.eye(4)
+        self.M = self.K @ self.T[:3, :]
 
     def extrinsic2pyramid(self, ax, color='r', focal_len_scaled=5, aspect_ratio=0.3):
         vertex_std = np.array([[0, 0, 0, 1],
@@ -91,8 +106,9 @@ class Camera:
         t = np.array([dx, dy, dz])
         self.T[:3, :3] = r
         self.T[:3, 3] = t
+        self.M = self.K @ self.T[:3, :]
 
-class ValveOptimizer:
+class ValveFitter:
     def __init__(self, k) -> None:
         self.k = k
         self.observations = []
@@ -104,7 +120,50 @@ class ValveOptimizer:
 
         self.observations.append([camera, keypoints, weights])
 
-    def pnp(self, radius_hypotesis):
+    def triangulate(self):
+        if len(self.observations) < 2:
+            raise NameError("Two observations needed to triangulate points")
+
+        M1 = self.observations[0][0].M
+        p1 = self.observations[0][1].T
+        
+        M2 = self.observations[1][0].M
+        p2 = self.observations[1][1].T  # dim = 2 x N
+
+        N = p1.shape[1]
+        assert N == p2.shape[1]
+        points_3d = np.zeros((3, N))
+
+        for i in range(N):
+            A = np.zeros((6, 4))
+            
+            p1x = skew(to_homogeneous(p1[:, i]))
+            p2x = skew(to_homogeneous(p2[:, i]))
+            A[:3, :] = p1x @ M1
+            A[3:6, :] = p2x @ M2
+    
+            u, s, vh = np.linalg.svd(A, full_matrices=True)
+
+            # the solution is the eigenvector corresponding to the minimum non zero eigenvalue
+            # which is the corresponding column in v
+            p_3d = vh[-1, :].T
+            p_3d /= p_3d[3] # make the points homogeneous
+            points_3d[:, i] = p_3d[:3] # save in unhomogeneous format
+        return points_3d    
+        
+    def triangulate_cv(self):
+        if len(self.observations) < 2:
+            raise NameError("Two observations needed to triangulate points")
+
+        M1 = self.observations[0][0].M
+        M2 = self.observations[1][0].M
+        p1 = self.observations[0][1].T
+        p2 = self.observations[1][1].T
+        
+        p_3d = cv2.triangulatePoints(projMatr1=M1, projMatr2=M2, projPoints1=p1, projPoints2=p2, )
+        return p_3d[:3, :]
+
+    def _pnp(self, radius_hypotesis):
         points_3d =  np.zeros((self.k+1, 3))
         for i in range(self.k):
             theta = 2 * i * np.pi / self.k
@@ -128,12 +187,7 @@ class ValveOptimizer:
         v1 = T_cam_valve[:3, 0]
         v2 = T_cam_valve[:3, 1]
         
-        print("PnP solution")
-        print(c)
-        print(v1)
-        print(v2)
         r = radius_hypotesis
-        
         return ValveModel(c=c, r=r, v1=v1, v2=v2, k=self.k, delta=0.0)
 
         
@@ -163,7 +217,45 @@ class ValveOptimizer:
             residual += sum([w[i+1] * np.linalg.norm(proj_p[i] - kpts[i+1, :]) for i in range(self.k)])
         return residual
 
-    def optimize(self):
+    def optimize(self, method='non_linear', *args, **kwargs):
+        if method =='non_linear':
+            return self._non_linear_optimization()
+        elif method == 'triangulation':
+            return self._triangulation()
+        elif method == 'pnp':
+            return self._pnp(kwargs['radius_hypothesis'])
+        else:
+            raise NameError(f"Unknown method {method}")
+        
+    def _triangulation(self):
+        points_3d = self.triangulate()
+        C = points_3d[:, 0]
+
+        # get normal from 3 keypoints
+        P1 = points_3d[:, 1]
+        P2 = points_3d[:, 2]
+        P3 = points_3d[:, 3]
+        n = np.cross((P2-P1), (P3-P1))
+        n = n / np.linalg.norm(n)
+        
+        # get geometric center as the mean
+        k = points_3d.shape[1] - 1
+        Cg = np.sum(points_3d[:, 1:], axis=1) / k
+
+        # get v1 and v2 from Cg and P1, v2 from n and v1
+        v1 = P1 - Cg
+        v1 = v1 / np.linalg.norm(v1)
+        v2 = np.cross(n, v1)
+
+        # get delta as the distance along n between Cg and C
+        delta = np.sum(n * (Cg - C)) # dot product
+
+        # get radius 
+        r  = np.sum([np.linalg.norm(points_3d[:, i+1]- Cg) for i in range(k)]) / k
+
+        return ValveModel(c=C, r=r, v1=v1, v2=v2, k=k, delta=delta)
+
+    def _non_linear_optimization(self):
         
         # define the constraint
         def constraint_fun(x):
@@ -199,7 +291,9 @@ class ValveOptimizer:
         initial_guess[10] = 0.1
     
         res = minimize(self.residual_fun, x0=initial_guess, constraints=[vector_constraint, geometry_constraint], options={'maxiter': 10e4})
-        return res
+        print(res)
+        print(self.res_to_string(res.x))
+        return self.valve_from_x(res.x)
 
     @staticmethod
     def res_to_string(x):
@@ -265,7 +359,96 @@ class ValveModel:
         self.keypoints = ((r @ self.keypoints).T + t).T
         self.circle = ((r @ self.circle).T + t).T
         
+    def __str__(self):
+        return f"""
+center = {self.c}
+axis 1 = {self.v1}
+axis 2 = {self.v2}
+delta = {self.delta}
+radius = {self.r}
+"""
 
+class FeatureMatcher:
+    def __init__(self, acceptance_ratio=np.inf):
+        self.acceptance_ratio = acceptance_ratio
+    
+    @staticmethod
+    def _compute_epilines(camera1, camera2, points1, points2):
+        # https://docs.opencv.org/4.x/da/de9/tutorial_py_epipolar_geometry.html
+        T_cam2_cam1 = np.linalg.inv(camera1.T) @ camera2.T
+        E =  skew(T_cam2_cam1[:3, 3]) @ T_cam2_cam1[:3, :3]
+        F = np.linalg.inv(camera1.K).T @ E @ np.linalg.inv(camera2.K)  
+        
+        # get the epipolar lines in the second image
+        lines2 = cv2.computeCorrespondEpilines(points1.reshape(-1,1,2), 1, F)
+        return lines2.reshape(-1,3)
+
+    def match(self, camera1, camera2, points1, points2):
+        lines = self._compute_epilines(camera1, camera2, points1, points2)
+        points1 = points1.reshape((-1, 2))
+        points2 = points2.reshape((-1, 2))
+        N = points1.shape[0]
+        assert N == len(lines) and "Need as many epipolar lines as keypoints"
+        
+        distances = []
+        for l in lines:
+            distances.append([point_line_distance(points2[i, :], l) for i in range(N)]) 
+
+        print("distances are")
+        print(distances)
+        # find first and second best matches for each line
+        matches = -np.ones(N)
+        for i, d in enumerate(distances):
+            d_np = np.asarray(d)
+            min1 = np.min(d_np)
+
+            print("d1")
+            print(d_np)
+            print(min1)
+
+            d_np2 = np.delete(d_np, d_np.argmin())
+            min2 = np.min(d_np2)
+
+            print("d2")
+            print(d_np2)
+            print(min2)
+            if (min1 / min2) < self.acceptance_ratio:
+                point2_indx = d_np.argmin()
+                point1_idx = i
+
+                # point in image 2 at point2_idx matches point in image 1 at point1_idx
+                matches[point2_indx] = point1_idx 
+        return matches
+
+    def draw_epilines(self, camera1, camera2, points1, points2):
+        lines = self._compute_epilines(camera1, camera2, points1, points2)
+        fig, ax = plt.subplots(2, 1)
+
+        import matplotlib.colors as mcolors
+        colors = list(mcolors.BASE_COLORS.keys())
+
+        for i in range(points1.shape[0]):
+            ax[0].scatter(points1[i, 0], points1[i, 1], label=f'point {i}', c=colors[i])
+            ax[1].scatter(points2[i, 0], points2[i, 1], label=f'point {i}', c=colors[i])
+
+        c, _ = camera2.resolution 
+        for i, r in enumerate(lines):
+            color = colors[i]
+            print(color)
+            x0,y0 = map(int, [0, -r[2]/r[1] ])
+            x1,y1 = map(int, [c, -(r[2]+r[0]*c)/r[1] ])
+            ax[1].plot([x0, x1], [y0, y1], color=color, label=f"epiline {i}")
+
+        ax[0].set_xlim([0, camera1.resolution[0]])
+        ax[0].set_ylim([0, camera1.resolution[1]])
+        ax[1].set_xlim([0, camera2.resolution[0]])
+        ax[1].set_ylim([0, camera2.resolution[1]])
+        ax[0].grid(True)
+        ax[1].grid(True)
+        ax[0].set_title("camera 1")
+        ax[1].set_title("camera 2")
+        ax[0].legend()
+        ax[1].legend()
 
 class ValveVisualizer:
     def __init__(self):
@@ -276,11 +459,17 @@ class ValveVisualizer:
         self.cameras = []
         self.valves = []
         self.labels = []
+        self.points = []
+        self.points_labels = []
 
     def add_item(self, camera, valve, label):
         self.cameras.append(camera)
         self.valves.append(valve)
         self.labels.append(label)
+    
+    def add_points(self, points, points_label):
+        self.points.append(points)
+        self.points_labels.append(points_label)
     
     def draw(self):
         for camera, valve, label in zip(self.cameras, self.valves, self.labels):
@@ -298,9 +487,17 @@ class ValveVisualizer:
             self.ax_cam.set_ylim([0, camera.resolution[1]])
             self.ax_cam.set_aspect('equal')
         
+        for p, l in zip(self.points, self.points_labels):
+            if p.shape[0] == 3:
+                self.ax_3d.scatter3D(p[0, :], p[1, :], p[2, :], label=l)
+            elif p.shape[0] == 2:
+                self.ax_cam.scatter(p[0, :], p[1, :], label=l)
+                
         self.ax_cam.grid(True)
         self.ax_cam.legend()
+        self.ax_3d.legend()
         set_axes_equal(self.ax_3d)        
+
 
 
 if __name__ == "__main__":
@@ -310,59 +507,101 @@ if __name__ == "__main__":
                                   [0.0, 694.75, 367.62],
                                   [0.0, 0.0, 1.0]])
     camera_resolution = np.array([1280, 720])
-    camera = Camera(camera_intrinsics, camera_resolution)
+    camera1 = Camera(camera_intrinsics, camera_resolution)
     
-    camera2 = deepcopy(camera)
-    camera2.transform(dx=0.4, pitch_deg=-40)
-
-    camera3 = deepcopy(camera)
-    camera3.transform(dz=0.4, dx=0.8, pitch_deg=-40)
+    camera2 = deepcopy(camera1)
+    camera2.transform(dz=0.4, dx=0.8, pitch_deg=-40)
     
+    camera3 = deepcopy(camera1)
+    camera3.transform(dx=0.4, pitch_deg=-40)
 
+    
     # get ground truth valve
-    k = 5
+    k = 3
     valve = ValveModel(r=0.1, k=k, delta=-0.02)
     valve.transform(dz=0.8, roll_deg=50, pitch_deg=40)
     
-    
     # get simulated observations
-    proj_keypoints = camera.project(valve.keypoints)
+    proj_keypoints1 = camera1.project(valve.keypoints)
     proj_keypoints2 = camera2.project(valve.keypoints)
     proj_keypoints3 = camera3.project(valve.keypoints) 
     
     # define a problem, add observations and
-    problem = ValveOptimizer(k=k)
-    problem.add_observation(camera, proj_keypoints, np.array([0.0, 1.0, 1.0, 1.0, 1.0, 1.0]))
-    problem.add_observation(camera2, proj_keypoints2, np.array([0.0, 1.0, 1.0, 1.0, 1.0, 1.0]))
-    problem.add_observation(camera3, proj_keypoints3, np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0]))
+    problem = ValveFitter(k=k)
+
+    
+    proj_keypoints1_n = add_noise(proj_keypoints1, low=0, high=20)
+    proj_keypoints2_n = add_noise(proj_keypoints2, low=0, high=20)
+    
+    problem.add_observation(camera1, proj_keypoints1_n, np.array([0.0, 1.0, 1.0, 1.0, 1.0, 1.0]))
+    problem.add_observation(camera2, proj_keypoints2_n, np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0]))
+    #problem.add_observation(camera3, proj_keypoints3, np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0]))
     
 
-    res = problem.optimize()
-    print(res)
-    
-    problem.res_to_string(res.x)
+    valve_opt = problem.optimize(method='non_linear')
+    valve_trn = problem.optimize(method='triangulation')
+    # valve_pnp = problem.optimize(method='pnp', radius_hypothesis=0.1)
 
-   
-    # try pnp solution
-    valve_pnp = problem.pnp(radius_hypotesis=0.1)
 
-    # get the optimized valve model
-    valve_opt = problem.valve_from_x(res.x)
+    # try triangulation
+    points_triangulated = problem.triangulate()
     
 
     # create visualizer to see points and projections
     visualizer = ValveVisualizer()
-    visualizer.add_item(camera, valve, "gt camera")
-    visualizer.add_item(camera, valve_opt, "fit in camera")
-    
+    visualizer.add_item(camera1, valve, "gt camera1")
     visualizer.add_item(camera2, valve, "gt camera 2")
-    visualizer.add_item(camera2, valve_opt, "fit opt in camera2")
+    visualizer.add_item(camera1, valve_trn, "trn camera1")
+    #visualizer.add_item(camera, valve_opt, "fit in camera")
     
-    visualizer.add_item(camera, valve_pnp, "fit pnp in camera")
+    #visualizer.add_item(camera2, valve_opt, "fit opt in camera2")
+    
+    #visualizer.add_item(camera, valve_pnp, "fit pnp in camera")
+    visualizer.add_points(points_triangulated, "triangulation")
+
+    p1 = camera1.project(points_triangulated)
+    p2 = camera2.project(points_triangulated)
+
+    visualizer.add_points(p1.T, "backprojection 1")
+    visualizer.add_points(p2.T, "backprojection 2")
+
+    # by hand backprojection
+    # p1_hom_test = camera.M @ to_homogeneous(valve.keypoints)
+    # p2_hom_test = camera2.M @ to_homogeneous(valve.keypoints)
+
+    # p1_test = p1_hom_test[:2] / p1_hom_test[2]
+    # p2_test = p2_hom_test[:2] / p2_hom_test[2]
+    
+    # visualizer.add_points(p1_test, "backprop test 1")
+    # visualizer.add_points(p2_test, "backprop test 2")
     
     #visualizer.add_item(camera3, valve, "gt camera 3")
     #visualizer.add_item(camera3, valve_opt, "fit in camera3")
     
     visualizer.draw()
+
+
+    matcher = FeatureMatcher()
+    matcher.draw_epilines(camera1, camera2, proj_keypoints1_n, proj_keypoints2_n)
+
+    print("proj keypoints before swap")
+    print(proj_keypoints2)
+
+    # swap keypoints to test matching strategy
+    proj_keypoints2_n[[0, 1, 2, 3], :] = proj_keypoints2_n[[3, 0, 2, 1], :] 
+    
+    # point 1 is the closest to line 0 == point0 in first image
+    print("proj keypoints after swap")
+    print(proj_keypoints2)
+    
+    matches = matcher.match(camera1, camera2, proj_keypoints1_n, proj_keypoints2_n)
+
+    # reshuffle keypoints to match
+    # map 0, 1, 2, 3 to their location in the original image
+    proj_keypoints2_n[matches.astype(int), :] = proj_keypoints2_n[[0, 1, 2, 3], :] 
+    print("matches are")
+    print(matches)
+    print("proj keypoints after match")
+    print(proj_keypoints2)
     plt.show()
     
