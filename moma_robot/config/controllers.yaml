@@ -105,8 +105,8 @@ path_admittance_controller:
 
   kp_linear_gains: [50.0, 50.0, 50.0]
   kp_angular_gains: [5.0, 5.0, 5.0]
-  kd_linear_gains: [ 50, 50, 50 ]
-  kd_angular_gains: [ 25.0, 25.0, 25.0 ]
+  kd_linear_gains: [50, 50, 50]
+  kd_angular_gains: [25.0, 25.0, 25.0]
 
   force_threshold: [2.0, 2.0, 2.0]
-  torque_threshold: [0.1, 0.1, 0.1]
+  torque_threshold: [0.5, 0.5, 0.5]
