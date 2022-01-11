@@ -98,16 +98,15 @@ path_admittance_controller:
   type: moma_controllers/PathAdmittanceController
 
   verbose: true
-  wrench_topic: /ft_compensated
+  wrench_topic: /franka_state_controller/F_ext
+  wrench_inverted: true
   path_in_topic: /desired_path
   path_out_topic: /mpc_reference_path
 
-  kp_linear_gains: [0.01, 0.01, 0.01]
-  kp_angular_gains: [0.01, 0.01, 0.01]
-  ki_linear_gains: [ 0.0, 0.0, 0.0 ]
-  ki_angular_gains: [ 0.0, 0.0, 0.0 ]
-  force_integral_max: [1.0, 1.0, 1.0]
-  torque_integral_max: [1.0, 1.0, 1.0]
+  kp_linear_gains: [50.0, 50.0, 50.0]
+  kp_angular_gains: [5.0, 5.0, 5.0]
+  kd_linear_gains: [ 50, 50, 50 ]
+  kd_angular_gains: [ 25.0, 25.0, 25.0 ]
 
   force_threshold: [2.0, 2.0, 2.0]
-  torque_threshold: [0.5, 0.5, 0.5]
+  torque_threshold: [0.1, 0.1, 0.1]
