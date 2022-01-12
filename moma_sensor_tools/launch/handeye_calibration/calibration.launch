@@ -1,13 +1,13 @@
 <?xml version="1.0" ?>
 <launch>
-	<include file="$(find moma_sensor_tools)/launch/apriltag_tracking.launch">
+	<include file="$(find moma_sensor_tools)/launch/handeye_calibration/apriltag_tracking.launch">
 	  <arg name="launch_realsense" 	value="true"/>
 	  <arg name="camera_name" 		value="hand_eye"/>
 	  <arg name="image_topic" 		value="color/image_raw"/>
 	  <arg name="rviz" 				value="true"/>
 	</include>
 
-	<include file="$(find moma_sensor_tools)/launch/easy_handeye.launch">
+	<include file="$(find moma_sensor_tools)/launch/handeye_calibration/easy_handeye.launch">
 	  <arg name="robot_base_frame" 			value="panda_link0"/>
 	  <arg name="robot_effector_frame" 		value="panda_link8"/>
 	  <arg name="tracking_base_frame" 		value="hand_eye_link"/>

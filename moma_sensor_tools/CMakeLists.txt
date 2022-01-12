@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD 17)
 find_package(Eigen3 3.3 REQUIRED)
 find_package(yaml-cpp REQUIRED)
 
-set(PROJECT_DEPENDENCIES roscpp tf2_ros eigen_conversions moma_msgs)
+set(PROJECT_DEPENDENCIES roscpp tf2_ros eigen_conversions moma_msgs realtime_tools)
 find_package(catkin REQUIRED COMPONENTS ${PROJECT_DEPENDENCIES})
 
 catkin_package(
