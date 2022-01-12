@@ -1,4 +1,4 @@
-#!/bin/python3
+#!/usr/bin/env python3
 """
 pointgrey_camera_driver (at least the version installed with apt-get) doesn't
 properly handle camera info in indigo.
@@ -50,7 +50,7 @@ if __name__ == "__main__":
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument("filename", help="Path to yaml file containing " + \
                                              "camera calibration data")
-    args = arg_parser.parse_args()
+    args, unknown = arg_parser.parse_known_args()
     filename = args.filename
 
     # Parse yaml file

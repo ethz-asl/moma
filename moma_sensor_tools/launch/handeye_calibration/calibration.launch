@@ -5,10 +5,10 @@
 
     <!-- Intrinsic camera calibration done with the camera_calibration package -->
     <arg name="custom_intrinsics" default="true" />
-    <arg name="custom_intrinsics_file" default="~/calibration/camera_calibration.yaml" />
+    <arg name="custom_intrinsics_file" default="$(env HOME)/calibration/camera_calibration.yaml" />
 
     <group if="$(arg camera_pc)">
-        <node name="camera_intrinsics_publisher" pkg="moma_sensor_tools" type="yaml_to_camera_info_publisher.py" arg="custom_intrinsics_file" output="screen" if="$(arg custom_intrinsics)" />
+        <node name="camera_intrinsics_publisher" pkg="moma_sensor_tools" type="yaml_to_camera_info_publisher.py" args="$(arg custom_intrinsics_file)" output="screen" if="$(arg custom_intrinsics)" />
 
         <include file="$(find moma_sensor_tools)/launch/handeye_calibration/apriltag_tracking.launch">
           <arg name="launch_realsense" 	value="true"/>
