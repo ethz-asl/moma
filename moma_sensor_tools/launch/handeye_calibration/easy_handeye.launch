@@ -42,7 +42,7 @@
 
         <param name="move_group"                value="panda_arm"/>
         <param name="move_group_namespace"      value="/"/>
-        <arg name="freehand_robot_movement"     value="false" />
+        <param name="freehand_robot_movement"     value="true" />
         <arg name="robot_velocity_scaling"      value="0.5" />
         <arg name="robot_acceleration_scaling"  value="0.2" />
 
@@ -52,5 +52,8 @@
         <!-- start rqt GUI for taking_samples -->
         <node if="$(arg start_sampling_gui)" name="$(anon namespace)_rqt" pkg="rqt_easy_handeye" type="rqt_easy_handeye" respawn="false" output="screen" />
     </group>
+
+    <!-- Rviz helper visualization -->
+    <node pkg="rviz" type="rviz" name="$(anon rviz)" args="-d $(find moma_sensor_tools)/config/rviz/hand_eye.rviz" if="$(arg start_rviz)"/>
 
 </launch>
