@@ -3,6 +3,8 @@
   <arg name="launch_realsense"  default="false"/>
   <arg name="launch_prefix"     default="" /> 
   <arg name="camera_name"       default="hand_eye" />
+  <arg name="camera_info"       default="/camera_info" />
+  <!--<arg name="camera_info"       default="$(arg camera_name)/camera_info" />-->
   <arg name="image_topic"       default="color/image_raw" />
   <arg name="rviz"              default="false"/>
 
@@ -10,7 +12,7 @@
 
     <!-- Remap topics from those used in code to those on the ROS network -->
     <remap from="image_rect" to="$(arg camera_name)/$(arg image_topic)" />
-    <remap from="camera_info" to="$(arg camera_name)/camera_info" />
+    <remap from="camera_info" to="$(arg camera_info)" />
     
     <param name="camera_frame" value="$(arg camera_name)_color_optical_frame" />
     <param name="publish_tag_detections_image" type="bool" value="true" />      <!-- default: false -->

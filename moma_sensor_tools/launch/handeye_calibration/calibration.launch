@@ -3,12 +3,20 @@
     <arg name="camera_pc" default="true"/>
     <arg name="operator_pc" default="true"/>
 
-	<include file="$(find moma_sensor_tools)/launch/handeye_calibration/apriltag_tracking.launch" if="$(arg camera_pc)">
-	  <arg name="launch_realsense" 	value="true"/>
-	  <arg name="camera_name" 		value="hand_eye"/>
-	  <arg name="image_topic" 		value="color/image_raw"/>
-	  <arg name="rviz" 				value="false"/>
-	</include>
+    <!-- Intrinsic camera calibration done with the camera_calibration package -->
+    <arg name="custom_intrinsics" default="true" />
+    <arg name="custom_intrinsics_file" default="~/calibration/camera_calibration.yaml" />
+
+    <group if="$(arg camera_pc)">
+        <node name="camera_intrinsics_publisher" pkg="moma_sensor_tools" type="yaml_to_camera_info_publisher.py" arg="custom_intrinsics_file" output="screen" if="$(arg custom_intrinsics)" />
+
+        <include file="$(find moma_sensor_tools)/launch/handeye_calibration/apriltag_tracking.launch">
+          <arg name="launch_realsense" 	value="true"/>
+          <arg name="camera_name" 		value="hand_eye"/>
+          <arg name="image_topic" 		value="color/image_raw"/>
+          <arg name="rviz" 				value="false"/>
+        </include>
+	</group>
 
 	<include file="$(find moma_sensor_tools)/launch/handeye_calibration/easy_handeye.launch" if="$(arg operator_pc)">
 	  <arg name="robot_base_frame" 			value="panda_link0"/>

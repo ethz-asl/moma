@@ -4,7 +4,12 @@
   <arg name="launch_realsense"  default="false"/> <!-- launch also realsense from here -->
   <arg name="debug_apriltag"    default="false"/> <!-- run tracker to debug calibration -->
   <arg name="debug_pcl"         default="false"/> <!-- show point cloud to debug calibration -->
-  <arg name="calibration_file"  default="$(find moma_sensor_tools)/config/handeye_calibration/handeye_calibration.yaml"/>
+  <arg name="calibration_file"  default="~/calibration/handeye_calibration.yaml"/>
+  <!-- Intrinsic camera calibration done with the camera_calibration package -->
+  <arg name="custom_intrinsics" default="true" />
+  <arg name="custom_intrinsics_file" default="~/calibration/camera_calibration.yaml" />
+
+  <node name="camera_intrinsics_publisher" pkg="moma_sensor_tools" type="yaml_to_camera_info_publisher.py" arg="custom_intrinsics_file" output="screen" if="$(arg custom_intrinsics)" />
 
   <!-- Read calibration from file and publish tf -->
 	<include file="$(find easy_handeye)/launch/publish.launch">
