@@ -1,0 +1,29 @@
+#! /bin/bash
+#outpath="$1"
+
+# Other variables
+now="$(date +"%F-%H-%M-%S")"
+today="$(date +"%F")"
+
+# List of useful colors
+COLOR_RESET="\033[0m"
+COLOR_WARN="\033[0;33m"
+
+# Check outputpath
+#if [ "${outpath}" == "" ]; then
+  outpath="/media/giuseppe/My Passport/bags/${today}"
+#fi
+
+if [ ! -d "${outpath}" ]; then
+  mkdir -p "${outpath}"
+fi
+
+# Record
+rosparam dump ${outpath}/${now}.yaml
+rosbag record --output-name="${outpath}/${now}_valve_perception" \
+/tf \
+/tf_static \
+/hand_eye/color/image_raw \
+/hand_eye/color/camera_info \
+/hand_eye/depth/camera_info \
+/hand_eye/depth/image_rect_raw
