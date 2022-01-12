@@ -13,6 +13,7 @@
         <include file="$(find moma_sensor_tools)/launch/handeye_calibration/apriltag_tracking.launch">
           <arg name="launch_realsense" 	value="true"/>
           <arg name="camera_name" 		value="hand_eye"/>
+          <arg name="camera_info"	value="/camera_info" if="$(arg custom_intrinsics)"/>
           <arg name="image_topic" 		value="color/image_raw"/>
           <arg name="rviz" 				value="false"/>
         </include>

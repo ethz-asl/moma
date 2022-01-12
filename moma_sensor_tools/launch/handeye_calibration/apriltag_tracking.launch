@@ -3,8 +3,7 @@
   <arg name="launch_realsense"  default="false"/>
   <arg name="launch_prefix"     default="" /> 
   <arg name="camera_name"       default="hand_eye" />
-  <arg name="camera_info"       default="/camera_info" />
-  <!--<arg name="camera_info"       default="$(arg camera_name)/camera_info" />-->
+  <arg name="camera_info"       default="$(arg camera_name)/color/camera_info" />
   <arg name="image_topic"       default="color/image_raw" />
   <arg name="rviz"              default="false"/>
 
