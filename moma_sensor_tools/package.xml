@@ -17,5 +17,6 @@
     <depend>realtime_tools</depend>
     <depend>easy_handeye</depend>
     <depend>rqt_easy_handeye</depend>
+    <depend>apriltag_ros</depend>
 
 </package>
