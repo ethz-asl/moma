@@ -11,7 +11,7 @@ COLOR_WARN="\033[0;33m"
 
 # Check outputpath
 if [ "${outpath}" == "" ]; then
-  outpath="~/bags/${today}"
+  outpath="${HOME}/bags/${today}"
 fi
 
 if [ ! -d "${outpath}" ]; then
