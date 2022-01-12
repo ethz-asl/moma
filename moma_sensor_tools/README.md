@@ -12,14 +12,24 @@ Calibration is performed sending the robot to various target poses and estimatin
 The hand-eye calibration can be performed using the [easy_hand_eye](https://github.com/IFL-CAMP/easy_handeye) package in combination with moveit and the [easy_hand_eye rqt gui](https://github.com/IFL-CAMP/easy_handeye/tree/master/rqt_easy_handeye). Here we provide some launch and config files which should be the process easy to setup and reproduce for the panda robot. For more information, refer to the documentation of the calibration packages.  
 
 1. Launch the panda robot on the robot computer with moveit enabled:
-	```bash
-	roslaunch moma_robot robot_pc.launch moveit:=true
-	```
+    ```bash
+    roslaunch moma_robot robot_pc.launch moveit:=true
+    ```
 2. In a ROS-networked operator PC, run the calibration routine:
-	```bash
-	roslaunch moma_sensor_tools calibration.launch 
-	```
-	This will launch the realsese camera driver, and a sample collection gui that will allow to alternate between different camera viewpoints and collect apriltag marker poses. The calibration routine also launches the apriltag detector which reads the specific aprilag configuration from this [config file](config/handeye_calibration/apriltags.yaml). Make sure that the information in this file reflects the apriltag you are currently using. Once the calibration is done, click on save and the new calibration config will be generated in the folder `~/.ros/easy_hand_eye`.
+    ```bash
+    roslaunch moma_sensor_tools calibration.launch 
+    ```
+    This will launch the realsese camera driver, and a sample collection gui that will allow to alternate between different camera viewpoints and collect apriltag marker poses. The calibration routine also launches the apriltag detector which reads the specific aprilag configuration from this [config file](config/handeye_calibration/apriltags.yaml). Make sure that the information in this file reflects the apriltag you are currently using.
+
+    2.1 If you want to run the camera node and the operator node on separate PCs, use
+    ```bash
+    roslaunch moma_sensor_tools calibration.launch operator_pc:=false
+    ```
+   and
+   ```bash
+    roslaunch moma_sensor_tools calibration.launch camera_pc:=false
+    ```
+4. Once the calibration is done, click on save and the new calibration config will be generated in the folder `~/.ros/easy_hand_eye`.
 
 To use the newly generated calibration transform, launch:
 ```bash
