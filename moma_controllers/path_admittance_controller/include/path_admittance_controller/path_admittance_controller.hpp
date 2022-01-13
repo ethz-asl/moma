@@ -79,8 +79,6 @@ class PathAdmittanceController : public controller_interface::Controller<hardwar
   // Gains
   Eigen::Vector3d Kp_linear_;
   Eigen::Vector3d Kp_angular_;
-  Eigen::Vector3d Ki_linear_;
-  Eigen::Vector3d Ki_angular_;
   Eigen::Vector3d Kd_linear_;
   Eigen::Vector3d Kd_angular_;
 
