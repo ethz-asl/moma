@@ -100,9 +100,9 @@ inputCost
   {
     scaling 1e-2
 
-    (0,0)  1.0  ; forward velocity
-    (1,1)  1.0  ; sideways velocity
-    (2,2)  1.0  ; turning velocity
+    (0,0)  10.0  ; forward velocity
+    (1,1)  10.0  ; sideways velocity
+    (2,2)  10.0  ; turning velocity
     (3,3)  1.0  ; SH_ROT velocity
     (4,4)  1.0  ; SH_FLE velocity
     (5,5)  1.0  ; EL_FLE velocity
@@ -154,9 +154,9 @@ jointVelocityLimits
   lowerBound
   {
     scaling 1e-1
-    (0,0) -3.0  ; forward velocity
-    (1,0) -3.0  ; sideways velocity
-    (2,0) -3.0  ; turning velocity
+    (0,0) -1.0  ; forward velocity
+    (1,0) -1.0  ; sideways velocity
+    (2,0) -1.0  ; turning velocity
     (3,0) -3.0  ; SH_ROT
     (4,0) -3.0  ; SH_FLE
     (5,0) -3.0  ; EL_FLE
@@ -170,9 +170,9 @@ jointVelocityLimits
   upperBound
   {
     scaling 1e-1
-    (0,0) 3.0  ; forward velocity
-    (1,0) 3.0  ; sideways velocity
-    (2,0) 3.0  ; turning velocity
+    (0,0) 1.0  ; forward velocity
+    (1,0) 1.0  ; sideways velocity
+    (2,0) 1.0  ; turning velocity
     (3,0) 3.0  ; SH_ROT
     (4,0) 3.0  ; SH_FLE
     (5,0) 3.0  ; EL_FLE

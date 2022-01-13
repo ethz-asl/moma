@@ -20,6 +20,9 @@ set(PACKAGE_DEPENDENCIES
     control_toolbox
     moma_ocs2_ros
     path_passthrough_controller
+    tf2_ros
+    geometry_msgs
+    nav_msgs
 )
 
 find_package(catkin REQUIRED COMPONENTS ${PACKAGE_DEPENDENCIES})

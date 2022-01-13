@@ -14,6 +14,8 @@
         <param name="base_type" value="$(arg base_type)"/>
     </group>
 
+    <param name="robot_description" command="$(find xacro)/xacro $(find moma_description)/urdf/superpanda.urdf.xacro use_nominal_extrinsics:=true tool:='none'" if="$(eval robot_name == 'panda')"/>
+
     <group if="$(arg rviz)">
       <include file="$(find moma_ocs2)/launch/visualize.launch">
         <arg name="robot_name" value="$(arg robot_name)"/>

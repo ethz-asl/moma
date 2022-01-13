@@ -48,7 +48,7 @@ bool MpcController::init() {
   mpcPtr_ = mm_interface_->getMpc();
 
   nh_.param<std::string>("/robot_description_mpc", robot_description_, "");
-  nh_.param<std::string>("/mpc_controller/base_link", base_link_, "base_link");
+  nh_.param<std::string>("/mpc_controller/base_link", base_link_, "tracking_camera_odom");
   nh_.param<std::string>("/mpc_controller/tool_link", tool_link_, "tool_frame");
   nh_.param<double>("/mpc_controller/mpc_frequency", mpcFrequency_, 1e3);
   nh_.param<double>("/mpc_controller/publish_ros_frequency", publishRosFrequency_, 20);
@@ -282,7 +282,7 @@ bool MpcController::sanityCheck(const nav_msgs::Path& path) {
 
 void MpcController::transformPath(nav_msgs::Path& desiredPath) {
   ROS_DEBUG_STREAM("[MPC_Controller::transformPath] Transforming path from "
-                  << desiredPath.header.frame_id << " to " << base_link_);
+                       << desiredPath.header.frame_id << " to " << base_link_);
   geometry_msgs::TransformStamped transformStamped;
   try {
     // target_frame, source_frame ...

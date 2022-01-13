@@ -1,16 +1,16 @@
 cartesian_velocity_controller:
-    type: panda_control/CartesianVelocityController
-    arm_id: panda
-    rate_limiting:
-        linear:
-            velocity: 0.5
-            acceleration: 8.0
-            jerk: 1000.0
-        angular:
-            velocity: 0.5
-            acceleration: 5.0
-            jerk: 2000.0
-    max_duration_between_commands: 0.1  # velocity is set to 0 if no new command is received within this time
+  type: panda_control/CartesianVelocityController
+  arm_id: panda
+  rate_limiting:
+    linear:
+      velocity: 0.5
+      acceleration: 8.0
+      jerk: 1000.0
+    angular:
+      velocity: 0.5
+      acceleration: 5.0
+      jerk: 2000.0
+  max_duration_between_commands: 0.1  # velocity is set to 0 if no new command is received within this time
 
 joint_space_controller:
   simulation: false
@@ -63,8 +63,10 @@ mpc_controller:
   arm_id: panda
 
   robot_name: "panda"
-  base_link: base_link
-  tool_link: tool_frame
+  base_link: "tracking_camera_odom"
+  tool_link: "tool_frame"
+  odom_topic: "/base_odom"
+  command_base_topic: "/smb_mpc/command_twist"
   joint_names:
     - panda_joint1
     - panda_joint2
@@ -99,7 +101,7 @@ path_admittance_controller:
   wrench_topic: /ft_compensated
   path_in_topic: /desired_path
   path_out_topic: /mpc_reference_path
-  
+
   kp_linear_gains: [0.01, 0.01, 0.01]
   kp_angular_gains: [0.01, 0.01, 0.01]
   ki_linear_gains: [ 0.0, 0.0, 0.0 ]

@@ -3,10 +3,12 @@
   <arg name="load_gripper" default="true"/>
   <arg name="robot_ip" default="172.16.0.2"/>
 
-  <!-- 0 = none, 1 = skidsteer, 2 = holonomic -->
-  <arg name="base_type" default="0"/>
+  <!-- Load the robot description -->
   <arg name="tool" default="panda_hand"/>
 
+  <!-- 0 = none, 1 = skidsteer, 2 = holonomic -->
+  <arg name="base_type" default="0"/>
+   
   <!-- send the robot XML to param server -->
   <param name="robot_description" command="$(find xacro)/xacro $(find moma_description)/urdf/panda.urdf.xacro use_nominal_extrinsics:=true use_fixed_realsense:=false tool:=$(arg tool)"/>
 
