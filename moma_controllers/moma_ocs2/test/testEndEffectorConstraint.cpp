@@ -56,7 +56,7 @@ class testEndEffectorConstraint : public ::testing::Test {
     x << 1.0, 1.0, 0.5, 2.5, -1.0, 1.5, 0.0, 1.0, 0.0;
   }
 
-  vector_t x{STATE_DIM};
+  vector_t x{9 /* TODO: HARD-CODED */};
   std::unique_ptr<PinocchioInterface> pinocchioInterfacePtr;
   std::unique_ptr<PinocchioEndEffectorKinematics> eeKinematicsPtr;
   MobileManipulatorPinocchioMapping<scalar_t> pinocchioMapping;

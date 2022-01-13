@@ -38,7 +38,7 @@ bool PandaMpcController::init(hardware_interface::RobotHW* robot_hw,
   velocity_current_ = Eigen::VectorXd::Zero(robot_model_->getDof());
   ROS_INFO("[PandaMpc::init] robot model successfully initialized");
 
-  mpc_controller_ = std::unique_ptr<moma_controllers::MpcController>(new moma_controllers::MpcController(controller_nh));
+  mpc_controller_ = std::unique_ptr<moma_controllers::MpcController<armInputDim_>>(new moma_controllers::MpcController<armInputDim_>(controller_nh));
   if (!mpc_controller_->init()) {
     ROS_ERROR("Failed to initialize the MPC controller");
     return false;
@@ -71,7 +71,7 @@ bool PandaMpcController::init_parameters(ros::NodeHandle& node_handle) {
   }
 
   if (!node_handle.getParam("joint_names", joint_names_) ||
-      joint_names_.size() != ocs2::mobile_manipulator::ARM_INPUT_DIM) {
+      joint_names_.size() != armInputDim_) {
     ROS_ERROR(
         "PandaMpcController: Invalid or no joint_names parameters "
         "provided, aborting "
@@ -92,7 +92,7 @@ bool PandaMpcController::init_parameters(ros::NodeHandle& node_handle) {
     command_base_pub_ = node_handle.advertise<geometry_msgs::Twist>(command_base_topic_, 1);
   }
 
-  for (size_t i = 0; i < ocs2::mobile_manipulator::ARM_INPUT_DIM; i++) {
+  for (size_t i = 0; i < armInputDim_; i++) {
     if (!arm_pid_controllers_[i].init(ros::NodeHandle(node_handle, node_handle.getNamespace() + "/gains/" + joint_names_[i]),
                                       false)) {
       ROS_ERROR_STREAM("Failed to load PID parameters from " << joint_names_[i] + "/pid");
@@ -129,7 +129,7 @@ bool PandaMpcController::init_common_interfaces(
         "hardware");
     return false;
   }
-  for (size_t i = 0; i < ocs2::mobile_manipulator::ARM_INPUT_DIM; ++i) {
+  for (size_t i = 0; i < armInputDim_; ++i) {
     try {
       joint_handles_.push_back(
           effort_joint_interface->getHandle(joint_names_[i]));
@@ -199,7 +199,7 @@ void PandaMpcController::write_command(){
     command_base_pub_.publish(base_velocity_command_);
   }
 
-  for (size_t i = 0; i < ocs2::mobile_manipulator::ARM_INPUT_DIM; i++) {
+  for (size_t i = 0; i < armInputDim_; i++) {
     joint_handles_[i].setCommand(arm_tau_(i));
   }
 }
@@ -207,14 +207,16 @@ void PandaMpcController::write_command(){
 void PandaMpcController::starting(const ros::Time& time) {
   if (started_){
     ROS_INFO("[PandaMpcController::starting] Controller already started.");
+    return;
   };
   read_state();
 
   ROS_DEBUG_STREAM("[PandaMpcController::starting] Starting with current joint position: " << position_current_.transpose());
-  mpc_controller_->start(position_current_.head<ocs2::mobile_manipulator::STATE_DIM>());
+  mpc_controller_->start(position_current_.head<ocs2::mobile_manipulator::STATE_DIM(armInputDim_)>());
   position_integral_ = position_current_;
 
   started_ = true;
+  last_start_time_ = ros::Time::now();
   ROS_INFO("[PandaMpcController::starting] Controller started!");
 }
 
@@ -252,7 +254,7 @@ void PandaMpcController::read_state(){
   }*/
 
 
-  for (size_t i = 0; i < ocs2::mobile_manipulator::ARM_INPUT_DIM; i++) {
+  for (size_t i = 0; i < armInputDim_; i++) {
     position_current_(i + ocs2::mobile_manipulator::BASE_INPUT_DIM) = joint_handles_[i].getPosition();
     velocity_current_(i + ocs2::mobile_manipulator::BASE_INPUT_DIM) = velocity_current_(i) * (1-measurement_trust_factor_) + measurement_trust_factor_ * joint_handles_[i].getVelocity();
   }
@@ -269,25 +271,25 @@ void PandaMpcController::compute_command(const ros::Duration& period) {
     position_error_(i) = position_integral_(i) - position_current_(i);
   }
   // Do not feedforward velocity to add damping
-  for (int i = ocs2::mobile_manipulator::BASE_INPUT_DIM; i < ocs2::mobile_manipulator::STATE_DIM; i++){
+  for (int i = ocs2::mobile_manipulator::BASE_INPUT_DIM; i < ocs2::mobile_manipulator::STATE_DIM(armInputDim_); i++){
     position_error_(i) = angles::shortest_angular_distance(position_current_(i), position_integral_(i));
   }
-  for (int i = 0; i < ocs2::mobile_manipulator::INPUT_DIM; i++){
+  for (int i = 0; i < ocs2::mobile_manipulator::INPUT_DIM(armInputDim_); i++){
     velocity_error_(i) = /*velocity_command_(i)*/ 0.0 - velocity_current_(i);
   }
 
   if (sim_) {
     robot_model_->updateState(position_current_, Eigen::VectorXd::Zero(robot_model_->getDof()));
     robot_model_->computeAllTerms();
-    arm_gravity_and_coriolis_ = robot_model_->getNonLinearTerms().head<ocs2::mobile_manipulator::ARM_INPUT_DIM>();
+    arm_gravity_and_coriolis_ = robot_model_->getNonLinearTerms().head<armInputDim_>();
   }
   else {
 
     // Panda already compensates for gravity internally
     robot_state_ = state_handle_->getRobotState();
     coriolis_ = model_handle_->getCoriolis();
-    for(int i=0; i<ocs2::mobile_manipulator::ARM_INPUT_DIM; i++){
-      arm_gravity_and_coriolis_[i] = coriolis_factor_ * coriolis_[i];
+    for(int i=0; i<armInputDim_; i++){
+      arm_gravity_and_coriolis_(i) = coriolis_factor_ * coriolis_[i];
     }
   }
 
@@ -296,7 +298,7 @@ void PandaMpcController::compute_command(const ros::Duration& period) {
   base_velocity_command_.linear.y =  velocity_command_(1);
   base_velocity_command_.angular.z = velocity_command_(2);
 
-  for (int i = 0; i < ocs2::mobile_manipulator::ARM_INPUT_DIM; i++){
+  for (int i = 0; i < armInputDim_; i++){
     arm_tau_(i) = arm_pid_controllers_[i].computeCommand(position_error_(i + ocs2::mobile_manipulator::BASE_INPUT_DIM),
                                                          velocity_error_(i + ocs2::mobile_manipulator::BASE_INPUT_DIM), period)
                                                      + arm_gravity_and_coriolis_(i);
@@ -311,23 +313,32 @@ void PandaMpcController::compute_command(const ros::Duration& period) {
 void PandaMpcController::update(const ros::Time& time,
                                      const ros::Duration& period) {
   read_state();
-  mpc_controller_->update(time, position_current_.head<ocs2::mobile_manipulator::STATE_DIM>());
+  mpc_controller_->update(time, position_current_.head<ocs2::mobile_manipulator::STATE_DIM(armInputDim_)>());
   compute_command(period);
   write_command();
 }
 
 void PandaMpcController::stopping(const ros::Time& time) {
-  ROS_INFO("Stopping Mpc Controller!");
+  if ((ros::Time::now() - last_start_time_).toSec() < 1) {
+    ROS_WARN("[PandaMpcController::stopping] Ignoring controller stop");
+    return;
+  }
+  if (!started_){
+    ROS_WARN("[PandaMpcController::stopping] Controller already stopped.");
+    return;
+  };
+  ROS_INFO("[PandaMpcController::stopping] Stopping Mpc Controller!");
   mpc_controller_->stop();
+  started_ = false;
 }
 
 void PandaMpcController::saturate_torque_rate(
-    const std::array<double, ocs2::mobile_manipulator::ARM_INPUT_DIM>& tau_J_d)
+    const std::array<double, armInputDim_>& tau_J_d)
 {
   double delta;
-  for (int i = 0; i < ocs2::mobile_manipulator::ARM_INPUT_DIM; i++) {
-    delta = arm_tau_[i] - tau_J_d[i];
-    arm_tau_[i] = tau_J_d[i] +
+  for (int i = 0; i < armInputDim_; i++) {
+    delta = arm_tau_(i) - tau_J_d[i];
+    arm_tau_(i) = tau_J_d[i] +
         std::max(std::min(delta, kDeltaTauMax), -kDeltaTauMax);
   }
 }

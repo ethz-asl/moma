@@ -33,6 +33,8 @@ class PandaMpcController
           franka_hw::FrankaModelInterface, hardware_interface::EffortJointInterface,
           franka_hw::FrankaStateInterface> {
  public:
+  static constexpr size_t armInputDim_ = 7;
+
   // explicit controller to allow for a missing hardware interface
   using BASE =
       controller_interface::MultiInterfaceController<franka_hw::FrankaModelInterface,
@@ -58,9 +60,10 @@ class PandaMpcController
   void odom_callback(const nav_msgs::Odometry::ConstPtr& msg);
 
   // Saturation
-  void saturate_torque_rate(const std::array<double, ocs2::mobile_manipulator::ARM_INPUT_DIM>& tau_J_d);
+  void saturate_torque_rate(const std::array<double, armInputDim_>& tau_J_d);
 
  private:
+  ros::Time last_start_time_;
   bool sim_;
 
   //tf2_ros::Buffer tfBuffer_;
@@ -76,13 +79,13 @@ class PandaMpcController
 
   // dynamic model
   std::unique_ptr<rc::RobotWrapper> robot_model_;
-  std::array<control_toolbox::Pid, ocs2::mobile_manipulator::ARM_INPUT_DIM> arm_pid_controllers_;
-  MpcController::state_vector_t position_command_;
-  MpcController::input_vector_t velocity_command_;
-  MpcController::state_vector_t position_error_;
-  MpcController::input_vector_t velocity_error_;
-  MpcController::joint_vector_t arm_gravity_and_coriolis_;
-  MpcController::joint_vector_t arm_tau_;
+  std::array<control_toolbox::Pid, armInputDim_> arm_pid_controllers_;
+  MpcController<armInputDim_>::state_vector_t position_command_;
+  MpcController<armInputDim_>::input_vector_t velocity_command_;
+  MpcController<armInputDim_>::state_vector_t position_error_;
+  MpcController<armInputDim_>::input_vector_t velocity_error_;
+  MpcController<armInputDim_>::joint_vector_t arm_gravity_and_coriolis_;
+  MpcController<armInputDim_>::joint_vector_t arm_tau_;
 
   // Keep state dynamic vector to account for eventual gripper case
   Eigen::VectorXd position_current_;
@@ -97,13 +100,13 @@ class PandaMpcController
 
   std::string arm_id_;
   std::vector<std::string> joint_names_;
-  std::array<double, ocs2::mobile_manipulator::ARM_INPUT_DIM> coriolis_;
+  std::array<double, armInputDim_> coriolis_;
   double coriolis_factor_ = 1.0;
   double measurement_trust_factor_ = 0.99;
   franka::RobotState robot_state_;
 
   bool started_;
-  std::unique_ptr<moma_controllers::MpcController> mpc_controller_;
+  std::unique_ptr<moma_controllers::MpcController<armInputDim_>> mpc_controller_;
 };
 
 }  // namespace moma_controllers

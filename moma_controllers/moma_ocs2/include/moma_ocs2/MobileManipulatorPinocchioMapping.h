@@ -39,19 +39,20 @@ template <typename SCALAR>
 class MobileManipulatorPinocchioMapping final : public PinocchioStateInputMapping<SCALAR> {
  private:
   BaseType baseType_;
+  size_t armInputDim_;
  public:
   using Base = PinocchioStateInputMapping<SCALAR>;
   using typename Base::matrix_t;
   using typename Base::vector_t;
 
-  MobileManipulatorPinocchioMapping(BaseType baseType = BaseType::none) : baseType_(baseType) {};
+  MobileManipulatorPinocchioMapping(const size_t armInputDim, const BaseType baseType = BaseType::none) : armInputDim_(armInputDim), baseType_(baseType) {};
   ~MobileManipulatorPinocchioMapping() override = default;
   MobileManipulatorPinocchioMapping<SCALAR>* clone() const override { return new MobileManipulatorPinocchioMapping<SCALAR>(*this); }
 
   vector_t getPinocchioJointPosition(const vector_t& state) const override { return state; }
 
   vector_t getPinocchioJointVelocity(const vector_t& state, const vector_t& input) const override {
-    vector_t dxdt(STATE_DIM);
+    vector_t dxdt(STATE_DIM(armInputDim_));
     const auto theta = state(2);
     typename vector_t::Scalar vx;      // forward velocity in base frame
     typename vector_t::Scalar vy;      // sideways velocity in base frame
@@ -73,12 +74,12 @@ class MobileManipulatorPinocchioMapping final : public PinocchioStateInputMappin
         vy = typename vector_t::Scalar(0.0);
         vtheta = typename vector_t::Scalar(0.0);
     }
-    dxdt << cos(theta) * vx - sin(theta) * vy, sin(theta) * vx + cos(theta) * vy, vtheta, input.tail(ARM_INPUT_DIM);
+    dxdt << cos(theta) * vx - sin(theta) * vy, sin(theta) * vx + cos(theta) * vy, vtheta, input.tail(armInputDim_);
     return dxdt;
   }
 
   std::pair<matrix_t, matrix_t> getOcs2Jacobian(const vector_t& state, const matrix_t& Jq, const matrix_t& Jv) const override {
-    matrix_t dfdu(Jv.rows(), INPUT_DIM);
+    matrix_t dfdu(Jv.rows(), INPUT_DIM(armInputDim_));
     Eigen::Matrix<SCALAR, 3, 3> dvdu_base;
     const SCALAR theta = state(2);
     switch(baseType_) {
@@ -102,7 +103,7 @@ class MobileManipulatorPinocchioMapping final : public PinocchioStateInputMappin
 
     // clang-format on
     dfdu.template leftCols<3>() = Jv.template leftCols<3>() * dvdu_base;
-    dfdu.template rightCols(ARM_INPUT_DIM) = Jv.template rightCols(ARM_INPUT_DIM);
+    dfdu.template rightCols(armInputDim_) = Jv.template rightCols(armInputDim_);
     return {Jq, dfdu};
   }
 };

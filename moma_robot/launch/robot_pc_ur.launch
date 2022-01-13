@@ -1,0 +1,76 @@
+<?xml version="1.0" ?>
+<launch>
+  <arg name="robot_type" default="ur5e"/>
+  <arg name="robot_ip" default="127.0.0.1"/>
+
+  <!-- 0 = none, 1 = skidsteer, 2 = holonomic -->
+  <arg name="base_type" default="0"/>
+
+  <!-- From ur_description/launch/load_ur5e.launch -->
+  <!--ur5e parameters files -->
+  <arg name="joint_limit_params" default="$(find ur_description)/config/ur5e/joint_limits.yaml"/>
+  <!-- !!! DO NOT FORGET TO PROVIDE PROPER CALIBRATION FILE TO kinematics_params !!! -->
+  <arg name="kinematics_params" default="$(find ur_description)/config/ur5e/default_kinematics.yaml"/>
+  <arg name="physical_params" default="$(find ur_description)/config/ur5e/physical_parameters.yaml"/>
+  <arg name="visual_params" default="$(find ur_description)/config/ur5e/visual_parameters.yaml"/>
+  <!--common parameters -->
+  <arg name="transmission_hw_interface" default="hardware_interface/PositionJointInterface" />
+  <arg name="safety_limits" default="false" doc="If True, enable the safety limits controller"/>
+  <arg name="safety_pos_margin" default="0.15" doc="The lower/upper limits in the safety controller" />
+  <arg name="safety_k_position" default="20" doc="Used to set k position in the safety controller" />
+   
+  <!-- send the robot XML to param server -->
+  <!-- already done by the bringup.launch file -->
+  <!--<param name="robot_description" command="$(find xacro)/xacro $(find moma_description)/urdf/super$(arg robot_type).urdf.xacro
+      joint_limit_params:=$(arg joint_limit_params)
+      kinematics_params:=$(arg kinematics_params)
+      physical_params:=$(arg physical_params)
+      visual_params:=$(arg visual_params)
+      transmission_hw_interface:=$(arg transmission_hw_interface)
+      safety_limits:=$(arg safety_limits)
+      safety_pos_margin:=$(arg safety_pos_margin)
+      safety_k_position:=$(arg safety_k_position)"/>-->
+
+  <!-- Launch UR files -->
+  <include file="$(find ur_robot_driver)/launch/$(arg robot_type)_bringup.launch">
+    <arg name="robot_ip" value="$(arg robot_ip)" />
+    <arg name="kinematics_config" value="$(arg kinematics_params)" />
+    <!--<arg name="robot_description_file" value="" />-->
+  </include>
+
+  <!-- OCS2 params -->
+  <group ns="ocs2_mpc">
+    <param name="task_file" value="$(find moma_ocs2)/config/mpc/task_$(arg robot_type).info"/>
+    <param name="robot_description_ocs2" command="$(find xacro)/xacro $(find moma_description)/urdf/super$(arg robot_type).urdf.xacro
+        mpc_model:=true
+        joint_limit_params:=$(arg joint_limit_params)
+        kinematics_params:=$(arg kinematics_params)
+        physical_params:=$(arg physical_params)
+        visual_params:=$(arg visual_params)
+        transmission_hw_interface:=$(arg transmission_hw_interface)
+        safety_limits:=$(arg safety_limits)
+        safety_pos_margin:=$(arg safety_pos_margin)
+        safety_k_position:=$(arg safety_k_position)"/>
+    <param name="base_type" value="$(arg base_type)"/>
+  </group>
+
+  <!--<group ns="control">-->
+      <!-- Load all available controllers -->
+      <rosparam command="load" file="$(find moma_robot)/config/controllers.yaml" />
+
+      <!-- Load but do not start these controllers -->
+      <arg name="controllers_load_list" value="mpc_ur_controller path_admittance_controller path_passthrough_controller"/>
+      <node name="controller_loader" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="--stopped $(arg controllers_load_list)" />
+
+      <!-- Already start these controllers -->
+      <arg name="controllers_start_list" value=""/>
+      <!--<node name="controller_starter" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="$(arg controllers_start_list)" />-->
+  <!--</group>-->
+
+  <node pkg="tf2_ros"
+        if="$(eval arg('base_type') == 0)"
+        type="static_transform_publisher"
+        name="depth2_depth_opt_rebroadcaster"
+        args="0 0 0 0 0 0 1 world base_link" />
+
+</launch>
