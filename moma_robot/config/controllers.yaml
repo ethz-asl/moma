@@ -135,3 +135,21 @@ path_admittance_controller:
 
   force_threshold: [2.0, 2.0, 2.0]
   torque_threshold: [0.5, 0.5, 0.5]
+
+path_admittance_ur_controller:
+  type: moma_controllers/PathAdmittanceController
+
+  verbose: true
+  wrench_topic: /wrench
+  path_in_topic: /desired_path
+  path_out_topic: /mpc_reference_path
+
+  kp_linear_gains: [0.01, 0.01, 0.01]
+  kp_angular_gains: [0.01, 0.01, 0.01]
+  ki_linear_gains: [ 0.0, 0.0, 0.0 ]
+  ki_angular_gains: [ 0.0, 0.0, 0.0 ]
+  force_integral_max: [1.0, 1.0, 1.0]
+  torque_integral_max: [1.0, 1.0, 1.0]
+
+  force_threshold: [2.0, 2.0, 2.0]
+  torque_threshold: [0.5, 0.5, 0.5]
