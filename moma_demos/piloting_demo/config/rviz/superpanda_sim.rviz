@@ -110,11 +110,13 @@ Visualization Manager:
             mono_link:
               Value: false
             odom:
-              Value: true
+              Value: false
             panda_default_ee:
-              Value: true
+              Value: false
             panda_hand:
-              Value: true
+              Value: false
+            panda_leftfinger:
+              Value: false
             panda_link0:
               Value: false
             panda_link1:
@@ -132,6 +134,8 @@ Visualization Manager:
             panda_link7:
               Value: false
             panda_link8:
+              Value: false
+            panda_rightfinger:
               Value: false
             realsense_t265:
               Value: false
@@ -181,7 +185,10 @@ Visualization Manager:
                                     panda_default_ee:
                                       {}
                                     panda_hand:
-                                      {}
+                                      panda_leftfinger:
+                                        {}
+                                      panda_rightfinger:
+                                        {}
                                     tool_frame:
                                       {}
                                   wrist_camera_bottom_screw_frame:
@@ -337,6 +344,12 @@ Visualization Manager:
               Alpha: 1
               Show Axes: false
               Show Trail: false
+              Value: true
+            panda_leftfinger:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
             panda_link0:
               Alpha: 1
               Show Axes: false
@@ -381,6 +394,11 @@ Visualization Manager:
               Alpha: 1
               Show Axes: false
               Show Trail: false
+            panda_rightfinger:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
             realsense_t265:
               Alpha: 1
               Show Axes: false
@@ -651,7 +669,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 11.062971115112305
+      Distance: 11.705288887023926
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -659,17 +677,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 4.47416877746582
-        Y: 4.293058395385742
-        Z: -0.37815800309181213
+        X: 0.34580206871032715
+        Y: 2.255399465560913
+        Z: 0.3928634524345398
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.19479723274707794
+      Pitch: 0.29479721188545227
       Target Frame: <Fixed Frame>
-      Yaw: 5.208590507507324
+      Yaw: 5.178590297698975
     Saved: ~
 Window Geometry:
   Displays:
