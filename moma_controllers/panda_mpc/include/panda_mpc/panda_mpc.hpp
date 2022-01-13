@@ -90,6 +90,8 @@ class PandaMpcController
   // Keep state dynamic vector to account for eventual gripper case
   Eigen::VectorXd position_current_;
   Eigen::VectorXd velocity_current_;
+  Eigen::VectorXd position_current_model_;
+  Eigen::VectorXd velocity_current_model_;
   Eigen::VectorXd position_integral_;
 
   std::unique_ptr<franka_hw::FrankaStateHandle> state_handle_;
