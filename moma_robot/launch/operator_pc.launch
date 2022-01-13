@@ -14,5 +14,4 @@
 
   <!-- A Gui for plotting signals published as ros messages -->
   <node name="plotjuggler" type="plotjuggler" pkg="plotjuggler" output="screen" args="--layout $(arg plot_layout)"/>
-
 </launch>
