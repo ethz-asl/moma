@@ -29,7 +29,8 @@
   
   <!-- OCS2 params -->
   <param name="ocs2_mpc/task_file"  value="$(find moma_ocs2)/config/mpc/task_panda.info"/>
-  <param name="ocs2_mpc/robot_description_ocs2" command="$(find xacro)/xacro $(find moma_description)/urdf/superpanda.urdf.xacro use_nominal_extrinsics:=true tool:='none'"/>
+  <param name="ocs2_mpc/robot_description_ocs2" command="$(find xacro)/xacro $(find moma_description)/urdf/superpanda.urdf.xacro 
+    use_nominal_extrinsics:=true tool:='none' mpc_model:=true"/>
   <param name="ocs2_mpc/base_type" value="$(arg base_type)"/>
   <include file="$(find panda_mpc)/launch/interactive_marker.launch"/>
 
