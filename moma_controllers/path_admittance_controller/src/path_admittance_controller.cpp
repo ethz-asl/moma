@@ -27,8 +27,8 @@ bool PathAdmittanceController::init(hardware_interface::JointStateInterface* hw,
   }
   ROS_INFO_STREAM("[PathAdmittanceController] Subscribing to wrench topic [" << wrench_topic << "]");
 
-  if (!controller_nh.param<bool>("wrench_inverted", wrench_inverted_, false)) {
-    ROS_WARN_STREAM("[PathAdmittanceController] Failed to parse wrench_inverted setting");
+  if (!controller_nh.param<bool>("wrench_opposite", wrench_opposite_, false)) {
+    ROS_WARN_STREAM("[PathAdmittanceController] Failed to parse wrench_opposite setting");
     return false;
   }
 
@@ -136,23 +136,24 @@ void PathAdmittanceController::update(const ros::Time& time, const ros::Duration
   Eigen::Matrix3d R(q);
 
   // Update measured wrench and tracking errors
-  force_ext_ = Eigen::Vector3d(!wrench_inverted_ ? wrench_.wrench.force.x : -wrench_.wrench.force.x,
-                               !wrench_inverted_ ? wrench_.wrench.force.y : -wrench_.wrench.force.y,
-                               !wrench_inverted_ ? wrench_.wrench.force.z : -wrench_.wrench.force.z);
+  force_ext_ = Eigen::Vector3d(wrench_.wrench.force.x,
+                               wrench_.wrench.force.y,
+                               wrench_.wrench.force.z);
+  if (wrench_opposite_) force_ext_ = -force_ext_;
   threshold(force_ext_, force_threshold_);
 
-  dpos_ddot_ = /*M_inv_ **/ (force_ext_ - Kd_linear_.cwiseProduct(dpos_dot_) - Kp_linear_.cwiseProduct(dpos_));
+  dpos_ddot_ = M_inv_ * (force_ext_ - Kd_linear_.cwiseProduct(dpos_dot_) - Kp_linear_.cwiseProduct(dpos_));
   dpos_dot_ = dpos_dot_ + dt * dpos_ddot_;
   dpos_ = dpos_ + dt * dpos_dot_;
 
   Eigen::Vector3d delta_position_transformed = R * dpos_;
-
-  torque_error_ = Eigen::Vector3d(!wrench_inverted_ ? wrench_.wrench.torque.x : -wrench_.wrench.torque.x,
-                                  !wrench_inverted_ ? wrench_.wrench.torque.y : -wrench_.wrench.torque.y,
-                                  !wrench_inverted_ ? wrench_.wrench.torque.z : -wrench_.wrench.torque.z);
+  torque_error_ = Eigen::Vector3d(wrench_.wrench.torque.x,
+                                  wrench_.wrench.torque.y,
+                                  wrench_.wrench.torque.z);
+  if (wrench_opposite_) torque_error_ = -torque_error_;
   threshold(torque_error_, torque_threshold_);
 
-  drot_ddot_ = /*M_inv_ **/ (torque_error_ - Kd_angular_.cwiseProduct(drot_dot_) - Kp_angular_.cwiseProduct(drot_));
+  drot_ddot_ = M_inv_ * (torque_error_ - Kd_angular_.cwiseProduct(drot_dot_) - Kp_angular_.cwiseProduct(drot_));
   drot_dot_ = drot_dot_ + dt * drot_ddot_;
   drot_ = drot_ + dt * drot_dot_;
 

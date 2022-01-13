@@ -99,7 +99,7 @@ path_admittance_controller:
 
   verbose: true
   wrench_topic: /franka_state_controller/F_ext
-  wrench_inverted: true
+  wrench_opposite: true
   path_in_topic: /desired_path
   path_out_topic: /mpc_reference_path
 
