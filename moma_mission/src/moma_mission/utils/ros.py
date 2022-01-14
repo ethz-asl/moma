@@ -1,4 +1,5 @@
 import os
+import sys
 import rospy
 from controller_manager_msgs.srv import SwitchController, SwitchControllerRequest
 from controller_manager_msgs.srv import ListControllers, ListControllersRequest, ListControllersResponse
@@ -13,9 +14,11 @@ def get_param_safe(param_name):
     try:
         return rospy.get_param(param_name)
     except KeyError as exc:
+        print("ERROR")
+        
         rospy.logerr(exc)
         raise NameError("Failed to parse parameter {}".format(param_name))
-
+       
 
 def switch_ros_controller(startlist=[], stoplist=[], manager_namespace=''):
     list_controller_service_name = os.path.join(manager_namespace, "controller_manager", "list_controllers")

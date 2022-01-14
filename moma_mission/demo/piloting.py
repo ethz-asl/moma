@@ -1,10 +1,14 @@
 #!/usr/bin/env python
+import sys
 import rospy
 import smach
 import smach_ros
+from moma_mission.core.state_ros import *
+from moma_mission.missions.piloting.states import *
 from moma_mission.missions.piloting.sequences import *
 
 rospy.init_node('piloting_mission')
+from moma_mission.missions.piloting.rcs_bridge import RCSBridge
 
 # Init data
 Valve.init_from_ros()
@@ -13,40 +17,59 @@ Frames.print_summary()
 
 # Build the state machine
 state_machine = StateMachineRos(outcomes=['Success', 'Failure'])
-with state_machine:
-    state_machine.add('HOME_ROBOT_START',
-                      homing_sequence_factory(),
-                      transitions={'Success': 'REACH_DETECTION_HOTSPOT', 'Failure': 'Failure'})
 
-    state_machine.add('REACH_DETECTION_HOTSPOT',
-                      NavigationState,
-                      transitions={'Completed': 'DETECTION',
-                                   'Failure': 'Failure'})
+try:
+    with state_machine:
+        state_machine.add('SETUP',
+                        SetUp,
+                        transitions={'Completed': 'HOME_ROBOT_START', 'Failure': 'Failure'})
 
-    state_machine.add('DETECTION',
-                      detection_sequence_factory(),
-                      transitions={'Success': 'LATERAL_MANIPULATION',
-                                   'Failure': 'Failure'})
+        state_machine.add('HOME_ROBOT_START',
+                        homing_sequence_factory(),
+                        transitions={'Success': 'IDLE', 'Failure': 'Failure'})
 
-    state_machine.add('LATERAL_MANIPULATION',
-                      lateral_manipulation_sequence_factory(),
-                      transitions={'Success': 'HOMING_FINAL',
-                                   'Failure': 'Failure'})
+        state_machine.add('IDLE', Idle,
+                        transitions={'ExecuteInspectionPlan': 'Failure', #'WAYPOINT_FOLLOWING', #TODO(giuseppe) restore, only for testing
+                                     'ExecuteManipulationPlan': 'REACH_DETECTION_HOTSPOT',
+                                     'Failure': 'Failure'})
+        
+        state_machine.add('REACH_DETECTION_HOTSPOT',   
+                        NavigationState,
+                        transitions={'Completed': 'DETECTION',
+                                    'Failure': 'Failure'})
 
-    homing_sequence_final = StateMachineRos(outcomes=['Success', 'Failure'])
-    with homing_sequence_final:
-        homing_sequence_final.add('OPEN_GRIPPER', GripperUSB,
-                                  transitions={'Completed': 'HOME_ROBOT_FINAL',
-                                               'Failure': 'Failure'})
+        state_machine.add('WAYPOINT_FOLLOWING',   
+                        NavigationState, # to change to waypoint navigation state
+                        transitions={'Completed': 'Success',
+                                    'Failure': 'Failure'})
 
-        homing_sequence_final.add('HOME_ROBOT_FINAL', JointsConfigurationAction,
-                                   transitions={'Completed': 'Success',
+        state_machine.add('DETECTION',
+                        detection_sequence_factory(),
+                        transitions={'Success': 'LATERAL_MANIPULATION',
+                                    'Failure': 'Failure'})
+
+        state_machine.add('LATERAL_MANIPULATION',
+                        lateral_manipulation_sequence_factory(),
+                        transitions={'Success': 'HOMING_FINAL',
+                                    'Failure': 'Failure'})
+
+        homing_sequence_final = StateMachineRos(outcomes=['Success', 'Failure'])
+        with homing_sequence_final:
+            homing_sequence_final.add('OPEN_GRIPPER', GripperControl,
+                                    transitions={'Completed': 'HOME_ROBOT_FINAL',
                                                 'Failure': 'Failure'})
 
-    state_machine.add('HOMING_FINAL',
-                  homing_sequence_final,
-                  transitions={'Success': 'Success',
-                               'Failure': 'Failure'})
+            homing_sequence_final.add('HOME_ROBOT_FINAL', JointsConfigurationAction,
+                                    transitions={'Completed': 'Success',
+                                                    'Failure': 'Failure'})
+
+        state_machine.add('HOMING_FINAL',
+                    homing_sequence_final,
+                    transitions={'Success': 'Success',
+                                'Failure': 'Failure'})
+except Exception as exc:
+    rospy.logerr(exc)
+    sys.exit(0)
 
 # Create and start the introspection server
 introspection_server = smach_ros.IntrospectionServer('piloting_mission_server', state_machine, '/mission_planner')

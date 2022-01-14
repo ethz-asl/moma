@@ -105,16 +105,13 @@ class JointsConfigurationAction(StateRosControl):
     """
 
     def __init__(self, ns=""):
-        try:
-            StateRosControl.__init__(self, ns=ns)
-            self.joints_configurations = self.get_scoped_param("joints_configurations")
-            self.n_configurations = len(self.joints_configurations)
-            rospy.loginfo("Parsed {} joints configurations: {}".format(self.n_configurations, self.joints_configurations))
+        StateRosControl.__init__(self, ns=ns)
+        self.joints_configurations = self.get_scoped_param("joints_configurations")
+        self.n_configurations = len(self.joints_configurations)
+        rospy.loginfo("Parsed {} joints configurations: {}".format(self.n_configurations, self.joints_configurations))
 
-            self.action_name = self.get_scoped_param("action_name")
-            self.client = actionlib.SimpleActionClient(self.action_name, JointAction)
-        except Exception:
-            self.initialization_failure = True
+        self.action_name = self.get_scoped_param("action_name")
+        self.client = actionlib.SimpleActionClient(self.action_name, JointAction)
 
     def run(self):
         controller_switched = self.do_switch()

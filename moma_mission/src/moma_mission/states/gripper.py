@@ -40,16 +40,13 @@ class GripperUSB(StateRos):
     """
 
     def __init__(self, ns):
-        try:
-            StateRos.__init__(self, ns=ns)
-            command_topic_name = self.get_scoped_param("command_topic")
-            self.position = self.get_scoped_param("position")
-            self.effort = self.get_scoped_param("effort")
-            self.velocity = self.get_scoped_param("velocity")
-            self.command_publisher = rospy.Publisher(
-                command_topic_name, JointState, queue_size=10)
-        except Exception:
-            self.initialization_failure = True
+        StateRos.__init__(self, ns=ns)
+        command_topic_name = self.get_scoped_param("command_topic")
+        self.position = self.get_scoped_param("position")
+        self.effort = self.get_scoped_param("effort")
+        self.velocity = self.get_scoped_param("velocity")
+        self.command_publisher = rospy.Publisher(
+            command_topic_name, JointState, queue_size=10)
 
     def run(self):
         # It should actually switch to the right controller but assuming that

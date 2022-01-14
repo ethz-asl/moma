@@ -1,36 +1,44 @@
 # Config file for the combined mission
 # Namespaces mirror (optionally) the state for better readability
 
-OPEN_GRIPPER:
+IDLE:
   default_outcome: None
-  command_topic: /gripper_command
-  position: 0.0   # must be between 0 and 1
-  velocity: 0  # between 0 and 1
-  effort: 0 # must be between 0 and 10
+
+SETUP:
+  default_outcome: None
+
+OPEN_GRIPPER:
+  default_outcome: Completed
+  gripper_action_name: /franka_gripper/gripper_action
+  position: 0.03
+  max_effort: 20
+  tolerance: 0.001
+  timeout: 5.0
 
 CLOSE_GRIPPER:
-  default_outcome: None
-  command_topic: /gripper_command
-  position: 0.55  # must be between 0 and 1
-  velocity: 0.01  # between 0 and 1
-  effort: 0.5   # must be between 0 and 10
+  default_outcome: Completed
+  gripper_action_name: /franka_gripper/gripper_action
+  position: 0.0
+  max_effort: 20
+  tolerance: 0.001
+  timeout: 5.0
 
 HOME_ROBOT:
-  default_outcome: None
+  default_outcome: Completed
   action_name: /joint_space_controller_server
-  controller_name: joint_space_controller
-  manager_namespace: ''
-  whitelist: [robotiq_2f_85_controller, franka_state_controller, joint_state_controller, path_admittance_controller]
+  manager_namespace: control
+  startlist: ['joint_space_controller']
+  stoplist: ['mpc_controller', 'path_passthrough_controller', 'effort_joint_trajectory_controller']
   joints_configurations:
     - [0, -0.885, 0, -2.1, 0, 1.571, 0]
 
 # hack to avoid self collision in the end
 HOME_ROBOT_FINAL:
-  default_outcome: None
+  default_outcome: Completed
   action_name: /joint_space_controller_server
-  controller_name: joint_space_controller
-  manager_namespace: ''
-  whitelist: [robotiq_2f_85_controller, franka_state_controller, joint_state_controller, path_admittance_controller]
+  manager_namespace: control
+  startlist: ['joint_space_controller']
+  stoplist: ['mpc_controller', 'path_passthrough_controller', 'effort_joint_trajectory_controller']
   joints_configurations:
     - [-0.65, -0.885, 0, -2.1, 0, 1.571, 0]
 
@@ -44,8 +52,26 @@ REACH_DETECTION_HOTSPOT:
   goal_pose_topic: /move_base_simple/goal
   base_pose_topic: /base_pose_measured
   base_odometry_topic: /base_odom
-  roco_controller: MpcTrackLocalPlan
-  controller_manager_namespace: /smb_highlevel_controller
+ 
+  manager_namespace: control
+  startlist: ['smb_diff_drive']
+  stoplist: []
+  
+  timeout: 10000.0
+  tolerance_m: 0.30
+  tolerance_deg: 50
+
+WAYPOINT_FOLLOWING:
+  default_outcome: Completed
+  target_frame: navigation_target
+  goal_pose_topic: /move_base_simple/goal
+  base_pose_topic: /base_pose_measured
+  base_odometry_topic: /base_odom
+ 
+  manager_namespace: control
+  startlist: ['smb_diff_drive']
+  stoplist: []
+  
   timeout: 10000.0
   tolerance_m: 0.30
   tolerance_deg: 50
@@ -53,33 +79,34 @@ REACH_DETECTION_HOTSPOT:
 REACH_VIEWPOINT:
   default_outcome: Completed
   action_name: /joint_space_controller_server
-  controller_name: joint_space_controller
-  manager_namespace: ''
-  whitelist: [robotiq_2f_85_controller, franka_state_controller, joint_state_controller, path_admittance_controller]
+  manager_namespace: control
+  startlist: ['joint_space_controller']
+  stoplist: ['mpc_controller', 'path_passthrough_controller', 'effort_joint_trajectory_controller']
   joints_configurations:
     - [1.57, -0.885, 0, -2.1, 0, 1.571, 0]
     - [-1.57, -0.885, 0, -2.1, 0, 1.571, 0]
 
 LATERAL_GRASP:
-  default_outcome: None
+  default_outcome: Completed
   controller_name: mpc_controller
-  manager_namespace: ''
-  whitelist: [reflex_controller, robotiq_2f_85_controller, franka_state_controller, joint_state_controller, path_admittance_controller]
+  manager_namespace: control
+  startlist: ['mpc_controller', 'path_passthrough_controller']
+  stoplist: ['joint_space_controller']
   path_topic_name: /desired_path
 
 POST_LATERAL_GRASP:
-  default_outcome: None
-  controller_name: mpc_controller
-  manager_namespace: ''
-  whitelist: [ robotiq_2f_85_controller, franka_state_controller, joint_state_controller, path_admittance_controller ]
+  default_outcome: Completed
+  manager_namespace: control
+  startlist: ['mpc_controller', 'path_passthrough_controller']
+  stoplist: ['joint_space_controller']
   path_topic_name: /desired_path
 
 MANIPULATE_VALVE:
-  default_outcome: None
-  controller_name: mpc_controller
-  manager_namespace: ''
-  whitelist: [robotiq_2f_85_controller, franka_state_controller, joint_state_controller, path_admittance_controller]
-
+  default_outcome: Completed
+  manager_namespace: control
+  startlist: ['mpc_controller', 'path_passthrough_controller']
+  stoplist: ['joint_space_controller']
+  
   angle_step_deg: -60.0   # how much to rotate at once
   angle_end_deg: -118.0    # total desired rotation
   angle_delta_deg: 5.0    # controls trajectory discretization

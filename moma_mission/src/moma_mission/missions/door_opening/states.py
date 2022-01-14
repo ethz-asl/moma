@@ -7,25 +7,22 @@ from moma_mission.missions.door_opening.door import Door
 
 class DoorManipulation(StateRosControl):
     def __init__(self, ns):
-        try:
-            StateRosControl.__init__(self, ns=ns)
+        StateRosControl.__init__(self, ns=ns)
 
-            self.ee_frame = self.get_scoped_param("ee_frame")
-            self.opening_angle = np.deg2rad(
-                self.get_scoped_param("opening_angle_deg"))
-            self.opening_speed = np.deg2rad(
-                self.get_scoped_param("opening_speed_deg"))
+        self.ee_frame = self.get_scoped_param("ee_frame")
+        self.opening_angle = np.deg2rad(
+            self.get_scoped_param("opening_angle_deg"))
+        self.opening_speed = np.deg2rad(
+            self.get_scoped_param("opening_speed_deg"))
 
-            self.door_description_name = self.get_scoped_param(
-                "door_description_name")
-            self.door = Door(self.door_description_name)
+        self.door_description_name = self.get_scoped_param(
+            "door_description_name")
+        self.door = Door(self.door_description_name)
 
-            path_topic_name = self.get_scoped_param("path_topic_name")
-            self.path_publisher = rospy.Publisher(
-                path_topic_name, Path, queue_size=1)
+        path_topic_name = self.get_scoped_param("path_topic_name")
+        self.path_publisher = rospy.Publisher(
+            path_topic_name, Path, queue_size=1)
 
-        except Exception:
-            self.initialization_failure = True
 
     def run(self):
         controller_switched = self.do_switch()

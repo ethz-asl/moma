@@ -4,8 +4,8 @@
   <node name="rviz" pkg="rviz" type="rviz" args="-d $(find piloting_demo)/config/rviz/sim.rviz" />
 
   <!-- dashboard -->
-  <rosparam command="load" file="$(find piloting_demo)/config/dashboard.yaml"/>
-  <node name="moma_dashboard" pkg="rqt_gui" type="rqt_gui" args="--perspective-file $(find piloting_demo)/config/dashboard.perspective">
+  <rosparam command="load" file="$(find piloting_demo)/config/operator/dashboard.yaml"/>
+  <node name="moma_dashboard" pkg="rqt_gui" type="rqt_gui" args="--perspective-file $(find piloting_demo)/config/operator/dashboard.perspective">
       <param name="capability_group" value="GUI"/>
   </node>
 

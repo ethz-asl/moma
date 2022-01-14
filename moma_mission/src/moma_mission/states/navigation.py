@@ -6,8 +6,7 @@ import math
 import rospy
 from geometry_msgs.msg import PoseStamped
 
-from moma_mission.core import StateRos
-from moma_mission.utils import rocoma
+from moma_mission.core import StateRos, StateRosControl
 
 
 class WaypointNavigation(StateRos):
@@ -146,20 +145,17 @@ class WaypointNavigation(StateRos):
             return False
 
 
-class SingleNavGoalState(StateRos):
+class SingleNavGoalState(StateRosControl):
     """
     In this state the robot navigates to a single goal"""
 
     def __init__(self, ns=""):
-        StateRos.__init__(self, ns=ns)
+        StateRosControl.__init__(self, ns=ns)
 
         self.goal_pose_topic = self.get_scoped_param("goal_pose_topic")
         self.base_pose_topic = self.get_scoped_param("base_pose_topic")
         self.goal_publisher = rospy.Publisher(self.goal_pose_topic, PoseStamped, queue_size=10)
         self.base_pose_subscriber = rospy.Subscriber(self.base_pose_topic, PoseStamped, self.base_pose_callback)
-
-        self.controller = self.get_scoped_param("roco_controller")
-        self.controller_manager_namespace = self.get_scoped_param("controller_manager_namespace")
 
         self.timeout = self.get_scoped_param("timeout")
         self.tolerance_m = self.get_scoped_param("tolerance_m")
@@ -172,18 +168,13 @@ class SingleNavGoalState(StateRos):
 
         self.base_pose_received = False
 
-    def __del__(self):
-        self.base_pose_subscriber.unregister()
-
     def reach_goal(self, goal):
         if not isinstance(goal, PoseStamped):
             rospy.logerr("The goal needs to be specified as a PoseStamped message")
             return False
 
-        success = rocoma.switch_roco_controller(self.controller,
-                                                ns=self.controller_manager_namespace)
-        if not success:
-            rospy.logerr("Could not execute the navigation plan")
+        controller_switched = self.do_switch()
+        if not controller_switched:
             return False
 
         while not self.goal_publisher.get_num_connections():

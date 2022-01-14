@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import sys
+from moma_mission.utils import ros
 import rospy
 import numpy as np
 
@@ -8,7 +10,8 @@ from nav_msgs.msg import Odometry
 
 from mavsdk_ros.msg import CommandLong, CommandAck, WaypointList, WaypointsAck, TextStatus, AlarmStatus
 from mavsdk_ros.msg import HLActionItem
-from mavsdk_ros.srv import Command, InspectionPlan, SetUploadAlarm, SetUploadWaypointList, UpdateSeqWaypointItem
+from mavsdk_ros.srv import Command, CommandRequest, CommandResponse
+from mavsdk_ros.srv import InspectionPlan, SetUploadAlarm, SetUploadWaypointList, UpdateSeqWaypointItem
 from mavsdk_ros.srv import SetUploadHLAction, SetUploadHLActionRequest
 
 class RCSBridge:
@@ -33,9 +36,40 @@ class RCSBridge:
         /mavsdk_ros/text_status --> text information
         """
 
-        # params 
-        self.telemetry_odom_topic = rospy.get_param("~telemetry_odom_topic")
+        self.telemetry_odom_topic = None
+
+        # Service servers
+        self.command_server = None
+        self.inspection_server = None
+
+        # Service clients 
+        self.upload_alarm_client = None
+        self.upload_waypoint_list_client = None
+        self.upload_hl_action_client = None
+        self.update_current_waypoint_item_client = None
+        self.update_reached_waypoint_item_client = None
         
+        # Publishers
+        self.telemetry_pub = None
+        self.status_pub = None
+        self.alarm_pub = None
+        
+        # Subscribers
+        self.odom_sub = None
+
+        # Messages
+        self.status_msg = TextStatus()
+        self.alarm_msg = AlarmStatus()
+
+        # Flags
+        self.current_hl_command_id = -1
+        self.current_hl_command = np.array([])
+        
+    def read_params(self):
+        self.telemetry_odom_topic = rospy.get_param("~telemetry_odom_topic")
+        return True
+
+    def init_ros(self):
         # Service servers
         self.command_server = rospy.Service('/command', Command, self.command_server_cb)
         self.inspection_server = rospy.Service('/inspection', InspectionPlan, self.inspection_server_cb)
@@ -58,20 +92,32 @@ class RCSBridge:
         # Messages
         self.status_msg = TextStatus()
         self.alarm_msg = AlarmStatus()
+        return True
         
-        self.upload_hl_action()
+
+    def get_current_hl_command(self):
+        return self.current_hl_command_id, self.current_hl_command
 
     def command_server_cb(self, req):
         rospy.loginfo("Received command request from gRCS.")
         
         # check that the command matches the one specified in the high level actions
-        response = CommandAck()
-        if (req.info.command == 1):
-            response.result = 1
-            response.progress = 2
+        response = CommandResponse()
+        response.ack = CommandAck()
+        req = CommandRequest()
+
+        req.info.command
+
+        if (req.info.command == 0):
+            self.current_hl_command_id = req.info.command
+            self.current_hl_command = np.array([req.info.param1, req.info.param2, req.info.param3, 
+                                                req.info.param4, req.info.param5, req.info.param6, req.info.param7])
+            response.ack.result = 0 # See MAV_CMD enum
+            response.ack.progress = 0
         else:
-            response.result = 2
-            response.progress = 3
+            rospy.logerr("Unknown command id")
+            response.result = 1
+            response.progress = 0
         return response
    
     def inspection_server_cb(self, req):
@@ -95,8 +141,17 @@ class RCSBridge:
     
         req = SetUploadHLActionRequest()
         req.hl_actions.append(hl_action)
+
+        try:
+            self.upload_hl_action_client.wait_for_service(timeout=10.0)
+        except rospy.ROSException as exc:
+            rospy.logerr(exc)
+            rospy.logerr("Aborting.")
+            return False
+
         self.upload_hl_action_client.call(req)
-        
+        return True
+
     def update_telemetry(self, msg):
         """ 
         Resend msg received over odom topic to gRCS telemetry topic (relay) 
@@ -124,5 +179,7 @@ class RCSBridge:
 if __name__ == "__main__":
     rospy.init_node("ethz_gcs_bridge")
     bridge = RCSBridge()
+    bridge.read_params()
+    bridge.init_ros()
     bridge.run()
 
