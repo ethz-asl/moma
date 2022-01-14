@@ -3,17 +3,12 @@ project(moma_mission)
 
 find_package(catkin REQUIRED COMPONENTS )
 
-catkin_package(
-        #        INCLUDE_DIRS include
-        #        LIBRARIES
-        #        CATKIN_DEPENDS
-)
+catkin_package()
 catkin_python_setup()
 
 catkin_install_python(PROGRAMS
         demo/mock_modules.py
         demo/piloting.py
-        demo/pcl_relay.py
         scripts/gripper_commander.py
         scripts/calibrate_door.py
         DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
