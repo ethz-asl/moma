@@ -15,6 +15,7 @@ catkin_install_python(PROGRAMS
         demo/piloting.py
         demo/pcl_relay.py
         scripts/gripper_commander.py
+        scripts/calibrate_door.py
         DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 install(DIRECTORY launch config

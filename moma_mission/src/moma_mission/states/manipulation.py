@@ -132,7 +132,7 @@ class JointsConfigurationAction(StateRosControl):
         for goal_position in self.joints_configurations:
             goal.position = goal_position
             rospy.loginfo("Going to configuration {}".format(goal_position))
-            self.client.send_goal_and_wait(goal, execute_timeout=rospy.Duration(20))
+            self.client.send_goal_and_wait(goal, execute_timeout=rospy.Duration(30))
             result = self.client.get_result()
             if not result.success:
                 rospy.logerr("Failed to reach the goal configuration")

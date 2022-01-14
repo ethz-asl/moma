@@ -1,24 +1,36 @@
 <?xml version="1.0"?>
 <launch>
-    <arg name="test" default="false"/>
+    <arg name="mission_name"    default="piloting"/>
+    <arg name="test"            default="false"/>
 
     <!--   Mock modules to test state machine without sim -->
-    <group if="$(arg test)">
+    <group if="$(eval arg('test') and arg('mission_name') == 'piloting')">
         <include file="$(find moma_mission)/launch/mock_modules.launch"/>
     </group>
 
     <!-- State Machine configuration -->
-    <rosparam command="load" file="$(find moma_mission)/config/state_machine/piloting.yaml"
+    <rosparam command="load" file="$(find moma_mission)/config/state_machine/$(arg mission_name).yaml"
               subst_value="true"/>
 
     <!--    State machine -->
-    <node pkg="moma_mission" type="piloting.py" name="piloting_demo" output="screen">
+    <node pkg="moma_mission" type="$(arg mission_name).py" name="$(arg mission_name)_demo" output="screen"/>
+
+    <!-- Load the manipulated door -->
+    <group if="$(eval arg('mission_name') == 'christmas')">
+      <include file="$(find moma_mission)/launch/load_door.launch"/>
+      <node name="$(anon rviz)" pkg="rviz" type="rviz" args="-d $(find moma_mission)/config/rviz/door_opening.rviz" />   
+   </group>
+
+  <!-- start custom rviz -->
+  
+<!-- 
+    <node pkg="moma_mission" type="piloting.py" name="$(arg mission_name)_demo" output="screen">
         <param name="valve_radius" value="0.12"/>
         <param name="valve_frame" value="valve_base"/>
         <param name="base_frame" value="base_link"/>
         <param name="tool_frame" value="tool_frame"/>
         <param name="map_frame" value="map"/>
-    </node>
+    </node> -->
 </launch>
 
 <!--launch-prefix="bash -c 'sleep $(arg start_mission_delay); $0 $@'"-->

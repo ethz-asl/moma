@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<launch>
+    <arg name="rviz" default="false"/>
+    <!-- A launch for calibration of the current door placement using the end effector as a measurement toool -->
+    
+    <!-- Calibration node -->
+    <node pkg="moma_mission" type="calibrate_door.py" name="door_calibration_node" output="screen"/>
+
+    <!-- Door model + joint + state publishing -->
+    <include file="$(find moma_mission)/launch/load_door.launch"/>
+
+    <!-- Visualize the placement in RViz -->
+    <node name="$(anon rviz)" pkg="rviz" type="rviz" args="-d $(find moma_mission)/config/rviz/door_opening.rviz" if="$(arg rviz)"/>
+</launch>
