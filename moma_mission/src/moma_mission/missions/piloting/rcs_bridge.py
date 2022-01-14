@@ -33,19 +33,29 @@ class RCSBridge:
         /mavsdk_ros/text_status --> text information
         """
 
+        # params 
+        self.telemetry_odom_topic = rospy.get_param("~telemetry_odom_topic")
+        
+        # Service servers
+        self.command_server = rospy.Service('/command', Command, self.command_server_cb)
+        self.inspection_server = rospy.Service('/inspection', InspectionPlan, self.inspection_server_cb)
+
+        # Service clients 
         self.upload_alarm_client = rospy.ServiceProxy("/mavsdk_ros/set_upload_alarm", SetUploadAlarm)
         self.upload_waypoint_list_client = rospy.ServiceProxy("/mavsdk_ros/set_upload_waypoint_list", SetUploadWaypointList)
         self.upload_hl_action_client = rospy.ServiceProxy("/mavsdk_ros/set_upload_hl_action", SetUploadHLAction)
         self.update_current_waypoint_item_client = rospy.ServiceProxy("/mavsdk_ros/update_current_waypoint_item", UpdateSeqWaypointItem)
         self.update_reached_waypoint_item_client = rospy.ServiceProxy("/mavsdk_ros/update_reached_waypoint_item", UpdateSeqWaypointItem)
         
+        # Publishers
         self.telemetry_pub = rospy.Publisher("/mavsdk_ros/local_position", Odometry, queue_size=1)
         self.status_pub = rospy.Publisher("/mavsdk_ros/text_status", TextStatus, queue_size=1)
         self.alarm_pub = rospy.Publisher("/mavsdk_ros/alarm_status", AlarmStatus, queue_size=1)
-        self.command_server = rospy.Service('/command', Command, self.command_server_cb)
-        self.inspection_server = rospy.Service('/inspection', InspectionPlan, self.inspection_server_cb)
+        
+        # Subscribers
+        self.odom_sub = rospy.Subscriber(self.telemetry_odom_topic, Odometry, self.update_telemetry, queue_size=1)
 
-        self.telemetry_msg = Odometry()
+        # Messages
         self.status_msg = TextStatus()
         self.alarm_msg = AlarmStatus()
         
@@ -87,8 +97,11 @@ class RCSBridge:
         req.hl_actions.append(hl_action)
         self.upload_hl_action_client.call(req)
         
-    def update_telemetry(self):
-        pass
+    def update_telemetry(self, msg):
+        """ 
+        Resend msg received over odom topic to gRCS telemetry topic (relay) 
+        """
+        self.telemetry_pub.publish(msg)
 
     def update_status(self):
         pass
