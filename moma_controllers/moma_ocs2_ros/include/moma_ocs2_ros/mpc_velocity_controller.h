@@ -343,6 +343,12 @@ class MpcController {
 
   // path processing
   static bool sanityCheck(const nav_msgs::Path& path) {
+    // check that path adheres to conventional frame
+    if (path.header.frame_id != "world") {
+      ROS_ERROR("[MpcController::transformPath] Desired path must be in world frame.");
+      return false;
+    }
+
     // check time monotonicity
     for (size_t idx = 1; idx < path.poses.size(); idx++) {
       if ((path.poses[idx].header.stamp.toSec() - path.poses[idx - 1].header.stamp.toSec()) <= 0) {
@@ -353,10 +359,6 @@ class MpcController {
   }
 
   void transformPath(nav_msgs::Path& desiredPath) {
-    if (desiredPath.header.frame_id != "world") {
-      ROS_ERROR("[MpcController::transformPath] Desired path must be in world frame.");
-    }
-
     for (auto& pose : desiredPath.poses) {
       tf::poseMsgToEigen(pose.pose, T_x_tool_);
       T_base_ee_ = T_x_tool_ * T_tool_ee_;
