@@ -7,6 +7,7 @@ find_package(Eigen3 3.3 REQUIRED)
 set(PROJECT_DEPENDENCIES
         roscpp
         realtime_tools
+        robot_control
         moma_ocs2
         angles
         tf2
@@ -20,7 +21,6 @@ find_package(catkin REQUIRED COMPONENTS ${PROJECT_DEPENDENCIES})
 
 catkin_package(
         INCLUDE_DIRS include
-        LIBRARIES ${PROJECT_NAME}
         CATKIN_DEPENDS ${PROJECT_DEPENDENCIES}
 )
 
@@ -29,8 +29,9 @@ set(COMMON_LIBRARIES ${catkin_LIBRARIES} ${COMMON_LIBRARIES})
 
 include_directories(include SYSTEM ${DEPENDENCY_INCLUDE_DIRS})
 
-add_library(${PROJECT_NAME} src/mpc_velocity_controller.cpp)
-target_link_libraries(${PROJECT_NAME} ${COMMON_LIBRARIES})
+add_library(${PROJECT_NAME} INTERFACE)
+#target_link_libraries(${PROJECT_NAME} ${COMMON_LIBRARIES})
+target_include_directories(${PROJECT_NAME} INTERFACE include)
 
 install(DIRECTORY launch config
         DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
@@ -38,7 +39,5 @@ install(DIRECTORY launch config
 
 # Install library
 install(TARGETS ${PROJECT_NAME}
-        ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-        LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-        RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}
+        DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
         )

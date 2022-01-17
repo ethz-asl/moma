@@ -55,3 +55,13 @@ To use the newly generated calibration transform, launch:
 ```bash
 roslaunch moma_sensor_tools publish_calibration.launch calibration_file:=<path to calibration file>
 ```
+
+
+## Wrench filtering and plotting
+
+To show a plot of the raw and filtered wrench applied at the end effector, follow these steps:
+- Launch a franka state controller on the real robot (for example `roslaunch moma_robot robot_pc.launch`)
+- Run the wrench filtering: `roslaunch moma_sensor_tools ft_sensor_standalone.launch`
+  - Accept to start to previous streaming plugin
+  - Select the topics `/franka_state_controller/F_ext` and `/ft_compensated`
+- Show plots of the wrench in plotjuggler on the operator PC: `roslaunch moma_robot operator_pc.launch plot:=true`

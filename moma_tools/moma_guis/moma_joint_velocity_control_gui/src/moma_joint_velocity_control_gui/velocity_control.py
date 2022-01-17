@@ -56,15 +56,17 @@ class VelocityControl(Plugin):
         context.add_widget(self._widget)
 
         self.controller_name = rospy.get_param('/moma_joint_velocity_control_gui/controller_name')
-        self.controller_namespace = rospy.get_param('/moma_joint_velocity_control_gui/controller_namespace',
-                                                    '/controller_manager')
+        self.controller_manager_ns = rospy.get_param('/moma_joint_velocity_control_gui/controller_namespace', '')
+        self.controller_manager_name = os.path.join(self.controller_manager_ns, "controller_manager")
+
         self.goal_topic = rospy.get_param('/moma_joint_velocity_control_gui/goal_topic',
                                           '/{}/goal'.format(self.controller_name))
         # To avoid redundancy, fetch all parameters that the controllers already have directly from them
-        self.joint_names = rospy.get_param('/{}/joint_names'.format(self.controller_name))
-        self.lower_limits = rospy.get_param('/{}/lower_limit'.format(self.controller_name))
-        self.upper_limits = rospy.get_param('/{}/upper_limit'.format(self.controller_name))
-        self.max_velocity = rospy.get_param('/{}/max_velocity'.format(self.controller_name))
+        prefix = os.path.join(self.controller_manager_ns, self.controller_name)
+        self.joint_names = rospy.get_param('/{}/joint_names'.format(prefix))
+        self.lower_limits = rospy.get_param('/{}/lower_limit'.format(prefix))
+        self.upper_limits = rospy.get_param('/{}/upper_limit'.format(prefix))
+        self.max_velocity = rospy.get_param('/{}/max_velocity'.format(prefix))
 
         control_view = self._widget.control_view
         control_model = QStandardItemModel(control_view)
@@ -84,7 +86,7 @@ class VelocityControl(Plugin):
 
         self.pub_goal = rospy.Publisher(self.goal_topic, JointState, queue_size=1)
 
-        self._controller_lister = ControllerLister(self.controller_namespace)
+        self._controller_lister = ControllerLister(self.controller_manager_name)
         # Timer for running controller updates
         self._update_ctrl_list_timer = QTimer(self)
         self._update_ctrl_list_timer.setInterval(1000.0)

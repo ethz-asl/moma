@@ -1,0 +1,17 @@
+<?xml version="1.0" ?>
+<launch>
+  <arg name="plot" default="false"/>
+  <arg name="plot_layout" default="$(find moma_sensor_tools)/config/fext_plotjuggler.xml"/>
+
+  <!-- A user friendly dashboard for robot control -->
+  <include file="$(find moma_dashboard)/launch/dashboard.launch"/>
+
+  <!-- Start rviz -->
+  <node name="$(anon rviz)" pkg="rviz" type="rviz" args="-d $(find moma_robot)/config/operator_pc.rviz" />
+
+  <!-- An interactive marker for the mpc controller-->
+  <include file="$(find panda_mpc)/launch/interactive_marker.launch"/>
+
+  <!-- A Gui for plotting signals published as ros messages -->
+  <node name="plotjuggler" type="plotjuggler" pkg="plotjuggler" output="screen" args="--layout $(arg plot_layout)" if="$(arg plot)"/>
+</launch>

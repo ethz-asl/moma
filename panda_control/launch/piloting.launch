@@ -1,10 +1,10 @@
 <?xml version="1.0" ?>
 <launch>
-	<arg name="load_gripper" default="false"/>
+  <arg name="load_gripper" default="true"/>
   <arg name="robot_ip" default="172.16.0.2"/>
 
   <!-- Load the robot description -->
-  <arg name="tool" default="robotiq_2f_toolset"/>
+  <arg name="tool" default="panda_hand"/>
 
   <!-- 0 = none, 1 = skidsteer, 2 = holonomic -->
   <arg name="base_type" default="0"/>

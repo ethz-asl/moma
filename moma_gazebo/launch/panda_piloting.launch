@@ -2,7 +2,6 @@
 <launch>
   <arg name="gui" default="false" />
   <arg name="rviz" default="true" />
-  <arg name="panda_z_position" default="0.0"/>
   <arg name="use_fixed_realsense" default="false"/>
   <arg name="tool" default="none"/>
   <!-- 0 = none, 1 = skidsteer, 2 = holonomic -->
@@ -20,7 +19,6 @@
 
   <!-- spawn panda -->
   <include file="$(find moma_gazebo)/launch/spawn_panda.launch">
-    <arg name="z" value="$(arg panda_z_position)"/>
     <arg name="use_fixed_realsense" value="$(arg use_fixed_realsense)"/>
     <arg name="control_mode" value="Effort"/>
     <arg name="tool" value="$(arg tool)"/>
@@ -31,7 +29,8 @@
   
   <!-- OCS2 params -->
   <param name="ocs2_mpc/task_file"  value="$(find moma_ocs2)/config/mpc/task_panda.info"/>
-  <param name="ocs2_mpc/robot_description_ocs2" command="$(find xacro)/xacro $(find moma_description)/urdf/superpanda.urdf.xacro use_nominal_extrinsics:=true tool:='none'"/>
+  <param name="ocs2_mpc/robot_description_ocs2" command="$(find xacro)/xacro $(find moma_description)/urdf/superpanda.urdf.xacro 
+    use_nominal_extrinsics:=true tool:='none' mpc_model:=true"/>
   <param name="ocs2_mpc/base_type" value="$(arg base_type)"/>
   <include file="$(find panda_mpc)/launch/interactive_marker.launch"/>
 

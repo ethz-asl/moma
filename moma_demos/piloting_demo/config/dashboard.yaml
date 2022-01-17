@@ -1,0 +1,15 @@
+moma_joint_position_control_gui:
+  controller_name: joint_space_controller
+  controller_namespace: control
+  goal_topic: /joint_space_controller/goal
+  states_topic: /joint_states
+
+moma_joint_velocity_control_gui:
+  controller_name: joint_velocity_controller
+  controller_namespace: control
+  goal_topic: /joint_velocity_controller/goal
+
+moma_joint_states_display_gui:
+  # The joint limits and safety margins are read from this controller's parameters
+  controller_name: joint_velocity_controller
+  controller_namespace: control

@@ -3,20 +3,7 @@ project(moma_robot)
 
 find_package(catkin REQUIRED)
 
+catkin_package()
 
-catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES moma_robot
-#  CATKIN_DEPENDS other_catkin_pkg
-#  DEPENDS system_lib
-)
-
-###########
-## Build ##
-###########
-
-include_directories(
-# include
-# ${catkin_INCLUDE_DIRS}
-)
+include_directories()
 
