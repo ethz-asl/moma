@@ -9,8 +9,4 @@
       <param name="capability_group" value="GUI"/>
   </node>
 
-  <!-- An interactive marker for the mpc controller-->
-  <!-- <include file="$(find panda_mpc)/launch/interactive_marker.launch">
-    <arg name="frame_id" value="tracking_camera_odom"/>
-  </include> -->
 </launch>
