@@ -57,6 +57,11 @@ int main(int argc, char** argv) {
     ROS_ERROR("Failed to retrieve /ocs2_mpc/robot_description_ocs2 from param server.");
     return 0;
   }
+  int armInputDim;
+  if (!nodeHandle.param("/ocs2_mpc/arm_input_dim", armInputDim)){
+    ROS_ERROR("Failed to retrieve /ocs2_mpc/arm_input_dim from param server.");
+    return 0;
+  }
   int baseTypeInt;
   if (!nodeHandle.param("/ocs2_mpc/base_type", baseTypeInt, 0)){
     ROS_ERROR("Failed to retrieve /ocs2_mpc/base_type from param server.");
@@ -69,7 +74,7 @@ int main(int argc, char** argv) {
   BaseType baseType = static_cast<BaseType>(baseTypeInt);
 
   // Robot Interface
-  mobile_manipulator::MobileManipulatorInterface interface(taskFile, urdfXML, baseType);
+  mobile_manipulator::MobileManipulatorInterface interface(taskFile, urdfXML, armInputDim, baseType);
 
   // MRT
   MRT_ROS_Interface mrt("mobile_manipulator");
@@ -87,14 +92,14 @@ int main(int argc, char** argv) {
   // initial state
   SystemObservation initObservation;
   initObservation.state = interface.getInitialState();
-  initObservation.input.setZero(mobile_manipulator::INPUT_DIM);
+  initObservation.input.setZero(mobile_manipulator::INPUT_DIM(armInputDim));
   initObservation.time = 0.0;
 
   // initial command
   vector_t initTarget(7);
   initTarget.head(3) << 0, 1, 1;
   initTarget.tail(4) << Eigen::Quaternion<scalar_t>(1, 0, 0, 0).coeffs();
-  const vector_t zeroInput = vector_t::Zero(mobile_manipulator::INPUT_DIM);
+  const vector_t zeroInput = vector_t::Zero(mobile_manipulator::INPUT_DIM(armInputDim));
   const TargetTrajectories initTargetTrajectories({initObservation.time}, {initTarget}, {zeroInput});
 
   // Run dummy (loops while ros is ok)

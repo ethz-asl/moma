@@ -50,7 +50,7 @@ class JointSpaceController
  protected:
   bool sim_;
   int n_joints_;
-  std::string robot_description_;
+  std::string arm_description_;
   std::vector<std::string> joint_names_;
 
   std::mutex generator_mutex_;

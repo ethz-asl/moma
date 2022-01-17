@@ -3,11 +3,11 @@
   <arg name="plot" default="false"/>
   <arg name="plot_layout" default="$(find moma_sensor_tools)/config/fext_plotjuggler.xml"/>
 
-  <!-- A user friendly dashboard for robot control -->     
+  <!-- A user friendly dashboard for robot control -->
   <include file="$(find moma_dashboard)/launch/dashboard.launch"/>
 
   <!-- Start rviz -->
-  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find moma_robot)/config/operator_pc.rviz" />
+  <node name="$(anon rviz)" pkg="rviz" type="rviz" args="-d $(find moma_robot)/config/operator_pc.rviz" />
 
   <!-- An interactive marker for the mpc controller-->
   <include file="$(find panda_mpc)/launch/interactive_marker.launch"/>

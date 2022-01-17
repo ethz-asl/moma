@@ -64,7 +64,7 @@ class MobileManipulatorInterface final : public RobotInterface {
    * @param [in] libraryFolder: The absolute path to the directory to generate CppAD library into.
    * @param [in] urdfXML: The URDF description string for the robot.
    */
-  explicit MobileManipulatorInterface(const std::string& taskFile, const std::string& urdfXML, const BaseType& baseType);
+  explicit MobileManipulatorInterface(const std::string& taskFile, const std::string& urdfXML, const size_t armInputDim, const BaseType& baseType);
 
   const vector_t& getInitialState() { return initialState_; }
 
@@ -101,6 +101,7 @@ class MobileManipulatorInterface final : public RobotInterface {
                                                         bool recompileLibraries);
   std::unique_ptr<StateInputCost> getJointVelocityLimitConstraint(const std::string& taskFile);
 
+  size_t armInputDim_;
   BaseType baseType_;
   std::string urdfXML_;
   std::string taskFile_;
@@ -118,7 +119,7 @@ class MobileManipulatorInterface final : public RobotInterface {
   std::unique_ptr<PinocchioInterface> pinocchioDesiredInterfacePtr_;
 
   std::string eeFrame_;
-  vector_t initialState_{STATE_DIM};
+  vector_t initialState_;
 };
 
 }  // namespace mobile_manipulator

@@ -43,7 +43,7 @@ namespace mobile_manipulator {
 /** Callback for caching and reference update */
 class MobileManipulatorPreComputation : public PreComputation {
  public:
-  MobileManipulatorPreComputation(PinocchioInterface pinocchioInterface);
+  MobileManipulatorPreComputation(PinocchioInterface pinocchioInterface, const size_t armInputDim, const BaseType baseType = BaseType::none);
   ~MobileManipulatorPreComputation() override = default;
 
   MobileManipulatorPreComputation(const MobileManipulatorPreComputation& rhs) = delete;
@@ -56,6 +56,8 @@ class MobileManipulatorPreComputation : public PreComputation {
   const PinocchioInterface& getPinocchioInterface() const { return pinocchioInterface_; }
 
  private:
+  size_t armInputDim_;
+  BaseType baseType_;
   PinocchioInterface pinocchioInterface_;
   MobileManipulatorPinocchioMapping<scalar_t> pinocchioMapping_;
 };

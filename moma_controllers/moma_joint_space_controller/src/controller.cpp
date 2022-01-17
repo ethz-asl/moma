@@ -51,9 +51,9 @@ bool JointSpaceController::init(hardware_interface::RobotHW* hw, ros::NodeHandle
     return false;
   }
 
-  if (!controller_nh.getParam("/robot_description", robot_description_) ||
-      robot_description_.empty()) {
-    ROS_ERROR_STREAM("Could not find param /robot_description or invalid param");
+  if (!controller_nh.getParam("/arm_description", arm_description_) ||
+      arm_description_.empty()) {
+    ROS_ERROR_STREAM("Could not find param /arm_description or invalid param");
     return false;
   }
 
@@ -80,12 +80,12 @@ bool JointSpaceController::init(hardware_interface::RobotHW* hw, ros::NodeHandle
   // Custom initialization
   if (sim_) {
     model_ = std::make_unique<rc::RobotWrapper>();
-    model_->initFromXml(robot_description_);
+    model_->initFromXml(arm_description_);
 
     for (size_t i = 0; i < n_joints_; i++) {
       control_toolbox::Pid pid;
       if (!pid.init(
-              ros::NodeHandle("/joint_space_controller/pid_gains/" + joint_names_[i]), false)) {
+              ros::NodeHandle(controller_nh.getNamespace() + "/pid_gains/" + joint_names_[i]), false)) {
         ROS_ERROR_STREAM("Failed to load PID parameters from " << joint_names_[i] + "/pid");
         return false;
       }

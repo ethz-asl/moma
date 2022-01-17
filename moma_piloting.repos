@@ -7,7 +7,7 @@ repositories:
   compslam:
     type: git
     url: https://bitbucket.org/leggedrobotics/compslam_rss.git
-    version: master
+    version: c6c9275bcc9021c358ad283f2ed1ddf2c4542ab9
   
   smb_common:
     type: git
@@ -17,44 +17,44 @@ repositories:
   robosense_simulator:
     type: git
     url: https://github.com/tomlogan501/robosense_simulator.git
-    version: master
+    version: a443e50a7cf2764faf8b3966326cb812f2169cf7
   
   smb_path_planner:
     type: git
     url: https://github.com/VIS4ROB-lab/smb_path_planner.git
-    version: master
+    version: 1080f32486eafabfa3aadac8b32a535eddb46046
   
   teb_local_planner:
     type: git
     url: https://github.com/leggedrobotics/teb_local_planner.git
-    version: feature/correct_local_plan_timestamps
+    version: 821c1ae1d23e45bcca21ccbbb2bcb497e93ef8ae  
   
   icp_localization:
     type: git
     url: https://github.com/leggedrobotics/icp_localization.git
-    version: master
+    version: 801e4f75fe06532c0f5ab55a810b524d99aa9cfb
   
   libpointmatcher:
     type: git
     url: https://github.com/leggedrobotics/libpointmatcher
-    version: master
+    version: b264553fcad6f386d96d8ba7bb95ded4582102c7
   
   libnabo:
     type: git
     url: https://github.com/ANYbotics/libnabo.git
-    version: master
+    version: 9440284d657313fb3e33b4464e946d81f3f8c47c
   
   pointmatcher_ros:
     type: git
     url: https://github.com/leggedrobotics/pointmatcher-ros
-    version: master
+    version: 0cceaec3d18304b179a75d7d6c2f70d6c5b6dd36
   
   smb_powerstatus:
     type: git
     url: https://github.com/ETHZ-RobotX/smb_powerstatus
-    version: main
+    version: 9c65c4e36771c1f766c388956e4eb2ba610dece6
   
   smb_rviz_plugins:
     type: git  
     url: https://github.com/ETHZ-RobotX/smb_rviz_plugins
-    version: master
+    version: 23161b07c5d7f38fa25ba938286e080d90fedbec

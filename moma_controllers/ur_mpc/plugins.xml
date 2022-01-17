@@ -1,0 +1,8 @@
+<library path="lib/libur_mpc">
+    <class name="moma_controllers/UrMpcController" type="moma_controllers::UrMpcController"
+           base_class_type="controller_interface::ControllerBase">
+        <description>
+            UR mpc controller
+        </description>
+    </class>
+</library>

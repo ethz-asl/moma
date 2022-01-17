@@ -25,8 +25,14 @@ In order to run the simulation the SMB stack needs to be cloned. This is reflect
 launch simulation (arm + base + localization + planner + base control).
 
 ### Path Planner / Navigation
+Terminal 1
 ```
-roslaunch piloting_demo superpanda_sim.launch
+roslaunch piloting_demo superpanda_sim.launch mpc:=true
+
+```
+Terminal 2
+```
+roslaunch piloting_demo superpanda_operator.launch
 ```
 The last step should spawn something like this in rviz (note the additional navigation pluing):
 

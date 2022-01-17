@@ -3,8 +3,12 @@
   <arg name="gui" default="false" />
   <arg name="rviz" default="true" />
   <arg name="use_fixed_realsense" default="false"/>
-  <arg name="tool" default="none"/>
+  <arg name="tool" default="panda_hand"/>
   <arg name="mpc" default="false"/>
+
+  <!-- load a arm only description for the arm controllers -->
+  <param name="arm_description" command="$(find xacro)/xacro $(find moma_description)/urdf/panda.urdf.xacro 
+    use_nominal_extrinsics:=true use_fixed_realsense:=false tool:=$(arg tool)"/>
 
   <!-- spawn panda in siumulation -->
   <include file="$(find piloting_demo)/launch/superpanda_gazebo.launch">
@@ -30,7 +34,8 @@
 
   <group ns="ocs2_mpc">
     <param name="task_file" value="$(find moma_ocs2)/config/mpc/task_panda.info"/>
-    <param name="robot_description_ocs2" command="$(find xacro)/xacro $(find moma_description)/urdf/superpanda.urdf.xacro mpc_model:=true use_nominal_extrinsics:=true tool:='none'"/>
+    <param name="robot_description_ocs2" command="$(find xacro)/xacro $(find moma_description)/urdf/superpanda.urdf.xacro 
+      mpc_model:=true use_nominal_extrinsics:=true tool:='none'"/>
     <param name="base_type" value="1"/>
   </group>
 
@@ -51,7 +56,7 @@
     <rosparam file="$(find moma_gazebo)/config/gripper_controllers.yaml" command="load" />
 
     <node unless="$(arg mpc)" name="arm_controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="joint_state_controller effort_joint_trajectory_controller" />
-    <node if="$(arg mpc)" name="arm_controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="joint_state_controller mpc_controller" />
+    <node if="$(arg mpc)" name="arm_controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="joint_state_controller mpc_controller path_passthrough_controller" />
   </group>
 
   <node name="unpause_gazebo" pkg="moma_gazebo" type="unpause_gazebo.py">
@@ -64,14 +69,11 @@
     <arg name="global_frame" value="tracking_camera_odom"/>
   </include>
 
-  <!-- start rviz -->
-  <node if="$(arg rviz)" name="rviz" pkg="rviz" type="rviz" args="-d $(find piloting_demo)/config/rviz/superpanda_sim.rviz" />
-
   <group if="$(arg mpc)">
       <!-- Give a static transform between world and odom frame, since the "world" frame is hardcoded in ocs2_ros_interfaces -->
       <node pkg="tf2_ros"
             type="static_transform_publisher"
-            name="depth2_depth_opt_rebroadcaster"
+            name="tracking_cam_world_tf"
             args="0 0 0 0 0 0 1 tracking_camera_odom world" />
       <include if="$(arg rviz)" file="$(find panda_mpc)/launch/interactive_marker.launch"/>
   </group>
