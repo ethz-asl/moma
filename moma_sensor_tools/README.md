@@ -29,11 +29,11 @@ The calibration generates a file `/tmp/calibrationdata.tar.gz` which needs to be
 
 ### Hand-eye calibration routine
 
-The hand-eye calibration can be performed using the [easy_hand_eye](https://github.com/IFL-CAMP/easy_handeye) package in combination with moveit and the [easy_hand_eye rqt gui](https://github.com/IFL-CAMP/easy_handeye/tree/master/rqt_easy_handeye). Here we provide some launch and config files which should be the process easy to setup and reproduce for the panda robot. For more information, refer to the documentation of the calibration packages.  
+The hand-eye calibration can be performed using the [easy_hand_eye](https://github.com/IFL-CAMP/easy_handeye) package and the [easy_hand_eye rqt gui](https://github.com/IFL-CAMP/easy_handeye/tree/master/rqt_easy_handeye). Here we provide some launch and config files which should be the process easy to setup and reproduce for the panda robot. For more information, refer to the documentation of the calibration packages.  
 
-1. Launch the panda robot on the robot computer with moveit enabled:
+1. Launch the panda robot on the robot computer enabled:
     ```bash
-    roslaunch moma_robot robot_pc.launch moveit:=true
+    roslaunch moma_robot robot_pc.launch
     ```
 2. In a ROS-networked operator PC, run the calibration routine:
     ```bash
