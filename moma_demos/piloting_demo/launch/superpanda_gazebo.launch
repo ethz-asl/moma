@@ -8,7 +8,6 @@
   <arg name="control_mode" default='Position'/>
   <arg name="tool" default="panda_hand"/>
    
-
   <env name="GAZEBO_MODEL_PATH" value="${GAZEBO_MODEL_PATH}:$(find moma_gazebo)/models"/>
 
   <!-- send the robot XML to param server -->
@@ -39,5 +38,4 @@
       -J panda_joint5 0
       -J panda_joint6 1.571
       -J panda_joint7 0.785" />
-
 </launch>

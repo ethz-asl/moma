@@ -41,11 +41,14 @@ class JointStates(Plugin):
         context.add_widget(self._widget)
 
         self.controller_name = rospy.get_param('/moma_joint_states_display_gui/controller_name')
+        self.controller_manager_ns = rospy.get_param('/moma_joint_states_display_gui/controller_namespace', '')
+        
         # To avoid redundancy, fetch all parameters that the controllers already have directly from them
-        self.joint_names = rospy.get_param('/{}/joint_names'.format(self.controller_name))
-        self.lower_limits = rospy.get_param('/{}/lower_limit'.format(self.controller_name))
-        self.upper_limits = rospy.get_param('/{}/upper_limit'.format(self.controller_name))
-        self.safety_margin = rospy.get_param('/{}/safety_margin'.format(self.controller_name))
+        prefix = os.path.join(self.controller_manager_ns, self.controller_name)
+        self.joint_names = rospy.get_param('/{}/joint_names'.format(prefix))
+        self.lower_limits = rospy.get_param('/{}/lower_limit'.format(prefix))
+        self.upper_limits = rospy.get_param('/{}/upper_limit'.format(prefix))
+        self.safety_margin = rospy.get_param('/{}/safety_margin'.format(prefix))
         self.joints = dict(zip(self.joint_names, zip(self.lower_limits, self.upper_limits)))
 
         self._state_widgets = dict()

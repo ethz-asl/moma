@@ -28,14 +28,20 @@ bool PandaMpcController::init(hardware_interface::RobotHW* robot_hw,
   if (!init_franka_interfaces(robot_hw)) return false;
 
   std::string arm_description;
-  if (!node_handle.getParam("/ocs2_mpc/robot_description_ocs2", arm_description)) {
-    ROS_ERROR("Failed to retrieve /ocs2_mpc/robot_description_ocs2 from param server.");
+  if (!node_handle.getParam("/arm_description", arm_description)) {
+    ROS_ERROR("Failed to retrieve /arm_description from param server.");
     return false;
   }
   robot_model_ = std::make_unique<rc::RobotWrapper>();
   robot_model_->initFromXml(arm_description);
-  position_current_ = Eigen::VectorXd::Zero(robot_model_->getDof());
-  velocity_current_ = Eigen::VectorXd::Zero(robot_model_->getDof());
+
+  // the pinocchio model contains only the arm and not the full base which
+  // would require to maintain the full chain of links
+  position_current_model_.setZero(robot_model_->getDof());
+  velocity_current_model_.setZero(robot_model_->getDof());
+  
+  position_current_ = Eigen::VectorXd::Zero(ocs2::mobile_manipulator::STATE_DIM(armInputDim_));
+  velocity_current_ = Eigen::VectorXd::Zero(ocs2::mobile_manipulator::STATE_DIM(armInputDim_));
   ROS_INFO("[PandaMpc::init] robot model successfully initialized");
 
   mpc_controller_ = std::unique_ptr<moma_controllers::MpcController<armInputDim_>>(new moma_controllers::MpcController<armInputDim_>(controller_nh));
@@ -212,7 +218,7 @@ void PandaMpcController::starting(const ros::Time& time) {
   read_state();
 
   ROS_DEBUG_STREAM("[PandaMpcController::starting] Starting with current joint position: " << position_current_.transpose());
-  mpc_controller_->start(position_current_.head<ocs2::mobile_manipulator::STATE_DIM(armInputDim_)>());
+  mpc_controller_->start(position_current_);
   position_integral_ = position_current_;
 
   started_ = true;
@@ -255,6 +261,7 @@ void PandaMpcController::read_state(){
 
 
   for (size_t i = 0; i < armInputDim_; i++) {
+    position_current_model_(i) = joint_handles_[i].getPosition();
     position_current_(i + ocs2::mobile_manipulator::BASE_INPUT_DIM) = joint_handles_[i].getPosition();
     velocity_current_(i + ocs2::mobile_manipulator::BASE_INPUT_DIM) = velocity_current_(i) * (1-measurement_trust_factor_) + measurement_trust_factor_ * joint_handles_[i].getVelocity();
   }
@@ -278,10 +285,10 @@ void PandaMpcController::compute_command(const ros::Duration& period) {
     velocity_error_(i) = /*velocity_command_(i)*/ 0.0 - velocity_current_(i);
   }
 
-  if (sim_) {
-    robot_model_->updateState(position_current_, Eigen::VectorXd::Zero(robot_model_->getDof()));
+  if (sim_) { 
+    robot_model_->updateState(position_current_model_, velocity_current_model_);
     robot_model_->computeAllTerms();
-    arm_gravity_and_coriolis_ = robot_model_->getNonLinearTerms().head<armInputDim_>();
+    arm_gravity_and_coriolis_ = robot_model_->getNonLinearTerms();
   }
   else {
 
@@ -313,7 +320,7 @@ void PandaMpcController::compute_command(const ros::Duration& period) {
 void PandaMpcController::update(const ros::Time& time,
                                      const ros::Duration& period) {
   read_state();
-  mpc_controller_->update(time, position_current_.head<ocs2::mobile_manipulator::STATE_DIM(armInputDim_)>());
+  mpc_controller_->update(time, position_current_);
   compute_command(period);
   write_command();
 }
