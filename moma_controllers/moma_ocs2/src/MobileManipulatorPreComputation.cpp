@@ -41,14 +41,14 @@ namespace mobile_manipulator {
 /******************************************************************************************************/
 /******************************************************************************************************/
 /******************************************************************************************************/
-MobileManipulatorPreComputation::MobileManipulatorPreComputation(PinocchioInterface pinocchioInterface)
-    : pinocchioInterface_(std::move(pinocchioInterface)) {}
+MobileManipulatorPreComputation::MobileManipulatorPreComputation(PinocchioInterface pinocchioInterface, const size_t armInputDim, const BaseType baseType)
+    : pinocchioInterface_(std::move(pinocchioInterface)), pinocchioMapping_(armInputDim, baseType), armInputDim_(armInputDim), baseType_(baseType) {}
 
 /******************************************************************************************************/
 /******************************************************************************************************/
 /******************************************************************************************************/
 MobileManipulatorPreComputation* MobileManipulatorPreComputation::clone() const {
-  return new MobileManipulatorPreComputation(pinocchioInterface_);
+  return new MobileManipulatorPreComputation(pinocchioInterface_, armInputDim_, baseType_);
 }
 
 /******************************************************************************************************/

@@ -10,7 +10,8 @@
   <arg name="base_type" default="0"/>
    
   <!-- send the robot XML to param server -->
-  <param name="robot_description" command="$(find xacro)/xacro $(find moma_description)/urdf/panda.urdf.xacro use_nominal_extrinsics:=true use_fixed_realsense:=false tool:=$(arg tool)"/>
+  <param name="robot_description" command="$(find xacro)/xacro $(find moma_description)/urdf/superpanda.urdf.xacro use_nominal_extrinsics:=true use_fixed_realsense:=false tool:=$(arg tool)"/>
+  <param name="arm_description" command="$(find xacro)/xacro $(find moma_description)/urdf/panda.urdf.xacro use_nominal_extrinsics:=true use_fixed_realsense:=false tool:=$(arg tool)"/>
 
   <!-- Launch franka gripper -->
   <include file="$(find franka_gripper)/launch/franka_gripper.launch" if="$(arg load_gripper)">
@@ -52,5 +53,11 @@
       <arg name="controllers_start_list" value="path_passthrough_controller"/>
       <node name="controller_starter" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="$(arg controllers_start_list)" />
   <!--</group>-->
+
+  <node pkg="tf2_ros"
+        if="$(eval arg('base_type') == 0)"
+        type="static_transform_publisher"
+        name="depth2_depth_opt_rebroadcaster"
+        args="0 0 0 0 0 0 1 world base_link" />
 
 </launch>
