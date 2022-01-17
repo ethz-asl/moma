@@ -9,14 +9,14 @@ from geometry_msgs.msg import PoseStamped
 from moma_mission.core import StateRos, StateRosControl
 
 
-class WaypointNavigation(StateRos):
+class WaypointNavigation(StateRosControl):
     """
     In this state the robot navigates through a sequence of waypoint which are sent to the
     global planner once the previous has been reached within a certain tolerance
     """
 
     def __init__(self, mission, waypoint_pose_topic, base_pose_topic, ns=""):
-        StateRos.__init__(self, outcomes=['Completed', 'Aborted', 'Next Waypoint'], ns=ns)
+        StateRosControl.__init__(self, outcomes=['Completed', 'Failure', 'Next Waypoint'], ns=ns)
         self.mission_data = mission
         self.waypoint_idx = 0
 
@@ -37,9 +37,6 @@ class WaypointNavigation(StateRos):
         self.estimated_y_m = 0.
         self.estimated_yaw_rad = 0.
 
-    def __del__(self):
-        self.base_pose_subscriber.unregister()
-
     @staticmethod
     def read_missions_data(mission_file):
         """
@@ -52,6 +49,10 @@ class WaypointNavigation(StateRos):
             return yaml.load(stream)
 
     def run(self):
+        controller_switched = self.do_switch()
+        if not controller_switched:
+            return 'Failure'
+        
         if self.waypoint_idx >= len(self.mission_data.keys()):
             rospy.loginfo("No more waypoints left in current mission.")
             self.waypoint_idx = 0
@@ -149,8 +150,8 @@ class SingleNavGoalState(StateRosControl):
     """
     In this state the robot navigates to a single goal"""
 
-    def __init__(self, ns=""):
-        StateRosControl.__init__(self, ns=ns)
+    def __init__(self, ns="", outcomes=['Completed', 'Failure']):
+        StateRosControl.__init__(self, ns=ns, outcomes=outcomes)
 
         self.goal_pose_topic = self.get_scoped_param("goal_pose_topic")
         self.base_pose_topic = self.get_scoped_param("base_pose_topic")

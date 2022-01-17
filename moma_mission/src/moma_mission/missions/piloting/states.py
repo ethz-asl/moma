@@ -24,6 +24,7 @@ gRCS = RCSBridge()
 class SetUp(StateRos):
     def __init__(self, ns):
         StateRos.__init__(self, ns=ns)
+        self.waypoints_file = self.get_scoped_param("waypoints_file_path")
 
     def run(self):
         global gRCS
@@ -33,6 +34,14 @@ class SetUp(StateRos):
         
         if not gRCS.init_ros():
             rospy.logerr('Failed to initialize RCSBridge ros')
+            return 'Failure'
+
+        if not gRCS.read_waypoints_from_file(self.waypoints_file):
+            rospy.logerr("Failed to read waypoints from file")
+            return 'Failure'
+        
+        if not gRCS.upload_waypoints():
+            rospy.logerr("Failed to upload waypoints.")
             return 'Failure'
 
         if not gRCS.upload_hl_action():
@@ -52,10 +61,10 @@ class Idle(StateRos):
         while True:
             command_id, command = gRCS.get_current_hl_command()
             if command_id == 0:
+                return 'ExecuteManipulationPlan'
+            elif command_id == 1:
                 rospy.loginfo("Received high level command {}: {}".format(command_id, command))
                 return 'ExecuteInspectionPlan'
-            elif command_id == 1:
-                return 'ExecuteManipulationPlan'
             elif command_id == 2:
                 return 'Failure'
             rospy.sleep(1.0)
@@ -100,6 +109,41 @@ class HomePose(StateRosControl):
             return 'Completed'
 
 
+class WaypointNavigationState(SingleNavGoalState):
+    """
+    Depends on a service to provide a goal for the base
+    """
+
+    def __init__(self, ns):
+        SingleNavGoalState.__init__(self, ns=ns, outcomes=['Completed',
+                                                           'Failure',
+                                                           'NextWaypoint'])
+
+    def run(self):
+        waypoint = gRCS.next_waypoint()
+        
+        if waypoint is None:
+            return 'Completed'
+    
+        goal = PoseStamped()
+        goal.header.frame_id = Frames.odom_frame
+        goal.pose.position.x = waypoint.x 
+        goal.pose.position.y = waypoint.y
+        goal.pose.position.z = waypoint.z
+        goal.pose.orientation.x = 0.0
+        goal.pose.orientation.y = 0.0
+        goal.pose.orientation.z = np.sin(waypoint.orientation/2.0)
+        goal.pose.orientation.w = np.cos(waypoint.orientation/2.0)
+
+        rospy.loginfo("Reaching goal at {}, {}".format(goal.pose.position.x, goal.pose.position.y))
+        success = self.reach_goal(goal)
+        if not success:
+            rospy.logerr("Failed to reach base goal.")
+            return 'Failure'
+
+        gRCS.set_waypoint_done()
+        return 'NextWaypoint'
+
 class NavigationState(SingleNavGoalState):
     """
     Depends on a service to provide a goal for the base
@@ -125,7 +169,6 @@ class NavigationState(SingleNavGoalState):
             return 'Failure'
 
         return 'Completed'
-
 
 class DetectionPosesVisitor(StateRosControl):
     """

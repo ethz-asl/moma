@@ -7,8 +7,9 @@ from moma_mission.core.state_ros import *
 from moma_mission.missions.piloting.states import *
 from moma_mission.missions.piloting.sequences import *
 
-rospy.init_node('piloting_mission')
-from moma_mission.missions.piloting.rcs_bridge import RCSBridge
+
+# Init ros
+rospy.init_node("piloting_demo")
 
 # Init data
 Valve.init_from_ros()
@@ -29,19 +30,20 @@ try:
                         transitions={'Success': 'IDLE', 'Failure': 'Failure'})
 
         state_machine.add('IDLE', Idle,
-                        transitions={'ExecuteInspectionPlan': 'Failure', #'WAYPOINT_FOLLOWING', #TODO(giuseppe) restore, only for testing
-                                     'ExecuteManipulationPlan': 'REACH_DETECTION_HOTSPOT',
-                                     'Failure': 'Failure'})
+                          transitions={'ExecuteInspectionPlan': 'WAYPOINT_FOLLOWING',
+                                       'ExecuteManipulationPlan': 'REACH_DETECTION_HOTSPOT',
+                                       'Failure': 'Failure'})
         
         state_machine.add('REACH_DETECTION_HOTSPOT',   
                         NavigationState,
                         transitions={'Completed': 'DETECTION',
-                                    'Failure': 'Failure'})
+                                     'Failure': 'Failure'})
 
         state_machine.add('WAYPOINT_FOLLOWING',   
-                        NavigationState, # to change to waypoint navigation state
+                        WaypointNavigationState, # to change to waypoint navigation state
                         transitions={'Completed': 'Success',
-                                    'Failure': 'Failure'})
+                                     'Failure': 'Failure',
+                                     'NextWaypoint': 'WAYPOINT_FOLLOWING'})
 
         state_machine.add('DETECTION',
                         detection_sequence_factory(),

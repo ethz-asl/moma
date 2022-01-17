@@ -1,0 +1,7 @@
+waypoints:
+  - position: [1.0, 0.0]
+    orientation: 0.0
+  - position: [1.0, 1.0]
+    orientation: 1.75
+  - position: [1.0, 2.0]
+    orientation: 1.75

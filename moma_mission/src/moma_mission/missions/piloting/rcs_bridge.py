@@ -1,19 +1,36 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import sys
-from moma_mission.utils import ros
+import yaml
+
 import rospy
 import numpy as np
+import uuid
 
 from std_msgs.msg import String
 from nav_msgs.msg import Odometry
 
 from mavsdk_ros.msg import CommandLong, CommandAck, WaypointList, WaypointsAck, TextStatus, AlarmStatus
-from mavsdk_ros.msg import HLActionItem
+from mavsdk_ros.msg import HLActionItem, WaypointItem
 from mavsdk_ros.srv import Command, CommandRequest, CommandResponse
-from mavsdk_ros.srv import InspectionPlan, SetUploadAlarm, SetUploadWaypointList, UpdateSeqWaypointItem
+from mavsdk_ros.srv import InspectionPlan, SetUploadAlarm
+from mavsdk_ros.srv import UpdateSeqWaypointItem, UpdateSeqWaypointItemRequest
+from mavsdk_ros.srv import SetUploadWaypointList, SetUploadWaypointListRequest
 from mavsdk_ros.srv import SetUploadHLAction, SetUploadHLActionRequest
+from moma_mission.utils import ros
 
+class WaypointStatus:
+    IN_PROGRESS = 0
+    QUEUED = 1
+    DONE = 2
+
+class Waypoint:
+    def __init__(self):
+        self.x = 0.0
+        self.y = 0.0
+        self.orientation = 0.0
+        self.status = WaypointStatus.QUEUED
+     
 class RCSBridge:
     """
     Bridge for communication with the gRCS
@@ -61,6 +78,10 @@ class RCSBridge:
         self.status_msg = TextStatus()
         self.alarm_msg = AlarmStatus()
 
+        # Waypoints
+        self.waypoint_current_id = 0
+        self.waypoints = []
+
         # Flags
         self.current_hl_command_id = -1
         self.current_hl_command = np.array([])
@@ -95,9 +116,92 @@ class RCSBridge:
         return True
         
 
-    def get_current_hl_command(self):
-        return self.current_hl_command_id, self.current_hl_command
+    ################################
+    # Waypoints
+    ###############################
+    def read_waypoints_from_file(self, file):
+        """
+        Mainly a debug function to set waypoints from file, otherwise should be received from inspection plan
+        See @inspection_server_cb
+        """
+        with open(file) as stream:
+            waypoints_list = yaml.load(stream, Loader=yaml.FullLoader)
+            if "waypoints" not in waypoints_list.keys():
+                return False
+            for waypoint in waypoints_list['waypoints']:
+                wp = Waypoint()
+                wp.x = waypoint['position'][0]
+                wp.y = waypoint['position'][1]
+                wp.orientation = waypoint['orientation']
+                self.waypoints.append(wp)
+        return True
 
+    def upload_waypoints(self):
+        if len(self.waypoints) == 0:
+            rospy.logwarn("No waypoints file found. Skipping upload waypoints list.")
+            return 
+        
+        req = SetUploadWaypointListRequest()
+        req.waypoint_list.plan_uuid = str(1)
+        req.waypoint_list.sync_id = 0
+
+        for waypoint in self.waypoints:
+            item = WaypointItem()
+            item.command = 0
+            item.task_uuid = "test"
+            item.autocontinue = True
+            item.x = waypoint.x
+            item.y = waypoint.y
+            item.z = 0.0
+            item.param1 = waypoint.orientation # there is no specialized field for orientation, we use param 1
+            req.waypoint_list.items.append(item)
+
+        try:
+            self.upload_waypoint_list_client.wait_for_service(timeout=10.0)
+        except rospy.ROSException as exc:
+            rospy.logerr(exc)
+            rospy.logerr("Aborting.")
+            return False
+
+        self.upload_waypoint_list_client.call(req)
+        return True
+
+    def next_waypoint(self):
+        if self.waypoint_current_id == len(self.waypoints):
+            return None
+        
+        current_status = self.waypoints[self.waypoint_current_id].status 
+        current_wp = self.waypoints[self.waypoint_current_id]
+
+        if current_status == WaypointStatus.IN_PROGRESS:
+            return current_wp
+        elif current_status == WaypointStatus.QUEUED:
+            # update gRCS that the waypoint has been reached
+            self.waypoints[self.waypoint_current_id].status = WaypointStatus.IN_PROGRESS
+            req = UpdateSeqWaypointItemRequest()
+            req.item_seq = self.waypoint_current_id
+            self.update_current_waypoint_item_client.call(req)
+            return current_wp
+        elif current_status == WaypointStatus.DONE:
+            self.waypoint_current_id += 1
+            if self.waypoint_current_id < len(self.waypoints):
+                self.waypoints[self.waypoint_current_id].status = WaypointStatus.IN_PROGRESS
+                return self.waypoints[self.waypoint_current_id]
+            else:
+                return None
+        
+    def set_waypoint_done(self):
+        # update gRCS that the waypoint has been reached
+        req = UpdateSeqWaypointItemRequest()
+        req.item_seq = self.waypoint_current_id
+        self.update_reached_waypoint_item_client.call(req)
+
+        # set status to done
+        self.waypoints[self.waypoint_current_id] = WaypointStatus.DONE
+
+    ################################
+    # Commands
+    ###############################
     def command_server_cb(self, req):
         rospy.loginfo("Received command request from gRCS.")
         
@@ -119,9 +223,12 @@ class RCSBridge:
             response.result = 1
             response.progress = 0
         return response
-   
+
+    ################################
+    #  Inspection
+    ###############################
     def inspection_server_cb(self, req):
-        rospy.loginfo("Received inspection request from gRCS.")
+        rospy.loginfo("\n\n\nReceived inspection request from gRCS.\n\n\n")
         response = WaypointsAck()
         response.data = 0
         waypoint_list = WaypointList()
@@ -132,15 +239,25 @@ class RCSBridge:
             pass
         return response
 
+    ################################
+    #  High Level Actions
+    ###############################
     def upload_hl_action(self):
-        hl_action = HLActionItem()
-        hl_action.command = 0
-        hl_action.description ="Manipulate valve for pressure regulation."
-        hl_action.name = "VALVE_MANIPULATION"
-        hl_action.index = 0
+        hl_manipulation_action = HLActionItem()
+        hl_manipulation_action.command = 0
+        hl_manipulation_action.description ="Manipulate valve for pressure regulation."
+        hl_manipulation_action.name = "VALVE_MANIPULATION"
+        hl_manipulation_action.index = 0
+    
+        hl_navigation_action = HLActionItem()
+        hl_navigation_action.command = 1
+        hl_navigation_action.description ="Autonomous navigation via waypoint-following"
+        hl_navigation_action.name = "WAYPOINT_NAVIGATION"
+        hl_navigation_action.index = 1
     
         req = SetUploadHLActionRequest()
-        req.hl_actions.append(hl_action)
+        req.hl_actions.append(hl_manipulation_action)
+        req.hl_actions.append(hl_navigation_action)
 
         try:
             self.upload_hl_action_client.wait_for_service(timeout=10.0)
@@ -152,15 +269,28 @@ class RCSBridge:
         self.upload_hl_action_client.call(req)
         return True
 
+    def get_current_hl_command(self):
+        return self.current_hl_command_id, self.current_hl_command
+
+    ################################
+    #  Telemetry
+    ###############################
     def update_telemetry(self, msg):
         """ 
         Resend msg received over odom topic to gRCS telemetry topic (relay) 
         """
         self.telemetry_pub.publish(msg)
 
+    ################################
+    # Status
+    ###############################
     def update_status(self):
         pass
 
+    ################################
+    # Alarms
+    ###############################
+    
     def update_alarm(self):
         pass
 

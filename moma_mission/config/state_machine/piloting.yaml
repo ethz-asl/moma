@@ -5,6 +5,7 @@ IDLE:
   default_outcome: None
 
 SETUP:
+  waypoints_file_path: $(find moma_mission)/config/state_machine/piloting_waypoints.yaml
   default_outcome: None
 
 OPEN_GRIPPER:
@@ -63,10 +64,9 @@ REACH_DETECTION_HOTSPOT:
 
 WAYPOINT_FOLLOWING:
   default_outcome: Completed
-  target_frame: navigation_target
   goal_pose_topic: /move_base_simple/goal
   base_pose_topic: /base_pose_measured
-  base_odometry_topic: /base_odom
+  base_odometry_topic: /camera/odom/sample
  
   manager_namespace: control
   startlist: ['smb_diff_drive']
