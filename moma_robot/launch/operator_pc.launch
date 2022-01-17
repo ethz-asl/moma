@@ -13,5 +13,5 @@
   <include file="$(find panda_mpc)/launch/interactive_marker.launch"/>
 
   <!-- A Gui for plotting signals published as ros messages -->
-  <node name="plotjuggler" type="plotjuggler" pkg="plotjuggler" output="screen" args="--layout $(arg plot_layout)"/>
+  <node name="plotjuggler" type="plotjuggler" pkg="plotjuggler" output="screen" args="--layout $(arg plot_layout)" if="$(arg plot)"/>
 </launch>

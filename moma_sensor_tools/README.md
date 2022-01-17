@@ -11,6 +11,6 @@ Calibration is performed sending the robot to various target poses and estimatin
 To show a plot of the raw and filtered wrench applied at the end effector, follow these steps:
 - Launch a franka state controller on the real robot (for example `roslaunch moma_robot robot_pc.launch`)
 - Run the wrench filtering: `roslaunch moma_sensor_tools ft_sensor_standalone.launch`
-  - Accept to subscribe to previous topics
+  - Accept to start to previous streaming plugin
   - Select the topics `/franka_state_controller/F_ext` and `/ft_compensated`
 - Show plots of the wrench in plotjuggler on the operator PC: `roslaunch moma_robot operator_pc.launch plot:=true`
