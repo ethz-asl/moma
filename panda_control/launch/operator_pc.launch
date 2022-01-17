@@ -2,13 +2,5 @@
 <launch>
 	<node name="rviz" pkg="rviz" type="rviz" output="screen" args="-d $(find panda_control)/config/operator_pc.rviz"/>
     <node name="rqt_controller_manager" type="rqt_controller_manager" pkg="rqt_controller_manager" output="screen"/>
-    <node name="plotjuggler" type="plotjuggler" pkg="plotjuggler" output="screen" args="--layout $(find moma_sensor_tools)/config/bota_plotjuggler.xml"/>
-
-  <!-- Load but do not start these controllers -->
-  <arg name="controllers_load_list" value="joint_space_controller mpc_controller"/>
-  <node name="controller_loader" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="--stopped $(arg controllers_load_list)" />
- 
-  <!-- Already start these controllers -->
-  <arg name="controllers_start_list" value="path_admittance_controller"/>
-  <node name="controller_starter" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="$(arg controllers_start_list)" />
+    <node name="plotjuggler" type="plotjuggler" pkg="plotjuggler" output="screen" args="--layout $(find moma_sensor_tools)/config/fext_plotjuggler.xml"/>
 </launch>
