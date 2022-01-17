@@ -13,6 +13,8 @@ All calibration files are kept locally on the PC that has the camera attached to
 
 ### 1. Intrinsic calibration routine
 
+![](https://i.ytimg.com/vi/yAYqt3RpT6c/maxresdefault.jpg)
+
 **Prerequisites:**
 - Checkerboard calibration pattern
 
@@ -41,7 +43,7 @@ The calibration of the intrinsics is done using the [`camera_calibration`](http:
 
 ### 2. Extrinsic (hand-eye) calibration routine
 
-[](https://github.com/IFL-CAMP/easy_handeye/raw/master/docs/img/eye_on_hand_aruco_pic.png)
+![](https://github.com/IFL-CAMP/easy_handeye/raw/master/docs/img/eye_on_hand_aruco_pic.png)
 
 **Prerequisites:**
 - Apriltag marker (you can print them for example from [this resource](resources/apriltags_36h11_1-50.pdf))
