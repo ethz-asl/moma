@@ -56,6 +56,8 @@ To use the newly generated calibration transform, launch:
 roslaunch moma_sensor_tools publish_calibration.launch calibration_file:=<path to calibration file>
 ```
 
+where `calibration_file:=<path to calibration file>` is only required if you stored the file to a non-standard path.
+
 
 ## Wrench filtering and plotting
 
