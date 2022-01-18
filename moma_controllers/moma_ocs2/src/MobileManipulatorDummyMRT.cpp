@@ -42,6 +42,8 @@ using namespace mobile_manipulator;
 
 int main(int argc, char** argv) {
 
+  const int armInputDim = 7;
+
   // Initialize ros node
   ros::init(argc, argv, "mobile_manipulator_mrt");
   ros::NodeHandle nodeHandle;
@@ -57,11 +59,7 @@ int main(int argc, char** argv) {
     ROS_ERROR("Failed to retrieve /ocs2_mpc/robot_description_ocs2 from param server.");
     return 0;
   }
-  int armInputDim;
-  if (!nodeHandle.param("/ocs2_mpc/arm_input_dim", armInputDim)){
-    ROS_ERROR("Failed to retrieve /ocs2_mpc/arm_input_dim from param server.");
-    return 0;
-  }
+
   int baseTypeInt;
   if (!nodeHandle.param("/ocs2_mpc/base_type", baseTypeInt, 0)){
     ROS_ERROR("Failed to retrieve /ocs2_mpc/base_type from param server.");
@@ -97,8 +95,8 @@ int main(int argc, char** argv) {
 
   // initial command
   vector_t initTarget(7);
-  initTarget.head(3) << 0, 1, 1;
-  initTarget.tail(4) << Eigen::Quaternion<scalar_t>(1, 0, 0, 0).coeffs();
+  initTarget.head(3) << 0.5, 0.0, 0.8;
+  initTarget.tail(4) << Eigen::Quaternion<scalar_t>(0.0, 0.7071068, 0, 0.7071068).coeffs();
   const vector_t zeroInput = vector_t::Zero(mobile_manipulator::INPUT_DIM(armInputDim));
   const TargetTrajectories initTargetTrajectories({initObservation.time}, {initTarget}, {zeroInput});
 
