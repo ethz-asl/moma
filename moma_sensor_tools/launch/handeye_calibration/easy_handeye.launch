@@ -40,6 +40,7 @@
         <param name="tracking_base_frame" value="$(arg tracking_base_frame)" />
         <param name="tracking_marker_frame" value="$(arg tracking_marker_frame)" />
 
+        <!--These params are required but really needed for moveit (that we do not use) -->
         <param name="move_group"                value="panda_arm"/>
         <param name="move_group_namespace"      value="/"/>
         <param name="freehand_robot_movement"     value="true" />

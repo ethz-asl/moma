@@ -61,7 +61,7 @@ The hand-eye calibration can be performed using the [easy_hand_eye](https://gith
     ```bash
     roslaunch moma_sensor_tools calibration.launch 
     ```
-    This will launch the realsese camera driver, and a sample collection gui that will allow to alternate between different camera viewpoints and collect apriltag marker poses. The calibration routine also launches the apriltag detector which reads the specific aprilag configuration from this [config file](config/handeye_calibration/apriltags.yaml). Make sure that the information in this file reflects the apriltag you are currently using.
+    This will launch the realsense camera driver, and a sample collection gui that will allow to alternate between different camera viewpoints and collect apriltag marker poses. The calibration routine also launches the apriltag detector which reads the specific aprilag configuration from this [config file](config/handeye_calibration/apriltags.yaml). Make sure that the information in this file reflects the apriltag you are currently using, namely the tag id and dimension is the same as the one you printed.
 
     *Note:* If you want to run the camera node and the operator node on separate PCs, use
     ```bash
