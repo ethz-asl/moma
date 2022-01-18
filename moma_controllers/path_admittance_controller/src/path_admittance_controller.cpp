@@ -27,6 +27,11 @@ bool PathAdmittanceController::init(hardware_interface::JointStateInterface* hw,
   }
   ROS_INFO_STREAM("[PathAdmittanceController] Subscribing to wrench topic [" << wrench_topic << "]");
 
+  if (!controller_nh.param<bool>("wrench_opposite", wrench_opposite_, false)) {
+    ROS_WARN_STREAM("[PathAdmittanceController] Failed to parse wrench_opposite setting");
+    return false;
+  }
+
   if (!controller_nh.param<bool>("verbose", verbose_, true)) {
     ROS_WARN_STREAM("[PathAdmittanceController] Failed to parse verbose topic");
     return false;
@@ -51,10 +56,8 @@ bool PathAdmittanceController::init(hardware_interface::JointStateInterface* hw,
   bool ok = true;
   ok &= parse_vector<3>(controller_nh, "kp_linear_gains", Kp_linear_);
   ok &= parse_vector<3>(controller_nh, "kp_angular_gains", Kp_angular_);
-  ok &= parse_vector<3>(controller_nh, "ki_linear_gains", Ki_linear_);
-  ok &= parse_vector<3>(controller_nh, "ki_angular_gains", Ki_angular_);
-  ok &= parse_vector<3>(controller_nh, "force_integral_max", force_integral_max_);
-  ok &= parse_vector<3>(controller_nh, "torque_integral_max", torque_integral_max_);
+  ok &= parse_vector<3>(controller_nh, "kd_linear_gains", Kd_linear_);
+  ok &= parse_vector<3>(controller_nh, "kd_angular_gains", Kd_angular_);
   ok &= parse_vector<3>(controller_nh, "force_threshold", force_threshold_);
   ok &= parse_vector<3>(controller_nh, "torque_threshold", torque_threshold_);
 
@@ -71,8 +74,6 @@ bool PathAdmittanceController::init(hardware_interface::JointStateInterface* hw,
   wrench_subscriber_ = controller_nh.subscribe(so);
   ROS_INFO("[PathAdmittanceController] Created wrench callback.");
 
-  force_integral_.setZero();
-  torque_integral_.setZero();
   last_time_ = -1;
   wrench_received_ = false;
 
@@ -136,32 +137,31 @@ void PathAdmittanceController::update(const ros::Time& time, const ros::Duration
 
   // Update measured wrench and tracking errors
   force_ext_ = Eigen::Vector3d(wrench_.wrench.force.x,
-                                 wrench_.wrench.force.y, 
-                                 wrench_.wrench.force.z);
+                               wrench_.wrench.force.y,
+                               wrench_.wrench.force.z);
+  if (wrench_opposite_) force_ext_ = -force_ext_;
   threshold(force_ext_, force_threshold_);
 
-  force_integral_ += force_ext_ * dt;
-  force_integral_ = force_integral_.cwiseMax(-force_integral_max_);
-  force_integral_ = force_integral_.cwiseMin(force_integral_max_);
-  Eigen::Vector3d delta_position =
-      Kp_linear_.cwiseProduct(force_ext_) + Ki_linear_.cwiseProduct(force_integral_);
-  Eigen::Vector3d delta_position_transformed = R * delta_position;
+  dpos_ddot_ = M_inv_ * (force_ext_ - Kd_linear_.cwiseProduct(dpos_dot_) - Kp_linear_.cwiseProduct(dpos_));
+  dpos_dot_ = dpos_dot_ + dt * dpos_ddot_;
+  dpos_ = dpos_ + dt * dpos_dot_;
 
-  torque_error_ = Eigen::Vector3d(wrench_.wrench.torque.x, 
-                                  wrench_.wrench.torque.y, 
+  Eigen::Vector3d delta_position_transformed = R * dpos_;
+  torque_error_ = Eigen::Vector3d(wrench_.wrench.torque.x,
+                                  wrench_.wrench.torque.y,
                                   wrench_.wrench.torque.z);
+  if (wrench_opposite_) torque_error_ = -torque_error_;
   threshold(torque_error_, torque_threshold_);
 
-  torque_integral_ += torque_error_ * dt;
-  torque_integral_ = torque_integral_.cwiseMax(-torque_integral_max_);
-  torque_integral_ = torque_integral_.cwiseMin(torque_integral_max_);
-  Eigen::Vector3d rotationImg =
-      Kp_angular_.cwiseProduct(torque_error_) + Ki_angular_.cwiseProduct(torque_integral_);
+  drot_ddot_ = M_inv_ * (torque_error_ - Kd_angular_.cwiseProduct(drot_dot_) - Kp_angular_.cwiseProduct(drot_));
+  drot_dot_ = drot_dot_ + dt * drot_ddot_;
+  drot_ = drot_ + dt * drot_dot_;
+
   Eigen::Quaterniond delta_rotation(1, 0, 0, 0);
-  double r = rotationImg.norm();
+  double r = drot_.norm();
   if (r > 0) {
     delta_rotation.w() = std::cos(r);
-    Eigen::Vector3d quatImg = R * (std::sin(r) / r * rotationImg);
+    Eigen::Vector3d quatImg = R * (std::sin(r) / r * drot_);
     delta_rotation.x() = quatImg[0];
     delta_rotation.y() = quatImg[1];
     delta_rotation.z() = quatImg[2];
@@ -169,7 +169,7 @@ void PathAdmittanceController::update(const ros::Time& time, const ros::Duration
 
   ROS_DEBUG_STREAM_THROTTLE(
       2.0, "Adjusting path: " << std::endl
-                              << "delta position (sensor frame) = " << delta_position.transpose()
+                              << "delta position (sensor frame) = " << dpos_.transpose()
                               << std::endl
                               << "delta position (base frame) = "
                               << delta_position_transformed.transpose()

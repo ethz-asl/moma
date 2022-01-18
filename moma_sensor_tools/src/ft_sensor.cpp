@@ -17,6 +17,11 @@ bool ForceTorqueSensor::reset() {
 }
 
 bool ForceTorqueSensor::init() {
+  if (!nh_.param<bool>("has_payload", has_payload_, false)) {
+    ROS_ERROR_STREAM("Failed to parse has_payload");
+    return false;
+  }
+
   if (!nh_.param<std::string>("sensor_frame", sensor_frame_, "")) {
     ROS_ERROR_STREAM("Failed to parse sensor_frame");
     return false;
@@ -70,6 +75,7 @@ bool ForceTorqueSensor::init() {
   raw_wrench_subscriber_ = nh_.subscribe(so);
   wrench_received_ = false;
 
+  bias_.setZero();
   estimate_bias_measurements_ = 0;
   estimate_bias_ = (estimate_bias_at_startup) ? true : false;
   estimate_bias_service_ = nh_.advertiseService("/estimate_bias", &ForceTorqueSensor::estimate_bias_callback, this);
@@ -81,7 +87,7 @@ bool ForceTorqueSensor::init() {
   if (alpha_ < 0 || alpha_ > 1){
     ROS_WARN("filter_constant must be between 0 and 1. No filtering (filter_constant = 1)");
   }
-  wrench_compensated_filtered_.setZero();
+  compensated_wrench_filtered_.setZero();
   
   nh_.param<bool>("debug", debug_, false);
   tool_wrench_publisher_ = nh_.advertise<geometry_msgs::WrenchStamped>("/tool_wrench", 1);
@@ -103,32 +109,36 @@ void ForceTorqueSensor::update() {
 
   // method a: get local gravity vector using a gravity aligned frame
   // In fixed frame gravity is aligned with -z axis
-  geometry_msgs::TransformStamped transform;
-  try {
-     // target_frame, source_frame ...
-     transform = tf2_buffer_.lookupTransform(sensor_frame_, gravity_aligned_frame_, ros::Time(0));
-  } catch (tf2::TransformException& ex) {
-     ROS_WARN_STREAM_THROTTLE(2.0, ex.what());
-     return;
-  }
-  Eigen::Quaterniond q(transform.transform.rotation.w, transform.transform.rotation.x,
-                       transform.transform.rotation.y, transform.transform.rotation.z);
-  Eigen::Matrix3d R(q);
-  Eigen::Vector3d gravity = R * Eigen::Vector3d::UnitZ() * -9.81;
-  tool_wrench_.get_force() = gravity * calibration_data_.mass;
-  tool_wrench_.get_torque() = calibration_data_.com.cross(tool_wrench_.get_force());
-  ROS_DEBUG_STREAM_THROTTLE(1.0, "Wrench tool" << tool_wrench_);
+  
+  if (has_payload_){
+    geometry_msgs::TransformStamped transform;
+    try {
+       // target_frame, source_frame ...
+       transform = tf2_buffer_.lookupTransform(sensor_frame_, gravity_aligned_frame_, ros::Time(0));
+    } catch (tf2::TransformException& ex) {
+       ROS_WARN_STREAM_THROTTLE(2.0, ex.what());
+       return;
+    }
+    Eigen::Quaterniond q(transform.transform.rotation.w, transform.transform.rotation.x,
+                         transform.transform.rotation.y, transform.transform.rotation.z);
+    Eigen::Matrix3d R(q);
+    Eigen::Vector3d gravity = R * Eigen::Vector3d::UnitZ() * -9.81;
+    tool_wrench_.get_force() = gravity * calibration_data_.mass;
+    tool_wrench_.get_torque() = calibration_data_.com.cross(tool_wrench_.get_force());
+    ROS_DEBUG_STREAM_THROTTLE(1.0, "Wrench tool" << tool_wrench_);
 
-  if (debug_){
-    tool_wrench_ros_.wrench.force.x = tool_wrench_.get_force().x();
-    tool_wrench_ros_.wrench.force.y = tool_wrench_.get_force().y();
-    tool_wrench_ros_.wrench.force.z = tool_wrench_.get_force().z(); 
-    tool_wrench_ros_.wrench.torque.x = tool_wrench_.get_torque().x();
-    tool_wrench_ros_.wrench.torque.y = tool_wrench_.get_torque().y();
-    tool_wrench_ros_.wrench.torque.z = tool_wrench_.get_torque().z();
-    tool_wrench_ros_.header.stamp = ros::Time::now();
-    tool_wrench_publisher_.publish(tool_wrench_ros_);
+    if (debug_){
+      tool_wrench_ros_.wrench.force.x = tool_wrench_.get_force().x();
+      tool_wrench_ros_.wrench.force.y = tool_wrench_.get_force().y();
+      tool_wrench_ros_.wrench.force.z = tool_wrench_.get_force().z(); 
+      tool_wrench_ros_.wrench.torque.x = tool_wrench_.get_torque().x();
+      tool_wrench_ros_.wrench.torque.y = tool_wrench_.get_torque().y();
+      tool_wrench_ros_.wrench.torque.z = tool_wrench_.get_torque().z();
+      tool_wrench_ros_.header.stamp = ros::Time::now();
+      tool_wrench_publisher_.publish(tool_wrench_ros_);
+    }  
   }
+  
   /// alternative using IMU
   /*
   Eigen::Vector3d gravity_temp(imu_.linear_acceleration.x, 
@@ -151,15 +161,12 @@ void ForceTorqueSensor::update() {
   tool_wrench_.get_torque() = calibration_data_.com.cross(tool_wrench_.get_force());
   */
 
-  Eigen::Matrix<double, 6, 1> raw_wrench;
-  tf::wrenchMsgToEigen(wrench_raw_.wrench, raw_wrench);
-
-  Eigen::Matrix<double, 6, 1> compensated_wrench = raw_wrench;
-  compensated_wrench -= tool_wrench_.to_vector();
+  tf::wrenchMsgToEigen(raw_wrench_ros_.wrench, raw_wrench_);
+  compensated_wrench_ = raw_wrench_ - tool_wrench_.to_vector();
   
   // Use payload compensated wrench to estimate bias
   if (estimate_bias_){
-    bias_ += compensated_wrench;
+    bias_ += compensated_wrench_;
     estimate_bias_measurements_++;
     if (estimate_bias_measurements_ > 1000){
       bias_ = 0.001 * bias_;
@@ -167,30 +174,29 @@ void ForceTorqueSensor::update() {
       estimate_bias_ = false;
       ROS_INFO_STREAM("Estimated bias is: " << calibration_data_.bias.transpose() << std::endl
         << "   current tool wrench is: " << tool_wrench_.to_vector().transpose() << std::endl
-        << "   current raw is: " << raw_wrench.transpose() << std::endl
-        << "   gravity in sensor frame is: " << gravity.transpose());
+        << "   current raw is: " << raw_wrench_.transpose());
     }
   }
 
   // remove bias
-  compensated_wrench -= calibration_data_.get_bias();
+  compensated_wrench_ -= calibration_data_.get_bias();
 
   // filter
-  wrench_compensated_filtered_ = (1-alpha_) * wrench_compensated_filtered_ +  alpha_ * compensated_wrench;
-  tf::wrenchEigenToMsg(wrench_compensated_filtered_, wrench_compensated_.wrench);
-  wrench_compensated_.header = wrench_raw_.header;
+  compensated_wrench_filtered_ = (1-alpha_) * compensated_wrench_filtered_ +  alpha_ * compensated_wrench_;
+  tf::wrenchEigenToMsg(compensated_wrench_filtered_, compensated_wrench_ros_.wrench);
+  compensated_wrench_ros_.header = raw_wrench_ros_.header;
 
-  wrench_publisher_.publish(wrench_compensated_);
+  wrench_publisher_.publish(compensated_wrench_ros_);
   
 }
 
-void ForceTorqueSensor::imu_callback(const sensor_msgs::ImuConstPtr& msg){
-  imu_ = *msg;
-  imu_received_ = true;
-}
+// void ForceTorqueSensor::imu_callback(const sensor_msgs::ImuConstPtr& msg){
+//   imu_ = *msg;
+//   imu_received_ = true;
+// }
 
 void ForceTorqueSensor::raw_wrench_callback(const geometry_msgs::WrenchStampedConstPtr& msg) {
-  wrench_raw_ = *msg;
+  raw_wrench_ros_ = *msg;
   wrench_received_ = true;
 }
 

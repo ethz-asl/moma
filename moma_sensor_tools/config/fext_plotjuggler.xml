@@ -1,0 +1,145 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<root version="2.3.8">
+ <tabbed_widget name="Main Window" parent="main_window">
+  <Tab tab_name="Compensated" containers="1">
+   <Container>
+    <DockSplitter count="2" sizes="0.5;0.5" orientation="-">
+     <DockSplitter count="3" sizes="0.333333;0.333333;0.333333" orientation="|">
+      <DockArea name="...">
+       <plot mode="TimeSeries" style="Lines">
+        <range top="0.049544" right="81.642655" bottom="-0.032048" left="0.000000"/>
+        <limitY/>
+        <curve name="/ft_compensated/wrench/force/x" color="#1f77b4"/>
+       </plot>
+      </DockArea>
+      <DockArea name="...">
+       <plot mode="TimeSeries" style="Lines">
+        <range top="0.049981" right="81.642655" bottom="-0.019971" left="0.000000"/>
+        <limitY/>
+        <curve name="/ft_compensated/wrench/force/y" color="#d62728"/>
+       </plot>
+      </DockArea>
+      <DockArea name="...">
+       <plot mode="TimeSeries" style="Lines">
+        <range top="0.069628" right="81.642655" bottom="-0.068828" left="0.000000"/>
+        <limitY/>
+        <curve name="/ft_compensated/wrench/force/z" color="#1ac938"/>
+       </plot>
+      </DockArea>
+     </DockSplitter>
+     <DockSplitter count="3" sizes="0.333333;0.333333;0.333333" orientation="|">
+      <DockArea name="...">
+       <plot mode="TimeSeries" style="Lines">
+        <range top="0.009069" right="81.642655" bottom="-0.007900" left="0.000000"/>
+        <limitY/>
+        <curve name="/ft_compensated/wrench/torque/x" color="#1f77b4"/>
+       </plot>
+      </DockArea>
+      <DockArea name="...">
+       <plot mode="TimeSeries" style="Lines">
+        <range top="0.010012" right="81.642655" bottom="-0.009597" left="0.000000"/>
+        <limitY/>
+        <curve name="/ft_compensated/wrench/torque/y" color="#d62728"/>
+       </plot>
+      </DockArea>
+      <DockArea name="...">
+       <plot mode="TimeSeries" style="Lines">
+        <range top="0.016548" right="81.642655" bottom="-0.008650" left="0.000000"/>
+        <limitY/>
+        <curve name="/ft_compensated/wrench/torque/z" color="#1ac938"/>
+       </plot>
+      </DockArea>
+     </DockSplitter>
+    </DockSplitter>
+   </Container>
+  </Tab>
+  <Tab tab_name="Raw" containers="1">
+   <Container>
+    <DockSplitter count="2" sizes="0.5;0.5" orientation="-">
+     <DockSplitter count="3" sizes="0.333333;0.333333;0.333333" orientation="|">
+      <DockArea name="...">
+       <plot mode="TimeSeries" style="Lines">
+        <range top="6.074721" right="-396.791759" bottom="-24.453614" left="-496.767462"/>
+        <limitY/>
+        <curve name="/franka_state_controller/F_ext/wrench/force/x" color="#1f77b4"/>
+       </plot>
+      </DockArea>
+      <DockArea name="...">
+       <plot mode="TimeSeries" style="Lines">
+        <range top="5.222191" right="-396.791759" bottom="-22.342221" left="-496.767462"/>
+        <limitY/>
+        <curve name="/franka_state_controller/F_ext/wrench/force/y" color="#d62728"/>
+       </plot>
+      </DockArea>
+      <DockArea name="...">
+       <plot mode="TimeSeries" style="Lines">
+        <range top="0.719872" right="-396.791759" bottom="-25.211220" left="-496.767462"/>
+        <limitY/>
+        <curve name="/franka_state_controller/F_ext/wrench/force/z" color="#1ac938"/>
+       </plot>
+      </DockArea>
+     </DockSplitter>
+     <DockSplitter count="3" sizes="0.333333;0.333333;0.333333" orientation="|">
+      <DockArea name="...">
+       <plot mode="TimeSeries" style="Lines">
+        <range top="2.243591" right="-396.791759" bottom="-1.665965" left="-496.767462"/>
+        <limitY/>
+        <curve name="/franka_state_controller/F_ext/wrench/torque/x" color="#1f77b4"/>
+       </plot>
+      </DockArea>
+      <DockArea name="...">
+       <plot mode="TimeSeries" style="Lines">
+        <range top="1.120880" right="-396.791759" bottom="-0.733449" left="-496.767462"/>
+        <limitY/>
+        <curve name="/franka_state_controller/F_ext/wrench/torque/y" color="#d62728"/>
+       </plot>
+      </DockArea>
+      <DockArea name="...">
+       <plot mode="TimeSeries" style="Lines">
+        <range top="2.435035" right="-396.791759" bottom="-2.204999" left="-496.767462"/>
+        <limitY/>
+        <curve name="/franka_state_controller/F_ext/wrench/torque/z" color="#1ac938"/>
+       </plot>
+      </DockArea>
+     </DockSplitter>
+    </DockSplitter>
+   </Container>
+  </Tab>
+  <currentTabIndex index="0"/>
+ </tabbed_widget>
+ <use_relative_time_offset enabled="1"/>
+ <!-- - - - - - - - - - - - - - - -->
+ <!-- - - - - - - - - - - - - - - -->
+ <Plugins>
+  <plugin ID="DataLoad CSV">
+   <default time_axis=""/>
+  </plugin>
+  <plugin ID="DataLoad ROS bags">
+   <use_header_stamp value="false"/>
+   <use_renaming_rules value="true"/>
+   <discard_large_arrays value="true"/>
+   <max_array_size value="100"/>
+  </plugin>
+  <plugin ID="DataLoad ULog"/>
+  <plugin ID="ROS Topic Subscriber">
+   <use_header_stamp value="true"/>
+   <use_renaming_rules value="true"/>
+   <discard_large_arrays value="true"/>
+   <max_array_size value="100"/>
+  </plugin>
+  <plugin ID="UDP Server"/>
+  <plugin ID="WebSocket Server"/>
+  <plugin ID="ZMQ Subscriber"/>
+  <plugin status="idle" ID="CSV Exporter"/>
+  <plugin status="idle" ID="ROS /rosout Visualization"/>
+  <plugin status="idle" ID="ROS Topic Re-Publisher"/>
+ </Plugins>
+ <!-- - - - - - - - - - - - - - - -->
+ <previouslyLoaded_Datafiles/>
+ <previouslyLoaded_Streamer name="ROS Topic Subscriber"/>
+ <!-- - - - - - - - - - - - - - - -->
+ <customMathEquations/>
+ <snippets/>
+ <!-- - - - - - - - - - - - - - - -->
+</root>
+

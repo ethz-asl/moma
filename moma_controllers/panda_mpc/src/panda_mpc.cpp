@@ -36,7 +36,7 @@ bool PandaMpcController::init(hardware_interface::RobotHW* robot_hw,
   robot_model_->initFromXml(arm_description);
 
   // the pinocchio model contains only the arm and not the full base which
-  // would require to maintain the full chain  of links
+  // would require to maintain the full chain of links
   position_current_model_.setZero(robot_model_->getDof());
   velocity_current_model_.setZero(robot_model_->getDof());
   
@@ -288,7 +288,7 @@ void PandaMpcController::compute_command(const ros::Duration& period) {
   if (sim_) { 
     robot_model_->updateState(position_current_model_, velocity_current_model_);
     robot_model_->computeAllTerms();
-    arm_gravity_and_coriolis_ = robot_model_->getNonLinearTerms().head<armInputDim_>();
+    arm_gravity_and_coriolis_ = robot_model_->getNonLinearTerms();
   }
   else {
 
@@ -320,7 +320,7 @@ void PandaMpcController::compute_command(const ros::Duration& period) {
 void PandaMpcController::update(const ros::Time& time,
                                      const ros::Duration& period) {
   read_state();
-  mpc_controller_->update(time, position_current_.head<ocs2::mobile_manipulator::STATE_DIM(armInputDim_)>());
+  mpc_controller_->update(time, position_current_);
   compute_command(period);
   write_command();
 }
