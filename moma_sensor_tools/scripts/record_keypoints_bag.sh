@@ -23,4 +23,4 @@ rosparam dump ${outpath}/${now}.yaml
 rosbag record --output-name="${outpath}/${now}_valve_perception" \
 /tf \
 /tf_static \
-/hand_eye/color/image_raw \
+/hand_eye/color/image_raw_throttle \

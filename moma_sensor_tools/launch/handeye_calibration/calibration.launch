@@ -2,6 +2,7 @@
 <launch>
     <arg name="camera_pc" default="true"/>
     <arg name="operator_pc" default="true"/>
+    <arg name="debug"       default="false"/>
 
     <!-- Intrinsic camera calibration done with the camera_calibration package -->
     <arg name="custom_intrinsics" default="true" />
@@ -12,10 +13,11 @@
 
         <include file="$(find moma_sensor_tools)/launch/handeye_calibration/apriltag_tracking.launch">
           <arg name="launch_realsense" 	value="true"/>
-          <arg name="camera_name" 		  value="hand_eye"/>
-          <arg name="camera_info"	      value="/camera_info" if="$(arg custom_intrinsics)"/>
-          <arg name="image_topic" 		  value="color/image_raw"/>
-          <arg name="rviz" 				      value="false"/>
+          <arg name="camera_name" 		value="hand_eye"/>
+          <arg name="camera_info"	    value="/camera_info" if="$(arg custom_intrinsics)"/>
+          <arg name="image_topic" 		value="color/image_raw"/>
+          <arg name="debug_pcl"         value="$(arg debug)"/>
+          <arg name="rviz" 				value="false"/>
         </include>
 	</group>
 

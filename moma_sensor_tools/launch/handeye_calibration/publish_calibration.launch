@@ -8,6 +8,7 @@
   <!-- Intrinsic camera calibration done with the camera_calibration package -->
   <arg name="custom_intrinsics" default="true" />
   <arg name="custom_intrinsics_file" default="$(env HOME)/calibration/camera_calibration.yaml" />
+  <arg name="throttle_rate"     default="1.0" />
 
   <node name="camera_intrinsics_publisher" pkg="moma_sensor_tools" type="yaml_to_camera_info_publisher.py" args="$(arg custom_intrinsics_file)" output="screen" if="$(arg custom_intrinsics)" />
 
@@ -17,13 +18,17 @@
       <arg name="eye_on_hand"       value="true"/>
 	</include>
 
-  <!-- Optionally launch the realsense from this launch script -->
-  <include file="$(find realsense2_camera)/launch/rs_camera.launch" if="$(arg launch_realsense)">
-    <arg name="camera"                value="hand_eye"/>
-    <arg name="enable_depth"          value="$(arg debug_pcl)"/>
-    <arg name="enable_pointcloud"     value="$(arg debug_pcl)"/>
-    <arg name="enable_sync"           value="true"/>
-  </include>
+  <group if="$(arg launch_realsense)">
+    <!-- Optionally launch the realsense from this launch script -->
+    <include file="$(find realsense2_camera)/launch/rs_camera.launch">
+      <arg name="camera"                value="hand_eye"/>
+      <arg name="enable_depth"          value="$(arg debug_pcl)"/>
+      <arg name="enable_pointcloud"     value="$(arg debug_pcl)"/>
+      <arg name="enable_sync"           value="true"/>
+    </include>
+
+    <node name="realsense_color_throttle" pkg="topic_tools" type="throttle" args="messages /hand_eye/color/image_raw $(arg throttle_rate)" />
+  </group>
 
   <!-- April tag tf published from optical center to the tag. Tag should not move in a fixed reference frame -->
   <include file="$(find moma_sensor_tools)/launch/handeye_calibration/apriltag_tracking.launch" if="$(arg debug_apriltag)">

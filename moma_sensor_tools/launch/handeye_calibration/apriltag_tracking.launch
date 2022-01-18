@@ -5,6 +5,7 @@
   <arg name="camera_name"       default="hand_eye" />
   <arg name="camera_info"       default="$(arg camera_name)/color/camera_info" />
   <arg name="image_topic"       default="color/image_raw" />
+  <arg name="debug_pcl"         default="false"/>
   <arg name="rviz"              default="false"/>
 
   <node pkg="apriltag_ros" type="apriltag_ros_continuous_node" name="apriltag_ros" clear_params="true" output="screen" launch-prefix="$(arg launch_prefix)" >
@@ -22,7 +23,8 @@
   <!-- Optionally run the realsense-->
   <include file="$(find realsense2_camera)/launch/rs_camera.launch" if="$(arg launch_realsense)">
     <arg name="camera"        value="$(arg camera_name)"/>
-    <arg name="enable_depth"  value="false"/>
+    <arg name="enable_depth"  value="$(arg debug_pcl)"/>
+    <arg name="enable_pointcloud"   value="$(arg debug_pcl)"/>
   </include>
 
   <!-- Rviz helper visualization -->
