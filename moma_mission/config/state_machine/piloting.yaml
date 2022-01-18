@@ -49,6 +49,7 @@ FETCH_DETECTION:
 
 REACH_DETECTION_HOTSPOT:
   default_outcome: Completed
+  goal_action_topic: /move_base
   target_frame: navigation_target
   goal_pose_topic: /move_base_simple/goal
   base_pose_topic: /base_pose_measured
@@ -63,7 +64,8 @@ REACH_DETECTION_HOTSPOT:
   tolerance_deg: 50
 
 WAYPOINT_FOLLOWING:
-  default_outcome: Completed
+  default_outcome: None
+  goal_action_topic: /move_base
   goal_pose_topic: /move_base_simple/goal
   base_pose_topic: /base_pose_measured
   base_odometry_topic: /camera/odom/sample

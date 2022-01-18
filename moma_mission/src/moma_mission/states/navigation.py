@@ -1,9 +1,12 @@
 #!/usr/bin/env python
 
+from moma_mission.utils import ros
 import tf
 import yaml
 import math
 import rospy
+import actionlib
+from move_base_msgs.msg import MoveBaseAction, MoveBaseActionGoal
 from geometry_msgs.msg import PoseStamped
 
 from moma_mission.core import StateRos, StateRosControl
@@ -153,6 +156,7 @@ class SingleNavGoalState(StateRosControl):
     def __init__(self, ns="", outcomes=['Completed', 'Failure']):
         StateRosControl.__init__(self, ns=ns, outcomes=outcomes)
 
+        self.goal_action_topic = self.get_scoped_param("goal_action_topic")
         self.goal_pose_topic = self.get_scoped_param("goal_pose_topic")
         self.base_pose_topic = self.get_scoped_param("base_pose_topic")
         self.goal_publisher = rospy.Publisher(self.goal_pose_topic, PoseStamped, queue_size=10)
@@ -169,7 +173,7 @@ class SingleNavGoalState(StateRosControl):
 
         self.base_pose_received = False
 
-    def reach_goal(self, goal):
+    def reach_goal(self, goal, action=False):
         if not isinstance(goal, PoseStamped):
             rospy.logerr("The goal needs to be specified as a PoseStamped message")
             return False
@@ -178,6 +182,29 @@ class SingleNavGoalState(StateRosControl):
         if not controller_switched:
             return False
 
+        if action:
+            return self._reach_via_action(goal)
+        else:
+            return self._reach_via_topic(goal)
+
+    def _reach_via_action(self, goal):
+        goal_client = actionlib.SimpleActionClient(self.goal_action_topic, MoveBaseAction)
+
+        # Waits until the action server has started up and started
+        # listening for goals.
+        if not goal_client.wait_for_server(timeout=rospy.Duration(3.0)):
+            rospy.logerr("Failed to contact server at [{}]".format(self.goal_action_topic))
+        
+        goal_msg = MoveBaseActionGoal()
+        goal_msg.goal.target_pose = goal
+        goal_msg.header = goal.header
+
+        # Sends the goal to the action server.
+        goal_client.send_goal(goal_msg.goal)
+        success = goal_client.wait_for_result(timeout=rospy.Duration(10*60))
+        return success
+
+    def _reach_via_topic(self, goal):
         while not self.goal_publisher.get_num_connections():
             rospy.loginfo_throttle(1.0, "Waiting for subscriber to connect to waypoint topic")
 

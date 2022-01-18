@@ -127,16 +127,17 @@ class WaypointNavigationState(SingleNavGoalState):
     
         goal = PoseStamped()
         goal.header.frame_id = Frames.odom_frame
+        goal.header.stamp = rospy.get_rostime()
         goal.pose.position.x = waypoint.x 
         goal.pose.position.y = waypoint.y
-        goal.pose.position.z = waypoint.z
+        goal.pose.position.z = 0.0
         goal.pose.orientation.x = 0.0
         goal.pose.orientation.y = 0.0
         goal.pose.orientation.z = np.sin(waypoint.orientation/2.0)
         goal.pose.orientation.w = np.cos(waypoint.orientation/2.0)
 
         rospy.loginfo("Reaching goal at {}, {}".format(goal.pose.position.x, goal.pose.position.y))
-        success = self.reach_goal(goal)
+        success = self.reach_goal(goal, action=True)
         if not success:
             rospy.logerr("Failed to reach base goal.")
             return 'Failure'
