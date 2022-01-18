@@ -183,3 +183,41 @@ jointVelocityLimits
   ; relaxed log barrier delta
   delta  1e-3
 }
+
+; TODO(julian) should update with the ur5 limits
+jointPositionLimits
+{
+  lowerBound
+  {
+    scaling 1e-0
+    (0,0) -200.0  ; world x
+    (1,0) -200.0  ; world y
+    (2,0) -6.0  ; theta
+    (3,0) -4.0  ; joint0
+    (4,0) -4.0  ; joint1
+    (5,0) -4.0  ; joint2
+    (6,0) -4.0  ; joint3
+    (7,0) -4.0  ; joint4
+    (8,0) -4.0  ; joint5
+  }
+
+  upperBound
+  {
+    scaling 1e-0
+    (0,0) 200.0  ; world x
+    (1,0) 200.0  ; world y
+    (2,0) 6.0  ; theta
+    (3,0) 4.0  ; joint0
+    (4,0) 4.0  ; joint1
+    (5,0) 4.0  ; joint2
+    (6,0) 4.0  ; joint3
+    (7,0) 4.0  ; joint4
+    (8,0) 4.0  ; joint5
+  }
+
+  ; relaxed log barrier mu
+  mu  0.01
+
+  ; relaxed log barrier delta
+  delta  1e-3
+}

@@ -187,3 +187,42 @@ jointVelocityLimits
   ; relaxed log barrier delta
   delta  1e-3
 }
+
+jointPositionLimits
+{
+  lowerBound
+  {
+    scaling 1e-0
+    (0,0) -200.0  ; world x
+    (1,0) -200.0  ; world y
+    (2,0) -6.0  ; theta
+    (3,0) -2.8973  ; joint0
+    (4,0) -1.7628  ; joint1
+    (5,0) -2.8973  ; joint2
+    (6,0) -3.0718  ; joint3
+    (7,0) -2.8973  ; joint4
+    (8,0) -0.0175  ; joint5
+    (9,0) -2.8973  ; joint6
+  }
+
+  upperBound
+  {
+    scaling 1e-0
+    (0,0) 200.0  ; world x
+    (1,0) 200.0  ; world y
+    (2,0) 6.0  ; theta
+    (3,0) 2.8973  ; joint0
+    (4,0) 1.7628  ; joint1
+    (5,0) 2.8973  ; joint2
+    (6,0) -0.0698  ; joint3
+    (7,0) 2.8973  ; joint4
+    (8,0) 3.7525  ; joint5
+    (9,0) 2.8973  ; joint6
+  }
+
+  ; relaxed log barrier mu
+  mu  0.01
+
+  ; relaxed log barrier delta
+  delta  1e-3
+}

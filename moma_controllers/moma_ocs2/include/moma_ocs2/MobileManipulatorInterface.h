@@ -99,6 +99,8 @@ class MobileManipulatorInterface final : public RobotInterface {
   std::unique_ptr<StateCost> getSelfCollisionConstraint(const PinocchioInterface& pinocchioInterface, const std::string& taskFile,
                                                         const std::string& urdfXML, bool useCaching, const std::string& libraryFolder,
                                                         bool recompileLibraries);
+  
+  std::unique_ptr<StateCost> getJointPositionLimitConstraint(const std::string& taskFile);
   std::unique_ptr<StateInputCost> getJointVelocityLimitConstraint(const std::string& taskFile);
 
   size_t armInputDim_;
