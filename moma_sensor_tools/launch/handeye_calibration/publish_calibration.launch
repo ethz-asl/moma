@@ -10,8 +10,6 @@
   <arg name="custom_intrinsics_file" default="$(env HOME)/calibration/camera_calibration.yaml" />
   <arg name="throttle_rate"     default="1.0" />
 
-  <node name="camera_intrinsics_publisher" pkg="moma_sensor_tools" type="yaml_to_camera_info_publisher.py" args="$(arg custom_intrinsics_file)" output="screen" if="$(arg custom_intrinsics)" />
-
   <!-- Read calibration from file and publish tf -->
 	<include file="$(find easy_handeye)/launch/publish.launch">
       <arg name="calibration_file"  value="$(arg calibration_file)"/>
@@ -32,10 +30,12 @@
 
   <!-- April tag tf published from optical center to the tag. Tag should not move in a fixed reference frame -->
   <include file="$(find moma_sensor_tools)/launch/handeye_calibration/apriltag_tracking.launch" if="$(arg debug_apriltag)">
-    <arg name="launch_realsense"  value="false"/>
-    <arg name="camera_name"       value="hand_eye"/>
-    <arg name="image_topic"       value="color/image_raw"/>
-    <arg name="rviz"              value="false"/>
+    <arg name="launch_realsense"       value="false"/>
+    <arg name="camera_name"            value="hand_eye"/>
+    <arg name="image_domain"           value="color"/>
+    <arg name="rviz"                   value="false"/>
+    <arg name="custom_intrinsics"      value="$(arg custom_intrinsics)"/>
+    <arg name="custom_intrinsics_file" value="$(arg custom_intrinsics_file)"/>
   </include>
 
   <!-- Rviz helper visualization -->
