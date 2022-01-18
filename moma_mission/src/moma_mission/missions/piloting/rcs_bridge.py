@@ -24,12 +24,26 @@ class WaypointStatus:
     QUEUED = 1
     DONE = 2
 
+    @staticmethod
+    def to_string(status):
+        if status == WaypointStatus.DONE:
+            return "DONE"
+        elif status == WaypointStatus.QUEUED:
+            return "QUEUED"
+        elif status == WaypointStatus.IN_PROGRESS:
+            return "IN_PROGRESS"    
+        else:
+            return "UNKNOWN"
+        
 class Waypoint:
     def __init__(self):
         self.x = 0.0
         self.y = 0.0
         self.orientation = 0.0
         self.status = WaypointStatus.QUEUED
+    
+    def __str__(self):
+        return f"x:{self.x}, y:{self.x}, angle:{self.orientation}, status:{WaypointStatus.to_string(self.status)}"
      
 class RCSBridge:
     """
@@ -125,6 +139,7 @@ class RCSBridge:
         See @inspection_server_cb
         """
         with open(file) as stream:
+            rospy.loginfo(f"Loading waypoints from file {file}")
             waypoints_list = yaml.load(stream, Loader=yaml.FullLoader)
             if "waypoints" not in waypoints_list.keys():
                 return False
@@ -133,6 +148,7 @@ class RCSBridge:
                 wp.x = waypoint['position'][0]
                 wp.y = waypoint['position'][1]
                 wp.orientation = waypoint['orientation']
+                rospy.loginfo(f"Adding waypoint [{wp}]")
                 self.waypoints.append(wp)
         return True
 
@@ -197,7 +213,7 @@ class RCSBridge:
         self.update_reached_waypoint_item_client.call(req)
 
         # set status to done
-        self.waypoints[self.waypoint_current_id] = WaypointStatus.DONE
+        self.waypoints[self.waypoint_current_id].status = WaypointStatus.DONE
 
     ################################
     # Commands
@@ -208,14 +224,14 @@ class RCSBridge:
         # check that the command matches the one specified in the high level actions
         response = CommandResponse()
         response.ack = CommandAck()
-        req = CommandRequest()
+        
+        self.current_hl_command = np.array([req.info.param1, req.info.param2, req.info.param3, 
+                                            req.info.param4, req.info.param5, req.info.param6, req.info.param7])
+        
+        rospy.loginfo(f"Received command [ID: {req.info.command}], cmd: {self.current_hl_command}")
 
-        req.info.command
-
-        if (req.info.command == 0):
+        if req.info.command in (0, 1):
             self.current_hl_command_id = req.info.command
-            self.current_hl_command = np.array([req.info.param1, req.info.param2, req.info.param3, 
-                                                req.info.param4, req.info.param5, req.info.param6, req.info.param7])
             response.ack.result = 0 # See MAV_CMD enum
             response.ack.progress = 0
         else:
