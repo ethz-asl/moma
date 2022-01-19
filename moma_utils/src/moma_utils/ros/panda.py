@@ -94,9 +94,9 @@ class PandaGripperClient:
         self.grasp_client.send_goal(msg)
         self.grasp_client.wait_for_result(rospy.Duration(2.0))
 
-    def release(self):
+    def release(self, width=0.1):
         rospy.loginfo("Opening gripper")
-        self.move(0.08)
+        self.move(width)
 
     def stop(self):
         msg = StopGoal()
