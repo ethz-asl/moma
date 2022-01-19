@@ -28,6 +28,7 @@
     </include>
 
     <node name="realsense_color_throttle" pkg="topic_tools" type="throttle" args="messages /hand_eye/color/image_raw $(arg throttle_rate)" />
+    <node name="realsense_depth_throttle" pkg="topic_tools" type="throttle" args="messages /hand_eye/depth/color/points $(arg throttle_rate)" if="$(arg debug_pcl)"/>
   </group>
 
   <!-- April tag tf published from optical center to the tag. Tag should not move in a fixed reference frame -->
