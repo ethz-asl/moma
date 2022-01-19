@@ -96,7 +96,7 @@ class PandaGripperClient:
 
     def release(self):
         rospy.loginfo("Opening gripper")
-        self.move(0.1)
+        self.move(0.08)
 
     def stop(self):
         msg = StopGoal()
