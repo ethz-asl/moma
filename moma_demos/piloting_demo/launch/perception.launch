@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<launch>
+  <include file="$(find object_keypoints_ros)/launch/keypoints.launch">
+    <arg name="load_bag_filepath" default="true"/>
+    <arg name="bag_file"          default="$(env HOME)/storage/bags/2022-01-19/2022-01-19-14-13-30_valve_perception.bag"/>
+    <arg name="calibration_file"  default="$(env HOME)/calibration/intrinsics.yaml"/>
+    <arg name="image_topic"       default="/hand_eye/color/image_raw_throttle"/>
+    <arg name="camera_frame"      default="hand_eye_color_optical_frame"/>
+    <arg name="model_name"        default="valve_depth"/>
+    <arg name="keypoints_file"    default="$(find object_keypoints_ros)/config/valve.json"/>
+    <arg name="image_file"        default=""/>
+  </include>
+</launch>
