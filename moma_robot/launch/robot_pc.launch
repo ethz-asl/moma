@@ -1,10 +1,11 @@
 <?xml version="1.0" ?>
 <launch>
-  <arg name="load_gripper" default="false"/>
   <arg name="robot_ip" default="192.168.1.12"/>
 
   <!-- Load the robot description -->
   <arg name="tool" default="panda_hand"/>
+  <arg name="load_gripper" default="true"  if="$(eval arg('tool') == 'panda_hand')"/>
+  <arg name="load_gripper" default="false" unless="$(eval arg('tool') == 'panda_hand')"/>
 
   <!-- 0 = none, 1 = skidsteer, 2 = holonomic -->
   <arg name="base_type" default="0"/>
@@ -46,7 +47,11 @@
       <rosparam command="load" file="$(find moma_robot)/config/controllers.yaml" />
 
       <!-- Load but do not start these controllers -->
-      <arg name="controllers_load_list" value="joint_space_controller joint_velocity_controller mpc_controller path_admittance_controller"/>
+      <arg name="controllers_load_list"
+           value="joint_space_controller
+                  joint_velocity_controller
+                  mpc_controller
+                  path_admittance_controller"/>
       <node name="controller_loader" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="--stopped $(arg controllers_load_list)" />
 
       <!-- Already start these controllers -->
@@ -57,7 +62,7 @@
   <node pkg="tf2_ros"
         if="$(eval arg('base_type') == 0)"
         type="static_transform_publisher"
-        name="depth2_depth_opt_rebroadcaster"
+        name="world_base_tf"
         args="0 0 0 0 0 0 1 world base_link" />
 
 </launch>
