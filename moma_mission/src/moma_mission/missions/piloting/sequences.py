@@ -5,7 +5,7 @@ import smach_ros
 
 from moma_mission.core import StateMachineRos
 from moma_mission.missions.piloting.states import *
-from moma_mission.states.gripper import GripperUSB
+from moma_mission.states.gripper import GripperControl
 from moma_mission.states.manipulation import JointsConfigurationAction
 from moma_mission.states.detection import DetectionState
 
@@ -13,7 +13,7 @@ from moma_mission.states.detection import DetectionState
 def homing_sequence_factory():
     homing_sequence = StateMachineRos(outcomes=['Success', 'Failure'])
     with homing_sequence:
-        homing_sequence.add('OPEN_GRIPPER', GripperUSB,
+        homing_sequence.add('OPEN_GRIPPER', GripperControl,
                             transitions={'Completed': 'HOME_ROBOT',
                                          'Failure': 'Failure'})
 
@@ -47,7 +47,7 @@ def lateral_manipulation_sequence_factory():
                                           transitions={'Completed': 'CLOSE_GRIPPER',
                                                        'Failure': 'Failure'})
 
-        lateral_manipulation_sequence.add('CLOSE_GRIPPER', GripperUSB,
+        lateral_manipulation_sequence.add('CLOSE_GRIPPER', GripperControl,
                                           transitions={'Completed': 'MANIPULATE_VALVE',
                                                        'Failure': 'Failure'})
 
@@ -55,7 +55,7 @@ def lateral_manipulation_sequence_factory():
                                           transitions={'Completed': 'OPEN_GRIPPER',
                                                        'Failure': 'Failure'})
 
-        lateral_manipulation_sequence.add('OPEN_GRIPPER', GripperUSB,
+        lateral_manipulation_sequence.add('OPEN_GRIPPER', GripperControl,
                                           transitions={'Completed': 'POST_LATERAL_GRASP',
                                                        'Failure': 'Failure'})
 

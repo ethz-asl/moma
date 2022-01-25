@@ -10,10 +10,11 @@ class Frames:
     @classmethod
     def init_from_ros(cls):
         try:
-            cls.map_frame = rospy.get_param("~map_frame")
-            cls.valve_frame = rospy.get_param("~valve_frame")
-            cls.tool_frame = rospy.get_param("~tool_frame")
-            cls.base_frame = rospy.get_param("~base_frame")
+            cls.map_frame = rospy.get_param("/piloting/map_frame")
+            cls.valve_frame = rospy.get_param("/piloting/valve_frame")
+            cls.tool_frame = rospy.get_param("/piloting/tool_frame")
+            cls.base_frame = rospy.get_param("/piloting/base_frame")
+            cls.odom_frame = rospy.get_param("/piloting/odom_frame")
             return True
         except Exception as exc:
             rospy.logerr(exc)
@@ -21,11 +22,11 @@ class Frames:
 
     @classmethod
     def print_summary(cls):
-        print("""================================\n
-                 Valve opening frames data:\n
-                 ================================\n
-                 Map frame: \t{cls.map_frame}\n
-                 Valve frame: \t{cls.valve_frame}\n
-                 Base frame: \t{cls.base_frame}\n
-                 Tool frame: \t{cls.tool_frame}\n
-                 ================================\n""")
+        print(f"""================================
+Valve opening frames data:
+================================
+Map frame: \t{cls.map_frame}
+Valve frame: \t{cls.valve_frame}
+Base frame: \t{cls.base_frame}
+Tool frame: \t{cls.tool_frame}
+================================\n""")

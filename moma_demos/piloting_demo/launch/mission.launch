@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<launch>
+  <!-- mission state machine -->
+  <rosparam command="load" file="$(find moma_mission)/config/state_machine/piloting.yaml" subst_value="true"/>
+  <rosparam command="load" file="$(find moma_mission)/config/state_machine/piloting_frames.yaml"/>
+  <node pkg="moma_mission" type="piloting.py" name="piloting_demo" output="screen">
+    <param name="telemetry_odom_topic" value="/camera/odom/sample"/>
+  </node>
+
+</launch>

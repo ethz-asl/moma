@@ -11,7 +11,7 @@
     use_nominal_extrinsics:=true use_fixed_realsense:=false tool:=$(arg tool)"/>
 
   <!-- spawn panda in siumulation -->
-  <include file="$(find piloting_demo)/launch/superpanda_gazebo.launch">
+  <include file="$(find piloting_demo)/launch/gazebo.launch">
     <arg name="use_fixed_realsense" value="$(arg use_fixed_realsense)"/>
     <arg name="control_mode" value="Effort"/>
     <arg name="tool" value="$(arg tool)"/>

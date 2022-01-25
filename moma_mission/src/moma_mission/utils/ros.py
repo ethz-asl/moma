@@ -1,4 +1,5 @@
 import os
+import sys
 import rospy
 from controller_manager_msgs.srv import SwitchController, SwitchControllerRequest
 from controller_manager_msgs.srv import ListControllers, ListControllersRequest, ListControllersResponse
@@ -13,11 +14,13 @@ def get_param_safe(param_name):
     try:
         return rospy.get_param(param_name)
     except KeyError as exc:
+        print("ERROR")
+        
         rospy.logerr(exc)
         raise NameError("Failed to parse parameter {}".format(param_name))
+       
 
-
-def switch_ros_controller(controller_name, manager_namespace='', whitelist=[]):
+def switch_ros_controller(startlist=[], stoplist=[], manager_namespace=''):
     list_controller_service_name = os.path.join(manager_namespace, "controller_manager", "list_controllers")
     try:
         rospy.wait_for_service(list_controller_service_name, timeout=2.0)
@@ -25,19 +28,19 @@ def switch_ros_controller(controller_name, manager_namespace='', whitelist=[]):
         rospy.logerr("Failed to call {}".format(list_controller_service_name))
         return False
 
-    rospy.loginfo("Starting the controller {}".format(controller_name))
     # stop all controllers running and not in the whitelist
     controller_stop_list = []
     controller_start_list = []
 
+    rospy.loginfo(f"switch_controller_ros:\nstart list={startlist}\nstop list={stoplist}")
     list_service_client = rospy.ServiceProxy(list_controller_service_name, ListControllers)
     req = ListControllersRequest()
     res = list_service_client.call(req)
     for controller in res.controller:
         rospy.loginfo("Controller {}, state={}".format(controller.name, controller.state))
-        if controller.name == controller_name and controller.state != "running":
+        if controller.name in startlist and controller.state != "running":
             controller_start_list.append(controller.name)
-        elif controller.name not in whitelist and controller.state == "running" and controller.name != controller_name:
+        elif controller.name in stoplist and controller.state == "running" and controller.name not in  startlist:
             controller_stop_list.append(controller.name)
 
     rospy.loginfo("Stopping controllers: {}".format(controller_stop_list))

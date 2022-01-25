@@ -2,6 +2,7 @@
 import smach
 import rospy
 import tf2_ros
+import easydict as edict
 import pinocchio as pin
 from os.path import join
 
@@ -11,7 +12,7 @@ from moma_mission.utils.transforms import tf_to_se3, pose_to_se3
 
 class StateMachineContext(object):
     def __init__(self):
-        self.data = {}
+        self.ctx = edict.EasyDict()
 
 
 # A global context accessible to all states inheriting from this state
@@ -35,13 +36,11 @@ class StateRos(smach.State):
         global global_context
         self.global_context = global_context
 
-        self.initialization_failure = False
-
         # parse optional default outcome
         self.default_outcome = self.get_scoped_param("default_outcome", safe=True)
         if self.default_outcome not in outcomes + ["None"]:
-            rospy.logerr("Default outcome must be one of {}".format(outcomes + ["None"]))
-            self.initialization_failure = True
+            raise NameError("Default outcome must be one of {}".format(outcomes + ["None"]))
+            
 
         if self.default_outcome == "None":
             self.default_outcome = None
@@ -78,15 +77,12 @@ class StateRos(smach.State):
                                                                        outcome=self.default_outcome))
             return self.default_outcome
 
-        if self.initialization_failure:
-            return "Failure"
-
         return self.run()
 
     def run(self):
         raise NotImplementedError("run must be implemented by the inheriting state")
 
-    def set_context_data(self, key, data, overwrite=False):
+    def set_context(self, key, data, overwrite=False):
         """
         Set a new data field in the global context accessible to all states which
         are derived from this state
@@ -95,17 +91,10 @@ class StateRos(smach.State):
         :param overwrite: if True, let the user overwrite data if already in global context
         :return: True if read was successful
         """
-        if not overwrite and key in self.global_context.data.keys():
+        if not overwrite and key in self.global_context.ctx.keys():
             rospy.logwarn("Could not set data in global context. Key {} already exists".format(key))
             return False
-        self.global_context.data[key] = data
-
-    def get_context_data(self, key):
-        if key in self.global_context.data.keys():
-            return self.global_context.data[key]
-        else:
-            rospy.logwarn("Failed to retrieve [{}] from data".format(key))
-            return None
+        self.global_context.ctx[key] = data
 
     def get_transform(self, target, source):
         """ Retrieve transform. Let it fail if unable to get the transform """
@@ -158,7 +147,7 @@ if __name__ == "__main__":
         def run(self):
             try:
                 param = self.get_scoped_param("my_param")
-                self.set_context_data("a_data", param)
+                self.set_context("a_data", param)
             except NameError as exc:
                 rospy.logerr(exc)
                 return 'Failure'
@@ -170,7 +159,7 @@ if __name__ == "__main__":
             StateRos.__init__(self, ns='state_b')
 
         def run(self):
-            value = self.get_context_data("a_data")
+            value = self.global_context.ctx.a_data
             rospy.loginfo("value is {}".format(value))
             return 'Completed'
 
@@ -186,8 +175,12 @@ if __name__ == "__main__":
 
     rospy.init_node("state_ros_test")
     rospy.set_param("state_a/my_param", 1)
+    rospy.set_param("state_a/default_outcome", "None")
+    
+    rospy.set_param("state_b/default_outcome", "None")
+    
     rospy.set_param("state_c/default_outcome", "Failure")
-
+    
     a = StateA()
     a.execute(ud=None)
 

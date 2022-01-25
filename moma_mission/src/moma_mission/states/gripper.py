@@ -16,12 +16,14 @@ class GripperPositionControlState(StateRos):
         StateRos.__init__(self, ns=ns)
         command_topic_name = self.get_scoped_param("command_topic")
         self.command = self.get_scoped_param("command")
-        self.command_publisher = rospy.Publisher(command_topic_name, Float64, queue_size=10)
+        self.command_publisher = rospy.Publisher(
+            command_topic_name, Float64, queue_size=10)
 
     def run(self):
         # It should actually switch to the right controller but assuming that
         # the controller is already switched
-        rospy.loginfo("Sending target gripper position: {} %".format(self.command))
+        rospy.loginfo(
+            "Sending target gripper position: {} %".format(self.command))
         cmd = Float64()
         cmd.data = self.command
         self.command_publisher.publish(cmd)
@@ -38,20 +40,19 @@ class GripperUSB(StateRos):
     """
 
     def __init__(self, ns):
-        try:
-            StateRos.__init__(self, ns=ns)
-            command_topic_name = self.get_scoped_param("command_topic")
-            self.position = self.get_scoped_param("position")
-            self.effort = self.get_scoped_param("effort")
-            self.velocity = self.get_scoped_param("velocity")
-            self.command_publisher = rospy.Publisher(command_topic_name, JointState, queue_size=10)
-        except Exception:
-            self.initialization_failure = True
+        StateRos.__init__(self, ns=ns)
+        command_topic_name = self.get_scoped_param("command_topic")
+        self.position = self.get_scoped_param("position")
+        self.effort = self.get_scoped_param("effort")
+        self.velocity = self.get_scoped_param("velocity")
+        self.command_publisher = rospy.Publisher(
+            command_topic_name, JointState, queue_size=10)
 
     def run(self):
         # It should actually switch to the right controller but assuming that
         # the controller is already switched
-        rospy.loginfo("Target gripper position: {}, effort: {}".format(self.position, self.effort))
+        rospy.loginfo("Target gripper position: {}, effort: {}".format(
+            self.position, self.effort))
         cmd = JointState()
         cmd.position.append(self.position)
         cmd.velocity.append(self.velocity)
@@ -64,13 +65,13 @@ class GripperUSB(StateRos):
         return 'Completed'
 
 
-class GripperControl(StateRosControl):
+class GripperControl(StateRos):
     """
     This state controls the gripper through the GripperCommandAction
     """
 
     def __init__(self, ns=""):
-        StateRosControl.__init__(self, ns=ns)
+        StateRos.__init__(self, ns=ns)
 
         self.position = self.get_scoped_param("position")
         self.max_effort = self.get_scoped_param("max_effort")
@@ -83,20 +84,25 @@ class GripperControl(StateRosControl):
         self.gripper_cmd.command.max_effort = self.max_effort
 
         self.gripper_action_name = self.get_scoped_param("gripper_action_name")
-        self.gripper_client = actionlib.SimpleActionClient(self.gripper_action_name, GripperCommandAction)
+        self.gripper_client = actionlib.SimpleActionClient(
+            self.gripper_action_name, GripperCommandAction)
 
     def run(self):
         if not self.gripper_client.wait_for_server(rospy.Duration(self.server_timeout)):
-            rospy.logerr("Timeout exceeded while waiting for {} server".format(self.gripper_action_name))
+            rospy.logerr("Timeout exceeded while waiting for {} server".format(
+                self.gripper_action_name))
             return 'Failure'
 
         # TODO(giuseppe) remove hack --> kinova takes time to switch to highlevel mode
         rospy.sleep(1.0)
         self.gripper_client.send_goal(self.gripper_cmd)
         if not self.gripper_client.wait_for_result(rospy.Duration(self.server_timeout)):
-            rospy.logerr("Timeout exceeded while waiting the gripper action to complete")
+            rospy.logerr(
+                "Timeout exceeded while waiting the gripper action to complete")
             return 'Aborted'
 
+        rospy.loginfo(
+            f"Sending gripper command: pos={self.gripper_cmd.command.position}, max_eff={self.gripper_cmd.command.max_effort}")
         result = self.gripper_client.get_result()
         error = abs(result.position - self.position)
         tolerance_met = error < self.tolerance
@@ -106,10 +112,12 @@ class GripperControl(StateRosControl):
             rospy.logerr("None received from the gripper server")
             success = False
         elif result.stalled and not tolerance_met:
-            rospy.logerr("Gripper stalled and not moving, position error {} is larger than tolerance".format(error))
+            rospy.logerr(
+                "Gripper stalled and not moving, position error {} is larger than tolerance".format(error))
             success = False
         elif result.stalled and tolerance_met:
-            rospy.logerr("Gripper stalled and not moving, position error {} is smaller than tolerance".format(error))
+            rospy.logerr(
+                "Gripper stalled and not moving, position error {} is smaller than tolerance".format(error))
             success = True
         elif result.reached_goal:
             rospy.loginfo("Gripper successfully reached the goal")

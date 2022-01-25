@@ -1,23 +1,25 @@
 #!/usr/bin/env python
 
+from moma_mission.utils import ros
 import tf
 import yaml
 import math
 import rospy
+import actionlib
+from move_base_msgs.msg import MoveBaseAction, MoveBaseActionGoal
 from geometry_msgs.msg import PoseStamped
 
-from moma_mission.core import StateRos
-from moma_mission.utils import rocoma
+from moma_mission.core import StateRos, StateRosControl
 
 
-class WaypointNavigation(StateRos):
+class WaypointNavigation(StateRosControl):
     """
     In this state the robot navigates through a sequence of waypoint which are sent to the
     global planner once the previous has been reached within a certain tolerance
     """
 
     def __init__(self, mission, waypoint_pose_topic, base_pose_topic, ns=""):
-        StateRos.__init__(self, outcomes=['Completed', 'Aborted', 'Next Waypoint'], ns=ns)
+        StateRosControl.__init__(self, outcomes=['Completed', 'Failure', 'Next Waypoint'], ns=ns)
         self.mission_data = mission
         self.waypoint_idx = 0
 
@@ -38,9 +40,6 @@ class WaypointNavigation(StateRos):
         self.estimated_y_m = 0.
         self.estimated_yaw_rad = 0.
 
-    def __del__(self):
-        self.base_pose_subscriber.unregister()
-
     @staticmethod
     def read_missions_data(mission_file):
         """
@@ -53,6 +52,10 @@ class WaypointNavigation(StateRos):
             return yaml.load(stream)
 
     def run(self):
+        controller_switched = self.do_switch()
+        if not controller_switched:
+            return 'Failure'
+        
         if self.waypoint_idx >= len(self.mission_data.keys()):
             rospy.loginfo("No more waypoints left in current mission.")
             self.waypoint_idx = 0
@@ -146,20 +149,18 @@ class WaypointNavigation(StateRos):
             return False
 
 
-class SingleNavGoalState(StateRos):
+class SingleNavGoalState(StateRosControl):
     """
     In this state the robot navigates to a single goal"""
 
-    def __init__(self, ns=""):
-        StateRos.__init__(self, ns=ns)
+    def __init__(self, ns="", outcomes=['Completed', 'Failure']):
+        StateRosControl.__init__(self, ns=ns, outcomes=outcomes)
 
+        self.goal_action_topic = self.get_scoped_param("goal_action_topic")
         self.goal_pose_topic = self.get_scoped_param("goal_pose_topic")
         self.base_pose_topic = self.get_scoped_param("base_pose_topic")
         self.goal_publisher = rospy.Publisher(self.goal_pose_topic, PoseStamped, queue_size=10)
         self.base_pose_subscriber = rospy.Subscriber(self.base_pose_topic, PoseStamped, self.base_pose_callback)
-
-        self.controller = self.get_scoped_param("roco_controller")
-        self.controller_manager_namespace = self.get_scoped_param("controller_manager_namespace")
 
         self.timeout = self.get_scoped_param("timeout")
         self.tolerance_m = self.get_scoped_param("tolerance_m")
@@ -172,20 +173,38 @@ class SingleNavGoalState(StateRos):
 
         self.base_pose_received = False
 
-    def __del__(self):
-        self.base_pose_subscriber.unregister()
-
-    def reach_goal(self, goal):
+    def reach_goal(self, goal, action=False):
         if not isinstance(goal, PoseStamped):
             rospy.logerr("The goal needs to be specified as a PoseStamped message")
             return False
 
-        success = rocoma.switch_roco_controller(self.controller,
-                                                ns=self.controller_manager_namespace)
-        if not success:
-            rospy.logerr("Could not execute the navigation plan")
+        controller_switched = self.do_switch()
+        if not controller_switched:
             return False
 
+        if action:
+            return self._reach_via_action(goal)
+        else:
+            return self._reach_via_topic(goal)
+
+    def _reach_via_action(self, goal):
+        goal_client = actionlib.SimpleActionClient(self.goal_action_topic, MoveBaseAction)
+
+        # Waits until the action server has started up and started
+        # listening for goals.
+        if not goal_client.wait_for_server(timeout=rospy.Duration(3.0)):
+            rospy.logerr("Failed to contact server at [{}]".format(self.goal_action_topic))
+        
+        goal_msg = MoveBaseActionGoal()
+        goal_msg.goal.target_pose = goal
+        goal_msg.header = goal.header
+
+        # Sends the goal to the action server.
+        goal_client.send_goal(goal_msg.goal)
+        success = goal_client.wait_for_result(timeout=rospy.Duration(10*60))
+        return success
+
+    def _reach_via_topic(self, goal):
         while not self.goal_publisher.get_num_connections():
             rospy.loginfo_throttle(1.0, "Waiting for subscriber to connect to waypoint topic")
 
