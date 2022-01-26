@@ -85,9 +85,10 @@ class PerceptionModule:
 
     def detect(self):
         try:
-            self.detection_srv_client.wait_for_service(timeout=10)
+            self.detection_srv_client.wait_for_service(timeout=3)
         except rospy.ROSException as exc:
             rospy.logwarn("Service {} not available yet".format(self.detection_srv_client.resolved_name))
+            return
 
         req = KeypointsDetectionRequest()
         req_depth = copy.deepcopy(self.depth) # store locally the current depth image as well
@@ -139,7 +140,7 @@ class PerceptionModule:
         """
         rospy.logwarn_once("_keypoints_callback unused")
         return
-        
+
         # assert that the robot is not moving
         if len(self.keypoints_observations) == 2 and not self.triangulated:
             rospy.loginfo("Collected 2 keypoints... estimating pose")
@@ -201,4 +202,8 @@ class PerceptionModule:
 if __name__ == "__main__":
     rospy.init_node("perception")
     perception = PerceptionModule()
-    rospy.spin()
+    while not rospy.is_shutdown():
+        _ = input("Press enter to detect keypoints: ")
+        perception.detect()
+
+    
