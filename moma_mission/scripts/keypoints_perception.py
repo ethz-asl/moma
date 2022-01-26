@@ -55,6 +55,7 @@ class PerceptionModule:
         # ROS
         self.marker_pub = rospy.Publisher("/perception/triangulated_keypoints", MarkerArray, queue_size=1)
         self.keypoints_sub = rospy.Subscriber("/object_keypoints_ros/keypoints", Keypoints, self._keypoints_callback, queue_size=1)
+        self.image_sub = rospy.Subscriber("/hand_eye/color/image_raw", Image, self._image_callback, queue_size=1)
         self.depth_sub = rospy.Subscriber("/hand_eye/depth/image_raw", Image, self._depth_callback, queue_size=1)
         self.detection_srv_client = rospy.ServiceProxy("/object_keypoints_ros/detect", KeypointsDetection)
 
@@ -92,6 +93,9 @@ class PerceptionModule:
 
         req = KeypointsDetectionRequest()
         req_depth = copy.deepcopy(self.depth) # store locally the current depth image as well
+        if self.rgb is None:
+            rospy.logwarn("No image received yet, skipping detection")
+            return
         req.rgb = self.rgb
 
         res : KeypointsDetectionResponse
