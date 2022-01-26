@@ -1,5 +1,5 @@
 #! /bin/bash
-#outpath="$1"
+outpath="$1"
 
 # Other variables
 now="$(date +"%F-%H-%M-%S")"
@@ -24,3 +24,6 @@ rosbag record --output-name="${outpath}/${now}_valve_perception" \
 /tf \
 /tf_static \
 /hand_eye/color/image_raw_throttle \
+/hand_eye/depth/image_rect_raw_throttle \
+/hand_eye/depth/color/points_throttle \
+/joint_states
