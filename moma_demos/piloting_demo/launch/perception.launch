@@ -9,5 +9,8 @@
     <arg name="model_name"        default="valve_depth"/>
     <arg name="keypoints_file"    default="$(find object_keypoints_ros)/config/valve.json"/>
     <arg name="image_file"        default=""/>
+    <arg name="rviz_config"       default="$(find piloting_demo)/config/rviz/perception.rviz"/>
   </include>
+
+  <node name="perception" pkg="moma_mission" type="triangulate_keypoints.py" output="screen"/>
 </launch>

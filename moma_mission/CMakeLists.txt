@@ -11,6 +11,7 @@ catkin_install_python(PROGRAMS
         demo/piloting.py
         scripts/gripper_commander.py
         scripts/calibrate_door.py
+        scripts/triangulate_keypoints.py
         DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 install(DIRECTORY launch config

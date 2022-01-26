@@ -57,8 +57,9 @@ def point_line_distance(p, l):
 
 class Camera:
     # taken from https://github.com/demul/extrinsic2pyramid
-    def __init__(self, K, resolution):
+    def __init__(self, K, D, resolution):
         self.K = K
+        self.D = D
         self.resolution = resolution
         self.T = np.eye(4)
         self.M = self.K @ self.T[:3, :]
@@ -83,7 +84,7 @@ class Camera:
                                            rvec=self.T[:3, :3], 
                                            tvec=self.T[:3, 3], 
                                            cameraMatrix=self.K, 
-                                           distCoeffs=np.array([]))
+                                           distCoeffs=self.D)
         proj_points = proj_points.reshape((-1, 2))
         
         # remove points outside of the camera view
@@ -106,6 +107,11 @@ class Camera:
         t = np.array([dx, dy, dz])
         self.T[:3, :3] = r
         self.T[:3, 3] = t
+        self.M = self.K @ self.T[:3, :]
+
+    def set_transform(self, T):
+        assert T.shape == (4, 4)
+        self.T = T
         self.M = self.K @ self.T[:3, :]
 
 class ValveFitter:
@@ -147,8 +153,12 @@ class ValveFitter:
             # the solution is the eigenvector corresponding to the minimum non zero eigenvalue
             # which is the corresponding column in v
             p_3d = vh[-1, :].T
+
+            print("Points 3d homogenous are: {}".format(p_3d))
+
             p_3d /= p_3d[3] # make the points homogeneous
             points_3d[:, i] = p_3d[:3] # save in unhomogeneous format
+            print("Computed 3d points are: {}".format(points_3d))
         return points_3d    
         
     def triangulate_cv(self):
@@ -394,24 +404,16 @@ class FeatureMatcher:
         for l in lines:
             distances.append([point_line_distance(points2[i, :], l) for i in range(N)]) 
 
-        print("distances are")
-        print(distances)
         # find first and second best matches for each line
         matches = -np.ones(N)
         for i, d in enumerate(distances):
             d_np = np.asarray(d)
             min1 = np.min(d_np)
 
-            print("d1")
-            print(d_np)
-            print(min1)
-
+            
             d_np2 = np.delete(d_np, d_np.argmin())
             min2 = np.min(d_np2)
 
-            print("d2")
-            print(d_np2)
-            print(min2)
             if (min1 / min2) < self.acceptance_ratio:
                 point2_indx = d_np.argmin()
                 point1_idx = i
@@ -434,7 +436,6 @@ class FeatureMatcher:
         c, _ = camera2.resolution 
         for i, r in enumerate(lines):
             color = colors[i]
-            print(color)
             x0,y0 = map(int, [0, -r[2]/r[1] ])
             x1,y1 = map(int, [c, -(r[2]+r[0]*c)/r[1] ])
             ax[1].plot([x0, x1], [y0, y1], color=color, label=f"epiline {i}")
@@ -507,7 +508,8 @@ if __name__ == "__main__":
                                   [0.0, 694.75, 367.62],
                                   [0.0, 0.0, 1.0]])
     camera_resolution = np.array([1280, 720])
-    camera1 = Camera(camera_intrinsics, camera_resolution)
+    camera_distortion = np.array([])
+    camera1 = Camera(camera_intrinsics, camera_distortion, camera_resolution)
     
     camera2 = deepcopy(camera1)
     camera2.transform(dz=0.4, dx=0.8, pitch_deg=-40)
@@ -533,6 +535,8 @@ if __name__ == "__main__":
     proj_keypoints1_n = add_noise(proj_keypoints1, low=0, high=20)
     proj_keypoints2_n = add_noise(proj_keypoints2, low=0, high=20)
     
+    print("============================")
+    print(proj_keypoints1_n)
     problem.add_observation(camera1, proj_keypoints1_n, np.array([0.0, 1.0, 1.0, 1.0, 1.0, 1.0]))
     problem.add_observation(camera2, proj_keypoints2_n, np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0]))
     #problem.add_observation(camera3, proj_keypoints3, np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0]))
