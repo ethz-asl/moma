@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-import queue
 import copy
 import rospy
 import tf2_ros
@@ -10,6 +9,7 @@ from visualization_msgs.msg import MarkerArray
 from sensor_msgs.msg import Image
 from geometry_msgs.msg import TransformStamped
 from object_keypoints_ros.msg import Keypoint, Keypoints
+from cv_bridge import CvBridge
 
 from object_keypoints_ros.srv import KeypointsDetection, KeypointsDetectionRequest, KeypointsDetectionResponse
 from moma_mission.missions.piloting.valve_fitting import Camera, ValveFitter, ValveModel, FeatureMatcher
@@ -32,6 +32,7 @@ class PerceptionModule:
         self.cameras = []
         self.keypoints_observations =  []
         self.previous_obs_time = -np.inf
+        self.bridge = CvBridge()
 
         # TODO: to replace with config from file
         self.K = INTRINSICS
@@ -46,6 +47,7 @@ class PerceptionModule:
 
         # Images
         self.depth = None
+        self.depth_header = None
         self.rgb = None
 
         # TF
@@ -56,7 +58,7 @@ class PerceptionModule:
         self.marker_pub = rospy.Publisher("/perception/triangulated_keypoints", MarkerArray, queue_size=1)
         self.keypoints_sub = rospy.Subscriber("/object_keypoints_ros/keypoints", Keypoints, self._keypoints_callback, queue_size=1)
         self.image_sub = rospy.Subscriber("/hand_eye/color/image_raw", Image, self._image_callback, queue_size=1)
-        self.depth_sub = rospy.Subscriber("/hand_eye/depth/image_raw", Image, self._depth_callback, queue_size=1)
+        self.depth_sub = rospy.Subscriber("/hand_eye/depth/image_rect_raw", Image, self._depth_callback, queue_size=1)
         self.detection_srv_client = rospy.ServiceProxy("/object_keypoints_ros/detect", KeypointsDetection)
 
 
@@ -79,6 +81,7 @@ class PerceptionModule:
         return marker
 
     def _depth_callback(self, msg):
+        self.depth_header = msg.header
         self.depth = np.array(self.bridge.imgmsg_to_cv2(msg, "32FC1")).astype(np.float32)
 
     def _image_callback(self, msg):
@@ -92,9 +95,12 @@ class PerceptionModule:
             return
 
         req = KeypointsDetectionRequest()
+        if self.depth is None:
+            rospy.logwarn("No depth image received yet, skipping detection")
+            return
         req_depth = copy.deepcopy(self.depth) # store locally the current depth image as well
         if self.rgb is None:
-            rospy.logwarn("No image received yet, skipping detection")
+            rospy.logwarn("No rgb image received yet, skipping detection")
             return
         req.rgb = self.rgb
 
@@ -106,10 +112,9 @@ class PerceptionModule:
             return
         
         marker_array = MarkerArray()
-        marker_array.frame_id = BASE_FRAME
-        
+
         # let it fail if not found
-        trans = self.tf_buffer.lookup_transform(BASE_FRAME, CAMERA_FRAME, req_depth.header.stamp, timeout=rospy.Duration(3.0))
+        trans = self.tf_buffer.lookup_transform(BASE_FRAME, CAMERA_FRAME, self.depth_header.stamp, timeout=rospy.Duration(3.0))
         t_w_cam = np.array([trans.transform.translation.x, trans.transform.translation.y, trans.transform.translation.z])
         q = np.array([trans.transform.rotation.x, trans.transform.rotation.y, trans.transform.rotation.z, trans.transform.rotation.w])
         R_w_cam = Rotation.from_quat(q).as_matrix()
@@ -133,7 +138,8 @@ class PerceptionModule:
             P_base = R_w_cam @ P_cam + t_w_cam 
             marker = self._make_marker(BASE_FRAME, P_base[0], P_base[1], P_base[2])
             marker_array.markers.append(marker)
-            self.marker_pub.publish(marker_array)
+
+        self.marker_pub.publish(marker_array)
             
         
 
