@@ -8,15 +8,21 @@ from geometry_msgs.msg import Pose, PoseStamped
 from moma_mission.utils.rotation import CompatibleRotation as R
 
 
+def numpy_to_pose(translation, orientation):
+    pose = Pose()
+    pose.position.x = translation[0]
+    pose.position.y = translation[1]
+    pose.position.z = translation[2]
+    pose.orientation.x = orientation[0]
+    pose.orientation.y = orientation[1]
+    pose.orientation.z = orientation[2]
+    pose.orientation.w = orientation[3]
+    return pose
+
+
 def numpy_to_pose_stamped(translation, orientation, frame_id):
     pose = PoseStamped()
-    pose.pose.position.x = translation[0]
-    pose.pose.position.y = translation[1]
-    pose.pose.position.z = translation[2]
-    pose.pose.orientation.x = orientation[0]
-    pose.pose.orientation.y = orientation[1]
-    pose.pose.orientation.z = orientation[2]
-    pose.pose.orientation.w = orientation[3]
+    pose.pose = numpy_to_pose(translation, orientation)
     pose.header.stamp = rospy.get_rostime()
     pose.header.frame_id = frame_id
     return pose
@@ -33,6 +39,14 @@ def se3_to_pose_ros(se3pose):
     pose_ros.orientation.z = q[2]
     pose_ros.orientation.w = q[3]
     return pose_ros
+
+
+def se3_to_pose_stamped(se3pose, frame_id):
+    pose = PoseStamped()
+    pose.pose = se3_to_pose_ros(se3pose)
+    pose.header.stamp = rospy.get_rostime()
+    pose.header.frame_id = frame_id
+    return pose
 
 
 def tf_to_se3(transform):

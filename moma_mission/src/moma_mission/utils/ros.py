@@ -5,14 +5,14 @@ from controller_manager_msgs.srv import SwitchController, SwitchControllerReques
 from controller_manager_msgs.srv import ListControllers, ListControllersRequest, ListControllersResponse
 
 
-def get_param_safe(param_name):
+def get_param_safe(param_name, default=None):
     """
     Return the parameter if it exists, otherwise it raises an exception
     :param param_name:
     :return:
     """
     try:
-        return rospy.get_param(param_name)
+        return rospy.get_param(param_name) if default is None else rospy.get_param(param_name, default)
     except KeyError as exc:
         print("ERROR")
         

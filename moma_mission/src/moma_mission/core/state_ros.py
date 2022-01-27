@@ -51,7 +51,7 @@ class StateRos(smach.State):
         self.tf_buffer = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener(self.tf_buffer)
 
-    def get_scoped_param(self, param_name, safe=True):
+    def get_scoped_param(self, param_name, default=None, safe=True):
         """
         Get the parameter namespaced under the state name
         e.g get_scoped_param('/my_param') --> looks for '/state_name/my_param'
@@ -63,10 +63,10 @@ class StateRos(smach.State):
             named_param = join(rospy.get_namespace(), self.namespace, param_name)
 
         if safe:
-            return ros.get_param_safe(named_param)
+            return ros.get_param_safe(named_param) if default is None else ros.get_param_safe(named_param, default)
         else:
             if rospy.has_param(named_param):
-                return rospy.get_param(named_param)
+                return rospy.get_param(named_param) if default is None else rospy.get_param(named_param, default)
             else:
                 return None
 
