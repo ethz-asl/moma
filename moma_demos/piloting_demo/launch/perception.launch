@@ -1,8 +1,9 @@
 <?xml version="1.0"?>
 <launch>
+  <arg name="bag_file"  default="$(env HOME)/storage/bags/2022-01-26/2022-01-26-18-11-14_valve_depth_throttled.bag"/>
+  
   <include file="$(find object_keypoints_ros)/launch/keypoints.launch">
-    <arg name="load_bag_filepath" default="true"/>
-    <arg name="bag_file"          default="$(env HOME)/storage/bags/2022-01-19/2022-01-19-14-13-30_valve_perception.bag"/>
+    <arg name="load_bag_filepath" default="false"/>
     <arg name="calibration_file"  default="$(env HOME)/calibration/intrinsics.yaml"/>
     <arg name="image_topic"       default="/hand_eye/color/image_raw_throttle"/>
     <arg name="camera_frame"      default="hand_eye_color_optical_frame"/>
@@ -10,7 +11,11 @@
     <arg name="keypoints_file"    default="$(find object_keypoints_ros)/config/valve.json"/>
     <arg name="image_file"        default=""/>
     <arg name="rviz_config"       default="$(find piloting_demo)/config/rviz/perception.rviz"/>
+    <arg name="gpu"               default="false"/>
+    <arg name="operation_mode"    default="service"/>
   </include>
+  
+  <node pkg="rosbag" type="play" name="rosbag_play" args="-r 0.1 $(arg bag_file)"/>
 
-  <node name="perception" pkg="moma_mission" type="triangulate_keypoints.py" output="screen"/>
+  <node name="perception" pkg="moma_mission" type="keypoints_perception.py" output="screen"/>
 </launch>

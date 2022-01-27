@@ -11,6 +11,7 @@ from geometry_msgs.msg import TransformStamped
 from object_keypoints_ros.msg import Keypoint, Keypoints
 from cv_bridge import CvBridge
 
+from std_srvs.srv import Empty, EmptyResponse
 from object_keypoints_ros.srv import KeypointsDetection, KeypointsDetectionRequest, KeypointsDetectionResponse
 from moma_mission.missions.piloting.valve_fitting import Camera, ValveFitter, ValveModel, FeatureMatcher
 
@@ -57,9 +58,10 @@ class PerceptionModule:
         # ROS
         self.marker_pub = rospy.Publisher("/perception/triangulated_keypoints", MarkerArray, queue_size=1)
         self.keypoints_sub = rospy.Subscriber("/object_keypoints_ros/keypoints", Keypoints, self._keypoints_callback, queue_size=1)
-        self.image_sub = rospy.Subscriber("/hand_eye/color/image_raw", Image, self._image_callback, queue_size=1)
-        self.depth_sub = rospy.Subscriber("/hand_eye/depth/image_rect_raw", Image, self._depth_callback, queue_size=1)
+        self.image_sub = rospy.Subscriber("/hand_eye/color/image_raw_throttle", Image, self._image_callback, queue_size=1)
+        self.depth_sub = rospy.Subscriber("/hand_eye/depth/image_rect_raw_throttle", Image, self._depth_callback, queue_size=1)
         self.detection_srv_client = rospy.ServiceProxy("/object_keypoints_ros/detect", KeypointsDetection)
+        self.trigger_detectio_srv = rospy.Service("/perception/detect", Empty, self._detection_cb)
 
 
     def _make_marker(self, frame_id, x, y, z):
@@ -87,6 +89,9 @@ class PerceptionModule:
     def _image_callback(self, msg):
         self.rgb = msg
 
+    def _detection_cb(self, req):
+        self.detect()
+    
     def detect(self):
         try:
             self.detection_srv_client.wait_for_service(timeout=3)
@@ -212,8 +217,6 @@ class PerceptionModule:
 if __name__ == "__main__":
     rospy.init_node("perception")
     perception = PerceptionModule()
-    while not rospy.is_shutdown():
-        _ = input("Press enter to detect keypoints: ")
-        perception.detect()
+    rospy.spin()
 
     
