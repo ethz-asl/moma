@@ -23,6 +23,7 @@ rosparam dump ${outpath}/${now}.yaml
 rosbag record --repeat-latched --output-name="${outpath}/${now}_valve_perception" \
 /tf \
 /tf_static \
+/camera_info \
 /hand_eye/color/image_raw_throttle \
 /hand_eye/depth/image_rect_raw_throttle \
 /hand_eye/depth/color/points_throttle \

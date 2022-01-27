@@ -10,7 +10,7 @@
   <arg name="custom_intrinsics_file" default="$(env HOME)/calibration/camera_calibration.yaml" />
   <arg name="throttle_rate"     default="1.0" />
 
-  <!-- Read calibration from file and publish tf -->
+  <!-- Read extrinsic calibration from file and publish tf -->
 	<include file="$(find easy_handeye)/launch/publish.launch">
       <arg name="calibration_file"  value="$(arg calibration_file)"/>
       <arg name="eye_on_hand"       value="true"/>
@@ -31,7 +31,9 @@
   </group>
 
   <!-- April tag tf published from optical center to the tag. Tag should not move in a fixed reference frame -->
-  <include file="$(find moma_sensor_tools)/launch/handeye_calibration/apriltag_tracking.launch" if="$(arg debug_apriltag)">
+  <!-- This is also responsible for publishing the intrinsic calibration -->
+  <include file="$(find moma_sensor_tools)/launch/handeye_calibration/apriltag_tracking.launch">
+    <arg name="launch_apriltag"        value="$(arg debug_apriltag)"/>
     <arg name="launch_realsense"       value="false"/>
     <arg name="camera_name"            value="hand_eye"/>
     <arg name="image_domain"           value="color"/>
