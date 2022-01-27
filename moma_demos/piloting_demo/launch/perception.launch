@@ -11,6 +11,9 @@
     <arg name="load_bag_filepath" default="false"/>
     <arg name="calibration_file"  default="$(env HOME)/calibration/intrinsics.yaml"/>
     <arg name="image_topic"       default="$(arg image_topic)"/>
+    <arg name="depth_topic"       default="$(arg depth_topic)"/>
+    <arg name="calibration_topic" default="$(arg calibration_topic)"/>
+    <arg name="base_frame"        default="$(arg base_frame)"/>
     <arg name="camera_frame"      default="$(arg camera_frame)"/>
     <arg name="model_name"        default="valve_depth"/>
     <arg name="keypoints_file"    default="$(find object_keypoints_ros)/config/valve.json"/>
@@ -22,12 +25,4 @@
   
   <node pkg="rosbag" type="play" name="rosbag_play" args="-r 0.1 $(arg bag_file)" launch-prefix="bash -c 'sleep 3.0; $0 $@' "/>
   <node pkg="moma_sensor_tools" type="consolidate_tf_static.py" name="consolidate_tf"/>
-
-  <node name="perception" pkg="moma_mission" type="keypoints_perception.py" output="screen">
-    <param name="base_frame" value="$(arg base_frame)"/>
-    <param name="camera_frame" value="$(arg camera_frame)"/>
-    <param name="image_topic" value="$(arg image_topic)"/>
-    <param name="depth_topic" value="$(arg depth_topic)"/>
-    <param name="calibration_topic" value="$(arg calibration_topic)"/>
-  </node>
 </launch>
