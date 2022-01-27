@@ -15,6 +15,8 @@ from std_srvs.srv import Empty, EmptyResponse
 from object_keypoints_ros.srv import KeypointsDetection, KeypointsDetectionRequest, KeypointsDetectionResponse
 from moma_mission.missions.piloting.valve_fitting import Camera, ValveFitter, ValveModel, FeatureMatcher
 
+import matplotlib.pyplot as plt
+
 # TODO placing here all the params for quick testing, then either in yaml or rosparam
 NUM_SPOKES = 3
 NUM_KEYPOINTS = 4
@@ -25,7 +27,7 @@ INTRINSICS = np.array([[923.01777, 0.0, 626.94979],
                        [0.0, 921.45109, 364.38512],
                        [0.0, 0.0, 1.0]])
 DISTORTION = np.array([923.01777, 921.45109, 626.94979, 364.38512])
-DEPTH_WDW_SIZE = 10
+DEPTH_WDW_SIZE = 5
 
 class PerceptionModule:
     def __init__(self):
@@ -69,9 +71,9 @@ class PerceptionModule:
         marker.header.frame_id = frame_id
         marker.type = marker.SPHERE
         marker.action = marker.ADD
-        marker.scale.x = 0.02
-        marker.scale.y = 0.02
-        marker.scale.z = 0.02
+        marker.scale.x = 0.04
+        marker.scale.y = 0.04
+        marker.scale.z = 0.04
         marker.color.a = 1.0
         marker.color.r = 1.0
         marker.color.g = 1.0
@@ -83,8 +85,9 @@ class PerceptionModule:
         return marker
 
     def _depth_callback(self, msg):
+        MM_2_METER_FACTOR = 0.001 #this is the only multiplier that seems to have sense
         self.depth_header = msg.header
-        self.depth = np.array(self.bridge.imgmsg_to_cv2(msg, "32FC1")).astype(np.float32)
+        self.depth = MM_2_METER_FACTOR * self.bridge.imgmsg_to_cv2(msg, msg.encoding)   
 
     def _image_callback(self, msg):
         self.rgb = msg
@@ -124,26 +127,33 @@ class PerceptionModule:
         q = np.array([trans.transform.rotation.x, trans.transform.rotation.y, trans.transform.rotation.z, trans.transform.rotation.w])
         R_w_cam = Rotation.from_quat(q).as_matrix()
 
-        for kpt in res.detection.keypoints:
-            # take a window of depths and extract the median to remove outliers
-            x_min, x_max = max(kpt.x - DEPTH_WDW_SIZE, 0), min(kpt.x + DEPTH_WDW_SIZE, RESOLUTION[0]-1)
-            y_min, y_max = max(kpt.y - DEPTH_WDW_SIZE, 0), min(kpt.y + DEPTH_WDW_SIZE, RESOLUTION[1]-1)
+        for i, kpt in enumerate(res.detection.keypoints):
+            print("Processing keypoint {} {}".format(kpt.x, kpt.y))
 
-            # take depth window
+            # take a window of depths and extract the median to remove outliers
+            x_min, x_max = max(int(kpt.x) - DEPTH_WDW_SIZE, 0), min(int(kpt.x) + DEPTH_WDW_SIZE, RESOLUTION[0]-1)
+            y_min, y_max = max(int(kpt.y) - DEPTH_WDW_SIZE, 0), min(int(kpt.y) + DEPTH_WDW_SIZE, RESOLUTION[1]-1)
+
+            # # take depth window
             depth_wdw = req_depth[y_min: y_max, x_min: x_max]
+            depth_wdw = np.reshape(depth_wdw, (-1,))
+            depth_wdw = depth_wdw[depth_wdw>0]  # threshold invalid values
+            depth_wdw = depth_wdw[depth_wdw<5]  # threshold far away values
+
             P_cam = np.zeros((3,))
             P_cam[2] = np.median(depth_wdw)
-
+            
             # retrieve the global x, y coordinate of the point given z 
             # TODO not accounting for distortion --> would be better to just operate on undistorted images
             P_cam[0] = (kpt.x - self.K[0,2]) * P_cam[2] / self.K[0, 0]
             P_cam[1] = (kpt.y - self.K[1,2]) * P_cam[2] / self.K[1, 1]
             
-
             P_base = R_w_cam @ P_cam + t_w_cam 
             marker = self._make_marker(BASE_FRAME, P_base[0], P_base[1], P_base[2])
+            marker.id = i
             marker_array.markers.append(marker)
-
+            print("Keypoint at {}".format(P_cam))
+            
         self.marker_pub.publish(marker_array)
             
         

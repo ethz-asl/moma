@@ -16,7 +16,9 @@ class TfStaticRepublisher:
             if trans.header.frame_id + trans.child_frame_id not in self.transforms_id: # use parent + child as a tf index
                 self.tf_msg.transforms.append(trans)
                 self.transforms_id.append(trans.header.frame_id + trans.child_frame_id)
-        self.publisher.publish(self.tf_msg)
+        
+        if self.publisher.get_num_connections() != 0:
+            self.publisher.publish(self.tf_msg)
 
 if __name__ == "__main__":
     rospy.init_node("tf_static_republisher")

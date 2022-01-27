@@ -15,7 +15,8 @@
     <arg name="operation_mode"    default="service"/>
   </include>
   
-  <node pkg="rosbag" type="play" name="rosbag_play" args="-r 0.1 $(arg bag_file)"/>
+  <node pkg="rosbag" type="play" name="rosbag_play" args="-r 0.1 $(arg bag_file)" launch-prefix="bash -c 'sleep 3.0; $0 $@' "/>
+  <node pkg="moma_sensor_tools" type="consolidate_tf_static.py" name="consolidate_tf"/>
 
   <node name="perception" pkg="moma_mission" type="keypoints_perception.py" output="screen"/>
 </launch>
