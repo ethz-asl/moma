@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
 """
-Christmas 2021 Demo
-A simple door opening task, given a known grasp preset
+Johnson & Johnson Project Demo
+A medical autoinjector perception and pickup task
 """
 
 import rospy
