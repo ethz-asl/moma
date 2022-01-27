@@ -126,13 +126,13 @@ class PerceptionModule:
 
         for kpt in res.detection.keypoints:
             # take a window of depths and extract the median to remove outliers
-            x_min, x_max = min(kpt.x - DEPTH_WDW_SIZE, 0), max(kpt.x + DEPTH_WDW_SIZE, RESOLUTION[0]-1)
-            y_min, y_max = min(kpt.y - DEPTH_WDW_SIZE, 0), max(kpt.y + DEPTH_WDW_SIZE, RESOLUTION[1]-1)
+            x_min, x_max = max(kpt.x - DEPTH_WDW_SIZE, 0), min(kpt.x + DEPTH_WDW_SIZE, RESOLUTION[0]-1)
+            y_min, y_max = max(kpt.y - DEPTH_WDW_SIZE, 0), min(kpt.y + DEPTH_WDW_SIZE, RESOLUTION[1]-1)
 
             # take depth window
             depth_wdw = req_depth[y_min: y_max, x_min: x_max]
             P_cam = np.zeros((3,))
-            P_cam[2] = np.median(depth_wdw) 
+            P_cam[2] = np.median(depth_wdw)
 
             # retrieve the global x, y coordinate of the point given z 
             # TODO not accounting for distortion --> would be better to just operate on undistorted images
@@ -218,5 +218,3 @@ if __name__ == "__main__":
     rospy.init_node("perception")
     perception = PerceptionModule()
     rospy.spin()
-
-    
