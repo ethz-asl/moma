@@ -17,10 +17,6 @@ from moma_mission.missions.piloting.valve_fitting import Camera, ValveFitter, Va
 
 # TODO placing here all the params for quick testing, then either in yaml or rosparam
 NUM_SPOKES = 3
-RESOLUTION = [1280, 760]
-BASE_FRAME = "panda_link0"
-CAMERA_FRAME = "hand_eye_color_optical_frame"
-DEPTH_WDW_SIZE = 5
 
 class PerceptionModule:
     def __init__(self):
@@ -29,8 +25,11 @@ class PerceptionModule:
         self.keypoints_observations =  []
         self.previous_obs_time = -np.inf
         self.bridge = CvBridge()
-        self.image_topic = rospy.get_param("~image_topic", "/hand_eye/color/image_raw_throttle")
-        self.depth_topic = rospy.get_param("~depth_topic", "/hand_eye/depth/image_rect_raw_throttle")
+        self.base_frame = rospy.get_param("~base_frame")
+        self.camera_frame = rospy.get_param("~camera_frame")
+        self.image_topic = rospy.get_param("~image_topic")
+        self.depth_topic = rospy.get_param("~depth_topic")
+        self.depth_window_size = rospy.get_param("~depth_window_size", 5)
         self.calibration_topic = rospy.get_param("~calibration_topic", "/camera_info")
         self.calibration: CameraInfo = None
 
@@ -124,10 +123,10 @@ class PerceptionModule:
         
         marker_array = MarkerArray() # For visualization
         pose_array = PoseArray()     # For usage
-        pose_array.header.frame_id = BASE_FRAME
+        pose_array.header.frame_id = self.base_frame
 
         # let it fail if not found
-        trans = self.tf_buffer.lookup_transform(BASE_FRAME, CAMERA_FRAME, self.depth_header.stamp, timeout=rospy.Duration(3.0))
+        trans = self.tf_buffer.lookup_transform(self.base_frame, self.camera_frame, self.depth_header.stamp, timeout=rospy.Duration(3.0))
         t_w_cam = np.array([trans.transform.translation.x, trans.transform.translation.y, trans.transform.translation.z])
         q = np.array([trans.transform.rotation.x, trans.transform.rotation.y, trans.transform.rotation.z, trans.transform.rotation.w])
         R_w_cam = Rotation.from_quat(q).as_matrix()
@@ -136,8 +135,9 @@ class PerceptionModule:
             print("Processing keypoint {} {}".format(kpt.x, kpt.y))
 
             # take a window of depths and extract the median to remove outliers
-            x_min, x_max = max(int(kpt.x) - DEPTH_WDW_SIZE, 0), min(int(kpt.x) + DEPTH_WDW_SIZE, RESOLUTION[0]-1)
-            y_min, y_max = max(int(kpt.y) - DEPTH_WDW_SIZE, 0), min(int(kpt.y) + DEPTH_WDW_SIZE, RESOLUTION[1]-1)
+            # note that the window scales by depth_window_size in all directions
+            x_min, x_max = max(int(kpt.x) - self.depth_window_size, 0), min(int(kpt.x) + self.depth_window_size, req_depth.shape[1]-1)
+            y_min, y_max = max(int(kpt.y) - self.depth_window_size, 0), min(int(kpt.y) + self.depth_window_size, req_depth.shape[0]-1)
 
             # # take depth window
             depth_wdw = req_depth[y_min: y_max, x_min: x_max]
@@ -154,7 +154,7 @@ class PerceptionModule:
             P_cam[1] = (kpt.y - self.calibration.K[5]) * P_cam[2] / self.calibration.K[4]
             
             P_base = R_w_cam @ P_cam + t_w_cam 
-            marker = self._make_marker(i, BASE_FRAME, P_base[0], P_base[1], P_base[2])
+            marker = self._make_marker(i, self.base_frame, P_base[0], P_base[1], P_base[2])
             marker_array.markers.append(marker)
             pose_array.poses.append(marker.pose)
             print("Keypoint perceived at {}".format(P_cam))
