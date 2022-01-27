@@ -1,10 +1,15 @@
 cmake_minimum_required(VERSION 3.10)
 project(moma_mission)
 
-find_package(catkin REQUIRED COMPONENTS )
+find_package(catkin REQUIRED COMPONENTS message_generation geometry_msgs)
+
+add_service_files(DIRECTORY srv FILES KeypointsPerception.srv)
+
+catkin_python_setup()
+
+generate_messages(DEPENDENCIES geometry_msgs)
 
 catkin_package()
-catkin_python_setup()
 
 catkin_install_python(PROGRAMS
         demo/mock_modules.py

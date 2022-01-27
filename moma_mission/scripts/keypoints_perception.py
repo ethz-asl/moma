@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import copy
 import rospy
 import tf2_ros
@@ -7,15 +7,13 @@ from scipy.spatial.transform import Rotation
 from visualization_msgs.msg import Marker
 from visualization_msgs.msg import MarkerArray
 from sensor_msgs.msg import Image
-from geometry_msgs.msg import TransformStamped
+from geometry_msgs.msg import PoseArray
+from moma_mission.srv import KeypointsPerception, KeypointsPerceptionResponse, KeypointsPerceptionRequest
 from object_keypoints_ros.msg import Keypoint, Keypoints
 from cv_bridge import CvBridge
 
-from std_srvs.srv import Empty, EmptyResponse
 from object_keypoints_ros.srv import KeypointsDetection, KeypointsDetectionRequest, KeypointsDetectionResponse
 from moma_mission.missions.piloting.valve_fitting import Camera, ValveFitter, ValveModel, FeatureMatcher
-
-import matplotlib.pyplot as plt
 
 # TODO placing here all the params for quick testing, then either in yaml or rosparam
 NUM_SPOKES = 3
@@ -63,11 +61,12 @@ class PerceptionModule:
         self.image_sub = rospy.Subscriber("/hand_eye/color/image_raw_throttle", Image, self._image_callback, queue_size=1)
         self.depth_sub = rospy.Subscriber("/hand_eye/depth/image_rect_raw_throttle", Image, self._depth_callback, queue_size=1)
         self.detection_srv_client = rospy.ServiceProxy("/object_keypoints_ros/detect", KeypointsDetection)
-        self.trigger_detectio_srv = rospy.Service("/perception/detect", Empty, self._detection_cb)
+        self.trigger_detectio_srv = rospy.Service("/perception/perceive", KeypointsPerception, self._perception_cb)
 
 
-    def _make_marker(self, frame_id, x, y, z):
+    def _make_marker(self, id, frame_id, x, y, z):
         marker = Marker()
+        marker.id = id
         marker.header.frame_id = frame_id
         marker.type = marker.SPHERE
         marker.action = marker.ADD
@@ -92,10 +91,16 @@ class PerceptionModule:
     def _image_callback(self, msg):
         self.rgb = msg
 
-    def _detection_cb(self, req):
-        self.detect()
+    def _perception_cb(self, req: KeypointsPerceptionRequest):
+        res = KeypointsPerceptionResponse()
+        res.keypoints = self.perceive()
+        return res
     
-    def detect(self):
+    def perceive(self):
+        """
+        Uses a keypoint detection service and depth information to perceive 3D points
+        :return: 3D keypoint poses
+        """
         try:
             self.detection_srv_client.wait_for_service(timeout=3)
         except rospy.ROSException as exc:
@@ -120,6 +125,7 @@ class PerceptionModule:
             return
         
         marker_array = MarkerArray()
+        pose_array = PoseArray()
 
         # let it fail if not found
         trans = self.tf_buffer.lookup_transform(BASE_FRAME, CAMERA_FRAME, self.depth_header.stamp, timeout=rospy.Duration(3.0))
@@ -149,12 +155,13 @@ class PerceptionModule:
             P_cam[1] = (kpt.y - self.K[1,2]) * P_cam[2] / self.K[1, 1]
             
             P_base = R_w_cam @ P_cam + t_w_cam 
-            marker = self._make_marker(BASE_FRAME, P_base[0], P_base[1], P_base[2])
-            marker.id = i
+            marker = self._make_marker(i, BASE_FRAME, P_base[0], P_base[1], P_base[2])
             marker_array.markers.append(marker)
+            pose_array.poses.append(marker.pose)
             print("Keypoint at {}".format(P_cam))
             
         self.marker_pub.publish(marker_array)
+        return pose_array
             
         
 
@@ -188,7 +195,7 @@ class PerceptionModule:
             rospy.loginfo("Keypoints are:\n{}".format(valve.keypoints))
 
             for i in range(valve.keypoints.shape[1]):
-                marker = self._make_marker(valve.keypoints[0, i], valve.keypoints[1, i], valve.keypoints[2, i])
+                marker = self._make_marker(i, valve.keypoints[0, i], valve.keypoints[1, i], valve.keypoints[2, i])
                 marker_array.markers.append(marker)
             self.marker_pub.publish(marker_array)
             self.triangulated = True

@@ -10,4 +10,7 @@
     <depend>moma_msgs</depend>
     <depend>smach</depend>
     <depend>smach_ros</depend>
+    <depend>message_generation</depend>
+    <depend>geometry_msgs</depend>
+    <depend>sensor_msgs</depend>
 </package>

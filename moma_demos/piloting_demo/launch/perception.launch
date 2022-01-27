@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <launch>
-  <arg name="bag_file"  default="$(env HOME)/storage/bags/2022-01-26/2022-01-26-18-11-14_valve_depth_throttled.bag"/>
+  <arg name="bag_file"  default="$(env HOME)/bags/2022-01-26-18-11-14_valve_depth_throttled_compressed.bag"/>
   
   <include file="$(find object_keypoints_ros)/launch/keypoints.launch">
     <arg name="load_bag_filepath" default="false"/>
