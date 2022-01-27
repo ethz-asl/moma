@@ -30,6 +30,7 @@ class PerceptionModule:
         self.image_topic = rospy.get_param("~image_topic")
         self.depth_topic = rospy.get_param("~depth_topic")
         self.depth_window_size = rospy.get_param("~depth_window_size", 5)
+        self.max_distance_threshold = rospy.get_param("~max_distance_threshold", 5)
         self.calibration_topic = rospy.get_param("~calibration_topic", "/camera_info")
         self.calibration: CameraInfo = None
 
@@ -143,7 +144,7 @@ class PerceptionModule:
             depth_wdw = req_depth[y_min: y_max, x_min: x_max]
             depth_wdw = np.reshape(depth_wdw, (-1,))
             depth_wdw = depth_wdw[depth_wdw>0]  # threshold invalid values
-            depth_wdw = depth_wdw[depth_wdw<5]  # threshold far away values
+            depth_wdw = depth_wdw[depth_wdw<self.max_distance_threshold]  # threshold far away values
 
             P_cam = np.zeros((3,))
             P_cam[2] = np.median(depth_wdw)
