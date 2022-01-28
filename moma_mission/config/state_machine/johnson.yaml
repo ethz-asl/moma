@@ -21,6 +21,7 @@ OBSERVATION_POSE:
   default_outcome: None
   object_position_estimate: [0.5, 0, 0.2]
   phi_range: [0, 0.4]
+  heading: [1, 0, 0]
 
 OBSERVATION_APPROACH:
   default_outcome: None
@@ -39,6 +40,7 @@ OBJECT_APPROACH:
   duration: 10.0
   target_frame: autoinjector
   ee_frame: tool_frame
+  offset: [ 0, 0, -0.1 ]
   startlist: [ 'mpc_controller', 'path_admittance_controller' ]
   stoplist: [ 'joint_space_controller' ]
   manager_namespace: 'control'

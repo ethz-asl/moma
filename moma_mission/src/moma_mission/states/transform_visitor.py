@@ -14,6 +14,7 @@ class TransformVisitorState(StateRosControl):
         self.world_frame = self.get_scoped_param("world_frame", "world")
         self.target_frame = self.get_scoped_param("target_frame", "object")
         self.ee_frame = self.get_scoped_param("ee_frame", "tool_frame")
+        self.offset = self.get_scoped_param("offset", [0, 0, 0])
         self.duration = self.get_scoped_param("duration", 0.0)
         self.timeout = self.get_scoped_param("timeout", max(30.0, 2 * self.duration))
 
@@ -38,6 +39,10 @@ class TransformVisitorState(StateRosControl):
 
         transform_se3 = self.get_transform(self.world_frame, self.target_frame)
         pose_stamped = se3_to_pose_stamped(transform_se3, self.world_frame)
+        offset = transform_se3.rotation @ self.offset
+        pose_stamped.pose.position.x += offset[0]
+        pose_stamped.pose.position.y += offset[1]
+        pose_stamped.pose.position.z += offset[2]
         pose_stamped.header.stamp = rospy.get_rostime() + rospy.Duration.from_sec(self.duration)
         path.poses.append(pose_stamped)
 
