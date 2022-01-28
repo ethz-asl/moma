@@ -44,3 +44,13 @@ OBJECT_APPROACH:
   startlist: [ 'mpc_controller', 'path_admittance_controller' ]
   stoplist: [ 'joint_space_controller' ]
   manager_namespace: 'control'
+
+OBJECT_CONTACT:
+  default_outcome: Completed
+  duration: 4.0
+  target_frame: autoinjector
+  ee_frame: tool_frame
+  offset: [ 0, 0, -0.05 ]
+  startlist: [ 'mpc_controller', 'path_admittance_controller' ]
+  stoplist: [ 'joint_space_controller' ]
+  manager_namespace: 'control'
