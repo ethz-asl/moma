@@ -39,6 +39,8 @@ class ModelFitState(StateRos):
         res: KeypointsPerceptionResponse = self.perception_srv_client.call(req)
 
         object_pose = self._model_fit(res.keypoints.poses)
+        if object_pose is None:
+            return 'Failure'
         object_pose.header = res.keypoints.header
         object_pose.header.stamp = rospy.Time.now()
         object_pose.child_frame_id = self._object_name()

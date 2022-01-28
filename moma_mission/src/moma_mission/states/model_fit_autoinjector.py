@@ -1,4 +1,5 @@
 from typing import List
+import rospy
 import tf
 import numpy as np
 from geometry_msgs.msg import Pose, TransformStamped
@@ -12,11 +13,17 @@ class ModelFitAutoinjectorState(ModelFitState):
         return 'autoinjector'
 
     def _model_fit(self, keypoints_perception: List[Pose]) -> TransformStamped:
-        x_axis_dir = tf.transformations.unit_vector([
+        object_vector = [
             keypoints_perception[0].position.x - keypoints_perception[1].position.x,
             keypoints_perception[0].position.y - keypoints_perception[1].position.y,
             keypoints_perception[0].position.z - keypoints_perception[1].position.z,
-            ])
+            ]
+        object_length = tf.transformations.vector_norm(object_vector)
+        rospy.loginfo('Autoinjector length is {}'.format(object_length))
+        if not 0.1 <= object_length <= 0.15:
+            rospy.logerr('Autoinjector length is not within the expected range')
+            return None
+        x_axis_dir = tf.transformations.unit_vector(object_vector)
         z_axis_dir_desired = [0, 0, -1]
         y_axis_dir = tf.transformations.unit_vector(np.cross(z_axis_dir_desired, x_axis_dir))
         z_axis_dir = np.cross(x_axis_dir, y_axis_dir)
