@@ -13,7 +13,6 @@ class TransformVisitorState(StateRosControl):
 
         self.world_frame = self.get_scoped_param("world_frame", "world")
         self.target_frame = self.get_scoped_param("target_frame", "object")
-        self.ee_frame = self.get_scoped_param("ee_frame", "tool_frame")
         self.offset = self.get_scoped_param("offset", [0, 0, 0])
         self.duration = self.get_scoped_param("duration", 0.0)
         self.timeout = self.get_scoped_param("timeout", max(30.0, 2 * self.duration))
