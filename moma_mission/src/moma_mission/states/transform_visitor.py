@@ -14,7 +14,8 @@ class TransformVisitorState(StateRosControl):
         self.world_frame = self.get_scoped_param("world_frame", "world")
         self.target_frame = self.get_scoped_param("target_frame", "object")
         self.ee_frame = self.get_scoped_param("ee_frame", "tool_frame")
-        self.duration = self.get_scoped_param("duration", 10.0)
+        self.duration = self.get_scoped_param("duration", 0.0)
+        self.timeout = self.get_scoped_param("timeout", max(30.0, 2 * self.duration))
 
         self.path_publisher = rospy.Publisher(
             self.get_scoped_param("path_topic", "/desired_path"), Path, queue_size=1)
@@ -26,13 +27,22 @@ class TransformVisitorState(StateRosControl):
 
         path = Path()
         path.header.frame_id = self.world_frame
-        transform_se3 = self.get_transform(self.target_frame, self.world_frame)
+        if self.duration > 0:
+            # Add the current position to the path,
+            # such that the path motion velocity is respected,
+            # which is not the case for a singleton path
+            transform_se3 = self.get_transform(self.world_frame, self.ee_frame)
+            pose_stamped = se3_to_pose_stamped(transform_se3, self.world_frame)
+            pose_stamped.header.stamp = rospy.get_rostime()
+            path.poses.append(pose_stamped)
+
+        transform_se3 = self.get_transform(self.world_frame, self.target_frame)
         pose_stamped = se3_to_pose_stamped(transform_se3, self.world_frame)
         pose_stamped.header.stamp = rospy.get_rostime() + rospy.Duration.from_sec(self.duration)
         path.poses.append(pose_stamped)
 
         self.path_publisher.publish(path)
-        if not self.wait_until_reached(self.ee_frame, path.poses[-1], quiet=True, linear_tolerance=0.02):
+        if not self.wait_until_reached(self.ee_frame, path.poses[-1], timeout=self.timeout):
             return 'Failure'
 
         return 'Completed'

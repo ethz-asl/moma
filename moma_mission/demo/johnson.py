@@ -8,6 +8,7 @@ A medical autoinjector perception and pickup task
 import rospy
 import smach_ros
 from moma_mission.core import StateMachineRos
+from moma_mission.states.observation import SphericalSamplerState
 from moma_mission.states.model_fit_autoinjector import ModelFitAutoinjectorState
 from moma_mission.states.gripper import GripperControl
 from moma_mission.states.transform_visitor import TransformVisitorState
@@ -21,14 +22,17 @@ with state_machine:
     # state_machine.add('OPEN_GRIPPER', GripperControl, transitions={'Completed': 'OBSERVATION_POSE',
     #                                                                'Failure': 'Failure'})
     #
-    # state_machine.add('OBSERVATION_POSE', JointsConfigurationAction, transitions={'Completed': 'MODEL_FIT_AUTOINJECTOR',
-    #                                                                               'Failure': 'Failure'})
+    state_machine.add('OBSERVATION_POSE', SphericalSamplerState, transitions={'Completed': 'OBSERVATION_APPROACH',
+                                                                              'Failure': 'Failure'})
+
+    state_machine.add('OBSERVATION_APPROACH', TransformVisitorState, transitions={'Completed': 'MODEL_FIT_AUTOINJECTOR',
+                                                                                  'Failure': 'OBSERVATION_POSE'})
 
     state_machine.add('MODEL_FIT_AUTOINJECTOR', ModelFitAutoinjectorState, transitions={'Completed': 'OBJECT_APPROACH',
-                                                                                        'Failure': 'Failure'})#'OBSERVATION_POSE'})
+                                                                                        'Failure': 'OBSERVATION_POSE'})
 
     state_machine.add('OBJECT_APPROACH', TransformVisitorState, transitions={'Completed': 'Success', #'CLOSE_GRIPPER',
-                                                                                          'Failure': 'Failure'})
+                                                                                          'Failure': 'OBSERVATION_POSE'})
 
     # state_machine.add('CLOSE_GRIPPER', GripperControl, transitions={'Completed': 'TARGET_POSE',
     #                                                                 'Failure': 'Failure'})

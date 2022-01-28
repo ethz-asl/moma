@@ -17,11 +17,25 @@ CLOSE_GRIPPER:
   tolerance: 0.001
   timeout: 5.0
 
+OBSERVATION_POSE:
+  default_outcome: None
+  object_position_estimate: [0.5, 0, 0.2]
+  phi_range: [0, 0.4]
+
+OBSERVATION_APPROACH:
+  default_outcome: None
+  duration: 5.0
+  target_frame: observation
+  ee_frame: tool_frame
+  startlist: [ 'mpc_controller', 'path_admittance_controller' ]
+  stoplist: [ 'joint_space_controller' ]
+  manager_namespace: 'control'
+
 MODEL_FIT_AUTOINJECTOR:
   default_outcome: Completed
 
 OBJECT_APPROACH:
-  default_outcome: None
+  default_outcome: Completed
   duration: 10.0
   target_frame: autoinjector
   ee_frame: tool_frame

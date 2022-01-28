@@ -5,6 +5,7 @@
   <arg name="use_fixed_realsense" default="false"/>
   <arg name="tool" default="panda_hand"/>
   <arg name="mpc" default="false"/>
+  <arg name="base_type" default="1"/>
 
   <!-- load a arm only description for the arm controllers -->
   <param name="arm_description" command="$(find xacro)/xacro $(find moma_description)/urdf/panda.urdf.xacro 
@@ -36,7 +37,7 @@
     <param name="task_file" value="$(find moma_ocs2)/config/mpc/task_panda.info"/>
     <param name="robot_description_ocs2" command="$(find xacro)/xacro $(find moma_description)/urdf/superpanda.urdf.xacro 
       mpc_model:=true use_nominal_extrinsics:=true tool:='none'"/>
-    <param name="base_type" value="1"/>
+    <param name="base_type" value="$(arg base_type)"/>
   </group>
 
   <group ns="control">
