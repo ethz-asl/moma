@@ -12,7 +12,7 @@ class ModelFitAutoinjectorState(ModelFitState):
     def _object_name(self) -> str:
         return 'autoinjector'
 
-    def _model_fit(self, keypoints_perception: List[Pose]) -> TransformStamped:
+    def _model_fit(self, keypoints_perception: List[Pose], frame: str) -> TransformStamped:
         object_vector = [
             keypoints_perception[0].position.x - keypoints_perception[1].position.x,
             keypoints_perception[0].position.y - keypoints_perception[1].position.y,

@@ -231,14 +231,14 @@ class ValveFitter:
         if method =='non_linear':
             return self._non_linear_optimization()
         elif method == 'triangulation':
-            return self._triangulation()
+            points_3d = self.triangulate()
+            return self.estimate_from_3d_points(points_3d)
         elif method == 'pnp':
             return self._pnp(kwargs['radius_hypothesis'])
         else:
             raise NameError(f"Unknown method {method}")
         
-    def _triangulation(self):
-        points_3d = self.triangulate()
+    def estimate_from_3d_points(self, points_3d):
         C = points_3d[:, 0]
 
         # get normal from 3 keypoints

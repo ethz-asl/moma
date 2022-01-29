@@ -20,7 +20,7 @@ class ModelFitState(StateRos):
     def _object_name(self) -> str:
         return 'object'
 
-    def _model_fit(self, keypoints_perception: List[Pose]) -> TransformStamped:
+    def _model_fit(self, keypoints_perception: List[Pose], frame: str) -> TransformStamped:
         object_pose = TransformStamped()
         object_pose.transform.translation.x = keypoints_perception[0].position.x
         object_pose.transform.translation.y = keypoints_perception[0].position.y
@@ -30,19 +30,19 @@ class ModelFitState(StateRos):
 
     def run(self):
         try:
-            self.perception_srv_client.wait_for_service(timeout=3)
+            self.perception_srv_client.wait_for_service(timeout=10)
         except rospy.ROSException as exc:
             rospy.logwarn("Service {} not available yet".format(self.perception_srv_client.resolved_name))
             return 'Failure'
 
         req = KeypointsPerceptionRequest()
-        res: KeypointsPerceptionResponse = self.perception_srv_client.call(req)
-
-        object_pose = self._model_fit(res.keypoints.poses)
+        res = self.perception_srv_client.call(req)
+        
+        object_pose = self._model_fit(res.keypoints.poses, res.keypoints.header.frame_id)
         if object_pose is None:
             return 'Failure'
         object_pose.header = res.keypoints.header
-        object_pose.header.stamp = rospy.Time.now()
+        object_pose.header.stamp = rospy.get_rostime()
         object_pose.child_frame_id = self._object_name()
 
         self.object_pose_broadcaster.sendTransform(object_pose)

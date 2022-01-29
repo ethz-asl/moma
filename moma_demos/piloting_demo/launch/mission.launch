@@ -7,4 +7,12 @@
     <param name="telemetry_odom_topic" value="/camera/odom/sample"/>
   </node>
 
+
+  <!-- Custom intrinsics publishers -->
+  <arg name="custom_intrinsics_file" default="$(env HOME)/calibration/camera_calibration.yaml" />
+  <node name="camera_intrinsics_publisher" pkg="moma_sensor_tools" type="yaml_to_camera_info_publisher.py" args="$(arg custom_intrinsics_file)" output="screen"/>
+
+
+  <!-- launch perception pipeline -->
+  <include file="$(find piloting_demo)/launch/perception.launch"/> 
 </launch>

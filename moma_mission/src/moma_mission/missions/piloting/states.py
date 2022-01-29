@@ -1,19 +1,24 @@
-import numpy as np
-from moma_mission.utils import ros
+
 import rospy
-from geometry_msgs.msg import PoseStamped
+import numpy as np
+from typing import List
+from scipy.spatial.transform import Rotation
+from geometry_msgs.msg import PoseStamped, TransformStamped, Pose
 
 from nav_msgs.msg import Path
+from visualization_msgs.msg import Marker
+
 from moma_mission.utils.transforms import se3_to_pose_ros
 from moma_mission.utils.trajectory import get_timed_path_to_target
 from moma_mission.states.navigation import SingleNavGoalState
+from moma_mission.states.model_fit import ModelFitState
 
 from moma_mission.core import StateRosControl, StateRos
-from moma_mission.utils.moveit import MoveItPlanner
 from moma_mission.utils.transforms import numpy_to_pose_stamped
 
 from moma_mission.missions.piloting.frames import Frames
 from moma_mission.missions.piloting.valve import Valve
+from moma_mission.missions.piloting.valve_fitting import ValveFitter, ValveModel
 from moma_mission.missions.piloting.grasping import GraspPlanner
 from moma_mission.missions.piloting.trajectory import ValveTrajectoryGenerator
 from moma_mission.missions.piloting.rcs_bridge import RCSBridge
@@ -192,7 +197,7 @@ class DetectionPosesVisitor(StateRosControl):
             start_pose = PoseStamped()
             start_pose.header.frame_id = Frames.base_frame
             start_pose.pose = se3_to_pose_ros(self.get_transform(target=Frames.base_frame,
-                                                            source=Frames.tool_frame))
+                                                                 source=Frames.tool_frame))
             path = get_timed_path_to_target(start_pose=start_pose,
                                             target_pose=pose,
                                             linear_velocity=0.25, angular_velocity=0.25)
@@ -208,32 +213,73 @@ class DetectionPosesVisitor(StateRosControl):
         return 'Completed'
 
 
-class HomeKinova(StateRosControl):
+class ModelFitValve(ModelFitState):
     """
-    Switct to the trajectory controller and homes the robot
+    Call a detection service to fit a valve model
     """
-
     def __init__(self, ns):
-        StateRosControl.__init__(self, ns=ns)
-        self.moveit_planner = MoveItPlanner()
+        ModelFitState.__init__(self, ns=ns, outcomes=["Completed", "Retry", "Failure"])
+        self.k = 3 # TODO remove the hard coded 3 = number of spokes in the valve
+        self.valve_fitter = ValveFitter(k=3) 
+        self.marker_publisher = rospy.Publisher("/detected_valve/marker", Marker, queue_size=1)
 
-    def run(self):
-        controller_switched = self.do_switch()
-        if not controller_switched:
-            return 'Failure'
+    def _object_name(self) -> str:
+        return Frames.valve_frame
 
-        # There might be sporadic motions due to the previously running controller
-        # Wait some time after the switching to not trigger a following error at
-        # the moveit side
-        rospy.loginfo("Sleeping 5.0 sec before homing robot.")
-        rospy.sleep(5.0)
+    def _make_default_marker(self) -> Marker:
+        marker = Marker()
+        marker.type = marker.CYLINDER
+        marker.action = marker.ADD
+        marker.scale.x = 0.04
+        marker.scale.y = 0.04
+        marker.scale.z = 0.04
+        marker.color.a = 1.0
+        marker.color.r = 1.0
+        marker.color.g = 1.0
+        marker.color.b = 0.0
+        marker.pose.orientation.w = 1.0
+        marker.pose.position.x = 0
+        marker.pose.position.y = 0
+        marker.pose.position.z = 0
+        return marker
 
-        rospy.loginfo("Reaching named position: home")
-        success = self.moveit_planner.reach_named_position("home")
-        if success:
-            return 'Completed'
-        else:
-            return 'Failure'
+    def _model_fit(self, keypoints_perception: List[Pose], frame: str) -> TransformStamped:
+        print("\n\n\n In _model_fit\n\n\n")
+        points_3d = np.zeros((3, self.k +1)) # spokes plus center
+        for i, kpt in enumerate(keypoints_perception):
+            points_3d[:, i] = np.array([kpt.position.x, kpt.position.y, kpt.position.z])
+
+        valve: ValveModel
+        valve = self.valve_fitter.estimate_from_3d_points(points_3d)
+        marker = self._make_default_marker()
+        marker.header.frame_id = frame
+        marker.scale.x = 2 * valve.r
+        marker.scale.y = 2 * valve.r
+        marker.scale.z = 0.03
+
+        rot = np.zeros((3, 3))
+        rot[:, 0] = valve.v1
+        rot[:, 1] = valve.v2
+        rot[:, 2] = valve.n
+        q = Rotation.from_matrix(rot).as_quat()
+
+        center = valve.c + valve.delta * valve.n
+        marker.pose.position.x = center[0]
+        marker.pose.position.y = center[1]
+        marker.pose.position.z = center[2]
+        
+        marker.pose.orientation.x = q[0]
+        marker.pose.orientation.y = q[1]
+        marker.pose.orientation.z = q[2]
+        marker.pose.orientation.w = q[3]
+        self.marker_publisher.publish(marker)
+       
+        print(q)
+        object_pose = TransformStamped()
+        object_pose.transform.translation = marker.pose.position
+        object_pose.transform.rotation = marker.pose.orientation
+        return object_pose
+
 
 
 class LateralGraspState(StateRosControl):

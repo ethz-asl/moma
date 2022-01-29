@@ -1,12 +1,12 @@
 # Config file for the combined mission
 # Namespaces mirror (optionally) the state for better readability
 
-IDLE:
-  default_outcome: None
-
 SETUP:
+  default_outcome: Completed
   waypoints_file_path: $(find moma_mission)/config/state_machine/piloting_waypoints.yaml
-  default_outcome: None
+
+IDLE:
+  default_outcome: ExecuteManipulationPlan
 
 OPEN_GRIPPER:
   default_outcome: Completed
@@ -43,9 +43,22 @@ HOME_ROBOT_FINAL:
   joints_configurations:
     - [-0.65, -0.885, 0, -2.1, 0, 1.571, 0]
 
-FETCH_DETECTION:
+OBSERVATION_POSE:
   default_outcome: Completed
-  detection_topic: "/object_keypoints_ros/pose"
+  object_position_estimate: [0.5, 0, 0]
+  phi_range: [0, 0.4]
+  heading: [1, 0, 0]
+
+OBSERVATION_APPROACH:
+  default_outcome: Completed
+  duration: 5.0
+  target_frame: observation
+  startlist: [ 'mpc_controller', 'path_admittance_controller' ]
+  stoplist: [ 'joint_space_controller' ]
+  manager_namespace: 'control'
+
+MODEL_FIT_VALVE:
+  default_outcome: None
 
 REACH_DETECTION_HOTSPOT:
   default_outcome: Completed
@@ -97,7 +110,7 @@ LATERAL_GRASP:
   path_topic_name: /desired_path
 
 POST_LATERAL_GRASP:
-  default_outcome: Completed
+  default_outcome: FullRotationDone
   manager_namespace: control
   startlist: ['mpc_controller', 'path_passthrough_controller']
   stoplist: ['joint_space_controller']
