@@ -22,7 +22,7 @@ OBSERVATION_POSE:
   object_position_estimate: [0.1, 0.6, 0.4]
   radius_range: [0.3, 0.4]
   phi_range: [0, 0.3]
-  heading: [1, 0, 0]
+  heading: [1, 1, 0]
 
 OBSERVATION_APPROACH:
   default_outcome: None
