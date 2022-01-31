@@ -1,5 +1,7 @@
 import rospy
 import tf
+import pinocchio as pin
+import rospy
 
 from nav_msgs.msg import Path
 
@@ -14,6 +16,7 @@ class TransformVisitorState(StateRosControl):
         self.world_frame = self.get_scoped_param("world_frame", "world")
         self.target_frame = self.get_scoped_param("target_frame", "object")
         self.offset = self.get_scoped_param("offset", [0, 0, 0])
+        self.angle_z = self.get_scoped_param("angle_z", 0)
         self.duration = self.get_scoped_param("duration", 0.0)
         self.timeout = self.get_scoped_param("timeout", max(30.0, 2 * self.duration))
 
@@ -36,12 +39,13 @@ class TransformVisitorState(StateRosControl):
             pose_stamped.header.stamp = rospy.get_rostime()
             path.poses.append(pose_stamped)
 
-        transform_se3 = self.get_transform(self.world_frame, self.target_frame)
-        pose_stamped = se3_to_pose_stamped(transform_se3, self.world_frame)
-        offset = transform_se3.rotation @ self.offset
-        pose_stamped.pose.position.x += offset[0]
-        pose_stamped.pose.position.y += offset[1]
-        pose_stamped.pose.position.z += offset[2]
+        T_w_t = self.get_transform(self.world_frame, self.target_frame)
+        H_t_toff = tf.transformations.rotation_matrix(self.angle_z, [0,0,1])
+        H_t_toff[0:3, 3] = self.offset
+        H_w_toff = T_w_t.homogeneous @ H_t_toff
+        T_w_toff = pin.SE3(H_w_toff)
+
+        pose_stamped = se3_to_pose_stamped(T_w_toff, self.world_frame)
         pose_stamped.header.stamp = rospy.get_rostime() + rospy.Duration.from_sec(self.duration)
         path.poses.append(pose_stamped)
 
@@ -49,4 +53,5 @@ class TransformVisitorState(StateRosControl):
         if not self.wait_until_reached(self.ee_frame, path.poses[-1], timeout=self.timeout):
             return 'Failure'
 
+        rospy.sleep(2.0)
         return 'Completed'
