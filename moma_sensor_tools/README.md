@@ -18,6 +18,9 @@ All calibration files are kept locally on the PC that has the camera attached to
 **Prerequisites:**
 - Checkerboard calibration pattern
 
+**Potential conflicts:**
+- Ensure no conflicting version of OpenCV is installed via `pip`. Some of the keypoint pipeline tools might install this as part of the ML pipeline. If you get an error, do `pip uninstall opencv_python_headless`.
+
 **Method:**
 The calibration of the intrinsics is done using the [`camera_calibration`](http://wiki.ros.org/camera_calibration) package, using a pinhole model.
 
