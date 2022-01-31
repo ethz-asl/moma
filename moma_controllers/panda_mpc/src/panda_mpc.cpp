@@ -10,7 +10,6 @@
 #include <controller_interface/controller_base.h>
 #include <pluginlib/class_list_macros.h>
 #include <ros/ros.h>
-#include <angles/angles.h>
 
 #include <franka/robot_state.h>
 #include <tf2/transform_datatypes.h>
@@ -272,14 +271,8 @@ void PandaMpcController::compute_command(const ros::Duration& period) {
   velocity_command_ = mpc_controller_->getVelocityCommand();
   position_integral_ += velocity_command_ * period.toSec();
 
-  // x, y error
-  assert(ocs2::mobile_manipulator::BASE_INPUT_DIM == 3);
-  for (int i = 0; i < ocs2::mobile_manipulator::BASE_INPUT_DIM; i++){
+  for (int i = 0; i < ocs2::mobile_manipulator::STATE_DIM(armInputDim_); i++){
     position_error_(i) = position_integral_(i) - position_current_(i);
-  }
-  // Do not feedforward velocity to add damping
-  for (int i = ocs2::mobile_manipulator::BASE_INPUT_DIM; i < ocs2::mobile_manipulator::STATE_DIM(armInputDim_); i++){
-    position_error_(i) = angles::shortest_angular_distance(position_current_(i), position_integral_(i));
   }
   for (int i = 0; i < ocs2::mobile_manipulator::INPUT_DIM(armInputDim_); i++){
     velocity_error_(i) = /*velocity_command_(i)*/ 0.0 - velocity_current_(i);
