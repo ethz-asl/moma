@@ -9,7 +9,6 @@ catkin_package()
 catkin_install_python(PROGRAMS
         demo/christmas.py
         demo/johnson.py
-        demo/mock_modules.py
         demo/piloting.py
         scripts/gripper_commander.py
         scripts/calibrate_door.py
