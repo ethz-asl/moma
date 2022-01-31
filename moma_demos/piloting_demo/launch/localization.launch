@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<launch>
+    <arg name="map_name"        default="$(env HOME)/storage/maps/sr_2decimated.pcd"/> 
+
+    <include file="$(find smb_slam)/launch/localization.launch">
+        <arg name="launch_rviz"             value="false"/>
+        <arg name="launch_sensors"          value="false"/>
+        <arg name="use_lidar_odometry"      value="false"/>
+        <arg name="launch_lidar_odometry"   value="false"/>
+        <arg name="map_file_name"           value="$(arg map_name)"/>
+        <arg name="parameter_filepath"      value="$(find piloting_demo)/config/localization/icp_params.yaml"/>
+    </include>
+</launch>

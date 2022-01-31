@@ -11,7 +11,10 @@ In order to run the simulation the SMB stack needs to be cloned. This is reflect
     ```
     vcs import --input moma/moma_piloting.repos
     ```
-
+    If you need to also install packages for SLAM, you need additional dependency for the `smb_slam` package. These can be installed running:
+    ```
+    vcs import --input https://raw.githubusercontent.com/cartographer-project/cartographer_ros/master/cartographer_ros.rosinstall
+    ```
 2. Update dependencies of the smb stack through rosdep: 
 
     ```
