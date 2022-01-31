@@ -20,7 +20,7 @@ class ModelFitAutoinjectorState(ModelFitState):
             ]
         object_length = tf.transformations.vector_norm(object_vector)
         rospy.loginfo('Autoinjector length is {}'.format(object_length))
-        if not 0.1 <= object_length <= 0.15:
+        if not 0.09 <= object_length <= 0.15:
             rospy.logerr('Autoinjector length is not within the expected range')
             return None
         x_axis_dir = tf.transformations.unit_vector(object_vector)

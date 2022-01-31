@@ -19,9 +19,9 @@ rospy.init_node('johnson')
 # Build the state machine
 state_machine = StateMachineRos(outcomes=['Success', 'Failure'])
 with state_machine:
-    # state_machine.add('OPEN_GRIPPER', GripperControl, transitions={'Completed': 'OBSERVATION_POSE',
-    #                                                                'Failure': 'Failure'})
-    #
+    state_machine.add('OPEN_GRIPPER', GripperControl, transitions={'Completed': 'OBSERVATION_POSE',
+                                                                   'Failure': 'Failure'})
+
     state_machine.add('OBSERVATION_POSE', SphericalSamplerState, transitions={'Completed': 'OBSERVATION_APPROACH',
                                                                               'Failure': 'Failure'})
 
@@ -34,11 +34,11 @@ with state_machine:
     state_machine.add('OBJECT_APPROACH', TransformVisitorState, transitions={'Completed': 'OBJECT_CONTACT',
                                                                                           'Failure': 'OBSERVATION_POSE'})
 
-    state_machine.add('OBJECT_CONTACT', TransformVisitorState, transitions={'Completed': 'Success', #'CLOSE_GRIPPER',
-                                                                                         'Failure': 'OBSERVATION_POSE'})
+    state_machine.add('OBJECT_CONTACT', TransformVisitorState, transitions={'Completed': 'CLOSE_GRIPPER',
+                                                                            'Failure': 'OBSERVATION_POSE'})
 
-    # state_machine.add('CLOSE_GRIPPER', GripperControl, transitions={'Completed': 'TARGET_POSE',
-    #                                                                 'Failure': 'Failure'})
+    state_machine.add('CLOSE_GRIPPER', GripperControl, transitions={'Completed': 'Success',
+                                                                    'Failure': 'Failure'})
     #
     # state_machine.add('TARGET_POSE', JointsConfigurationAction, transitions={'Completed': 'Success',
     #                                                                          'Failure': 'Failure'})
