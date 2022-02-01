@@ -3,6 +3,7 @@
   <arg name="rviz"              default="false"/> <!-- run rviz debug visualization -->
   <arg name="launch_realsense"  default="false"/> <!-- launch also realsense from here -->
   <arg name="debug_apriltag"    default="false"/> <!-- run tracker to debug calibration -->
+  <arg name="enable_depth"      default="true"/>
   <arg name="debug_pcl"         default="false"/> <!-- show point cloud to debug calibration -->
   <arg name="calibration_file"  default="$(env HOME)/calibration/handeye_calibration.yaml"/>
   <!-- Intrinsic camera calibration done with the camera_calibration package -->
@@ -20,13 +21,13 @@
     <!-- Optionally launch the realsense from this launch script -->
     <include file="$(find realsense2_camera)/launch/rs_camera.launch">
       <arg name="camera"                value="hand_eye"/>
-      <arg name="enable_depth"          value="$(arg debug_pcl)"/>
+      <arg name="enable_depth"          value="$(eval arg('enable_depth') or arg('debug_pcl'))"/>
       <arg name="enable_pointcloud"     value="$(arg debug_pcl)"/>
       <arg name="enable_sync"           value="true"/>
     </include>
 
     <node name="realsense_color_throttle" pkg="topic_tools" type="throttle" args="messages /hand_eye/color/image_raw $(arg throttle_rate)"/>
-    <node name="realsense_depth_throttle" pkg="topic_tools" type="throttle" args="messages /hand_eye/depth/image_rect_raw $(arg throttle_rate)" if="$(arg debug_pcl)"/>
+    <node name="realsense_depth_throttle" pkg="topic_tools" type="throttle" args="messages /hand_eye/depth/image_rect_raw $(arg throttle_rate)" if="$(arg enable_depth)"/>
     <node name="realsense_pcl_throttle" pkg="topic_tools" type="throttle" args="messages /hand_eye/depth/color/points $(arg throttle_rate)" if="$(arg debug_pcl)"/>
   </group>
 
