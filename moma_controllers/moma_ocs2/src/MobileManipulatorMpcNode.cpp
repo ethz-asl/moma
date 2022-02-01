@@ -44,6 +44,8 @@ int main(int argc, char** argv) {
   ros::init(argc, argv, "mobile_manipulator_mpc");
   ros::NodeHandle nodeHandle;
 
+  const int armInputDim = 7;
+
   // Params
   std::string taskFile;
   if (!nodeHandle.param("/ocs2_mpc/task_file", taskFile, {})){
@@ -55,6 +57,7 @@ int main(int argc, char** argv) {
     ROS_ERROR("Failed to retrieve /ocs2_mpc/robot_description_ocs2 from param server.");
     return 0;
   }
+  
   int baseTypeInt;
   if (!nodeHandle.param("/ocs2_mpc/base_type", baseTypeInt, 0)){
     ROS_ERROR("Failed to retrieve /ocs2_mpc/base_type from param server.");
@@ -68,7 +71,7 @@ int main(int argc, char** argv) {
   const std::string libFolder = ros::package::getPath("moma_ocs2") + "/auto_generated";
 
   // Robot interface
-  MobileManipulatorInterface interface(taskFile, urdfXML, baseType);
+  MobileManipulatorInterface interface(taskFile, urdfXML, armInputDim, baseType);
 
   // ROS ReferenceManager
   std::shared_ptr<ocs2::RosReferenceManager> rosReferenceManagerPtr(

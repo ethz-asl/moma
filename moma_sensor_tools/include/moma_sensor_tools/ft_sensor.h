@@ -38,47 +38,47 @@ class ForceTorqueSensor {
   bool estimate_bias_callback(std_srvs::EmptyRequest&, std_srvs::EmptyResponse& );
 
  private:
-  void imu_callback(const sensor_msgs::ImuConstPtr& msg);
+  //void imu_callback(const sensor_msgs::ImuConstPtr& msg);
   void raw_wrench_callback(const geometry_msgs::WrenchStampedConstPtr& msg);
 
  private:
-  ros::NodeHandle nh_;
-  std::unique_ptr<ros::CallbackQueue> wrench_callback_queue_;
-  ros::Subscriber raw_wrench_subscriber_;
-  ros::Publisher wrench_publisher_;
+  bool debug_;
 
+  double alpha_;
+  bool has_payload_;
+  bool wrench_received_;
 
   int estimate_bias_measurements_;
   std::atomic_bool estimate_bias_;
-  Eigen::Matrix<double, 6, 1> bias_;
-  ros::ServiceServer estimate_bias_service_;
 
   std::string calibration_file_;
-  Wrench tool_wrench_;
-
   FTSensorCalibrationData calibration_data_;
-  geometry_msgs::WrenchStamped wrench_raw_;
-  geometry_msgs::WrenchStamped wrench_compensated_;
+
+  std::string sensor_frame_;
+  std::string gravity_aligned_frame_;
+
+  ros::NodeHandle nh_;
+  std::unique_ptr<ros::CallbackQueue> wrench_callback_queue_;
+  
+  ros::Publisher wrench_publisher_;
+  ros::Publisher tool_wrench_publisher_;
+  ros::Subscriber raw_wrench_subscriber_;
+  ros::ServiceServer estimate_bias_service_;
+
+  geometry_msgs::WrenchStamped raw_wrench_ros_;
+  geometry_msgs::WrenchStamped compensated_wrench_ros_;
+  geometry_msgs::WrenchStamped tool_wrench_ros_;
 
   // TF
   tf2_ros::TransformListener tf2_listener_;
   tf2_ros::Buffer tf2_buffer_;
+  
+  Wrench tool_wrench_;
+  Eigen::Matrix<double, 6, 1> bias_;
+  Eigen::Matrix<double, 6, 1> raw_wrench_;
+  Eigen::Matrix<double, 6, 1> compensated_wrench_;
+  Eigen::Matrix<double, 6, 1> compensated_wrench_filtered_;
 
-  std::string gravity_aligned_frame_;
-  std::string sensor_frame_;
-
-  bool wrench_received_;
-
-  double alpha_;
-  Eigen::Matrix<double, 6, 1> wrench_compensated_filtered_;
-
-  sensor_msgs::Imu imu_;
-  bool imu_received_;
-  ros::Subscriber imu_subscriber_;
-
-  bool debug_;
-  geometry_msgs::WrenchStamped tool_wrench_ros_;
-  ros::Publisher tool_wrench_publisher_;
 };
 
 }  // namespace sensor_tools::ft

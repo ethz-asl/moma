@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+    <!-- arg name="wrench_topic" default="/franka_state_controller/F_ext"/ -->
+    <arg name="wrench_topic" default="/rokubimini/ft_sensor0/ft_sensor_readings/wrench"/>
+    <arg name="gravity_aligned_frame" default="base_link"/>
+    <arg name="debug" default="false"/>
+
+    <node pkg="moma_sensor_tools" type="ft_calibration_node" name="ft_calibration"  output="screen">
+        <param name="external_wrench_is_positive" value="false"/>
+        <param name="wrench_topic" value="$(arg wrench_topic)"/>
+        <param name="gravity_aligned_frame" value="$(arg gravity_aligned_frame)"/>
+        <param name="joint_action_server_name" value="/joint_space_controller_server"/>
+        <param name="calib_file_dir" value="$(find moma_sensor_tools)/config/payload_calibration"/>
+        <param name="debug" value="true"/>
+        <rosparam command="load" file="$(find moma_sensor_tools)/config/payload_calibration/calibration_poses.yaml"/>
+    </node>
+
+    <group if="$(arg debug)">
+        <node pkg="moma_sensor_tools" type="dummy_wrench_node" name="dummy_wrench_node" output="screen">
+            <param name="wrench_topic" value="$(arg wrench_topic)"/>
+            <param name="wrench_frame" value="panda_link8"/>
+            <param name="gravity_aligned_frame" value="$(arg gravity_aligned_frame)"/>
+            <param name="mass" value="2.5"/>
+            <rosparam>
+                com: [0.0, 0.01, 0.1]
+                bias: [0.02, 0.02, 0.4, 0.05, 0.001, 0.002]
+            </rosparam>
+        </node>
+    </group>
+</launch>

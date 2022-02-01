@@ -1,0 +1,7 @@
+piloting:
+  map_frame: map
+  odom_frame: tracking_camera_odom
+  tool_frame: tool_frame
+  base_frame: panda_link0
+  valve_frame: valve
+  valve_haptic_frame: valve_estimated

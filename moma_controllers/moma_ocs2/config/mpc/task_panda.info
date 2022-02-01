@@ -164,7 +164,6 @@ jointVelocityLimits
     (7,0) -3.0  ; WR_FLE
     (8,0) -3.0  ; WR_ROT
     (9,0) -3.0  ; WR_ROT
-    (10,0) -3.0  ;
   }
 
   upperBound
@@ -180,7 +179,45 @@ jointVelocityLimits
     (7,0) 3.0  ; WR_FLE
     (8,0) 3.0  ; WR_ROT
     (9,0) 3.0  ; WR_ROT
-    (10,0) 3.0
+  }
+
+  ; relaxed log barrier mu
+  mu  0.01
+
+  ; relaxed log barrier delta
+  delta  1e-3
+}
+
+jointPositionLimits
+{
+  lowerBound
+  {
+    scaling 1e-0
+    (0,0) -200.0  ; world x
+    (1,0) -200.0  ; world y
+    (2,0) -6.0  ; theta
+    (3,0) -2.7973  ; joint0
+    (4,0) -1.6628  ; joint1
+    (5,0) -2.7973  ; joint2
+    (6,0) -2.9718  ; joint3
+    (7,0) -2.7973  ; joint4
+    (8,0) -0.0825  ; joint5
+    (9,0) -2.7973  ; joint6
+  }
+
+  upperBound
+  {
+    scaling 1e-0
+    (0,0) 200.0  ; world x
+    (1,0) 200.0  ; world y
+    (2,0) 6.0  ; theta
+    (3,0) 2.7973  ; joint0
+    (4,0) 1.6628  ; joint1
+    (5,0) 2.7973  ; joint2
+    (6,0) -0.1698  ; joint3
+    (7,0) 2.7973  ; joint4
+    (8,0) 3.6525  ; joint5
+    (9,0) 2.7973  ; joint6
   }
 
   ; relaxed log barrier mu

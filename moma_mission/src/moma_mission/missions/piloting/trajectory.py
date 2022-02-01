@@ -39,8 +39,6 @@ class ValveTrajectoryGenerator(object):
         self.tf_ref_valve = None
         self.tf_grasp_valve = None
         self.tf_ref_valve_bc = tf2_ros.StaticTransformBroadcaster()
-
-        self.prev_ee_pose = self.get_end_effector_pose()
         self.target_pose_pub = rospy.Publisher("/target_pose", PoseStamped, queue_size=1)
 
     def estimate_valve_from_lateral_grasp(self):

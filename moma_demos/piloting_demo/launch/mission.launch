@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<launch>
+  <!-- mission state machine -->
+  <rosparam command="load" file="$(find moma_mission)/config/state_machine/piloting.yaml" subst_value="true"/>
+  <rosparam command="load" file="$(find moma_mission)/config/state_machine/piloting_frames.yaml"/>
+  <node pkg="moma_mission" type="piloting.py" name="piloting_demo" output="screen">
+    <param name="telemetry_odom_topic" value="/camera/odom/sample"/>
+  </node>
+
+
+  <!-- Custom intrinsics publishers -->
+  <arg name="custom_intrinsics_file" default="$(env HOME)/calibration/camera_calibration.yaml" />
+  <node name="camera_intrinsics_publisher" pkg="moma_sensor_tools" type="yaml_to_camera_info_publisher.py" args="$(arg custom_intrinsics_file)" output="screen"/>
+
+
+  <!-- launch perception pipeline -->
+  <include file="$(find piloting_demo)/launch/perception.launch"/> 
+
+  <!-- mock modules to emulate real robot -->
+  <node pkg="piloting_demo" type="mock_modules.py"  name="mock_modules" output="screen">
+    <param name="gripper_action_topic"          value="/franka_gripper/gripper_action"/>
+    <param name="gripper_command_topic"          value="/franka_gripper/gripper_action"/>
+    <param name="base_odom_topic"               value="/base_pose_measured"/>
+    <param name="nav_goal_topic"                value="/move_base_simple/goal"/>
+    <param name="ee_goal_topic"                 value="/target_pose"/>
+    <param name="ee_path_topic"                 value="/desired_path"/>
+    <param name="joint_action_topic"            value="/joint_space_controller_server"/>
+    <param name="ros_control_manager_namespace" value="/control"/>
+  </node>
+
+</launch>

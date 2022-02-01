@@ -63,7 +63,8 @@ mpc_controller:
   arm_id: panda
 
   robot_name: "panda"
-  tool_link: tool_frame
+  base_link: "tracking_camera_odom"
+  tool_link: "tool_frame"
   odom_topic: "/base_odom"
   command_base_topic: "/smb_mpc/command_twist"
   joint_names:
@@ -79,9 +80,6 @@ mpc_controller:
   path_topic: /mpc_reference_path
 
   gains:
-    base_x: { p: 100.0, i: 0.0, d: 10.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
-    base_y: { p: 100.0, i: 0.0, d: 10.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
-    base_z: { p: 100.0, i: 0.0, d: 10.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
     panda_joint1: { p: 800.0, i: 0.0, d: 50.0, i_clamp_min: -100.0, i_clamp_max: 100.0 }
     panda_joint2: { p: 500.0, i: 0.0, d: 30.0, i_clamp_min: -5.0, i_clamp_max: 5.0 }
     panda_joint3: { p: 500.0, i: 0.0, d: 30.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
@@ -89,6 +87,30 @@ mpc_controller:
     panda_joint5: { p: 300.0, i: 0.0, d: 10.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
     panda_joint6: { p: 300.0, i: 0.0, d: 10.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
     panda_joint7: { p: 100.0, i: 0.0, d: 5.0, i_clamp_min: -0.1, i_clamp_max: 0.1 }
+
+mpc_ur_controller:
+  type: moma_controllers/UrMpcController
+
+  base_link: base_link
+  tool_link: tool0
+  joint_names:
+    - shoulder_pan_joint
+    - shoulder_lift_joint
+    - elbow_joint
+    - wrist_1_joint
+    - wrist_2_joint
+    - wrist_3_joint
+  mpc_frequency: 20
+  command_topic: /joints_position_controller/command
+  path_topic: /mpc_reference_path
+
+  gains:
+    shoulder_pan_joint:   { p: 5.0, i: 0.0, d: 0.03, i_clamp_min: -0.01, i_clamp_max: 0.01 }
+    shoulder_lift_joint:  { p: 4.0, i: 0.0, d: 0.03, i_clamp_min: -0.01, i_clamp_max: 0.01 }
+    elbow_joint:          { p: 4.0, i: 0.0, d: 0.03, i_clamp_min: -0.01, i_clamp_max: 0.01 }
+    wrist_1_joint:        { p: 4.0, i: 0.0, d: 0.03, i_clamp_min: -0.01, i_clamp_max: 0.01 }
+    wrist_2_joint:        { p: 3.0, i: 0.0, d: 0.008, i_clamp_min: -0.01, i_clamp_max: 0.01 }
+    wrist_3_joint:        { p: 3.0, i: 0.0, d: 0.008, i_clamp_min: -0.01, i_clamp_max: 0.01 }
 
 path_passthrough_controller:
   type: moma_controllers/PathPassthroughController
@@ -100,16 +122,15 @@ path_admittance_controller:
   type: moma_controllers/PathAdmittanceController
 
   verbose: true
-  wrench_topic: /ft_compensated
+  wrench_topic: /franka_state_controller/F_ext
+  wrench_opposite: true
   path_in_topic: /desired_path
   path_out_topic: /mpc_reference_path
 
-  kp_linear_gains: [0.01, 0.01, 0.01]
-  kp_angular_gains: [0.01, 0.01, 0.01]
-  ki_linear_gains: [ 0.0, 0.0, 0.0 ]
-  ki_angular_gains: [ 0.0, 0.0, 0.0 ]
-  force_integral_max: [1.0, 1.0, 1.0]
-  torque_integral_max: [1.0, 1.0, 1.0]
+  kp_linear_gains: [50.0, 50.0, 50.0]
+  kp_angular_gains: [5.0, 5.0, 5.0]
+  kd_linear_gains: [50, 50, 50]
+  kd_angular_gains: [25.0, 25.0, 25.0]
 
-  force_threshold: [2.0, 2.0, 2.0]
-  torque_threshold: [0.5, 0.5, 0.5]
+  force_threshold: [4.0, 4.0, 4.0]
+  torque_threshold: [1.0, 1.0, 1.0]

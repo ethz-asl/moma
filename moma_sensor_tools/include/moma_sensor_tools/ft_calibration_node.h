@@ -15,7 +15,6 @@
 #include <geometry_msgs/Pose.h>
 #include <geometry_msgs/WrenchStamped.h>
 #include <sensor_msgs/Imu.h>
-#include <moveit/move_group_interface/move_group_interface.h>
 #include <moma_sensor_tools/ft_calibration.h>
 #include <Eigen/Core>
 

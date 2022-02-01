@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<launch>
+    <!-- Door description -->
+    <param name="door_description" command="$(find xacro)/xacro $(find moma_mission)/urdf/shelf.urdf.xacro"/>
+
+    <!-- Joint state publisher for the door (0 joint value )-->
+    <node name="door_joint_publisher" pkg="joint_state_publisher_gui" type="joint_state_publisher_gui">
+        <remap from="robot_description" to="door_description"/>
+        <remap from="joint_states" to="/door/joint_states"/>
+    </node>
+
+    <!-- Publish static and non static transforms -->
+    <node name="door_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher">
+        <remap from="robot_description" to="door_description"/>
+        <remap from="joint_states" to="/door/joint_states"/>
+    </node>
+</launch>

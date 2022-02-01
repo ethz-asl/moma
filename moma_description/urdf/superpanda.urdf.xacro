@@ -30,10 +30,10 @@
       <limit effort="0" velocity="0"/>
     </joint>
     <link name="base_theta" />
-    <joint name="base_to_panda" type="fixed">
+    <joint name="base_to_link" type="fixed">
       <parent link="base_theta" />
       <child link="base_link" />
-      <origin xyz="0 0 0.2" rpy="0 0 0"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
     </joint>
     <link name="base_link" />
   </xacro:if>

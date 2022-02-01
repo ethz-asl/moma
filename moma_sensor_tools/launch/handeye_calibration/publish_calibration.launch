@@ -1,0 +1,48 @@
+<?xml version="1.0" ?>
+<launch>
+  <arg name="rviz"              default="false"/> <!-- run rviz debug visualization -->
+  <arg name="launch_realsense"  default="false"/> <!-- launch also realsense from here -->
+  <arg name="debug_apriltag"    default="false"/> <!-- run tracker to debug calibration -->
+  <arg name="debug_pcl"         default="false"/> <!-- show point cloud to debug calibration -->
+  <arg name="calibration_file"  default="$(env HOME)/calibration/handeye_calibration.yaml"/>
+  <!-- Intrinsic camera calibration done with the camera_calibration package -->
+  <arg name="custom_intrinsics" default="true" />
+  <arg name="custom_intrinsics_file" default="$(env HOME)/calibration/camera_calibration.yaml" />
+  <arg name="throttle_rate"     default="1.0" />
+
+  <!-- Read extrinsic calibration from file and publish tf -->
+	<include file="$(find easy_handeye)/launch/publish.launch">
+      <arg name="calibration_file"  value="$(arg calibration_file)"/>
+      <arg name="eye_on_hand"       value="true"/>
+	</include>
+
+  <group if="$(arg launch_realsense)">
+    <!-- Optionally launch the realsense from this launch script -->
+    <include file="$(find realsense2_camera)/launch/rs_camera.launch">
+      <arg name="camera"                value="hand_eye"/>
+      <arg name="enable_depth"          value="$(arg debug_pcl)"/>
+      <arg name="enable_pointcloud"     value="$(arg debug_pcl)"/>
+      <arg name="enable_sync"           value="true"/>
+    </include>
+
+    <node name="realsense_color_throttle" pkg="topic_tools" type="throttle" args="messages /hand_eye/color/image_raw $(arg throttle_rate)"/>
+    <node name="realsense_depth_throttle" pkg="topic_tools" type="throttle" args="messages /hand_eye/depth/image_rect_raw $(arg throttle_rate)" if="$(arg debug_pcl)"/>
+    <node name="realsense_pcl_throttle" pkg="topic_tools" type="throttle" args="messages /hand_eye/depth/color/points $(arg throttle_rate)" if="$(arg debug_pcl)"/>
+  </group>
+
+  <!-- April tag tf published from optical center to the tag. Tag should not move in a fixed reference frame -->
+  <!-- This is also responsible for publishing the intrinsic calibration -->
+  <include file="$(find moma_sensor_tools)/launch/handeye_calibration/apriltag_tracking.launch">
+    <arg name="launch_apriltag"        value="$(arg debug_apriltag)"/>
+    <arg name="launch_realsense"       value="false"/>
+    <arg name="camera_name"            value="hand_eye"/>
+    <arg name="image_domain"           value="color"/>
+    <arg name="rviz"                   value="false"/>
+    <arg name="custom_intrinsics"      value="$(arg custom_intrinsics)"/>
+    <arg name="custom_intrinsics_file" value="$(arg custom_intrinsics_file)"/>
+  </include>
+
+  <!-- Rviz helper visualization -->
+  <node pkg="rviz" type="rviz" name="$(anon rviz)" args="-d $(find moma_sensor_tools)/config/rviz/hand_eye.rviz" if="$(arg rviz)"/>
+
+</launch>

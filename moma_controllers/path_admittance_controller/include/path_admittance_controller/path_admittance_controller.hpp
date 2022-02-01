@@ -74,21 +74,25 @@ class PathAdmittanceController : public controller_interface::Controller<hardwar
 
   std::mutex wrench_mutex_;
   geometry_msgs::WrenchStamped wrench_;
+  bool wrench_opposite_;
 
   // Gains
   Eigen::Vector3d Kp_linear_;
   Eigen::Vector3d Kp_angular_;
-  Eigen::Vector3d Ki_linear_;
-  Eigen::Vector3d Ki_angular_;
+  Eigen::Vector3d Kd_linear_;
+  Eigen::Vector3d Kd_angular_;
 
   // Errors
   double last_time_;
+  Eigen::Vector3d dpos_ = Eigen::Vector3d(0, 0, 0);
+  Eigen::Vector3d dpos_dot_ = Eigen::Vector3d(0, 0, 0);
+  Eigen::Vector3d dpos_ddot_ = Eigen::Vector3d(0, 0, 0);
+  Eigen::Vector3d drot_ = Eigen::Vector3d(0, 0, 0);
+  Eigen::Vector3d drot_dot_ = Eigen::Vector3d(0, 0, 0);
+  Eigen::Vector3d drot_ddot_ = Eigen::Vector3d(0, 0, 0);
   Eigen::Vector3d force_ext_;
-  Eigen::Vector3d force_integral_;
   Eigen::Vector3d torque_error_;
-  Eigen::Vector3d torque_integral_;
-  Eigen::Vector3d force_integral_max_;
-  Eigen::Vector3d torque_integral_max_;
+  Eigen::Matrix3d M_inv_ = Eigen::Matrix3d::Identity();
 
   Eigen::Vector3d force_threshold_;
   Eigen::Vector3d torque_threshold_;

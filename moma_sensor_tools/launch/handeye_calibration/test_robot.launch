@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+	<include file="$(find moma_sensor_tools)/launch/handeye_calibration/publish_calibration.launch">
+		<arg name="launch_realsense" 	value="true"/>
+		<arg name="debug_apriltag" 		value="true"/>
+		<arg name="debug_pcl" 			value="true"/>
+	</include>
+
+	<include file="$(find moma_robot)/launch/robot_pc.launch"/>
+</launch>

@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="bag_file"     default="$(env HOME)/storage/bags/2022-01-26/2022-01-26-11-11-18_valve_depth_throttled.bag"/>
+  <arg name="base_frame"   default="panda_link0"/>
+  <arg name="camera_frame" default="hand_eye_color_optical_frame"/>
+  <arg name="image_topic"  default="/hand_eye/color/image_raw_throttle"/>
+  <arg name="depth_topic"  default="/hand_eye/depth/image_rect_raw_throttle"/>
+  <arg name="calibration_topic"  default="/camera_info"/>
+
+  <include file="$(find object_keypoints_ros)/launch/keypoints.launch">
+    <arg name="load_bag_filepath" default="false"/>
+    <arg name="calibration_file"  default="$(env HOME)/calibration/intrinsics.yaml"/>
+    <arg name="image_topic"       default="$(arg image_topic)"/>
+    <arg name="depth_topic"       default="$(arg depth_topic)"/>
+    <arg name="calibration_topic" default="$(arg calibration_topic)"/>
+    <arg name="base_frame"        default="$(arg base_frame)"/>
+    <arg name="camera_frame"      default="$(arg camera_frame)"/>
+    <arg name="model_name"        default="valve_depth"/>
+    <arg name="keypoints_file"    default="$(find object_keypoints_ros)/config/valve.json"/>
+    <arg name="image_file"        default=""/>
+    <arg name="rviz_config"       default="$(find piloting_demo)/config/rviz/perception.rviz"/>
+    <arg name="gpu"               default="false"/>
+    <arg name="operation_mode"    default="service"/>
+  </include>
+  
+  <node pkg="rosbag" type="play" name="rosbag_play" args="-r 0.1 $(arg bag_file)" launch-prefix="bash -c 'sleep 3.0; $0 $@' "/>
+  <node pkg="moma_sensor_tools" type="consolidate_tf_static.py" name="consolidate_tf"/>
+</launch>

@@ -1,0 +1,425 @@
+Panels:
+  - Class: rviz/Displays
+    Help Height: 0
+    Name: Displays
+    Property Tree Widget:
+      Expanded:
+        - /Global Options1
+        - /TF1/Frames1
+        - /Marker1
+      Splitter Ratio: 0.5
+    Tree Height: 140
+  - Class: rviz/Selection
+    Name: Selection
+  - Class: rviz/Tool Properties
+    Expanded:
+      - /2D Pose Estimate1
+      - /2D Nav Goal1
+      - /Publish Point1
+    Name: Tool Properties
+    Splitter Ratio: 0.5886790156364441
+  - Class: rviz/Views
+    Expanded:
+      - /Current View1
+    Name: Views
+    Splitter Ratio: 0.5
+  - Class: rviz/Time
+    Experimental: false
+    Name: Time
+    SyncMode: 0
+    SyncSource: PCL
+Preferences:
+  PromptSaveOnExit: true
+Toolbars:
+  toolButtonStyle: 2
+Visualization Manager:
+  Class: ""
+  Displays:
+    - Alpha: 0.5
+      Cell Size: 1
+      Class: rviz/Grid
+      Color: 160; 160; 164
+      Enabled: true
+      Line Style:
+        Line Width: 0.029999999329447746
+        Value: Lines
+      Name: Grid
+      Normal Cell Count: 0
+      Offset:
+        X: 0
+        Y: 0
+        Z: 0
+      Plane: XY
+      Plane Cell Count: 10
+      Reference Frame: <Fixed Frame>
+      Value: true
+    - Class: rviz/TF
+      Enabled: true
+      Frame Timeout: 15
+      Frames:
+        All Enabled: false
+        LF_WHEEL:
+          Value: false
+        LH_WHEEL:
+          Value: false
+        RF_WHEEL:
+          Value: false
+        RH_WHEEL:
+          Value: false
+        arm_mount_link:
+          Value: false
+        base_inertia:
+          Value: false
+        base_link:
+          Value: false
+        blackfly0_link:
+          Value: false
+        blackfly0_optical_link:
+          Value: false
+        blackfly1_link:
+          Value: false
+        blackfly1_optical_link:
+          Value: false
+        blackfly_left_link:
+          Value: false
+        blackfly_left_optical_link:
+          Value: false
+        blackfly_right_link:
+          Value: false
+        blackfly_right_optical_link:
+          Value: false
+        camera_imu_optical_frame:
+          Value: false
+        camera_pose_frame:
+          Value: false
+        hand_eye_color_frame:
+          Value: false
+        hand_eye_color_optical_frame:
+          Value: true
+        hand_eye_depth_frame:
+          Value: false
+        hand_eye_depth_optical_frame:
+          Value: true
+        hand_eye_link:
+          Value: false
+        imu:
+          Value: false
+        imu_link:
+          Value: false
+        lidar_mount_link:
+          Value: false
+        mono_link:
+          Value: false
+        panda_EE:
+          Value: false
+        panda_K:
+          Value: false
+        panda_NE:
+          Value: false
+        panda_default_ee:
+          Value: false
+        panda_hand:
+          Value: false
+        panda_leftfinger:
+          Value: false
+        panda_link0:
+          Value: false
+        panda_link1:
+          Value: false
+        panda_link2:
+          Value: false
+        panda_link3:
+          Value: false
+        panda_link4:
+          Value: false
+        panda_link5:
+          Value: false
+        panda_link6:
+          Value: false
+        panda_link7:
+          Value: false
+        panda_link8:
+          Value: false
+        panda_rightfinger:
+          Value: false
+        realsense_t265:
+          Value: false
+        realsense_t265_odom_frame:
+          Value: false
+        rslidar:
+          Value: false
+        rslidar_base_link:
+          Value: false
+        tool_frame:
+          Value: false
+        top:
+          Value: false
+        world:
+          Value: false
+        wrist_camera_bottom_screw_frame:
+          Value: false
+        wrist_camera_link:
+          Value: false
+      Marker Alpha: 1
+      Marker Scale: 1
+      Name: TF
+      Show Arrows: true
+      Show Axes: true
+      Show Names: true
+      Tree:
+        world:
+          base_link:
+            LF_WHEEL:
+              {}
+            LH_WHEEL:
+              {}
+            RF_WHEEL:
+              {}
+            RH_WHEEL:
+              {}
+            arm_mount_link:
+              panda_link0:
+                panda_link1:
+                  panda_link2:
+                    panda_link3:
+                      panda_link4:
+                        panda_link5:
+                          panda_link6:
+                            panda_link7:
+                              panda_link8:
+                                hand_eye_link:
+                                  hand_eye_color_frame:
+                                    hand_eye_color_optical_frame:
+                                      {}
+                                  hand_eye_depth_frame:
+                                    hand_eye_depth_optical_frame:
+                                      {}
+                                panda_NE:
+                                  panda_EE:
+                                    panda_K:
+                                      {}
+                                panda_default_ee:
+                                  {}
+                                panda_hand:
+                                  panda_leftfinger:
+                                    {}
+                                  panda_rightfinger:
+                                    {}
+                                tool_frame:
+                                  {}
+                              wrist_camera_bottom_screw_frame:
+                                wrist_camera_link:
+                                  {}
+            base_inertia:
+              {}
+            blackfly0_link:
+              blackfly0_optical_link:
+                {}
+            blackfly1_link:
+              blackfly1_optical_link:
+                {}
+            blackfly_left_link:
+              blackfly_left_optical_link:
+                {}
+            blackfly_right_link:
+              blackfly_right_optical_link:
+                {}
+            imu_link:
+              imu:
+                {}
+              realsense_t265:
+                camera_pose_frame:
+                  {}
+                realsense_t265_odom_frame:
+                  camera_imu_optical_frame:
+                    {}
+            lidar_mount_link:
+              rslidar_base_link:
+                rslidar:
+                  {}
+            mono_link:
+              {}
+            top:
+              {}
+      Update Interval: 0
+      Value: true
+    - Class: rviz/Image
+      Enabled: true
+      Image Topic: /object_keypoints_ros/annotation
+      Max Value: 1
+      Median window: 5
+      Min Value: 0
+      Name: Input Image Annotated
+      Normalize Range: true
+      Queue Size: 2
+      Transport Hint: raw
+      Unreliable: false
+      Value: true
+    - Class: rviz/Image
+      Enabled: true
+      Image Topic: /object_keypoints_ros/result_img
+      Max Value: 1
+      Median window: 5
+      Min Value: 0
+      Name: Result Image
+      Normalize Range: true
+      Queue Size: 2
+      Transport Hint: raw
+      Unreliable: false
+      Value: true
+    - Class: rviz/Image
+      Enabled: false
+      Image Topic: /object_keypoints_ros/heatmap_raw
+      Max Value: 1
+      Median window: 5
+      Min Value: 0
+      Name: Heatmap Raw
+      Normalize Range: true
+      Queue Size: 2
+      Transport Hint: raw
+      Unreliable: false
+      Value: false
+    - Alpha: 1
+      Autocompute Intensity Bounds: true
+      Autocompute Value Bounds:
+        Max Value: 10
+        Min Value: -10
+        Value: true
+      Axis: Z
+      Channel Name: intensity
+      Class: rviz/PointCloud2
+      Color: 255; 255; 255
+      Color Transformer: RGB8
+      Decay Time: 0
+      Enabled: true
+      Invert Rainbow: false
+      Max Color: 255; 255; 255
+      Min Color: 0; 0; 0
+      Name: PCL
+      Position Transformer: XYZ
+      Queue Size: 10
+      Selectable: true
+      Size (Pixels): 3
+      Size (m): 0.009999999776482582
+      Style: Flat Squares
+      Topic: /hand_eye/depth/color/points_throttle
+      Unreliable: false
+      Use Fixed Frame: true
+      Use rainbow: true
+      Value: true
+    - Class: rviz/Image
+      Enabled: true
+      Image Topic: /hand_eye/color/image_raw_throttle
+      Max Value: 1
+      Median window: 5
+      Min Value: 0
+      Name: Source Image
+      Normalize Range: true
+      Queue Size: 2
+      Transport Hint: raw
+      Unreliable: false
+      Value: true
+    - Class: rviz/MarkerArray
+      Enabled: true
+      Marker Topic: /object_keypoints_ros/perception
+      Name: Perceived Keypoints
+      Namespaces:
+        "": true
+      Queue Size: 100
+      Value: true
+    - Class: rviz/Image
+      Enabled: false
+      Image Topic: /hand_eye/depth/image_rect_raw_throttle
+      Max Value: 1
+      Median window: 5
+      Min Value: 0
+      Name: Image
+      Normalize Range: true
+      Queue Size: 2
+      Transport Hint: raw
+      Unreliable: false
+      Value: false
+    - Class: rviz/Marker
+      Enabled: true
+      Marker Topic: /detected_valve/marker
+      Name: Marker
+      Namespaces:
+        {}
+      Queue Size: 100
+      Value: true
+  Enabled: true
+  Global Options:
+    Background Color: 48; 48; 48
+    Default Light: true
+    Fixed Frame: panda_link0
+    Frame Rate: 30
+  Name: root
+  Tools:
+    - Class: rviz/Interact
+      Hide Inactive Objects: true
+    - Class: rviz/MoveCamera
+    - Class: rviz/Select
+    - Class: rviz/FocusCamera
+    - Class: rviz/Measure
+    - Class: rviz/SetInitialPose
+      Theta std deviation: 0.2617993950843811
+      Topic: /initialpose
+      X std deviation: 0.5
+      Y std deviation: 0.5
+    - Class: rviz/SetGoal
+      Topic: /move_base_simple/goal
+    - Class: rviz/PublishPoint
+      Single click: true
+      Topic: /clicked_point
+  Value: true
+  Views:
+    Current:
+      Class: rviz/Orbit
+      Distance: 2.1867735385894775
+      Enable Stereo Rendering:
+        Stereo Eye Separation: 0.05999999865889549
+        Stereo Focal Distance: 1
+        Swap Stereo Eyes: false
+        Value: false
+      Field of View: 0.7853981852531433
+      Focal Point:
+        X: 0.09518353641033173
+        Y: 0.98220294713974
+        Z: -0.2700541615486145
+      Focal Shape Fixed Size: true
+      Focal Shape Size: 0.05000000074505806
+      Invert Z Axis: false
+      Name: Current View
+      Near Clip Distance: 0.009999999776482582
+      Pitch: 0.8897972106933594
+      Target Frame: <Fixed Frame>
+      Yaw: 6.215392112731934
+    Saved: ~
+Window Geometry:
+  Displays:
+    collapsed: false
+  Heatmap Raw:
+    collapsed: false
+  Height: 627
+  Hide Left Dock: false
+  Hide Right Dock: false
+  Image:
+    collapsed: false
+  Input Image Annotated:
+    collapsed: false
+  QMainWindow State: 000000ff00000000fd000000040000000000000169000001bdfc0200000010fb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073010000003d000000c9000000c900fffffffb000000180053006f007500720063006500200049006d006100670065010000010c000000730000001600fffffffb000000160048006500610074006d00610070002000520061007700000001e8000000ce0000001600fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb0000002a0049006e00700075007400200049006d00610067006500200041006e006e006f007400610074006500640100000185000000750000001600fffffffb0000000a0049006d00610067006500000002d5000000c70000001600fffffffb0000000a0049006d00610067006500000002ee000000970000000000000000fb0000000a0049006d00610067006501000001c6000000b10000000000000000fb0000000a0049006d006100670065010000027e000001070000000000000000fb0000000a0049006d00610067006501000002bf000000c600000000000000000000000100000114000001bdfc0200000007fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fc0000003d000000e5000000a400fffffffa000000010100000002fb0000000a0049006d0061006700650000000000ffffffff0000000000000000fb0000000a0056006900650077007301000006290000010f0000010000fffffffb0000000a0049006d0061006700650100000142000001210000000000000000fb0000000a0049006d00610067006501000001250000015e0000000000000000fb0000000a0049006d0061006700650100000178000000ed0000000000000000fb000000180052006500730075006c007400200049006d0061006700650100000128000000d20000001600fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e10000019700000003000004f300000056fc0100000002fb0000000800540069006d00650100000000000004f3000002eb00fffffffb0000000800540069006d006501000000000000045000000000000000000000026a000001bd00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  Result Image:
+    collapsed: false
+  Selection:
+    collapsed: false
+  Source Image:
+    collapsed: false
+  Time:
+    collapsed: false
+  Tool Properties:
+    collapsed: false
+  Views:
+    collapsed: false
+  Width: 1267
+  X: 1998
+  Y: 76

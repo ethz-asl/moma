@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+    <arg name="standalone" default="true"/>
+    <!-- setting sampling rate to 0.0 means that the sampling rate is derived from the FT filter configuration of the device -->
+    <arg name="time_step" default="0.01"/>
+    <arg name="num_spinners" default="1"/>
+    <arg name="launch_prefix" default="nice -n -10"/>
+    <arg name="launch_prefix_gdb" default="gdb -ex run --args"/>
+    <arg name="rokubimini_setup_file" default="$(find moma_sensor_tools)/config/rokubimini/rokubimini.yaml"/>
+    <arg name="sensor_config_name" default=""/>
+    <arg name="verbose" default="true"/>
+
+    <arg name="output" default="screen" if="$(arg verbose)"/>
+    <arg name="output" default="log" unless="$(arg verbose)"/>
+
+    <node name="rokubimini" pkg="bota_device_driver" type="bota_device_driver_node"
+          output="screen" launch-prefix="xterm -e $(arg launch_prefix)">
+        <param name="standalone" type="bool" value="$(arg standalone)"/>
+        <param name="num_spinners" type="int" value="$(arg num_spinners)"/>
+        <param name="time_step" type="double" value="$(arg time_step)"/>
+        <param name="rokubimini_setup_file" type="string" value="$(arg rokubimini_setup_file)"/>
+        <param name="sensor_config_name" type="string" value="$(arg sensor_config_name)"/>
+    </node>
+</launch>

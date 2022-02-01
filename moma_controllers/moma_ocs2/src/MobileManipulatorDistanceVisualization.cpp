@@ -59,11 +59,10 @@ void jointStateCallback(sensor_msgs::JointStateConstPtr msg) {
   }
   lastMsg.position = msg->position;
 
-  size_t armDim = STATE_DIM-3;
-  Eigen::VectorXd q(armDim + 3);
+  Eigen::VectorXd q(lastMsg.position.size() + 3);
   q(0) = q(1) = q(2) = 0.0;
-  for (size_t i = 3; i < armDim; ++i) {
-    q(i) = lastMsg.position[i - 3];
+  for (size_t i = 0; i < lastMsg.position.size(); ++i) {
+    q(i + 3) = lastMsg.position[i];
   }
 
   vInterface->publishDistances(q);
