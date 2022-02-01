@@ -10,7 +10,7 @@ SETUP:
 
 OPEN_GRIPPER:
   default_outcome: Completed
-  gripper_action_name: /franka_gripper/gripper_action
+  gripper_action_name: /control/franka_gripper/gripper_action
   position: 0.03
   max_effort: 20
   tolerance: 0.001
@@ -18,7 +18,7 @@ OPEN_GRIPPER:
 
 CLOSE_GRIPPER:
   default_outcome: Completed
-  gripper_action_name: /franka_gripper/gripper_action
+  gripper_action_name: /control/franka_gripper/gripper_action
   position: 0.0
   max_effort: 20
   tolerance: 0.001
