@@ -1,3 +1,4 @@
+from moma_mission.utils import ros
 import rospy
 import tf2_ros
 from geometry_msgs.msg import Pose, TransformStamped
@@ -17,6 +18,11 @@ class ModelFitState(StateRos):
         self.object_pose_broadcaster = tf2_ros.StaticTransformBroadcaster()
         self.perception_srv_client = rospy.ServiceProxy(self.get_scoped_param("detection_topic", "object_keypoints_ros/perceive"), KeypointsPerception)
 
+        # Way to specify dummy valve, to run without the detection call
+        self.dummy = self.get_scoped_param("dummy")
+        self.dummy_position = self.get_scoped_param("dummy_position")
+        self.dummy_orientation = self.get_scoped_param("dummy_orientation")
+
     def _object_name(self) -> str:
         return 'object'
 
@@ -29,21 +35,35 @@ class ModelFitState(StateRos):
         return object_pose
 
     def run(self):
-        try:
-            self.perception_srv_client.wait_for_service(timeout=10)
-        except rospy.ROSException as exc:
-            rospy.logwarn("Service {} not available yet".format(self.perception_srv_client.resolved_name))
-            return 'Failure'
+        object_pose = TransformStamped()
+        if self.dummy:
+            rospy.logwarn("[ModelFitState]: running dummy detection")
+            object_pose.header.frame_id = "world"
+            object_pose.header.stamp = rospy.get_rostime()
+            object_pose.child_frame_id = self._object_name()
+            object_pose.transform.translation.x = self.dummy_position[0]
+            object_pose.transform.translation.y = self.dummy_position[1]
+            object_pose.transform.translation.z = self.dummy_position[2]
+            object_pose.transform.rotation.x = self.dummy_orientation[0]
+            object_pose.transform.rotation.y = self.dummy_orientation[1]
+            object_pose.transform.rotation.z = self.dummy_orientation[2]
+            object_pose.transform.rotation.w = self.dummy_orientation[3]
+        else:
+            try:
+                self.perception_srv_client.wait_for_service(timeout=10)
+            except rospy.ROSException as exc:
+                rospy.logwarn("Service {} not available yet".format(self.perception_srv_client.resolved_name))
+                return 'Failure'
 
-        req = KeypointsPerceptionRequest()
-        res = self.perception_srv_client.call(req)
-        
-        object_pose = self._model_fit(res.keypoints.poses, res.keypoints.header.frame_id)
-        if object_pose is None:
-            return 'Failure'
-        object_pose.header = res.keypoints.header
-        object_pose.header.stamp = rospy.get_rostime()
-        object_pose.child_frame_id = self._object_name()
+            req = KeypointsPerceptionRequest()
+            res = self.perception_srv_client.call(req)
+            
+            object_pose = self._model_fit(res.keypoints.poses, res.keypoints.header.frame_id)
+            if object_pose is None:
+                return 'Failure'
+            object_pose.header = res.keypoints.header
+            object_pose.header.stamp = rospy.get_rostime()
+            object_pose.child_frame_id = self._object_name()
 
         self.object_pose_broadcaster.sendTransform(object_pose)
 
