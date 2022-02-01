@@ -219,5 +219,5 @@ jointPositionLimits
   mu  0.01
 
   ; relaxed log barrier delta
-  delta  1e-3
+  delta  1e-2
 }
