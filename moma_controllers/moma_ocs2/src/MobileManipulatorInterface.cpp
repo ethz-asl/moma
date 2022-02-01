@@ -57,6 +57,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "moma_ocs2/constraint/EndEffectorConstraint.h"
 #include "moma_ocs2/constraint/JointPositionLimits.h"
 #include "moma_ocs2/constraint/JointVelocityLimits.h"
+#include "moma_ocs2/constraint/DefaultConfigurationConstraint.h"
 #include "moma_ocs2/constraint/MobileManipulatorSelfCollisionConstraint.h"
 #include "moma_ocs2/cost/QuadraticInputCost.h"
 
@@ -113,6 +114,10 @@ MobileManipulatorInterface::MobileManipulatorInterface(const std::string& taskFi
   loadData::loadEigenMatrix(taskFile, "initialState", initialState_);
   std::cerr << "Initial State:   " << initialState_.transpose() << std::endl;
 
+  // Enforce default configuration?
+  bool defaultConfigurationActive = false;
+  loadData::loadPtreeValue(pt, defaultConfigurationActive, "defaultConfiguration.active", true);
+
   // DDP-MPC settings
   ddpSettings_ = ddp::loadSettings(taskFile, "ddp");
   mpcSettings_ = mpc::loadSettings(taskFile, "mpc");
@@ -128,6 +133,10 @@ MobileManipulatorInterface::MobileManipulatorInterface(const std::string& taskFi
 
   // Constraints
   problem_.softConstraintPtr->add("jointVelocityLimit", getJointVelocityLimitConstraint(taskFile_));
+
+  if (defaultConfigurationActive){
+    problem_.stateSoftConstraintPtr->add("defaultConfiguration", getDefaultConfigurationConstraint(taskFile_));
+  }
   problem_.stateSoftConstraintPtr->add("jointPositionLimit", getJointPositionLimitConstraint(taskFile_));
   problem_.stateSoftConstraintPtr->add("selfCollision", getSelfCollisionConstraint(*pinocchioInterfacePtr_, taskFile_, urdfXML_,
                                                                                    usePreComputation, libraryFolder_, recompileLibraries));
@@ -230,6 +239,30 @@ std::unique_ptr<StateCost> MobileManipulatorInterface::getEndEffectorConstraint(
   std::generate_n(penaltyArray.begin(), 3, [&] { return std::unique_ptr<PenaltyBase>(new QuadraticPenalty(muPosition)); });
   std::generate_n(penaltyArray.begin() + 3, 3, [&] { return std::unique_ptr<PenaltyBase>(new QuadraticPenalty(muOrientation)); });
 
+  return std::unique_ptr<StateCost>(new StateSoftConstraint(std::move(constraint), std::move(penaltyArray)));
+}
+
+/******************************************************************************************************/
+/******************************************************************************************************/
+/******************************************************************************************************/
+std::unique_ptr<StateCost> MobileManipulatorInterface::getDefaultConfigurationConstraint(const std::string& taskFile) {
+  scalar_t mu = 1.0;
+  vector_t defaultConfiguration(armInputDim_);
+  std::string prefix = "defaultConfiguration";
+
+  boost::property_tree::ptree pt;
+  boost::property_tree::read_info(taskFile, pt);
+  std::cerr << "\n #### " << prefix << " Settings: ";
+  std::cerr << "\n #### =============================================================================\n";
+  loadData::loadPtreeValue(pt, mu, prefix + ".mu", true);
+  loadData::loadEigenMatrix(taskFile, prefix + ".armJointsValues", defaultConfiguration);
+  std::cerr << " #### 'default configuration':  " << defaultConfiguration.transpose() << std::endl;
+  std::cerr << " #### =============================================================================\n";
+
+  std::unique_ptr<StateConstraint> constraint(new DefaultConfigurationConstraint(armInputDim_, defaultConfiguration));
+
+  std::vector<std::unique_ptr<PenaltyBase>> penaltyArray(armInputDim_);
+  std::generate_n(penaltyArray.begin(), armInputDim_, [&] { return std::unique_ptr<PenaltyBase>(new QuadraticPenalty(mu)); });
   return std::unique_ptr<StateCost>(new StateSoftConstraint(std::move(constraint), std::move(penaltyArray)));
 }
 

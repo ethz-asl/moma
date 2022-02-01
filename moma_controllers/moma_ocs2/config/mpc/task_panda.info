@@ -149,6 +149,22 @@ selfCollision
   delta  1e-3
 }
 
+defaultConfiguration
+{
+  mu  0.01
+  active  false
+  armJointsValues
+  {
+    (0,0) 0.0
+    (1,0) 0.0
+    (2,0) 0.0
+    (3,0) -1.5
+    (4,0) 0.0
+    (5,0) 1.5
+    (6,0) 0.0
+  }
+}
+
 jointVelocityLimits
 {
   lowerBound

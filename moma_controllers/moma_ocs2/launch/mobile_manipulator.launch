@@ -6,7 +6,7 @@
     <arg name="task_file"   default="$(find moma_ocs2)/config/mpc/task_panda.info"/>
     <arg name="debug"       default="false" />
     <!-- 0 = none, 1 = skidsteer, 2 = holonomic -->
-    <arg name="base_type"   default="2"/>
+    <arg name="base_type"   default="0"/>
 
     <group ns="ocs2_mpc">
         <param name="task_file" value="$(arg task_file)"/>

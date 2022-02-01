@@ -101,6 +101,7 @@ class MobileManipulatorInterface final : public RobotInterface {
                                                         bool recompileLibraries);
   
   std::unique_ptr<StateCost> getJointPositionLimitConstraint(const std::string& taskFile);
+  std::unique_ptr<StateCost> getDefaultConfigurationConstraint(const std::string& taskFile) ;
   std::unique_ptr<StateInputCost> getJointVelocityLimitConstraint(const std::string& taskFile);
 
   size_t armInputDim_;
