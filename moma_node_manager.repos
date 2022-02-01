@@ -1,0 +1,5 @@
+repositories:
+  multimaster_fkie:
+    type: git
+    url: git@github.com:fkie/multimaster_fkie.git
+    version: noetic-devel
