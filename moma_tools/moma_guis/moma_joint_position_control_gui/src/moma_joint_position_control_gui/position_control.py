@@ -72,16 +72,16 @@ class PositionControl(Plugin):
         context.add_widget(self._widget)
 
         self.controller_name = rospy.get_param('/moma_joint_position_control_gui/controller_name')
-        self.controller_manager_ns = rospy.get_param('/moma_joint_position_control_gui/controller_namespace', '')
-        self.controller_manager_name = os.path.join(self.controller_manager_ns, "controller_manager")
+        self.controller_ns = rospy.get_param('/moma_joint_position_control_gui/controller_namespace', '')
+        self.controller_manager_name = os.path.join(self.controller_ns, "controller_manager")
         
         self.goal_topic = rospy.get_param('/moma_joint_position_control_gui/goal_topic',
-                                          '/{}/goal'.format(self.controller_name))
+                                          '/{}/{}/goal'.format(self.controller_ns, self.controller_name))
         self.states_topic = rospy.get_param('/moma_joint_position_control_gui/states_topic',
                                             '/joint_states')
 
         # To avoid redundancy, fetch all parameters that the controllers already have directly from them
-        prefix = os.path.join(self.controller_manager_ns, self.controller_name)
+        prefix = os.path.join(self.controller_ns, self.controller_name)
         self.joint_names = rospy.get_param('/{}/joint_names'.format(prefix))
         self.lower_limits = rospy.get_param('/{}/lower_limit'.format(prefix))
         self.upper_limits = rospy.get_param('/{}/upper_limit'.format(prefix))

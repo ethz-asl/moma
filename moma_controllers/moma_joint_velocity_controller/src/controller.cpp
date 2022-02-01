@@ -67,7 +67,7 @@ bool JointVelocityController::init(hardware_interface::RobotHW* hw, ros::NodeHan
   velocity_available_ = false;
   velocity_desired_ = Eigen::VectorXd::Zero(n_joints_);
   velocity_subscriber_ =
-      controller_nh.subscribe("/joint_velocity_controller/goal", 1,
+      controller_nh.subscribe("goal", 1,
                               &JointVelocityController::joint_callback, this);
 
   // Init specialized command handles

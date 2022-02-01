@@ -173,7 +173,7 @@ class ControllerManager(Plugin):
         update_combo(self._widget.cm_combo, self._list_cm())
 
         if self._widget.cm_combo.currentIndex() == -1 and self._widget.cm_combo.count() > 0:
-            relevant_items = [i for i in range(self._widget.cm_combo.count()) if self._widget.cm_combo.itemText(i) == '/controller_manager']
+            relevant_items = [i for i in range(self._widget.cm_combo.count()) if self._widget.cm_combo.itemText(i) == '/controller_manager' or self._widget.cm_combo.itemText(i) == '/control/controller_manager']
             if len(relevant_items) > 0:
                 self._widget.cm_combo.setCurrentIndex(relevant_items[0])
                 self._on_cm_change(self._widget.cm_combo.itemText(relevant_items[0]))
