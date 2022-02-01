@@ -186,6 +186,7 @@ jointVelocityLimits
 
 jointPositionLimits
 {
+  safetyMargin 0.0
   lowerBound
   {
     scaling 1e-0

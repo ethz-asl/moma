@@ -320,6 +320,7 @@ std::unique_ptr<StateCost> MobileManipulatorInterface::getJointPositionLimitCons
   vector_t upperBound(STATE_DIM(armInputDim_));
   scalar_t mu = 1e-2;
   scalar_t delta = 1e-3;
+  scalar_t safetyMargin = 0.0;
 
   boost::property_tree::ptree pt;
   boost::property_tree::read_info(taskFile, pt);
@@ -333,6 +334,7 @@ std::unique_ptr<StateCost> MobileManipulatorInterface::getJointPositionLimitCons
   std::cerr << " #### 'upperBound':  " << upperBound.transpose() << std::endl;
   loadData::loadPtreeValue(pt, mu, prefix + "mu", true);
   loadData::loadPtreeValue(pt, delta, prefix + "delta", true);
+  loadData::loadPtreeValue(pt, safetyMargin, prefix + "safetyMargin", true);
   std::cerr << " #### =============================================================================\n";
 
   std::unique_ptr<StateConstraint> constraint(new JointPositionLimits(armInputDim_));
@@ -342,7 +344,7 @@ std::unique_ptr<StateCost> MobileManipulatorInterface::getJointPositionLimitCons
   
   for (int i = 0; i < STATE_DIM(armInputDim_); i++) {
     barrierFunction.reset(new RelaxedBarrierPenalty({mu, delta}));
-    penaltyArray[i].reset(new DoubleSidedPenalty(lowerBound(i), upperBound(i), std::move(barrierFunction)));
+    penaltyArray[i].reset(new DoubleSidedPenalty(lowerBound(i) + safetyMargin, upperBound(i) - safetyMargin, std::move(barrierFunction)));
   }
 
   return std::unique_ptr<StateCost>(new StateSoftConstraint(std::move(constraint), std::move(penaltyArray)));
