@@ -122,7 +122,7 @@ path_admittance_controller:
   type: moma_controllers/PathAdmittanceController
 
   verbose: true
-  wrench_topic: /franka_state_controller/F_ext
+  wrench_topic: /control/franka_state_controller/F_ext
   wrench_opposite: true
   path_in_topic: /desired_path
   path_out_topic: /mpc_reference_path
