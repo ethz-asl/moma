@@ -5,8 +5,6 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /Global Options1
-        - /RobotModel1/Status1
-        - /TF1/Frames1
       Splitter Ratio: 0.5
     Tree Height: 866
   - Class: rviz/Selection
@@ -63,7 +61,23 @@ Visualization Manager:
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
+        arm_mount_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
         base_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        base_theta:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        base_x:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        base_y:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -119,43 +133,15 @@ Visualization Manager:
           Alpha: 1
           Show Axes: false
           Show Trail: false
+        tool_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
         world:
           Alpha: 1
           Show Axes: false
           Show Trail: false
         wrist_camera_bottom_screw_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        wrist_camera_color_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        wrist_camera_color_optical_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        wrist_camera_depth_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        wrist_camera_depth_optical_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        wrist_camera_infra1_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        wrist_camera_infra1_optical_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        wrist_camera_infra2_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        wrist_camera_infra2_optical_frame:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -175,6 +161,48 @@ Visualization Manager:
       Frame Timeout: 15
       Frames:
         All Enabled: false
+        arm_mount_link:
+          Value: false
+        base_link:
+          Value: false
+        base_theta:
+          Value: false
+        base_x:
+          Value: false
+        base_y:
+          Value: false
+        command:
+          Value: false
+        panda_default_ee:
+          Value: false
+        panda_hand:
+          Value: true
+        panda_link0:
+          Value: false
+        panda_link1:
+          Value: false
+        panda_link2:
+          Value: false
+        panda_link3:
+          Value: false
+        panda_link4:
+          Value: false
+        panda_link5:
+          Value: false
+        panda_link6:
+          Value: false
+        panda_link7:
+          Value: false
+        panda_link8:
+          Value: false
+        tool_frame:
+          Value: false
+        world:
+          Value: false
+        wrist_camera_bottom_screw_frame:
+          Value: false
+        wrist_camera_link:
+          Value: false
       Marker Alpha: 1
       Marker Scale: 0.5
       Name: TF
@@ -182,7 +210,32 @@ Visualization Manager:
       Show Axes: true
       Show Names: true
       Tree:
-        {}
+        world:
+          base_x:
+            base_y:
+              base_theta:
+                base_link:
+                  arm_mount_link:
+                    panda_link0:
+                      panda_link1:
+                        panda_link2:
+                          panda_link3:
+                            panda_link4:
+                              panda_link5:
+                                panda_link6:
+                                  panda_link7:
+                                    panda_link8:
+                                      panda_default_ee:
+                                        {}
+                                      panda_hand:
+                                        {}
+                                      tool_frame:
+                                        {}
+                                    wrist_camera_bottom_screw_frame:
+                                      wrist_camera_link:
+                                        {}
+          command:
+            {}
       Update Interval: 0
       Value: true
     - Class: rviz/MarkerArray
@@ -224,7 +277,8 @@ Visualization Manager:
       Marker Topic: /distance_markers
       Name: Distance Vectors
       Namespaces:
-        {}
+        1 - 4: true
+        1 - 6: true
       Queue Size: 100
       Value: true
   Enabled: true
@@ -255,7 +309,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 4.854406833648682
+      Distance: 2.181715488433838
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -263,17 +317,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: -0.18990589678287506
-        Y: 0.8404885530471802
-        Z: 0.8709294199943542
+        X: 0.16058392822742462
+        Y: 0.3942919373512268
+        Z: 0.6017444729804993
       Focal Shape Fixed Size: false
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.09039730578660965
+      Pitch: 0.5003973245620728
       Target Frame: <Fixed Frame>
-      Yaw: 5.463578224182129
+      Yaw: 5.878576278686523
     Saved: ~
 Window Geometry:
   Displays:
