@@ -61,21 +61,21 @@
        <plot mode="TimeSeries" style="Lines">
         <range top="6.074721" right="-396.791759" bottom="-24.453614" left="-496.767462"/>
         <limitY/>
-        <curve name="/franka_state_controller/F_ext/wrench/force/x" color="#1f77b4"/>
+        <curve name="/control/franka_state_controller/F_ext/wrench/force/x" color="#1f77b4"/>
        </plot>
       </DockArea>
       <DockArea name="...">
        <plot mode="TimeSeries" style="Lines">
         <range top="5.222191" right="-396.791759" bottom="-22.342221" left="-496.767462"/>
         <limitY/>
-        <curve name="/franka_state_controller/F_ext/wrench/force/y" color="#d62728"/>
+        <curve name="/control/franka_state_controller/F_ext/wrench/force/y" color="#d62728"/>
        </plot>
       </DockArea>
       <DockArea name="...">
        <plot mode="TimeSeries" style="Lines">
         <range top="0.719872" right="-396.791759" bottom="-25.211220" left="-496.767462"/>
         <limitY/>
-        <curve name="/franka_state_controller/F_ext/wrench/force/z" color="#1ac938"/>
+        <curve name="/control/franka_state_controller/F_ext/wrench/force/z" color="#1ac938"/>
        </plot>
       </DockArea>
      </DockSplitter>
@@ -84,21 +84,21 @@
        <plot mode="TimeSeries" style="Lines">
         <range top="2.243591" right="-396.791759" bottom="-1.665965" left="-496.767462"/>
         <limitY/>
-        <curve name="/franka_state_controller/F_ext/wrench/torque/x" color="#1f77b4"/>
+        <curve name="/control/franka_state_controller/F_ext/wrench/torque/x" color="#1f77b4"/>
        </plot>
       </DockArea>
       <DockArea name="...">
        <plot mode="TimeSeries" style="Lines">
         <range top="1.120880" right="-396.791759" bottom="-0.733449" left="-496.767462"/>
         <limitY/>
-        <curve name="/franka_state_controller/F_ext/wrench/torque/y" color="#d62728"/>
+        <curve name="/control/franka_state_controller/F_ext/wrench/torque/y" color="#d62728"/>
        </plot>
       </DockArea>
       <DockArea name="...">
        <plot mode="TimeSeries" style="Lines">
         <range top="2.435035" right="-396.791759" bottom="-2.204999" left="-496.767462"/>
         <limitY/>
-        <curve name="/franka_state_controller/F_ext/wrench/torque/z" color="#1ac938"/>
+        <curve name="/control/franka_state_controller/F_ext/wrench/torque/z" color="#1ac938"/>
        </plot>
       </DockArea>
      </DockSplitter>

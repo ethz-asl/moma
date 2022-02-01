@@ -7,7 +7,9 @@
 
   <param name="use_gui" value="true"/>
 
-  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher">
+    <remap from="robot_description" to="ocs2_mpc/robot_description_ocs2"/>
+  </node>
   <node if="$(arg test)" name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher"/>
   <node pkg="rviz" type="rviz" name="rviz" args="-d $(arg rvizconfig)" output="screen" if="$(arg rviz)"/>
 </launch>
