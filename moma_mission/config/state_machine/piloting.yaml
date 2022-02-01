@@ -9,7 +9,7 @@ IDLE:
   default_outcome: ExecuteManipulationPlan
 
 OPEN_GRIPPER:
-  default_outcome: Completed
+  default_outcome: None
   gripper_action_name: /franka_gripper/gripper_action
   position: 0.03
   max_effort: 20
@@ -17,7 +17,7 @@ OPEN_GRIPPER:
   timeout: 5.0
 
 CLOSE_GRIPPER:
-  default_outcome: Completed
+  default_outcome: None
   gripper_action_name: /franka_gripper/gripper_action
   position: 0.0
   max_effort: 20
@@ -25,7 +25,7 @@ CLOSE_GRIPPER:
   timeout: 5.0
 
 HOME_ROBOT:
-  default_outcome: Completed
+  default_outcome: None
   action_name: /joint_space_controller_server
   manager_namespace: control
   startlist: ['joint_space_controller']
@@ -35,7 +35,7 @@ HOME_ROBOT:
 
 # hack to avoid self collision in the end
 HOME_ROBOT_FINAL:
-  default_outcome: Completed
+  default_outcome: None
   action_name: /joint_space_controller_server
   manager_namespace: control
   startlist: ['joint_space_controller']
@@ -44,13 +44,13 @@ HOME_ROBOT_FINAL:
     - [-0.65, -0.885, 0, -2.1, 0, 1.571, 0]
 
 OBSERVATION_POSE:
-  default_outcome: Completed
+  default_outcome: None
   object_position_estimate: [0.5, 0, 0]
   phi_range: [0, 0.4]
   heading: [1, 0, 0]
 
 OBSERVATION_APPROACH:
-  default_outcome: Completed
+  default_outcome: None
   duration: 5.0
   target_frame: observation
   startlist: [ 'mpc_controller', 'path_admittance_controller' ]
@@ -59,6 +59,9 @@ OBSERVATION_APPROACH:
 
 MODEL_FIT_VALVE:
   default_outcome: None
+  dummy: true
+  dummy_position: [0.0, 0.0, 0.0]
+  dummy_orientation: [0.0, 0.0, 0.0, 1.0]
 
 REACH_DETECTION_HOTSPOT:
   default_outcome: Completed
@@ -102,7 +105,7 @@ REACH_VIEWPOINT:
     - [-1.57, -0.885, 0, -2.1, 0, 1.571, 0]
 
 LATERAL_GRASP:
-  default_outcome: Completed
+  default_outcome: None
   controller_name: mpc_controller
   manager_namespace: control
   startlist: ['mpc_controller', 'path_passthrough_controller']
@@ -110,14 +113,14 @@ LATERAL_GRASP:
   path_topic_name: /desired_path
 
 POST_LATERAL_GRASP:
-  default_outcome: FullRotationDone
+  default_outcome: None
   manager_namespace: control
   startlist: ['mpc_controller', 'path_passthrough_controller']
   stoplist: ['joint_space_controller']
   path_topic_name: /desired_path
 
 MANIPULATE_VALVE:
-  default_outcome: Completed
+  default_outcome: None
   manager_namespace: control
   startlist: ['mpc_controller', 'path_passthrough_controller']
   stoplist: ['joint_space_controller']

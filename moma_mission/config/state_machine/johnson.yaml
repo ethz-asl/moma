@@ -33,6 +33,9 @@ OBSERVATION_APPROACH:
   manager_namespace: 'control'
 
 MODEL_FIT_AUTOINJECTOR:
+  dummy: false
+  dummy_position: [0.0, 0.0, 0.0]
+  dummy_orientation: [0.0, 0.0, 0.0, 1.0]
   default_outcome: None
 
 OBJECT_APPROACH:

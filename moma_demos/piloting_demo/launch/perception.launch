@@ -7,6 +7,10 @@
   <arg name="depth_topic"  default="/hand_eye/depth/image_rect_raw_throttle"/>
   <arg name="calibration_topic"  default="/camera_info"/>
 
+  <!-- Custom intrinsics publishers -->
+  <arg name="custom_intrinsics_file" default="$(env HOME)/calibration/camera_calibration.yaml" />
+  <node name="camera_intrinsics_publisher" pkg="moma_sensor_tools" type="yaml_to_camera_info_publisher.py" args="$(arg custom_intrinsics_file)" output="screen"/>
+
   <include file="$(find object_keypoints_ros)/launch/keypoints.launch">
     <arg name="load_bag_filepath" default="false"/>
     <arg name="calibration_file"  default="$(env HOME)/calibration/intrinsics.yaml"/>

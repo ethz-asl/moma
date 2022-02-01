@@ -221,6 +221,7 @@ class ModelFitValve(ModelFitState):
         ModelFitState.__init__(self, ns=ns, outcomes=["Completed", "Retry", "Failure"])
         self.k = 3 # TODO remove the hard coded 3 = number of spokes in the valve
         self.valve_fitter = ValveFitter(k=3) 
+
         self.marker_publisher = rospy.Publisher("/detected_valve/marker", Marker, queue_size=1)
 
     def _object_name(self) -> str:
@@ -244,7 +245,6 @@ class ModelFitValve(ModelFitState):
         return marker
 
     def _model_fit(self, keypoints_perception: List[Pose], frame: str) -> TransformStamped:
-        print("\n\n\n In _model_fit\n\n\n")
         points_3d = np.zeros((3, self.k +1)) # spokes plus center
         for i, kpt in enumerate(keypoints_perception):
             points_3d[:, i] = np.array([kpt.position.x, kpt.position.y, kpt.position.z])
@@ -274,7 +274,6 @@ class ModelFitValve(ModelFitState):
         marker.pose.orientation.w = q[3]
         self.marker_publisher.publish(marker)
        
-        print(q)
         object_pose = TransformStamped()
         object_pose.transform.translation = marker.pose.position
         object_pose.transform.rotation = marker.pose.orientation
