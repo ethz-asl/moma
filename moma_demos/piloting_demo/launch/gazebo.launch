@@ -16,7 +16,10 @@
 
   <!-- This remap needs to be here to be parsed by gazebo controllers -->  
   <remap from="/control/robot_description" to="robot_description"/>
- 
+
+  <!-- Allow interoperability between sim and real robot (we cannot change topic name on sim gripper controller plugin) -->
+  <remap from="/control/franka_gripper/gripper_cmd" to="/control/franka_gripper/gripper_action"/>
+
   <!-- start gazebo -->
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
     <arg name="use_sim_time" value="true" />

@@ -12,6 +12,7 @@
       <joint name="tool_frame_joint" type="fixed">
         <parent link="panda_link8"/>
         <child link="tool_frame"/>
+        <origin rpy="0 0 -0.785398163397" xyz="0 0 0.12"/>
       </joint>
     </xacro:if>
 

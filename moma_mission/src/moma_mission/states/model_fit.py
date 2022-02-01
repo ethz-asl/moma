@@ -66,6 +66,5 @@ class ModelFitState(StateRos):
             object_pose.child_frame_id = self._object_name()
 
         self.object_pose_broadcaster.sendTransform(object_pose)
-
         rospy.sleep(2.0)
         return 'Completed'

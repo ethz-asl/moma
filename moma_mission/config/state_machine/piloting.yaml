@@ -45,7 +45,7 @@ HOME_ROBOT_FINAL:
 
 OBSERVATION_POSE:
   default_outcome: None
-  object_position_estimate: [0.5, 0, 0]
+  object_position_estimate: [0.8, 0.0, 0.0]
   phi_range: [0, 0.4]
   heading: [1, 0, 0]
 
@@ -53,15 +53,15 @@ OBSERVATION_APPROACH:
   default_outcome: None
   duration: 5.0
   target_frame: observation
-  startlist: [ 'mpc_controller', 'path_admittance_controller' ]
+  startlist: [ 'mpc_controller', 'path_passthrough_controller'] #, 'path_admittance_controller' ]
   stoplist: [ 'joint_space_controller' ]
   manager_namespace: 'control'
 
 MODEL_FIT_VALVE:
   default_outcome: None
   dummy: true
-  dummy_position: [0.0, 0.0, 0.0]
-  dummy_orientation: [0.0, 0.0, 0.0, 1.0]
+  dummy_position: [0.8, 0.0, 0.5]
+  dummy_orientation: [0.0, 0.707, 0.0, 0.707]
 
 REACH_DETECTION_HOTSPOT:
   default_outcome: Completed

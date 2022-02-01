@@ -56,10 +56,9 @@
     <rosparam file="$(find moma_gazebo)/config/panda_controllers.yaml" command="load" />
     <rosparam file="$(find moma_gazebo)/config/gripper_controllers.yaml" command="load" />
 
-    <node unless="$(arg mpc)" name="arm_controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="joint_state_controller effort_joint_trajectory_controller" />
-    <node if="$(arg mpc)" name="arm_controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="joint_state_controller mpc_controller path_passthrough_controller" />
-    <node name="stopped_controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="--stopped joint_space_controller" />
-  
+    <node name="arm_controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="joint_state_controller effort_joint_trajectory_controller path_passthrough_controller" />
+    <node name="stopped_controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="--stopped joint_space_controller mpc_controller path" />
+
   </group>
 
   <node name="unpause_gazebo" pkg="moma_gazebo" type="unpause_gazebo.py">
@@ -72,13 +71,11 @@
     <arg name="global_frame" value="tracking_camera_odom"/>
   </include>
 
-  <group if="$(arg mpc)">
-      <!-- Give a static transform between world and odom frame, since the "world" frame is hardcoded in ocs2_ros_interfaces -->
-      <node pkg="tf2_ros"
-            type="static_transform_publisher"
-            name="tracking_cam_world_tf"
-            args="0 0 0 0 0 0 1 tracking_camera_odom world" />
-      <include if="$(arg rviz)" file="$(find panda_mpc)/launch/interactive_marker.launch"/>
-  </group>
-
+    <!-- Give a static transform between world and odom frame, since the "world" frame is hardcoded in ocs2_ros_interfaces -->
+    <node pkg="tf2_ros"
+          type="static_transform_publisher"
+          name="tracking_cam_world_tf"
+          args="0 0 0 0 0 0 1 tracking_camera_odom world" />
+    <include if="$(arg rviz)" file="$(find panda_mpc)/launch/interactive_marker.launch"/>
+  
 </launch>

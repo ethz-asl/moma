@@ -44,3 +44,5 @@ class ModelFitAutoinjectorState(ModelFitState):
         object_pose.transform.rotation.w = quat[3]
         return object_pose
 
+    def _publish_marker(self, object_pose):
+        pass
