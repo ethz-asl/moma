@@ -190,6 +190,7 @@ jointVelocityLimits
 
 jointPositionLimits
 {
+  safetyMargin 0.087 ; ca 5 deg
   lowerBound
   {
     scaling 1e-0
@@ -221,8 +222,8 @@ jointPositionLimits
   }
 
   ; relaxed log barrier mu
-  mu  0.01
+  mu  1e-2
 
   ; relaxed log barrier delta
-  delta  1e-3
+  delta  1e-2
 }
