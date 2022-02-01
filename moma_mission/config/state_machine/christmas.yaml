@@ -28,7 +28,7 @@ OPEN_GRIPPER_FINAL:
 HOME_ROBOT:
   default_outcome: None
   action_name: /joint_space_controller_server
-  manager_namespace: ''
+  manager_namespace: control
   startlist: ['joint_space_controller']
   stoplist: ['mpc_controller', 'path_passthrough_controller', 'effort_joint_trajectory_controller']
   joints_configurations:
@@ -37,7 +37,7 @@ HOME_ROBOT:
 GRASP_PRESET:
   default_outcome: None
   action_name: /joint_space_controller_server
-  manager_namespace: ''
+  manager_namespace: control
   startlist: ['joint_space_controller']
   stoplist: ['mpc_controller', 'path_passthrough_controller']
   joints_configurations:
@@ -48,7 +48,7 @@ HOME_ROBOT_FINAL:
   default_outcome: None
   action_name: /joint_space_controller_server
   controller_name: joint_space_controller
-  manager_namespace: ''
+  manager_namespace: control
   startlist: ['joint_space_controller']
   stoplist: ['mpc_controller', 'path_passthrough_controller']
   joints_configurations:
@@ -60,7 +60,7 @@ DOOR_MANIPULATION:
   startlist: ['mpc_controller', 'path_passthrough_controller'] # , 
   stoplist: ['joint_space_controller']
   path_topic_name:  /desired_path
-  manager_namespace: ''
+  manager_namespace: control
   opening_angle_deg: 80.0
   opening_speed_deg: 5.0
   ee_frame: tool_frame

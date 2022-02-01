@@ -30,7 +30,7 @@ OBSERVATION_APPROACH:
   target_frame: observation
   startlist: [ 'mpc_controller', 'path_admittance_controller' ]
   stoplist: [ 'joint_space_controller' ]
-  manager_namespace: 'control'
+  manager_namespace: control
 
 MODEL_FIT_AUTOINJECTOR:
   dummy: false
@@ -46,7 +46,7 @@ OBJECT_APPROACH:
   angle_z: 0.7853
   startlist: [ 'mpc_controller', 'path_admittance_controller' ]
   stoplist: [ 'joint_space_controller' ]
-  manager_namespace: 'control'
+  manager_namespace: control
 
 OBJECT_CONTACT:
   default_outcome: None
@@ -56,4 +56,4 @@ OBJECT_CONTACT:
   angle_z: 0.7853
   startlist: [ 'mpc_controller', 'path_admittance_controller' ]
   stoplist: [ 'joint_space_controller' ]
-  manager_namespace: 'control'
+  manager_namespace: control
