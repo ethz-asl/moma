@@ -44,6 +44,7 @@ OBJECT_APPROACH:
   target_frame: autoinjector
   offset: [ 0, 0, -0.15 ]
   angle_z: 0.7853
+  allow_flip: true
   startlist: [ 'mpc_controller', 'path_admittance_controller' ]
   stoplist: [ 'joint_space_controller' ]
   manager_namespace: control
@@ -54,6 +55,7 @@ OBJECT_CONTACT:
   target_frame: autoinjector
   offset: [ 0, 0, -0.1 ]
   angle_z: 0.7853
+  allow_flip: true
   startlist: [ 'mpc_controller', 'path_admittance_controller' ]
   stoplist: [ 'joint_space_controller' ]
   manager_namespace: control
