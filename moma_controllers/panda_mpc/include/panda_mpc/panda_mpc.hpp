@@ -71,7 +71,7 @@ class PandaMpcController
 
   //std::string world_frame_;
   //std::string base_link_;
-  std::string odom_topic_;
+  std::string odom_topic_ = "";
   std::string command_base_topic_;
   ros::Subscriber odom_sub_;
   ros::Publisher command_base_pub_;
