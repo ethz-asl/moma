@@ -1,16 +1,19 @@
 <?xml version="1.0"?>
 <launch>
-  <arg name="play_bag"     default="false"/>
-  <arg name="bag_file"     default="$(env HOME)/storage/bags/2022-01-26/2022-01-26-11-11-18_valve_depth_throttled.bag"/>
-  <arg name="base_frame"   default="panda_link0"/>
-  <arg name="camera_frame" default="hand_eye_color_optical_frame"/>
-  <arg name="image_topic"  default="/hand_eye/color/image_raw_throttle"/>
-  <arg name="depth_topic"  default="/hand_eye/depth/image_rect_raw_throttle"/>
-  <arg name="calibration_topic"  default="/camera_info"/>
+  <arg name="play_bag"          default="false"/>
+  <arg name="bag_file"          default="$(env HOME)/storage/bags/2022-01-26/2022-01-26-11-11-18_valve_depth_throttled.bag"/>
+  <arg name="base_frame"        default="panda_link0"/>
+  <arg name="camera_frame"      default="hand_eye_color_optical_frame"/>
+  <arg name="image_topic"       default="/hand_eye/color/image_raw_throttle"/>
+  <arg name="depth_topic"       default="/hand_eye/depth/image_rect_raw_throttle"/>
+  <arg name="calibration_topic" default="/camera_info"/>
+  <arg name="custom_intrinsics" default="false"/>
+  <arg name="rviz"              default="false"/>
 
   <!-- Custom intrinsics publishers -->
   <arg name="custom_intrinsics_file" default="$(env HOME)/calibration/camera_calibration.yaml" />
-  <node name="camera_intrinsics_publisher" pkg="moma_sensor_tools" type="yaml_to_camera_info_publisher.py" args="$(arg custom_intrinsics_file)" output="screen"/>
+  <node name="camera_intrinsics_publisher" pkg="moma_sensor_tools" type="yaml_to_camera_info_publisher.py" 
+    args="$(arg custom_intrinsics_file)" output="screen" if="$(arg custom_intrinsics)"/>
 
   <include file="$(find object_keypoints_ros)/launch/keypoints.launch">
     <arg name="load_bag_filepath" default="false"/>
@@ -24,10 +27,11 @@
     <arg name="keypoints_file"    default="$(find object_keypoints_ros)/config/valve.json"/>
     <arg name="image_file"        default=""/>
     <arg name="rviz_config"       default="$(find piloting_demo)/config/rviz/perception.rviz"/>
+    <arg name="rviz"              default="$(arg rviz)"/>
     <arg name="gpu"               default="false"/>
     <arg name="operation_mode"    default="service"/>
   </include>
   
   <node pkg="rosbag" type="play" name="rosbag_play" args="-r 0.1 $(arg bag_file)" launch-prefix="bash -c 'sleep 3.0; $0 $@' " if="$(arg play_bag)"/>
-  <node pkg="moma_sensor_tools" type="consolidate_tf_static.py" name="consolidate_tf"/>
+  <node pkg="moma_sensor_tools" type="consolidate_tf_static.py" name="consolidate_tf" if="$(arg play_bag)"/>
 </launch>

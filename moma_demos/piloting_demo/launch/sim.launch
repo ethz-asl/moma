@@ -38,6 +38,7 @@
     <param name="robot_description_ocs2" command="$(find xacro)/xacro $(find moma_description)/urdf/superpanda.urdf.xacro 
       mpc_model:=true use_nominal_extrinsics:=true tool:='none'"/>
     <param name="base_type" value="$(arg base_type)"/>
+    <param name="reference_frame" value="tracking_camera_odom"/>
   </group>
 
   <group ns="control">
@@ -57,7 +58,13 @@
     <rosparam file="$(find moma_gazebo)/config/gripper_controllers.yaml" command="load" />
 
     <node name="arm_controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="joint_state_controller effort_joint_trajectory_controller path_passthrough_controller" />
-    <node name="stopped_controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="--stopped joint_space_controller mpc_controller" />
+    
+    <!-- Add some delay larger then gazebo start delay, otherwise sim stalls -->
+    <node name="stopped_controller_spawner" 
+          pkg="controller_manager"
+          type="spawner" respawn="false" output="screen" 
+          args="--stopped joint_space_controller mpc_controller"
+          launch-prefix="bash -c 'sleep 12; $0 $@' "/>
 
   </group>
 
@@ -71,11 +78,15 @@
     <arg name="global_frame" value="tracking_camera_odom"/>
   </include>
 
-  <!-- Give a static transform between world and odom frame, since the "world" frame is hardcoded in ocs2_ros_interfaces -->
-  <!-- <node pkg="tf2_ros"
-        type="static_transform_publisher"
-        name="tracking_cam_world_tf"
-        args="0 0 0 0 0 0 1 tracking_camera_odom world" />
-  <include if="$(arg rviz)" file="$(find panda_mpc)/launch/interactive_marker.launch"/> -->
-  
+  <!-- Perception -->
+  <include file="$(find piloting_demo)/launch/perception.launch">
+    <arg name="play_bag"          value="false"/>
+    <arg name="base_frame"        value="tracking_camera_odom"/>
+    <arg name="camera_frame"      value="hand_eye_color_optical_frame"/>
+    <arg name="image_topic"       value="/hand_eye/color/image_raw"/>
+    <arg name="depth_topic"       value="/hand_eye/depth/image_rect_raw"/>
+    <arg name="calibration_topic" value="/hand_eye/color/camera_info"/>
+    <arg name="custom_intrinsics" value="false"/>
+    <arg name="rviz"              value="false"/>
+  </include>
 </launch>
