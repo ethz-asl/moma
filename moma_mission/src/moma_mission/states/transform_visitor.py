@@ -18,7 +18,7 @@ class TransformVisitorState(StateRosControl):
         self.offset = self.get_scoped_param("offset", [0, 0, 0])
         self.angle_z = self.get_scoped_param("angle_z", 0)
         self.duration = self.get_scoped_param("duration", 0.0)
-        self.timeout = self.get_scoped_param("timeout", max(30.0, 2 * self.duration))
+        self.timeout = self.get_scoped_param("timeout", 2 * self.duration if self.duration > 0 else 30.0)
         self.allow_flip = self.get_scoped_param("allow_flip", False)
 
         self.path_publisher = rospy.Publisher(
