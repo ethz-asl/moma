@@ -24,7 +24,7 @@
     <arg name="description_name"        value="smb_description"/>
     <arg name="control_namespace"       value="control"/>
     <arg name="robot_namespace"         value=""/>
-    <arg name="enable_ekf"              value="true" />
+    <arg name="enable_ekf"              value="false" />
     <arg name="simulation"              value="true"/>
     <arg name="mpc"                     value="false"/>
     <arg name="publish_robot_state"     value="false"/>  <!-- Since we do this in the current launch for the full robot -->
@@ -72,10 +72,10 @@
   </include>
 
   <!-- Give a static transform between world and odom frame, since the "world" frame is hardcoded in ocs2_ros_interfaces -->
-  <node pkg="tf2_ros"
+  <!-- <node pkg="tf2_ros"
         type="static_transform_publisher"
         name="tracking_cam_world_tf"
         args="0 0 0 0 0 0 1 tracking_camera_odom world" />
-  <include if="$(arg rviz)" file="$(find panda_mpc)/launch/interactive_marker.launch"/>
+  <include if="$(arg rviz)" file="$(find panda_mpc)/launch/interactive_marker.launch"/> -->
   
 </launch>
