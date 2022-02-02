@@ -149,17 +149,15 @@ void JointSpaceController::update(const ros::Time& time, const ros::Duration& pe
 
     read_state();
     bool all_reached = true;
+    std::stringstream ss;
     for (int i = 0; i < n_joints_; i++) {
       double joint_error, velocity_command;
+      
       angles::shortest_angular_distance_with_large_limits(
           q_[i], joint_desired_now(i), lower_limit_[i], upper_limit_[i], joint_error);
-      std::stringstream ss;
-      ss << "Joint current=" << q_[i] << std::endl;
-      ss << "joint desired=" << joint_desired_now(i) << std::endl;
-      ss << "lower limit=" << lower_limit_[i] << std::endl;
-      ss << "upper limit=" << upper_limit_[i] << std::endl;
-      ss << "error=" << joint_error << std::endl;
-      ROS_DEBUG_STREAM_THROTTLE(1.0, ss.str());
+      ss << "q[" << i << "]" << q_[i] << ", ";
+      ss << "q*[" << i << "]" << joint_desired_now(i) << ", ";
+      ss << "dq[" << i << "]" << joint_error << std::endl;
 
       if (abs(joint_error) < tolerance_) {
         position_command_[i] = q_[i];
@@ -170,9 +168,11 @@ void JointSpaceController::update(const ros::Time& time, const ros::Duration& pe
             std::min(std::max(gain_ * joint_error, -max_velocity_), max_velocity_);
         all_reached = false;
       }
-      success_ = all_reached;
     }
-  } else {
+    success_ = all_reached;
+    ROS_DEBUG_STREAM(ss.str());
+  } 
+  else {
     velocity_command_.setZero();
   }
   write_command(period);
