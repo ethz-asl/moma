@@ -10,7 +10,7 @@ OPEN_GRIPPER:
   timeout: 5.0
 
 CLOSE_GRIPPER:
-  default_outcome: None
+  default_outcome: Failure
   gripper_action_name: /control/franka_gripper/gripper_action
   position: 0.0
   max_effort: 20
@@ -42,8 +42,8 @@ OBJECT_APPROACH:
   default_outcome: None
   duration: 10.0
   target_frame: autoinjector
-  offset: [ 0, 0, -0.15 ]
-  angle_z: 0.7853
+  offset: [ 0.02, 0, -0.05 ]
+  angle_z: 0
   allow_flip: true
   startlist: [ 'mpc_controller', 'path_admittance_controller' ]
   stoplist: [ 'joint_space_controller' ]
@@ -53,8 +53,8 @@ OBJECT_CONTACT:
   default_outcome: None
   duration: 4.0
   target_frame: autoinjector
-  offset: [ 0, 0, -0.1 ]
-  angle_z: 0.7853
+  offset: [ 0.02, 0, 0.015 ]
+  angle_z: 0
   allow_flip: true
   startlist: [ 'mpc_controller', 'path_admittance_controller' ]
   stoplist: [ 'joint_space_controller' ]
