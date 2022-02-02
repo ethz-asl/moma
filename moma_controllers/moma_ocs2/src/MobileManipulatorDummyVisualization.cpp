@@ -194,7 +194,7 @@ void MobileManipulatorDummyVisualization::publishTargetTrajectories(const ros::T
   eeDesiredOrientation.coeffs() = targetTrajectories.stateTrajectory.back().tail(4);
   geometry_msgs::TransformStamped command_tf;
   command_tf.header.stamp = timeStamp;
-  command_tf.header.frame_id = "world";
+  command_tf.header.frame_id = "odom";
   command_tf.child_frame_id = "command";
   command_tf.transform.translation = ros_msg_helpers::getVectorMsg(eeDesiredPosition);
   command_tf.transform.rotation = ros_msg_helpers::getOrientationMsg(eeDesiredOrientation);
@@ -247,9 +247,9 @@ void MobileManipulatorDummyVisualization::publishOptimizedTrajectory(const ros::
   markerArray.markers.emplace_back(ros_msg_helpers::getLineMsg(std::move(baseTrajectory), red, TRAJECTORYLINEWIDTH));
   markerArray.markers.back().ns = "Base Trajectory";
 
-  assignHeader(markerArray.markers.begin(), markerArray.markers.end(), ros_msg_helpers::getHeaderMsg("world", timeStamp));
+  assignHeader(markerArray.markers.begin(), markerArray.markers.end(), ros_msg_helpers::getHeaderMsg("odom", timeStamp));
   assignIncreasingId(markerArray.markers.begin(), markerArray.markers.end());
-  poseArray.header = ros_msg_helpers::getHeaderMsg("world", timeStamp);
+  poseArray.header = ros_msg_helpers::getHeaderMsg("odom", timeStamp);
 
   stateOptimizedPublisher_.publish(markerArray);
   stateOptimizedPosePublisher_.publish(poseArray);

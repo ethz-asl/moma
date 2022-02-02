@@ -69,11 +69,18 @@ class MpcController {
       ROS_ERROR("Failed to retrieve /ocs2_mpc/robot_description_ocs2 from param server.");
       return 0;
     }
+
+    if (!nh_.param("/ocs2_mpc/reference_frame", referenceFrame_, {})){
+      ROS_ERROR("Failed to retrieve /ocs2_mpc/reference_frame from param server.");
+      return 0;
+    }
+
     int baseTypeInt;
     if (!nh_.param("/ocs2_mpc/base_type", baseTypeInt, 0)){
       ROS_ERROR("Failed to retrieve /ocs2_mpc/base_type from param server.");
       return 0;
-    }
+    }    
+
     if (baseTypeInt >= ocs2::mobile_manipulator::BASE_TYPE_COUNT){
       ROS_ERROR("The value of base_type is not supported.");
       return 0;
@@ -342,10 +349,10 @@ class MpcController {
   }
 
   // path processing
-  static bool sanityCheck(const nav_msgs::Path& path) {
+  bool sanityCheck(const nav_msgs::Path& path) {
     // check that path adheres to conventional frame
-    if (path.header.frame_id != "world") {
-      ROS_ERROR("[MpcController::transformPath] Desired path must be in world frame.");
+    if (path.header.frame_id != referenceFrame_) {
+      ROS_ERROR_STREAM("[MpcController::transformPath] Desired path must be in [" << referenceFrame_ << "] frame. This should coincide at initialization, with the base link.");
       return false;
     }
 
@@ -407,7 +414,7 @@ class MpcController {
 
     std::string ee_frame = mm_interface_->getEEFrame();  // this is the one in the task file
     nav_msgs::Path rollout;
-    rollout.header.frame_id = "world";
+    rollout.header.frame_id = referenceFrame_;
     rollout.header.stamp = ros::Time::now();
     for (int i = 0; i < time_trajectory.size(); i++) {
       auto& data = mm_interface_->getPinocchioDesiredInterface().getData();
@@ -421,7 +428,7 @@ class MpcController {
       Eigen::Quaterniond q = Eigen::Quaterniond(data.oMf[frameId].rotation());
 
       geometry_msgs::PoseStamped pose;
-      pose.header.frame_id = "world";
+      pose.header.frame_id = referenceFrame_;
       pose.pose.position.x = t.x();
       pose.pose.position.y = t.y();
       pose.pose.position.z = t.z();
@@ -487,6 +494,7 @@ class MpcController {
   std::unique_ptr<ocs2::MPC_MRT_Interface> mpc_mrt_interface_;
 
   // tf
+  std::string referenceFrame_;  // the world reference frame for the kinematic tree 
   tf2_ros::Buffer tf_buffer_;
   tf2_ros::TransformListener tf_listener_;
   Eigen::Affine3d T_tool_ee_;   // transform from frame tracked by MPC to the actual tool frame
