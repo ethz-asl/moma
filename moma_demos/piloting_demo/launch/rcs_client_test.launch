@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<launch>
+  <!-- ROS bridge for piloting-mavsdk -->
+  <include file="$(find mavsdk_ros)/launch/mavsdk_ros.launch">
+    <arg name="config_file_path" default="$(find piloting_demo)/config/gcs/mavsdk_ros_test.yaml"/>
+  </include>
+
+  <!-- Test standalone RCS client -->
+  <node name="rcs_bridge" type="rcs_bridge.py" pkg="moma_mission" output="screen" args="--hlaction"/>
+</launch>
