@@ -86,6 +86,7 @@
     <arg name="image_topic"       value="/hand_eye/color/image_raw"/>
     <arg name="depth_topic"       value="/hand_eye/depth/image_rect_raw"/>
     <arg name="calibration_topic" value="/hand_eye/color/camera_info"/>
+    <arg name="calibration_file"  value="none"/>
     <arg name="custom_intrinsics" value="false"/>
     <arg name="rviz"              value="false"/>
   </include>

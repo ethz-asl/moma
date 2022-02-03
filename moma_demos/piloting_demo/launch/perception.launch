@@ -7,6 +7,7 @@
   <arg name="image_topic"       default="/hand_eye/color/image_raw_throttle"/>
   <arg name="depth_topic"       default="/hand_eye/depth/image_rect_raw_throttle"/>
   <arg name="calibration_topic" default="/camera_info"/>
+  <arg name="calibration_file"  default="$(env HOME)/calibration/intrinsics.yaml"/>
   <arg name="custom_intrinsics" default="false"/>
   <arg name="rviz"              default="false"/>
 
@@ -17,7 +18,7 @@
 
   <include file="$(find object_keypoints_ros)/launch/keypoints.launch">
     <arg name="load_bag_filepath" default="false"/>
-    <arg name="calibration_file"  default="$(env HOME)/calibration/intrinsics.yaml"/>
+    <arg name="calibration_file"  default="$(arg calibration_file)"/>
     <arg name="image_topic"       default="$(arg image_topic)"/>
     <arg name="depth_topic"       default="$(arg depth_topic)"/>
     <arg name="calibration_topic" default="$(arg calibration_topic)"/>
