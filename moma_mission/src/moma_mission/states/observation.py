@@ -2,6 +2,7 @@ import rospy
 import tf2_ros
 import tf
 import numpy as np
+import pinocchio as pin
 from scipy.spatial.transform import Rotation 
 from geometry_msgs.msg import TransformStamped, PoseArray, Pose
 from sensor_msgs.msg import CameraInfo
@@ -89,6 +90,11 @@ class FOVSamplerState(StateRos):
         self.map_frame = self.get_scoped_param("map_frame", "world")
         self.object_frame = self.get_scoped_param("object_frame", "object")
 
+        # Use these frame ids to find the offset for the transform, which is where
+        # the controlled frame goes, not the camera frame.
+        self.camera_frame = self.get_scoped_param("camera_frame", "camera_optical_frame")
+        self.controlled_frame = self.get_scoped_param("controlled_frame", "controlled_frame")
+
         # the approximate lumped size of the object bounding box
         self.object_size = self.get_scoped_param("object_size", 1.0)
 
@@ -133,6 +139,7 @@ class FOVSamplerState(StateRos):
             d = self.object_size * f / ( w * self.image_fill_ratio)
 
             T_map_obj = self.get_transform(self.map_frame, self.object_frame)
+            T_cam_ctrl = self.get_transform(self.camera_frame, self.controlled_frame)
         
             thetas = [0.0] + [i * np.pi/4 for i  in range(8)]
             phis = [0.0] + [self.lateral_view_angle] * 8
@@ -147,27 +154,36 @@ class FOVSamplerState(StateRos):
                 x_axis_dir = np.cross(y_axis_dir, z_axis_dir)
                 assert np.allclose(x_axis_dir, tf.transformations.unit_vector(x_axis_dir))
                 
-                R_obs_obj = np.eye(3)
-                R_obs_obj[:, 0] = x_axis_dir
-                R_obs_obj[:, 1] = y_axis_dir
-                R_obs_obj[:, 2] = z_axis_dir
-                
-                sample_pose_translation = T_map_obj.rotation @ coords + T_map_obj.translation
-                sample_pose_orientation = Rotation.from_matrix(T_map_obj.rotation @ R_obs_obj.T).as_quat();
-                
+                T_obj_cam = np.eye(4)
+                T_obj_cam[:3, 0] = x_axis_dir
+                T_obj_cam[:3, 1] = y_axis_dir
+                T_obj_cam[:3, 2] = z_axis_dir
+                T_obj_cam[:3, 3] = coords
+                T_obj_cam = pin.SE3(T_obj_cam)
+
+                T_map_cam = T_map_obj.act(T_obj_cam)
+                T_map_ctrl = T_map_cam.act(T_cam_ctrl)
+
                 sample_pose = Pose()
-                sample_pose.position.x = sample_pose_translation[0]
-                sample_pose.position.y = sample_pose_translation[1]
-                sample_pose.position.z = sample_pose_translation[2]
-                sample_pose.orientation.x = sample_pose_orientation[0]
-                sample_pose.orientation.y = sample_pose_orientation[1]
-                sample_pose.orientation.z = sample_pose_orientation[2]
-                sample_pose.orientation.w = sample_pose_orientation[3]
+                sample_pose.position.x = T_map_cam.translation[0]
+                sample_pose.position.y = T_map_cam.translation[1]
+                sample_pose.position.z = T_map_cam.translation[2]
+                q = Rotation.from_matrix(T_map_cam.rotation).as_quat()
+                sample_pose.orientation.x = q[0]
+                sample_pose.orientation.y = q[1]
+                sample_pose.orientation.z = q[2]
+                sample_pose.orientation.w = q[3]
                 sample_pose_array.poses.append(sample_pose)
                 
                 sample_pose_tf = TransformStamped()
-                sample_pose_tf.transform.translation = sample_pose.position
-                sample_pose_tf.transform.rotation = sample_pose.orientation
+                sample_pose_tf.transform.translation.x = T_map_ctrl.translation[0]
+                sample_pose_tf.transform.translation.y = T_map_ctrl.translation[1]
+                sample_pose_tf.transform.translation.z = T_map_ctrl.translation[2]
+                q = Rotation.from_matrix(T_map_ctrl.rotation).as_quat()
+                sample_pose_tf.transform.rotation.x = q[0]
+                sample_pose_tf.transform.rotation.y = q[1]
+                sample_pose_tf.transform.rotation.z = q[2]
+                sample_pose_tf.transform.rotation.w = q[3]
                 sample_pose_tf.header.stamp = rospy.Time.now()
                 sample_pose_tf.header.frame_id = self.map_frame
                 sample_pose_tf.child_frame_id = self.sample_name

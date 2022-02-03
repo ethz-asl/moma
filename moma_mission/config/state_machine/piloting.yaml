@@ -9,7 +9,7 @@ IDLE:
   default_outcome: ExecuteManipulationPlan
 
 OPEN_GRIPPER:
-  default_outcome: None
+  default_outcome: Completed
   gripper_action_name: /control/franka_gripper/gripper_action
   position: 0.03
   max_effort: 20
@@ -17,7 +17,7 @@ OPEN_GRIPPER:
   timeout: 5.0
 
 CLOSE_GRIPPER:
-  default_outcome: None
+  default_outcome: Completed
   gripper_action_name: /control/franka_gripper/gripper_action
   position: 0.0
   max_effort: 20
@@ -48,6 +48,8 @@ OBSERVATION_POSE:
   sample_name: observation
   map_frame: world
   object_frame: valve_gt
+  camera_frame: hand_eye_color_optical_frame
+  controlled_frame: tool_frame
   object_size: 0.20
   camera_info_topic: "/hand_eye/color/camera_info"
   lateral_view_angle_deg: 20
@@ -111,7 +113,7 @@ REACH_VIEWPOINT:
     - [-1.57, -0.885, 0, -2.1, 0, 1.571, 0]
 
 LATERAL_GRASP:
-  default_outcome: None
+  default_outcome: Completed
   controller_name: mpc_controller
   manager_namespace: control
   startlist: ['mpc_controller', 'path_passthrough_controller']
@@ -119,14 +121,14 @@ LATERAL_GRASP:
   path_topic_name: /desired_path
 
 POST_LATERAL_GRASP:
-  default_outcome: None
+  default_outcome: FullRotationDone
   manager_namespace: control
   startlist: ['mpc_controller', 'path_passthrough_controller']
   stoplist: ['joint_space_controller']
   path_topic_name: /desired_path
 
 MANIPULATE_VALVE:
-  default_outcome: None
+  default_outcome: Completed
   manager_namespace: control
   startlist: ['mpc_controller', 'path_passthrough_controller']
   stoplist: ['joint_space_controller']
