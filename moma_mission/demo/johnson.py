@@ -37,8 +37,9 @@ with state_machine:
     state_machine.add('OBJECT_CONTACT', TransformVisitorState, transitions={'Completed': 'CLOSE_GRIPPER',
                                                                             'Failure': 'OBSERVATION_POSE'})
 
-    state_machine.add('CLOSE_GRIPPER', GripperControl, transitions={'Completed': 'Success',
-                                                                    'Failure': 'Failure'})
+    state_machine.add('CLOSE_GRIPPER', GripperControl, transitions={'Completed': 'OPEN_GRIPPER',
+                                                                    'Failure': 'OBSERVATION_POSE'})
+
     #
     # state_machine.add('TARGET_POSE', JointsConfigurationAction, transitions={'Completed': 'Success',
     #                                                                          'Failure': 'Failure'})
