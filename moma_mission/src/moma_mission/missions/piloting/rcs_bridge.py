@@ -44,6 +44,7 @@ class Waypoint:
         self.x = 0.0
         self.y = 0.0
         self.orientation = 0.0
+        self.task_uuid = None
         self.status = WaypointStatus.QUEUED
 
     def __str__(self):
@@ -250,7 +251,7 @@ class RCSBridge:
         rospy.loginfo(
             f"Received command [ID: {req.info.command}], cmd: {self.current_hl_command}")
 
-        if req.info.command in (0, 1):
+        if req.info.command in (22, 21):
             self.current_hl_command_id = req.info.command
             response.ack.result = 0  # See MAV_CMD enum
             response.ack.progress = 0
@@ -272,8 +273,12 @@ class RCSBridge:
 
         self.inspection_waypoints = waypoint_list
         for i in range(len(waypoint_list.items)):
-            # do something with these waypoints
-            pass
+            wp = Waypoint()
+            wp.task_uuid = waypoint_list.items[i].task_uuid
+            wp.x = waypoint_list.items[i].x
+            wp.y = waypoint_list.items[i].x
+            rospy.loginfo(f"Adding waypoint [{wp}]")
+            self.waypoints.append(wp)
 
         self.is_inspection_available = True
         return response
@@ -295,13 +300,13 @@ class RCSBridge:
 
     def upload_hl_action(self):
         hl_manipulation_action = HLActionItem()
-        hl_manipulation_action.command = 0
+        hl_manipulation_action.command = 22 # !!! We need to use a valid enum from the mavlink library
         hl_manipulation_action.description = "Manipulate valve for pressure regulation."
         hl_manipulation_action.name = "VALVE_MANIPULATION"
         hl_manipulation_action.index = 0
 
         hl_navigation_action = HLActionItem()
-        hl_navigation_action.command = 1
+        hl_navigation_action.command = 21
         hl_navigation_action.description = "Autonomous navigation via waypoint-following"
         hl_navigation_action.name = "WAYPOINT_NAVIGATION"
         hl_navigation_action.index = 1
@@ -378,14 +383,26 @@ class RCSBridge:
         alarm.status = AlarmStatus.WARNING
         self.alarm_pub.publish(alarm)
 
-    def publish_fake_odometry(self):
+    def publish_fake_odometry(self, x=0, vx=0, angle=0, vangle=0):
         self.telemetry_msg.header.frame_id = "world"
         self.telemetry_msg.child_frame_id = "superpanda"
-        self.telemetry_msg.pose.pose.position.x = np.random.normal()
-        self.telemetry_msg.pose.pose.position.y = np.random.normal()
-        self.telemetry_msg.pose.pose.position.z = np.random.normal()
+        self.telemetry_msg.pose.pose.position.x = x
+        self.telemetry_msg.pose.pose.position.y = 0.5
+        self.telemetry_msg.pose.pose.position.z = 0.2
+
+        axis = np.array([1, 1, 1])
+        axis = axis / np.linalg.norm(axis)
+
+        self.telemetry_msg.pose.pose.orientation.x = np.sin(angle/2.0) * axis[0]
+        self.telemetry_msg.pose.pose.orientation.y = np.sin(angle/2.0) * axis[1]
+        self.telemetry_msg.pose.pose.orientation.z = np.sin(angle/2.0) * axis[2]
+        self.telemetry_msg.pose.pose.orientation.w = np.cos(angle/2.0)
+        self.telemetry_msg.twist.twist.linear.x = vx
+        self.telemetry_msg.twist.twist.angular.z = vangle
 
         self.telemetry_pub.publish(self.telemetry_msg)
+        
+        
 
 
 if __name__ == "__main__":
@@ -411,12 +428,12 @@ if __name__ == "__main__":
 
     # telemetry test
     if args.telemetry:
-        rospy.loginfo("[telemetry test]: Sending telemetry for 10s.")
+        rospy.loginfo("[telemetry test]: Sending telemetry for 100s.")
         start = rospy.get_rostime().to_sec()
         elapsed = 0
         while not rospy.is_shutdown() and elapsed < 10:
-            bridge.publish_fake_odometry()
             elapsed = rospy.get_rostime().to_sec() - start
+            bridge.publish_fake_odometry(x=elapsed * 0.05, vx=0.05, angle=elapsed*0.05, vangle=0.05)
             rospy.sleep(0.1)
         rospy.loginfo("[telemetry test]: Done")
 
@@ -443,6 +460,13 @@ if __name__ == "__main__":
         rospy.loginfo("[high level action test]: Uploading high level actions")
         if not bridge.upload_hl_action():
             rospy.logerr("Failed to upload high level actions.")
+        rospy.loginfo("[high level action test]: Waiting to receive a command... timeout after 30s.")
+        start = rospy.get_rostime().to_sec()
+        elapsed = 0
+        while not rospy.is_shutdown() and elapsed < 1000:
+            elapsed = rospy.get_rostime().to_sec() - start
+            rospy.sleep(0.1)
+        rospy.logwarn("[high level action test]: Timeout elapsed")
         rospy.logwarn("[high level action test]: Done.")
 
     # inspection test (includes also test of uploading and setting waypoints)
@@ -460,20 +484,19 @@ if __name__ == "__main__":
         rospack = rospkg.RosPack()
         file_path = path.join(rospack.get_path(
             'moma_mission'), 'config', 'state_machine', 'piloting_waypoints.yaml')
-        bridge.read_waypoints_from_file(file_path)
-        if not bridge.upload_waypoints():
-            rospy.logerr("[inspection test]:  Failed to upload waypoints")
-        else:
+        
+         # bridge.read_waypoints_from_file(file_path)
+        #else:
             # the previous upload is not istantaneous
-            rospy.sleep(5.0)
-            rospy.loginfo("[inspection test]: Waypoint successfully loaded")
+        rospy.sleep(5.0)
+        rospy.loginfo("[inspection test]: Waypoint successfully loaded")
+        waypoint = bridge.next_waypoint()
+        while waypoint:
+            rospy.loginfo(
+                f"[inspection test]: Executing next waypoint at [{waypoint.x}, {waypoint.y}]")
+            bridge.set_waypoint_done()
+            rospy.loginfo("[inspection test]: set waypoint to DONE.")
             waypoint = bridge.next_waypoint()
-            while waypoint:
-                rospy.loginfo(
-                    f"[inspection test]: Executing next waypoint at [{waypoint.x}, {waypoint.y}]")
-                bridge.set_waypoint_done()
-                rospy.loginfo("[inspection test]: set waypoint to DONE.")
-                waypoint = bridge.next_waypoint()
-                rospy.sleep(5.0)
+            rospy.sleep(5.0)
         rospy.loginfo("[inspection test]: Done.")
 
