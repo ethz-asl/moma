@@ -295,9 +295,14 @@ class MpcController {
 
     {
       std::unique_lock<std::mutex> lock(policyMutex_);
-      mpc_mrt_interface_->updatePolicy();
-      mpc_mrt_interface_->evaluatePolicy(observation_.time, observation_.state, mpcState, mpcInput,
-                                         mode);
+      try {
+        mpc_mrt_interface_->updatePolicy();
+        mpc_mrt_interface_->evaluatePolicy(observation_.time, observation_.state, mpcState, mpcInput,
+                                           mode);
+      } catch (const std::runtime_error& error) {
+        ROS_ERROR("[MpcController::updateCommand] Error on calling evaluatePolicy()");
+        return;
+      }
     }
     positionCommand_ = mpcState;
     velocityCommand_ = mpcInput;
