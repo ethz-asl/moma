@@ -84,6 +84,12 @@ class MpcController {
         new ocs2::mobile_manipulator::MobileManipulatorInterface(taskFile_, urdfXML_, ArmInputDim, baseType_));
     mpcPtr_ = mm_interface_->getMpc();
 
+    // mpc solution update thread
+    mpc_mrt_interface_.reset(new ocs2::MPC_MRT_Interface(*mpcPtr_));
+    mpc_mrt_interface_->reset();
+
+    mpcTimer_.reset();
+
     const std::unique_ptr<rc::RobotWrapper> robot_model = std::unique_ptr<rc::RobotWrapper>(new rc::RobotWrapper());
     robot_model->initFromXml(urdfXML_);
     if (ocs2::mobile_manipulator::INPUT_DIM(ArmInputDim) != robot_model->getDof()) {
@@ -98,7 +104,6 @@ class MpcController {
 
     std::string commandTopic;
     nh_.param<std::string>("command_topic", commandTopic, "/command");
-    commandPublisher_ = nh_.advertise<std_msgs::Float64MultiArray>(commandTopic, 1);
 
     std::string pathTopic;
     nh_.param<std::string>("path_topic", pathTopic, "/desired_path");
@@ -117,6 +122,11 @@ class MpcController {
     velocityCommand_.setZero();
     unloaded_ = false;
     stopped_ = true;
+    {
+      std::lock_guard<std::mutex> lock(stopTimeMutex_);
+      stopTime_ = 0;
+      totalStopTime_ = 0;
+    }
 
     // get static transform from tool to tracked MPC frame
     geometry_msgs::TransformStamped transform;
@@ -144,28 +154,19 @@ class MpcController {
     // initial observation
     if (!stopped_) return;
 
+    ROS_INFO("[MpcController::start] Starting controller.");
+
     // flags
     policyReady_ = false;
+    outputReady_ = false;
     referenceEverReceived_ = false;
     observationEverReceived_ = false;
 
-    // mpc problem
-    mm_interface_.reset(
-        new ocs2::mobile_manipulator::MobileManipulatorInterface(taskFile_, urdfXML_, ArmInputDim, baseType_));
-    mpcPtr_ = mm_interface_->getMpc();
-
-    // mpc solution update thread
-    mpc_mrt_interface_.reset(new ocs2::MPC_MRT_Interface(*mpcPtr_));
-    mpc_mrt_interface_->reset();
-
-    mpcTimer_.reset();
-
-    ROS_INFO("[MpcController::start] Starting controller.");
-    stopped_ = false;
-
-    startTime_ = ros::Time::now().toSec();
     initialState_ = initial_observation;
     setObservation(initial_observation);
+    observation_offset_ = observation_;
+
+    stopped_ = false;
 
     ROS_INFO("[MpcController::start] Successfully started.");
   }
@@ -179,6 +180,8 @@ class MpcController {
   void stop() {
     ROS_INFO("[MPC_Controller::stop] Stopping MPC update thread");
     stopped_ = true;
+    std::lock_guard<std::mutex> lock(stopTimeMutex_);
+    stopTime_ = ros::Time::now().toSec();
     ROS_INFO("[MPC_Controller::stop] Stopped MPC update thread");
   }
 
@@ -233,13 +236,13 @@ class MpcController {
         std::this_thread::sleep_for(std::chrono::milliseconds((int)(1e3 / mpcFrequency_)));
       }
 
-      if (!referenceEverReceived_) {
-        //ROS_WARN_THROTTLE(3.0, "Reference never received. Skipping MPC update.");
+      if (!observationEverReceived_) {
+        //ROS_WARN_THROTTLE(3.0, "Observation never received. Skipping MPC update.");
         continue;
       }
 
-      if (!observationEverReceived_) {
-        //ROS_WARN_THROTTLE(3.0, "Observation never received. Skipping MPC update.");
+      if (!referenceEverReceived_) {
+        //ROS_WARN_THROTTLE(3.0, "Reference never received. Skipping MPC update.");
         continue;
       }
 
@@ -258,8 +261,22 @@ class MpcController {
       }
 
       {
-        std::lock_guard<std::mutex> lock(observationMutex_);
-        mpc_mrt_interface_->setCurrentObservation(observation_);
+        std::lock_guard<std::mutex> lockObservation(observationMutex_);
+        std::lock_guard<std::mutex> lockStop(stopTimeMutex_);
+
+        // Subtract the time the controller was in "stopped" mode
+        // (or actually the time it was not calling mpc_mrt_interface_->advanceMpc())
+        // from all observations, such that the controller thinks
+        // it never actually stopped but just continued from
+        // where it left
+        if (stopTime_ > 0) {
+          totalStopTime_ += ros::Time::now().toSec() - stopTime_;
+          stopTime_ = 0;
+        }
+
+        observation_offset_ = observation_;
+        observation_offset_.time -= totalStopTime_;
+        mpc_mrt_interface_->setCurrentObservation(observation_offset_);
       }
 
       mpcTimer_.startTimer();
@@ -276,8 +293,8 @@ class MpcController {
   }
 
   void setObservation(const state_vector_t& q) {
-    std::unique_lock<std::mutex> lock(observationMutex_);
-    observation_.time = ros::Time::now().toSec() - startTime_;
+    std::lock_guard<std::mutex> lockObservation(observationMutex_);
+    observation_.time = ros::Time::now().toSec();
     observation_.state = q;
     observationEverReceived_ = true;
   }
@@ -294,13 +311,20 @@ class MpcController {
     }
 
     {
-      std::unique_lock<std::mutex> lock(policyMutex_);
-      mpc_mrt_interface_->updatePolicy();
-      mpc_mrt_interface_->evaluatePolicy(observation_.time, observation_.state, mpcState, mpcInput,
-                                         mode);
+      std::lock_guard<std::mutex> lock(policyMutex_);
+      try {
+        mpc_mrt_interface_->updatePolicy();
+        mpc_mrt_interface_->evaluatePolicy(observation_offset_.time, observation_offset_.state, mpcState, mpcInput,
+                                           mode);
+      } catch (const std::runtime_error& error) {
+        ROS_ERROR("[MpcController::updateCommand] Error on calling evaluatePolicy()");
+        return;
+      }
     }
     positionCommand_ = mpcState;
     velocityCommand_ = mpcInput;
+
+    outputReady_ = true;
   }
 
   void writeDesiredPath(const nav_msgs::Path& desiredPath) {
@@ -309,7 +333,10 @@ class MpcController {
     for (const auto& waypoint : desiredPath.poses) {
       // Desired state trajectory
       ocs2::scalar_array_t& tDesiredTrajectory = targetTrajectories.timeTrajectory;
-      tDesiredTrajectory[idx] = waypoint.header.stamp.toSec() - startTime_;
+      {
+        std::lock_guard<std::mutex> lock(stopTimeMutex_);
+        tDesiredTrajectory[idx] = waypoint.header.stamp.toSec() - totalStopTime_;
+      }
 
       // Desired state trajectory
       ocs2::vector_array_t& xDesiredTrajectory = targetTrajectories.stateTrajectory;
@@ -389,10 +416,14 @@ class MpcController {
   }
 
   void publishCurrentRollout() {
+    if (!outputReady_) {
+      return;
+    }
+
     ocs2::scalar_array_t time_trajectory;
     ocs2::vector_array_t state_trajectory;
     {
-      std::unique_lock<std::mutex> lock(policyMutex_);
+      std::lock_guard<std::mutex> lock(policyMutex_);
       if (!mpc_mrt_interface_->initialPolicyReceived()) return;
 
       try {
@@ -443,7 +474,9 @@ class MpcController {
   }
 
  protected:
-  double startTime_;
+  double stopTime_;
+  double totalStopTime_;
+  std::mutex stopTimeMutex_;
 
   std::string tool_link_;
   std::string robot_description_;
@@ -455,16 +488,17 @@ class MpcController {
 
   ros::NodeHandle nh_;
   ros::Publisher observationPublisher_;
-  ros::Publisher commandPublisher_;
   ros::Subscriber targetPathSubscriber_;
 
  private:
   std::atomic_bool unloaded_;
   std::atomic_bool stopped_;
+  std::atomic_bool wasStopped_;
   std::unique_ptr<ocs2::MPC_DDP> mpcPtr_;
   double mpcFrequency_;
 
   std::atomic_bool policyReady_;
+  std::atomic_bool outputReady_;
   std::atomic_bool referenceEverReceived_;
   std::atomic_bool observationEverReceived_;
 
@@ -477,6 +511,7 @@ class MpcController {
 
   std::mutex observationMutex_;
   ocs2::SystemObservation observation_;
+  ocs2::SystemObservation observation_offset_;
   ocs2::SystemObservation observation_tmp_;
 
   std::mutex desiredPathMutex_;
