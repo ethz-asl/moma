@@ -45,7 +45,7 @@ install_pinocchio() {
   cd ~/git/pinocchio || fail "Failed to clone pinocchio repo"
   git checkout v2.6.4
   git submodule update --init --recursive
-  
+
   PINOCCHIO_INSTALL_PREFIX=${HOME}/git/pinocchio/install
   PINOCCHIO_INSTALL_PREFIX_STR=\${HOME}/git/pinocchio/install
 
@@ -54,10 +54,10 @@ install_pinocchio() {
   if [[ ! -d install ]]
   then
       [ ! -d build ] || rm -r build
-      mkdir build 
+      mkdir build
       cd build
 
-      cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${PINOCCHIO_INSTALL_PREFIX} -DBUILD_WITH_COLLISION_SUPPORT=ON -DBUILD_PYTHON_INTERFACE=OFF || fail "Please resource ~/.moma_bashrc and restart the script"
+      cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${PINOCCHIO_INSTALL_PREFIX} -DBUILD_WITH_COLLISION_SUPPORT=ON -DBUILD_PYTHON_INTERFACE=ON -DBUILD_TESTING=OFF || fail "Please resource ~/.moma_bashrc and restart the script"
       make -j4 || fail "Error building pinocchio"
 
       mkdir install
@@ -71,7 +71,7 @@ install_pinocchio() {
 export PATH=${PINOCCHIO_INSTALL_PREFIX}/bin:\$PATH
 export PKG_CONFIG_PATH=${PINOCCHIO_INSTALL_PREFIX_STR}/lib/pkgconfig:\$PKG_CONFIG_PATH
 export LD_LIBRARY_PATH=${PINOCCHIO_INSTALL_PREFIX_STR}/lib:\$LD_LIBRARY_PATH
-export PYTHONPATH=\$PYTHONPATH:${PINOCCHIO_INSTALL_PREFIX_STR}/lib/python2.7/dist-packages
+export PYTHONPATH=\$PYTHONPATH:${PINOCCHIO_INSTALL_PREFIX_STR}/lib/python2.7/dist-packages:${PINOCCHIO_INSTALL_PREFIX_STR}/lib/python3/dist-packages
 export CMAKE_PREFIX_PATH=${PINOCCHIO_INSTALL_PREFIX_STR}:\$CMAKE_PREFIX_PATH
 EOF
 }
@@ -104,7 +104,7 @@ sudo apt-get install \
 	ros-$ROS_DISTRO-ddynamic-reconfigure \
 	ros-$ROS_DISTRO-lms1xx \
 	ros-$ROS_DISTRO-interactive-marker-twist-server \
-        ros-$ROS_DISTRO-plotjuggler-ros \
+	ros-$ROS_DISTRO-plotjuggler-ros \
 	qtbase5-dev -y || fail "Error installing system dependencies"
 }
 
