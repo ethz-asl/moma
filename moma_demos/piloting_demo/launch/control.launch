@@ -8,7 +8,7 @@
         <arg name="simulation"  value="$(arg simulation)"/>
     </include>
 
-    <include file="$(find piloting_demo)/launch/panda_control.launch">
+    <include file="$(find piloting_demo)/launch/panda_control_sim.launch">
         <arg name="tool"        value="$(arg tool)"/>
         <arg name="mpc"         value="$(arg mpc)"/>
         <arg name="simulation"  value="$(arg simulation)"/>

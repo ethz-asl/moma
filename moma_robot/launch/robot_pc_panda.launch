@@ -37,7 +37,7 @@
     <param name="base_type" value="$(arg base_type)"/>
   </group>
 
-  <!--<group ns="control">-->
+  <group ns="control">
       <rosparam command="load" file="$(find franka_control)/config/default_controllers.yaml" />
       <node name="state_controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="franka_state_controller"/>
 
@@ -57,7 +57,7 @@
       <!-- Already start these controllers -->
       <arg name="controllers_start_list" value="path_passthrough_controller"/>
       <node name="controller_starter" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="$(arg controllers_start_list)" />
-  <!--</group>-->
+  </group>
 
   <node pkg="tf2_ros"
         if="$(eval arg('base_type') == 0)"
