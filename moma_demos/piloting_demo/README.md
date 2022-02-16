@@ -43,7 +43,21 @@ In order to run the simulation the SMB stack needs to be cloned. This is reflect
     catkin build pilotin_demo
     ```
 
+## Building a map (Slam)
+More info in [this tutorial](https://docs.google.com/presentation/d/11D1X3MY6VR8wBW-JjmiB09uwNbryShT9Ahid3iY3HFk/edit#slide=id.gb6e8b04747_0_18)
+
+TODO record bag
+TODO inspect bag
+TODO run cartographer
+TODO save the map
+TODO extract costmap for navigation
+
 ## Path Planner / Navigation
+
+More inf in [this tutorial](https://docs.google.com/presentation/d/1wrH-gTAJQq2iququ-cOHDCa6Z_HXRueYX-B6Pd9Bt50/edit)
+
+Create a costmap from the pcd.
+TODO command here
 
 ### Simulation
 In Terminal 1 run the  __gazebo simulation__: 

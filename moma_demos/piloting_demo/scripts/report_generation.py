@@ -22,10 +22,11 @@ from geometry_msgs.msg import Vector3, Quaternion
 # static configuration
 print("[Report Generation]: Parsing static configuration")
 ROOT_DIR = "/home/giuseppe/storage"
-BAG = "/home/giuseppe/storage/bags/2022-01-17/2022-01-17-16-30-09_valve_perception.bag"
+BAG = "/home/giuseppe/storage/bags/2022-02-15/2022-02-15-13-17-11_smb_sensors.bag"
 MAP_FRAME = "tracking_camera_odom"
-IMAGE_TOPIC = "/hand_eye/color/image_raw_throttle"
+IMAGE_TOPIC = "/versavis/cam0/image_raw_throttle"
 BASE_LINK = "base_link"
+ODOM_TOPIC = "/camera/odom/sample"
 CAMERA_UUID = str(uuid.uuid4())
 SENSORS_LIST = {"rslidar": ["16 Beans Lidar Sensor", str(uuid.uuid4())],
                 "realsense_t265": ["Realsense Tracking Camera", str(uuid.uuid4())],
@@ -121,6 +122,22 @@ def extract_telemetry(bag: rosbag.Bag, root_dir):
                 print(exc)
 
 
+def extract_odometry(bag: rosbag.Bag, root_dir):
+    telemetry_csv_file = os.path.join(root_dir, "localization_telemetry.csv")
+    with open(telemetry_csv_file, 'w') as f:
+        writer = csv.writer(f)
+        for topic, message, t in bag.read_messages(topics=ODOM_TOPIC):
+            translation = [message.pose.pose.position.x,
+                           message.pose.pose.position.y,
+                           message.pose.pose.position.z]
+            rotation = [message.pose.pose.orientation.x,
+                        message.pose.pose.orientation.y,
+                        message.pose.pose.orientation.z,
+                        message.pose.pose.orientation.w]
+            entry = [t.to_sec(), task_uuid] + translation + rotation
+            writer.writerow(entry)
+
+
 def extract_pictures(bag: rosbag.Bag, root_dir):
     bridge = CvBridge()
     images_delta_time = 5  # take a picture each 10 seconds
@@ -212,4 +229,5 @@ os.makedirs(pictures_folder, exist_ok=True)
 extract_pictures(bag, report_dir)
 
 print("[Report Generation]: Extracting telemety information.")
-extract_telemetry(bag, report_dir)
+#extract_telemetry(bag, report_dir) this uses tf, available when localizing against map
+extract_odometry(bag, report_dir)
