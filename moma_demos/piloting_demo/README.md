@@ -67,7 +67,28 @@ More info about the SMB navigation and control stack here: https://ethz-robotx.g
 
 ### Real Robot
 
-TODO
+Differently from the simulation we need to make sure that the programs are running on the correct machine. In particular we have 3 main machines:
+- the supermegabot pc (__smb_pc__)
+- the pc connected to the arm (__panda_pc__)
+- the operator pc, used for remote operation and visualization (__operator_pc__)
+We will use the shortnames for each terminal, to indicate where each command is executed. Note that the pc needs to be connected to the same ROS network and reference to the same master. 
+
+In Terminal 1 (__panda_pc__)
+```
+mon launch moma_robot robot_pc_panda.launch
+```
+In Terminal 2 (__smb_pc__)
+```
+mon launch moma_robot robot_pc_smb.launch
+```
+In Terminal 3 (__smb_pc__)
+```
+mon luanch piloting_demo navigation.launch sim:=false
+```
+In Terminal 4 (__operator_pc__)
+```
+mon launch piloting_demo operator_pc.launch
+```
 
 ### ground Robot Control Station (gRCS)
 Supervision of robotics operation is managed by the ground Robot Control Station. The program in `piloting-mavsdk-ros` is a ros bridge between the control station and the robot (called _robotic engine_) such that communciation can happen via ROS on the client side (state machine) and MAV implementation details are not exposed.
