@@ -67,7 +67,7 @@ bool JointSpaceController::init(hardware_interface::RobotHW* hw, ros::NodeHandle
   joint_current_ = Eigen::VectorXd::Zero(n_joints_);
 
   trajectory_subscriber_ =
-      controller_nh.subscribe("/joint_space_controller/goal", 1,
+      controller_nh.subscribe("goal", 1,
                               &JointSpaceController::joint_callback, this);
 
   action_server_ = std::make_unique<ActionServer>(
