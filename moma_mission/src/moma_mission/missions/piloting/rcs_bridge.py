@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import sys
+from time import time
 from typing import Text
 from grpc import Status
 import yaml
@@ -11,11 +12,13 @@ import argparse
 
 from nav_msgs.msg import Odometry
 
-from mavsdk_ros.msg import CommandLong, CommandAck, WaypointList, WaypointsAck, TextStatus, AlarmStatus, AlarmItem
+from mavsdk_ros.msg import CommandLong, CommandAck, WaypointList, WaypointsAck
+from mavsdk_ros.msg import TextStatus, AlarmStatus, AlarmItem, ChecklistItem
 from mavsdk_ros.msg import HLActionItem, WaypointItem
 from mavsdk_ros.srv import Command, CommandRequest, CommandResponse
 from mavsdk_ros.srv import InspectionPlan
 from mavsdk_ros.srv import SetUploadAlarm, SetUploadAlarmRequest
+from mavsdk_ros.srv import SetUploadChecklist, SetUploadChecklistRequest
 from mavsdk_ros.srv import UpdateSeqWaypointItem, UpdateSeqWaypointItemRequest
 from mavsdk_ros.srv import SetUploadWaypointList, SetUploadWaypointListRequest
 from mavsdk_ros.srv import SetUploadHLAction, SetUploadHLActionRequest
@@ -83,6 +86,7 @@ class RCSBridge:
         self.upload_alarm_client = None
         self.upload_waypoint_list_client = None
         self.upload_hl_action_client = None
+        self.upload_checklist_client = None
         self.update_current_waypoint_item_client = None
         self.update_reached_waypoint_item_client = None
 
@@ -130,6 +134,8 @@ class RCSBridge:
             "/mavsdk_ros/set_upload_waypoint_list", SetUploadWaypointList)
         self.upload_hl_action_client = rospy.ServiceProxy(
             "/mavsdk_ros/set_upload_hl_action", SetUploadHLAction)
+        self.upload_checklist_client = rospy.ServiceProxy(
+            "/mavsdk_ros/set_upload_checklist", SetUploadChecklist)
         self.update_current_waypoint_item_client = rospy.ServiceProxy(
             "/mavsdk_ros/update_current_waypoint_item", UpdateSeqWaypointItem)
         self.update_reached_waypoint_item_client = rospy.ServiceProxy(
@@ -150,6 +156,60 @@ class RCSBridge:
         # Messages
         self.status_msg = TextStatus()
         self.alarm_msg = AlarmStatus()
+        return True
+
+    ################################
+    # Checklist
+    ###############################
+    def upload_checklist(self):
+        req = SetUploadChecklistRequest()
+        check0 = ChecklistItem()
+        check0.description = "Arm is active and routed to the system."
+        check0.name = "ARM_ACTIVE"
+        check0.index = 0
+
+        check1 = ChecklistItem()
+        check1.description = "Arm is an a home configuration and does not hit any part."
+        check1.name = "ARM_HOME"
+        check1.index = 1
+
+        check2 = ChecklistItem()
+        check2.description = "Wheels are inflated."
+        check2.name = "WHEELS_CHECKS"
+        check2.index = 2
+
+        check3 = ChecklistItem()
+        check3.description = "Imu sensor is running."
+        check3.name = "IMU_OK"
+        check3.index = 3
+
+        check4 = ChecklistItem()
+        check4.description = "Lidar sensor is running"
+        check4.name = "LIDAR_OK"
+        check4.index = 4
+
+        check5 = ChecklistItem()
+        check5.description = "Realsense Tracking camera is running and publishing odometry."
+        check5.name = "TRACKING_CAM_OK"
+        check5.index = 5
+
+        req.checklist.append(check0)
+        req.checklist.append(check1)
+        req.checklist.append(check2)
+        req.checklist.append(check3)
+        req.checklist.append(check4)
+        req.checklist.append(check5)
+
+
+        rospy.loginfo("Waiting for checklist service to become available.")
+        try:
+            self.upload_checklist_client.wait_for_service(timeout=20.0)
+        except rospy.ROSException as exc:
+            rospy.logwarn(exc)
+            rospy.logwarn("Failed to upload the checklist.")
+            return False
+
+        self.upload_checklist_client.call(req)
         return True
 
     ################################
@@ -228,13 +288,13 @@ class RCSBridge:
         req = UpdateSeqWaypointItemRequest()
         req.item_seq = self.waypoint_current_id
         self.update_reached_waypoint_item_client.call(req)
-        
+
         # set status to done
         self.waypoints[self.waypoint_current_id].status = WaypointStatus.DONE
 
-        # advance to next 
+        # advance to next
         self.waypoint_current_id += 1
-        
+
     ################################
     # Commands
     ###############################
@@ -300,7 +360,8 @@ class RCSBridge:
 
     def upload_hl_action(self):
         hl_manipulation_action = HLActionItem()
-        hl_manipulation_action.command = 22 # !!! We need to use a valid enum from the mavlink library
+        # !!! We need to use a valid enum from the mavlink library
+        hl_manipulation_action.command = 22
         hl_manipulation_action.description = "Manipulate valve for pressure regulation."
         hl_manipulation_action.name = "VALVE_MANIPULATION"
         hl_manipulation_action.index = 0
@@ -353,23 +414,23 @@ class RCSBridge:
         req = SetUploadAlarmRequest()
         alarm_sensor = AlarmItem()
         alarm_sensor.index = 0
-        alarm_sensor.name = "SENSOR_FAILURE"
+        alarm_sensor.name = "BAD_SENSOR"
         alarm_sensor.description = "A sensor failed"
 
         alarm_mission = AlarmItem()
         alarm_mission.index = 1
-        alarm_mission.name = "MISSION_FAILURE"
+        alarm_mission.name = "BAD_MISSION"
         alarm_mission.description = "Mission failed to execute. Check logs."
 
         alarm_waypoint = AlarmItem()
         alarm_waypoint.index = 2
-        alarm_waypoint.name = "WAYPOINT_FAILURE"
+        alarm_waypoint.name = "BAD_WAYPOINT"
         alarm_waypoint.description = "Failed to reach waypoint"
 
         req.alarms.append(alarm_sensor)
         req.alarms.append(alarm_mission)
         req.alarms.append(alarm_waypoint)
-        
+
         try:
             self.upload_alarm_client.wait_for_service(timeout=10)
         except rospy.ROSException:
@@ -393,16 +454,17 @@ class RCSBridge:
         axis = np.array([1, 1, 1])
         axis = axis / np.linalg.norm(axis)
 
-        self.telemetry_msg.pose.pose.orientation.x = np.sin(angle/2.0) * axis[0]
-        self.telemetry_msg.pose.pose.orientation.y = np.sin(angle/2.0) * axis[1]
-        self.telemetry_msg.pose.pose.orientation.z = np.sin(angle/2.0) * axis[2]
+        self.telemetry_msg.pose.pose.orientation.x = np.sin(
+            angle/2.0) * axis[0]
+        self.telemetry_msg.pose.pose.orientation.y = np.sin(
+            angle/2.0) * axis[1]
+        self.telemetry_msg.pose.pose.orientation.z = np.sin(
+            angle/2.0) * axis[2]
         self.telemetry_msg.pose.pose.orientation.w = np.cos(angle/2.0)
         self.telemetry_msg.twist.twist.linear.x = vx
         self.telemetry_msg.twist.twist.angular.z = vangle
 
         self.telemetry_pub.publish(self.telemetry_msg)
-        
-        
 
 
 if __name__ == "__main__":
@@ -417,7 +479,10 @@ if __name__ == "__main__":
                         help="run high level action test (upload)")
     parser.add_argument("--inspection", action='store_true',
                         help="run inspection test (receive and process)")
+    parser.add_argument("--checklist", action='store_true',
+                        help="run inspection test (receive and process)")
     
+
     # neglect ros input arguments
     args, unknown = parser.parse_known_args()
 
@@ -433,7 +498,8 @@ if __name__ == "__main__":
         elapsed = 0
         while not rospy.is_shutdown() and elapsed < 10:
             elapsed = rospy.get_rostime().to_sec() - start
-            bridge.publish_fake_odometry(x=elapsed * 0.05, vx=0.05, angle=elapsed*0.05, vangle=0.05)
+            bridge.publish_fake_odometry(
+                x=elapsed * 0.05, vx=0.05, angle=elapsed*0.05, vangle=0.05)
             rospy.sleep(0.1)
         rospy.loginfo("[telemetry test]: Done")
 
@@ -460,7 +526,8 @@ if __name__ == "__main__":
         rospy.loginfo("[high level action test]: Uploading high level actions")
         if not bridge.upload_hl_action():
             rospy.logerr("Failed to upload high level actions.")
-        rospy.loginfo("[high level action test]: Waiting to receive a command... timeout after 30s.")
+        rospy.loginfo(
+            "[high level action test]: Waiting to receive a command... timeout after 30s.")
         start = rospy.get_rostime().to_sec()
         elapsed = 0
         while not rospy.is_shutdown() and elapsed < 1000:
@@ -471,9 +538,11 @@ if __name__ == "__main__":
 
     # inspection test (includes also test of uploading and setting waypoints)
     if args.inspection:
-        rospy.loginfo("[insepction test]: Waiting to receive an inspection plan")
+        rospy.loginfo(
+            "[insepction test]: Waiting to receive an inspection plan")
         while not rospy.is_shutdown() and not bridge.is_inspection_available:
-            rospy.loginfo("[inspection test]: Inspection plan not available yet ...")
+            rospy.loginfo(
+                "[inspection test]: Inspection plan not available yet ...")
             rospy.sleep(1.0)
         rospy.loginfo("[inspection test]: Insepction plan avaialbe!")
         bridge.print_inspection()
@@ -484,10 +553,11 @@ if __name__ == "__main__":
         rospack = rospkg.RosPack()
         file_path = path.join(rospack.get_path(
             'moma_mission'), 'config', 'state_machine', 'piloting_waypoints.yaml')
-        
-         # bridge.read_waypoints_from_file(file_path)
-        #else:
-            # the previous upload is not istantaneous
+
+        # We just use the waypoints we receive from the gRCS here
+        # bridge.read_waypoints_from_file(file_path)
+        # else:
+        # the previous upload is not istantaneous
         rospy.sleep(5.0)
         rospy.loginfo("[inspection test]: Waypoint successfully loaded")
         waypoint = bridge.next_waypoint()
@@ -500,3 +570,10 @@ if __name__ == "__main__":
             rospy.sleep(5.0)
         rospy.loginfo("[inspection test]: Done.")
 
+    if args.checklist:
+        rospy.loginfo("[checklist test]: Updating the checkllist message")
+        if not bridge.upload_checklist():
+            rospy.loginfo("[checklist test]: Failed to upload the checklist.")
+        rospy.sleep(2.0)
+        rospy.loginfo("[checklist test]: Done")        
+        
