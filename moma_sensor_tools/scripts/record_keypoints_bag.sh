@@ -1,5 +1,6 @@
 #! /bin/bash
 outpath="$1"
+name="${2:-valve_perception}"
 
 # Other variables
 now="$(date +"%F-%H-%M-%S")"
@@ -20,7 +21,7 @@ fi
 
 # Record
 rosparam dump ${outpath}/${now}.yaml
-rosbag record --repeat-latched --output-name="${outpath}/${now}_valve_perception" \
+rosbag record --repeat-latched --output-name="${outpath}/${now}_${name}" \
 /tf \
 /tf_static \
 /camera_info \
