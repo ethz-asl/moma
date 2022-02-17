@@ -50,6 +50,7 @@ def get_files():
         "pictures_metadata": "pictures_metadata.csv",
         "pictures_folder": "pictures",
         "telemetry_data": "localization_telemetry.csv",
+        "haptic_data": "haptic_sensing.csv"
     }
 
 
@@ -124,19 +125,22 @@ def extract_telemetry(bag: rosbag.Bag, root_dir):
 
 def extract_odometry(bag: rosbag.Bag, root_dir):
     telemetry_csv_file = os.path.join(root_dir, "localization_telemetry.csv")
-    with open(telemetry_csv_file, 'w') as f:
-        writer = csv.writer(f)
-        for topic, message, t in bag.read_messages(topics=ODOM_TOPIC):
-            translation = [message.pose.pose.position.x,
-                           message.pose.pose.position.y,
-                           message.pose.pose.position.z]
-            rotation = [message.pose.pose.orientation.x,
-                        message.pose.pose.orientation.y,
-                        message.pose.pose.orientation.z,
-                        message.pose.pose.orientation.w]
-            entry = [t.to_sec(), task_uuid] + translation + rotation
-            writer.writerow(entry)
-
+    odom_msgs_count = bag.get_message_count(ODOM_TOPIC)
+  
+    with tqdm(total=odom_msgs_count) as progress_bar:
+        with open(telemetry_csv_file, 'w') as f:
+            writer = csv.writer(f)
+            for topic, message, t in bag.read_messages(topics=ODOM_TOPIC):
+                translation = [message.pose.pose.position.x,
+                            message.pose.pose.position.y,
+                            message.pose.pose.position.z]
+                rotation = [message.pose.pose.orientation.x,
+                            message.pose.pose.orientation.y,
+                            message.pose.pose.orientation.z,
+                            message.pose.pose.orientation.w]
+                entry = [t.to_sec(), task_uuid] + translation + rotation
+                writer.writerow(entry)
+                progress_bar.update(1)
 
 def extract_pictures(bag: rosbag.Bag, root_dir):
     bridge = CvBridge()
@@ -150,24 +154,30 @@ def extract_pictures(bag: rosbag.Bag, root_dir):
             if (t.to_sec() - t_prev) > images_delta_time:
                 t_prev = t.to_sec()
 
-                translation = [0.0, 0.0, 0.0]
-                rotation = [0.0, 0.0, 0.0, 1.0]
+                cam_translation = [0.0, 0.0, 0.0]
+                cam_rotation = [0.0, 0.0, 0.0, 1.0]
 
                 try:
                     tf_transform = tf_tree.lookup_transform_core(
                         target_frame="odom", source_frame=message.header.frame_id, time=rospy.Time(0))
-                    translation = [tf_transform.transform.translation.x,
-                                   tf_transform.transform.translation.y,
-                                   tf_transform.transform.translation.z]
-                    rotation = [tf_transform.transform.rotation.x,
-                                tf_transform.transform.rotation.y,
-                                tf_transform.transform.rotation.z,
-                                tf_transform.transform.rotation.w]
+                    cam_translation = [tf_transform.transform.translation.x,
+                                       tf_transform.transform.translation.y,
+                                       tf_transform.transform.translation.z]
+                    cam_rotation = [tf_transform.transform.rotation.x,
+                                    tf_transform.transform.rotation.y,
+                                    tf_transform.transform.rotation.z,
+                                    tf_transform.transform.rotation.w]
                 except Exception as exc:
                     pass
 
+                # object info
+                obj_type = ["none"]
+                obj_position = [0.0, 0.0, 0.0]
+                obj_rotation = [0.0, 0.0, 0.0, 1.0]
+                obj_info = [0.0, 0.0, 0.0]
                 meta = ["DSC{:06d}.jpg".format(
-                    img_idx), t_prev, task_uuid] + translation + rotation
+                    img_idx), t_prev, task_uuid] + cam_translation + cam_rotation \
+                        + obj_type + obj_position + obj_rotation + obj_info
                 writer.writerow(meta)
                 img_idx += 1
 
@@ -177,6 +187,25 @@ def extract_pictures(bag: rosbag.Bag, root_dir):
                     root_dir, "pictures", meta[0]), cv2_img)
 
 
+def extract_wrench(bag: rosbag.Bag, root_dir):
+    haptic_csv_file = os.path.join(root_dir, "haptic_sensing.csv")
+    with open(haptic_csv_file, 'w') as f:
+        writer = csv.writer(f)
+        # just placeholder implementation to have a sequence of rows with reasonable timestamps
+        # and create a stuf file structure
+        idx = 0
+        for _, _, t in bag.read_messages():
+            if idx < 100:
+                obj_position = [0.0, 0.0, 0.0]
+                rotation_axis = [0.0, 0.0, 1.0]
+                angle = [0.0]
+                torque = [0.0]
+                entry = [t.to_sec(), task_uuid] + obj_position + rotation_axis + angle + torque
+                writer.writerow(entry)
+                idx += 1
+            else:
+                break
+        
 # open the bag
 print("[Report Generation]: Opening rosbag at {}".format(BAG))
 if not os.path.isfile(BAG):
@@ -228,6 +257,9 @@ pictures_folder = os.path.join(report_dir, "pictures")
 os.makedirs(pictures_folder, exist_ok=True)
 extract_pictures(bag, report_dir)
 
-print("[Report Generation]: Extracting telemety information.")
-#extract_telemetry(bag, report_dir) this uses tf, available when localizing against map
+print("[Report Generation]: Extracting telemetry information.")
+# extract_telemetry(bag, report_dir) this uses tf, available when localizing against map
 extract_odometry(bag, report_dir)
+
+print("[Report Generation]: Extracting haptic information.")
+extract_wrench(bag, report_dir)
