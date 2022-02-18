@@ -493,7 +493,6 @@ class MpcController {
  private:
   std::atomic_bool unloaded_;
   std::atomic_bool stopped_;
-  std::atomic_bool wasStopped_;
   std::unique_ptr<ocs2::MPC_DDP> mpcPtr_;
   double mpcFrequency_;
 
