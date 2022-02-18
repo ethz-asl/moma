@@ -16,14 +16,14 @@ from mavsdk_ros.msg import CommandLong, CommandAck, WaypointList, WaypointsAck
 from mavsdk_ros.msg import TextStatus, AlarmStatus, AlarmItem, ChecklistItem
 from mavsdk_ros.msg import HLActionItem, WaypointItem
 from mavsdk_ros.srv import Command, CommandRequest, CommandResponse
-from mavsdk_ros.srv import InspectionPlan
+from mavsdk_ros.srv import InspectionPlan, InspectionPlanRequest
 from mavsdk_ros.srv import SetUploadAlarm, SetUploadAlarmRequest
 from mavsdk_ros.srv import SetUploadChecklist, SetUploadChecklistRequest
 from mavsdk_ros.srv import UpdateSeqWaypointItem, UpdateSeqWaypointItemRequest
 from mavsdk_ros.srv import SetUploadWaypointList, SetUploadWaypointListRequest
 from mavsdk_ros.srv import SetUploadHLAction, SetUploadHLActionRequest
 from moma_mission.utils import ros
-
+from std_msgs.msg import UInt16
 
 class WaypointStatus:
     IN_PROGRESS = 0
@@ -74,6 +74,7 @@ class RCSBridge:
         topics:
         /mavsdk_ros/local_position --> set the current telemetry info
         /mavsdk_ros/text_status --> text information
+        /mavsdk_ros/inspection_set_current --> set to the current waypoint
         """
 
         self.telemetry_odom_topic = None
@@ -115,6 +116,10 @@ class RCSBridge:
         self.current_hl_command_id = -1
         self.current_hl_command = np.array([])
 
+
+        self.plan_uuid = None
+        self.sync_id = None
+
     def read_params(self):
         self.telemetry_odom_topic = rospy.get_param(
             "~telemetry_odom_topic", "/base_odom")
@@ -152,16 +157,30 @@ class RCSBridge:
         # Subscribers
         self.odom_sub = rospy.Subscriber(
             self.telemetry_odom_topic, Odometry, self.update_telemetry, queue_size=1)
+        self.current_waypoint = rospy.Subscriber(
+            "/mavsdk_ros/inspection_set_current", UInt16, self.set_current, queue_size=1)
 
         # Messages
         self.status_msg = TextStatus()
         self.alarm_msg = AlarmStatus()
         return True
 
+    def set_current(self, msg):
+        rospy.loginfo(f"Recevied comdn to {msg.data}")
+
     ################################
     # Checklist
     ###############################
     def upload_checklist(self):
+        """
+        Set of checklist items that are set on the gRCS to help the user to remember what should be checked before the 
+        beginning of a mission. It make sense (but it is not enforced) that each checklist item could be verified
+        looking at the status of the alarm list. 
+        Example: 
+        - One checklist item is ARM_ACTIVE -> make sure the arm is active
+        - We might have an alarm that based on the ping of the arm ip sets the level of alarm ARM_OK 
+        and so forth...
+        """
         req = SetUploadChecklistRequest()
         check0 = ChecklistItem()
         check0.description = "Arm is active and routed to the system."
@@ -215,7 +234,6 @@ class RCSBridge:
     ################################
     # Waypoints
     ###############################
-
     def read_waypoints_from_file(self, file):
         """
         Mainly a debug function to set waypoints from file, otherwise should be received from inspection plan
@@ -223,6 +241,7 @@ class RCSBridge:
         """
         with open(file) as stream:
             rospy.loginfo(f"Loading waypoints from file {file}")
+            self.waypoints = []
             waypoints_list = yaml.load(stream, Loader=yaml.FullLoader)
             if "waypoints" not in waypoints_list.keys():
                 return False
@@ -236,19 +255,24 @@ class RCSBridge:
         return True
 
     def upload_waypoints(self):
+        """
+        Upload waypoints is a method to send a updated waypoints list to the mavsdk_ros client. This does not
+        mean that the gRCS will immediately see a new plan. Instead it means, that IF the gRCS issues a 
+        update_waypoint_list command, the mavsdk_ros will be able to send this new updated plan back. 
+        """
         if len(self.waypoints) == 0:
             rospy.logwarn(
                 "No waypoints file found. Skipping upload waypoints list.")
             return
 
         req = SetUploadWaypointListRequest()
-        req.waypoint_list.plan_uuid = str(1)
-        req.waypoint_list.sync_id = 0
+        req.waypoint_list.plan_uuid = self.plan_uuid
+        req.waypoint_list.sync_id = self.sync_id
 
         for waypoint in self.waypoints:
             item = WaypointItem()
             item.command = 0
-            item.task_uuid = "test"
+            item.task_uuid = waypoint.task_uuid
             item.autocontinue = True
             item.x = waypoint.x
             item.y = waypoint.y
@@ -264,6 +288,7 @@ class RCSBridge:
             rospy.logerr("Aborting.")
             return False
 
+        rospy.loginfo(f"Uploading wayponits for plan {self.plan_uuid} and sync id {self.sync_id}")
         self.upload_waypoint_list_client.call(req)
         return True
 
@@ -299,6 +324,9 @@ class RCSBridge:
     # Commands
     ###############################
     def command_server_cb(self, req):
+        """
+        We receive commands and we check that this match with one of the available commands. 
+        """
         rospy.loginfo("Received command request from gRCS.")
 
         # check that the command matches the one specified in the high level actions
@@ -325,21 +353,50 @@ class RCSBridge:
     #  Inspection
     ###############################
     def inspection_server_cb(self, req):
-        rospy.loginfo("\n\n\nReceived inspection request from gRCS.\n\n\n")
+        """
+        Workflow:
+        1. We receive an inspection plan from the gRCS. This has associated plan, task and sync ids. 
+        2. We save it locally in the list of waypoints to follow.
+        3. Note that to each waypoint is associated two types of commands
+            - MAV_CMD_NAV_WAYPOINT_QUATERNION: this tell us the waypoint is a simple navigate-to waypoint
+            - MAV_CMD_NAV_INSP_POINT_QUATERNION: this tell us the waypoint is a location for some sort of action (e.g manipulation)
+        4. We save the type of waypoint so that we can use it in the logic of the state machine TODO
+        5. We upload the waypoints list, sending it to mavsdk_ros (running locally) which will save it.
+        N.B. Point 5 allows to recover from the following situation:
+        - gRCS disconnect from the system
+        - instead of resending in the inspection plan issues an upload waypoints list
+        - since the mavsdk_ros saved the waypoints list from the previous run (thanks to point 5) it can send back the old one
+        - gRCS is able to resume the previous inspection plan
+        """
+        
+        # 1.
+        rospy.loginfo("Received inspection request from gRCS.")
+        self.plan_uuid = req.info.plan_uuid
+        self.sync_id = req.info.sync_id
+
         response = WaypointsAck()
         response.data = 0
         waypoint_list = WaypointList()
         waypoint_list = req.info
 
+        # 2.
+        self.waypoints = []
         self.inspection_waypoints = waypoint_list
         for i in range(len(waypoint_list.items)):
+            # TODO 3. and 4. 
+            # TODO  the waypoint contains a command to the actual thing to be done at that waypoint
+            # action vs navigation
+            # wp = WaypointItem()
+            # wp.command of value MAV_CMD_NAV_WAYPOINT_QUATERNION or  MAV_CMD_NAV_INSP_POINT_QUATERNION
             wp = Waypoint()
             wp.task_uuid = waypoint_list.items[i].task_uuid
             wp.x = waypoint_list.items[i].x
-            wp.y = waypoint_list.items[i].x
+            wp.y = waypoint_list.items[i].y
             rospy.loginfo(f"Adding waypoint [{wp}]")
             self.waypoints.append(wp)
-
+        
+        # 5. 
+        self.upload_waypoints()
         self.is_inspection_available = True
         return response
 
@@ -357,8 +414,10 @@ class RCSBridge:
     ################################
     #  High Level Actions
     ###############################
-
     def upload_hl_action(self):
+        """
+        TODO need to use the proper MAV_CMD enums and give a corresponding meaning to their parameters
+        """
         hl_manipulation_action = HLActionItem()
         # !!! We need to use a valid enum from the mavlink library
         hl_manipulation_action.command = 22
@@ -396,35 +455,45 @@ class RCSBridge:
         """ 
         Resend msg received over odom topic to gRCS telemetry topic (relay) 
         """
+        # need to be map
         self.telemetry_pub.publish(msg)
 
     ################################
     # Status
     ###############################
     def update_status(self):
+        """
+        Whatever is published as status is printed to the consolve in the visualization portal. We
+        can use this function as a logging method. 
+        """
         status_msg = TextStatus()
         status_msg.type = TextStatus.INFO
-        status_msg.text = "This is an info text message"
+        status_msg.text = "Hello World!"
         self.status_pub.publish(status_msg)
 
     ################################
     # Alarms
     ###############################
     def upload_alarms(self):
+        """
+        Alarm should be set continuously and they are meant to be in a 'OK' state most of the time.
+        This is executed only once, to inform the gRCS what is the list of possible alarms that can 
+        be triggered during the execution of a mission. 
+        """
         req = SetUploadAlarmRequest()
         alarm_sensor = AlarmItem()
         alarm_sensor.index = 0
-        alarm_sensor.name = "BAD_SENSOR"
+        alarm_sensor.name = "LIDAR_OK"
         alarm_sensor.description = "A sensor failed"
 
         alarm_mission = AlarmItem()
         alarm_mission.index = 1
-        alarm_mission.name = "BAD_MISSION"
+        alarm_mission.name = "MISSION_OK"
         alarm_mission.description = "Mission failed to execute. Check logs."
 
         alarm_waypoint = AlarmItem()
         alarm_waypoint.index = 2
-        alarm_waypoint.name = "BAD_WAYPOINT"
+        alarm_waypoint.name = "WAYPOINT_OK"
         alarm_waypoint.description = "Failed to reach waypoint"
 
         req.alarms.append(alarm_sensor)
@@ -440,11 +509,54 @@ class RCSBridge:
         self.upload_alarm_client.call(req)
 
     def update_alarm(self):
+        """ 
+        Mainly to tell the state of the sensors of each sensor.  This should run 
+        in a separate thread to make sure that everything is running ok.
+        Example implementation: we subscribe to lidar pcl and if none is received for more than dt seconds
+        then we trigger the alarm. Note that we also need a static variable keeping track of the
+        errors and warnings counts. 
+        """
+        
+        # TODO stub implementation for communication testing during gRCS integration week
         alarm = AlarmStatus()
+        alarm.index  = 0
+        alarm.status = AlarmStatus.OK
+        self.alarm_pub.publish(alarm)
+        rospy.sleep(1.0)
+
+        alarm = AlarmStatus()
+        alarm.index  = 1
+        alarm.status = AlarmStatus.OK
+        self.alarm_pub.publish(alarm)
+        rospy.sleep(1.0)
+        
+        alarm = AlarmStatus()
+        alarm.index  = 2
+        alarm.status = AlarmStatus.OK
+        self.alarm_pub.publish(alarm)
+        rospy.sleep(1.0)
+
+    def test_alarm(self, idx):
+        """ Stub implementation to test alarm during gRCS integration week """
+        alarm = AlarmStatus()
+        alarm.index  = 0
+        alarm.warns_count = idx
         alarm.status = AlarmStatus.WARNING
         self.alarm_pub.publish(alarm)
+        rospy.sleep(1.0)
 
+        alarm = AlarmStatus()
+        alarm.index  = 1
+        alarm.errors_count = idx
+        alarm.status = AlarmStatus.ERROR
+        self.alarm_pub.publish(alarm)
+
+    
     def publish_fake_odometry(self, x=0, vx=0, angle=0, vangle=0):
+        """ 
+        This should be in map frame: the same frame as the one used to 
+        visualize the global map (pcl) in the gRCS visualization portal
+        """
         self.telemetry_msg.header.frame_id = "world"
         self.telemetry_msg.child_frame_id = "superpanda"
         self.telemetry_msg.pose.pose.position.x = x
@@ -462,7 +574,9 @@ class RCSBridge:
             angle/2.0) * axis[2]
         self.telemetry_msg.pose.pose.orientation.w = np.cos(angle/2.0)
         self.telemetry_msg.twist.twist.linear.x = vx
-        self.telemetry_msg.twist.twist.angular.z = vangle
+        self.telemetry_msg.twist.twist.angular.x = vangle * axis[0]
+        self.telemetry_msg.twist.twist.angular.y = vangle * axis[1]
+        self.telemetry_msg.twist.twist.angular.z = vangle * axis[2]
 
         self.telemetry_pub.publish(self.telemetry_msg)
 
@@ -510,13 +624,21 @@ if __name__ == "__main__":
         rospy.sleep(10.0)
 
         rospy.loginfo("[alarm test]: Setting alarm")
-        bridge.update_alarm()
-        rospy.sleep(2.0)
+        for _ in range(10):
+            bridge.update_alarm()
+            rospy.sleep(1.0)
+        bridge.test_alarm(1)
+        rospy.logerr(2.0)
+        bridge.test_alarm(2)
+        rospy.logerr(2.0)
+        
         rospy.loginfo("[alarm test]: Done")
 
     # status test
     if args.status:
         rospy.loginfo("[status test]: Updating the status message")
+        # Wait for the mavsdk ros to start
+        rospy.sleep(5.0)
         bridge.update_status()
         rospy.sleep(2.0)
         rospy.loginfo("[status test]: Done")
@@ -564,10 +686,13 @@ if __name__ == "__main__":
         while waypoint:
             rospy.loginfo(
                 f"[inspection test]: Executing next waypoint at [{waypoint.x}, {waypoint.y}]")
+            rospy.sleep(5.0)
             bridge.set_waypoint_done()
             rospy.loginfo("[inspection test]: set waypoint to DONE.")
             waypoint = bridge.next_waypoint()
             rospy.sleep(5.0)
+        while not rospy.is_shutdown():
+            rospy.sleep(1.0)
         rospy.loginfo("[inspection test]: Done.")
 
     if args.checklist:

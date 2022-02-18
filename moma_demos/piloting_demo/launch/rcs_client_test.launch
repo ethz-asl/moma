@@ -6,5 +6,5 @@
   </include>
 
   <!-- Test standalone RCS client -->
-  <node name="rcs_bridge" type="rcs_bridge.py" pkg="moma_mission" output="screen" args="--checklist"/>
+  <node name="rcs_bridge" type="rcs_bridge.py" pkg="moma_mission" output="screen" args="--status"/>
 </launch>
