@@ -1,7 +1,7 @@
 import rospy
+import numpy as np
 import tf
 import pinocchio as pin
-import rospy
 
 from nav_msgs.msg import Path
 
@@ -18,7 +18,8 @@ class TransformVisitorState(StateRosControl):
         self.offset = self.get_scoped_param("offset", [0, 0, 0])
         self.angle_z = self.get_scoped_param("angle_z", 0)
         self.duration = self.get_scoped_param("duration", 0.0)
-        self.timeout = self.get_scoped_param("timeout", max(30.0, 2 * self.duration))
+        self.timeout = self.get_scoped_param("timeout", 2 * self.duration if self.duration > 0 else 30.0)
+        self.allow_flip = self.get_scoped_param("allow_flip", False)
 
         self.path_publisher = rospy.Publisher(
             self.get_scoped_param("path_topic", "/desired_path"), Path, queue_size=1)
@@ -43,6 +44,14 @@ class TransformVisitorState(StateRosControl):
         H_t_toff = tf.transformations.rotation_matrix(self.angle_z, [0,0,1])
         H_t_toff[0:3, 3] = self.offset
         H_c_toff = T_c_t.homogeneous @ H_t_toff
+
+        if self.allow_flip:
+            T_c_ee = self.get_transform(self.control_frame, self.ee_frame)
+            H_c_ee = T_c_ee.homogeneous
+            if np.dot(H_c_toff[0:3, 0], H_c_ee[0:3, 0]) < 0:
+                rospy.loginfo('Using a flipped pose')
+                H_toff_toffflip = tf.transformations.rotation_matrix(np.pi, [0, 0, 1])
+                H_c_toff = H_wctoff @ H_toff_toffflip
         T_c_toff = pin.SE3(H_c_toff)
 
         pose_stamped = se3_to_pose_stamped(T_c_toff, self.control_frame)
