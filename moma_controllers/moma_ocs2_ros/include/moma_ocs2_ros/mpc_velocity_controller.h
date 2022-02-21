@@ -70,7 +70,7 @@ class MpcController {
       return 0;
     }
 
-    if (!nh_.param("/ocs2_mpc/reference_frame", referenceFrame_, "odom")){
+    if (!nh_.param("/ocs2_mpc/reference_frame", referenceFrame_, {"odom"})){
       ROS_ERROR("Failed to retrieve /ocs2_mpc/reference_frame from param server.");
       return 0;
     }
