@@ -24,7 +24,7 @@
     <arg name="calibration_topic" default="$(arg calibration_topic)"/>
     <arg name="base_frame"        default="$(arg base_frame)"/>
     <arg name="camera_frame"      default="$(arg camera_frame)"/>
-    <arg name="model_name"        default="valve_depth"/>
+    <arg name="model_name"        default="valve"/>
     <arg name="keypoints_file"    default="$(find object_keypoints_ros)/config/valve.json"/>
     <arg name="image_file"        default=""/>
     <arg name="rviz_config"       default="$(find piloting_demo)/config/rviz/perception.rviz"/>
