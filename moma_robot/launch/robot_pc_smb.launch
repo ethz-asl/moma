@@ -19,7 +19,7 @@
     </include>
   
     <!-- Low level smb controller -->
-    <include file="$(find smb_lowlevel_controller)/launch/smb_lowlevel_controller.launch" ns="control">
+    <include file="$(find smb_lowlevel_controller)/launch/smb_lowlevel_controller.launch" ns="smb">
 	  <arg name="description_name"            value="/smb_description"/>
 	  <arg name="command_smb"                 value="true"/>
   </include>

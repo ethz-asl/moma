@@ -14,8 +14,9 @@
   <param name="robot_description" command="$(find xacro)/xacro $(find moma_description)/urdf/superpanda.urdf.xacro use_nominal_extrinsics:=true use_fixed_realsense:=$(arg use_fixed_realsense)
     control_mode:=$(arg control_mode) tool:=$(arg tool)"/>
 
-  <!-- This remap needs to be here to be parsed by gazebo controllers -->  
-  <remap from="/control/robot_description" to="robot_description"/>
+  <!-- diff_drive_controller is hard coded to /ns/robot_description so we need this remap -->  
+  <remap from="/smb/robot_description" to="/smb_description"/>
+
  
   <!-- start gazebo -->
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
