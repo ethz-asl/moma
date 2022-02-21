@@ -70,7 +70,7 @@ class MpcController {
       return 0;
     }
 
-    if (!nh_.param("/ocs2_mpc/reference_frame", referenceFrame_, {})){
+    if (!nh_.param("/ocs2_mpc/reference_frame", referenceFrame_, "odom")){
       ROS_ERROR("Failed to retrieve /ocs2_mpc/reference_frame from param server.");
       return 0;
     }
@@ -352,7 +352,7 @@ class MpcController {
   bool sanityCheck(const nav_msgs::Path& path) {
     // check that path adheres to conventional frame
     if (path.header.frame_id != referenceFrame_) {
-      ROS_ERROR_STREAM("[MpcController::transformPath] Desired path must be in [" << referenceFrame_ << "] frame. This should coincide at initialization, with the base link.");
+      ROS_ERROR_STREAM("[MpcController::transformPath] Desired path must be in [" << referenceFrame_ << "] frame. This should coincide at initialization, with the root of the kinematic chain.");
       return false;
     }
 
