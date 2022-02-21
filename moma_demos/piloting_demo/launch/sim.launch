@@ -76,6 +76,13 @@
     <arg name="global_frame" value="tracking_camera_odom"/>
   </include>
 
+  <!-- Customer camera info publisher as per real robot -->
+  <arg name="intrinsics_file" value="$(find moma_description)/config/intrinsics_sim.yaml"/>
+  <node name="camera_intrinsics_publisher" 
+        pkg="moma_sensor_tools" 
+        type="yaml_to_camera_info_publisher.py" 
+        args="$(arg intrinsics_file)" output="screen"/>
+
   <!-- Perception -->
   <include file="$(find piloting_demo)/launch/perception.launch">
     <arg name="play_bag"          value="false"/>
@@ -83,9 +90,11 @@
     <arg name="camera_frame"      value="hand_eye_color_optical_frame"/>
     <arg name="image_topic"       value="/hand_eye/color/image_raw"/>
     <arg name="depth_topic"       value="/hand_eye/depth/image_rect_raw"/>
-    <arg name="calibration_topic" value="/hand_eye/color/camera_info"/>
+    <arg name="calibration_topic" value="/camera_info"/>
     <arg name="calibration_file"  value="none"/>
     <arg name="custom_intrinsics" value="false"/>
     <arg name="rviz"              value="false"/>
   </include>
+
+
 </launch>

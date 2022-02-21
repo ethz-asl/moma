@@ -51,7 +51,7 @@ OBSERVATION_POSE:
   camera_frame: hand_eye_color_optical_frame
   controlled_frame: tool_frame
   object_size: 0.20
-  camera_info_topic: "/hand_eye/color/camera_info"
+  camera_info_topic: "/camera_info"
   lateral_view_angle_deg: 20
   image_fill_ratio: 0.5
   heading: [1, 0, 0]
