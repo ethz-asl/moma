@@ -2,11 +2,22 @@
 <launch>
     <arg name="sim"               default="false"/>
     <arg name="use_global_map"    default="true"/>
-    <arg name="global_map_file"   default="$(env HOME)/storage/maps/map.yaml"/>
+    <arg name="global_map_file"   default="$(env HOME)/maps/jfloor/map.yaml"/>
+    <arg name="map_file_name"     default="$(env HOME)/maps/jfloor/jfloor.pcd"/>
     <arg name="global_frame"      default="map"/>
     <arg name="robot_base_frame"  default="base_link"/>
     <arg name="odom_topic"        default="/base_odom"/>
 
+    <!-- localize agains prebuilt map -->
+    <include file="$(find smb_slam)/launch/localization.launch">
+        <arg name="launch_rviz"             value="false"/>
+        <arg name="launch_sensors"          value="false"/>
+        <arg name="use_lidar_odometry"      value="false"/>
+        <arg name="launch_lidar_odometry"   value="false"/>
+        <arg name="map_file_name"           value="$(arg map_file_name)"/>
+        <arg name="parameter_filepath"      value="$(find piloting_demo)/config/localization/icp_params.yaml"/>
+    </include>
+    
     <!-- Base planner can use a global map and locally replans for obstacle avoidance -->
     <include file="$(find smb_navigation)/launch/navigate2d_ompl.launch">
         <arg name="sim"                 value="$(arg sim)"/>
@@ -16,4 +27,8 @@
         <arg name="robot_base_frame"    value="$(arg robot_base_frame)"/>
         <arg name="odom_topic"          value="$(arg odom_topic)"/>
     </include>
+
+    <!-- Publish base odometry from tracking cam odometry measurements -->
+    <node pkg="odometry_conversion" type="odometry_conversion_node" name="tracking_camera_odometry_conversion" output="screen"/>
+    
 </launch>

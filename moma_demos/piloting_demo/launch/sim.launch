@@ -4,12 +4,12 @@
     <arg name="rviz" default="true" />
     <arg name="use_fixed_realsense" default="false"/>
     <arg name="tool" default="panda_hand"/>
-    <arg name="mpc" default="false"/>
+    <arg name="launch_navigation" default="true"/>
 
     <!-- Control-->
     <!-- load a arm only description for the arm controllers -->
     <param name="arm_description" command="$(find xacro)/xacro $(find moma_description)/urdf/panda.urdf.xacro 
-      use_nominal_extrinsics:=true use_fixed_realsense:=false tool:=$(arg tool)"/>
+      use_nominal_extrinsics:=true use_fixed_realsense:=false tool:=$(arg tool) control_mode:='Effort' include_gazebo_control:=false"/>
 
     <group ns="ocs2_mpc">
         <param name="task_file" value="$(find moma_ocs2)/config/mpc/task_panda.info"/>
@@ -18,7 +18,7 @@
         <param name="base_type" value="1"/>
     </group>
 
-    <group ns="control">
+    <group ns="panda">
         <group if="$(eval arg('tool') == 'panda_hand')">
             <node name="gripper_controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="franka_gripper" />
         </group>
@@ -27,48 +27,47 @@
             <node name="gripper_controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="robotiq_2f_85_controller" />
         </group>
 
-        <!-- start a robot state publisher -->
-        <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="true" output="screen" />
-
         <!-- start joint position trajectory controller -->
         <rosparam file="$(find moma_gazebo)/config/panda_controllers.yaml" command="load" />
         <rosparam file="$(find moma_gazebo)/config/gripper_controllers.yaml" command="load" />
 
-        <node unless="$(arg mpc)" name="arm_controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="joint_state_controller effort_joint_trajectory_controller" />
-        <node if="$(arg mpc)" name="arm_controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="joint_state_controller mpc_controller path_passthrough_controller" />
+        <node name="arm_start_controller_spawner" 
+              pkg="controller_manager" 
+              type="spawner" 
+              output="screen" args="joint_state_controller effort_joint_trajectory_controller" />
+        <node name="arm_stop_controller_spawner" 
+              pkg="controller_manager" 
+              type="spawner"
+              output="screen" args="--stopped mpc_controller path_passthrough_controller"
+              launch-prefix="bash -c 'sleep 20; $0 $@' " />
     </group>
 
-    <group if="$(arg mpc)">
-        <!-- Give a static transform between world and odom frame, since the "world" frame is hardcoded in ocs2_ros_interfaces -->
-        <node pkg="tf2_ros"
-            type="static_transform_publisher"
-            name="tracking_cam_world_tf"
-            args="0 0 0 0 0 0 1 tracking_camera_odom world" />
-        <include if="$(arg rviz)" file="$(find panda_mpc)/launch/interactive_marker.launch"/>
-    </group>
+    <!-- Joint the readings published by Smb and Panda -->
+    <node name="joint_state_publisher" type="joint_state_publisher" pkg="joint_state_publisher" output="screen">
+        <rosparam param="source_list">[panda/joint_states, smb/joint_states] </rosparam>
+        <param name="rate" value="200"/>
+    </node>
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="true" output="screen" />
 
     <include file="$(find smb_control)/launch/smb_control.launch">
         <arg name="description_name"        value="smb_description"/>
-        <arg name="control_namespace"       value="control"/>
+        <arg name="control_namespace"       value="smb"/>
         <arg name="robot_namespace"         value=""/>
         <arg name="enable_ekf"              value="false" /> <!-- we cannot use ekf when localization through icp -->
         <arg name="simulation"              value="true"/>
         <arg name="mpc"                     value="false"/>
         <arg name="publish_robot_state"     value="false"/>  <!-- Since we do this in the current launch for the full robot -->
     </include>
-    
-    <!-- Navigation -->
-    <include file="$(find piloting_demo)/launch/navigation.launch">
+
+
+    <!-- Localization and Navigation -->
+    <include file="$(find piloting_demo)/launch/navigation.launch" if="$(arg launch_navigation)">
         <arg name="sim"               value="true"/>
         <arg name="use_global_map"    value="true"/>
         <arg name="global_map_file"   value="$(env HOME)/storage/maps/map.yaml"/>
         <arg name="global_frame"      value="map"/> 
     </include>
   
-    <!-- Localization -->
-    <include file="$(find piloting_demo)/launch/localization.launch">
-    </include>
-    
     <!-- Gazebo -->
     <include file="$(find piloting_demo)/launch/gazebo.launch">
         <arg name="use_fixed_realsense" value="$(arg use_fixed_realsense)"/>
@@ -77,9 +76,6 @@
         <arg name="gui"  value="false"/>
     </include>
 
-    <!-- Publish base odometry from tracking cam odometry measurements -->
-    <node pkg="odometry_conversion" type="odometry_conversion_node" name="tracking_camera_odometry_conversion" output="screen"/>
-    
     <!-- try cleaner start waiting some time before unpausing -->
     <node name="unpause_gazebo" pkg="moma_gazebo" type="unpause_gazebo.py">
         <param name="wait_before_unpause" value="8.0"/>
