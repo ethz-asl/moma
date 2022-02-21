@@ -21,6 +21,9 @@
     <exec_depend>moma_robot</exec_depend>
     <exec_depend>odometry_conversion</exec_depend>
 
+    <!-- piloting dependencies -->
+    <exec_depend>mavsdk_ros</exec_depend>
+
     <!-- smb dependencies -->
     <exec_depend>smb_control</exec_depend>
     <exec_depend>smb_description</exec_depend>
