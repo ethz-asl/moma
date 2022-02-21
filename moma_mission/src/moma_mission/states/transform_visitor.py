@@ -51,7 +51,7 @@ class TransformVisitorState(StateRosControl):
             if np.dot(H_c_toff[0:3, 0], H_c_ee[0:3, 0]) < 0:
                 rospy.loginfo('Using a flipped pose')
                 H_toff_toffflip = tf.transformations.rotation_matrix(np.pi, [0, 0, 1])
-                H_c_toff = H_wctoff @ H_toff_toffflip
+                H_c_toff = H_c_toff @ H_toff_toffflip
         T_c_toff = pin.SE3(H_c_toff)
 
         pose_stamped = se3_to_pose_stamped(T_c_toff, self.control_frame)
