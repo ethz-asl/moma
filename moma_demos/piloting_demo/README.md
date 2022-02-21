@@ -43,6 +43,29 @@ In order to run the simulation the SMB stack needs to be cloned. This is reflect
     catkin build pilotin_demo
     ```
 
+## Before running the demo
+
+### A detour on frames and their meaning
+It is non-trivial to get all the frames right for such a demo. Many frames are involved. Here we review the main ones and what their meaning is in simulation and real world experiments:
+
+- `base_link`: the origin of the robot kinematic chain. Is specified in the center of the moving base, with the x axis poining forward.  
+- `map`: the frame used by localization to align with respect to the global map (aka a pre-loaded point cloud of the environment). In real experiments, global information should be defined in this frame since this is the frame which is supposed to stay consistent over time. For example,a target goal for the base is expressed in this frame. 
+- `tracking_camera_odom`, `odom`: these are the links with respect to wich we publich the base odometry. As in MPC the kinematic chain starts at the `base_link`, the odometry coming from here is an odometry source that can be used straight away as base position measurements. How do we obtain an odometry at the base link (more or less at the geometrical center of the robot) if there is no odometry sensor in there? 
+  - _simulation_: in simulation, the odometry plugin is located at the same location of the tracking camera frame (which is not in the base). This allows 0-shot sim to real.  Nevertheless, a node called `odometry_conversion_node` is used to convert this odometry to position/velocity measurements centered at the base link (like the sensor would be in the base link) allowing controllers to subscribe to this topic instead. The node reads the static transfrom from the sensor location to the base link and uses that to translate twist and position odometry measurements
+  - _real world_: same setup as in simulation, but a real Realsense Tracking cam is publishing the desired measurements. Note that we still need the `odometry_conversion_node` to run.
+- `world`: this frame allows to represent ground truth in simulation and not have to run the localization pipeline. The world corresponds to the ground truth position of the robot. In other words, one can say that if the localization pipeline would be flawless, the two frames should coincides.
+  - _simulation_: in sim `world` means where Gazebo thinks objects are. Unfortunately is not Gazebo that publishes all transformations with respect to its internal notion of world but its us, using some `static_transform_publish` or simple `/tf` topics. We are therefore free to choose the notion of world as long as we are consistent? Not really, because gazebo plugins (e.g camera that publish some point cloud) have embed this internal gazebo notion of world. As we have no power about that, we have to agree and change some plugin to publish the transform that links our robot to `world`. This is currently supported in the odometry gazebo plugin spawned inside the smb.
+  - _real world_: in real robot experiments there is no such thing as `world` but only a `map` (output from localization pipeline) and `odom` (or `tracking_camera_odom`). In this case, we are allowed to use a custom published transform from `world` to `map` (e.g identity). 
+- `panda_link8`: last link of panda arm, right before the end effector
+- `tool_frame`: accessory frame used as the target end effector pose for manipulation tasks
+- `object_frame`: ground truth location or estimation of the object pose (should be wrt `map` or `world` frames).
+
+![alt text](docs/frames.png)
+
+**Important Remark**: the tf tree might not look as one would always expect with the root being world, and all other frames, logically placed in the tree path. This is bacause of the constraint imposed by `tf_ros` that the transforms cannot have more then a parent node (it must be a tree).  
+  
+
+
 ## Path Planner / Navigation
 
 ### Simulation
