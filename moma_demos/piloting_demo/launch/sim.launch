@@ -4,7 +4,6 @@
   <arg name="rviz" default="true" />
   <arg name="use_fixed_realsense" default="false"/>
   <arg name="tool" default="panda_hand"/>
-  <arg name="mpc" default="false"/>
   <arg name="base_type" default="1"/>
 
   <!-- load a arm only description for the arm controllers -->
@@ -64,8 +63,7 @@
           pkg="controller_manager"
           type="spawner" respawn="false" output="screen" 
           args="--stopped joint_space_controller mpc_controller"
-          launch-prefix="bash -c 'sleep 12; $0 $@' "/>
-
+          launch-prefix="bash -c 'sleep 20; $0 $@' "/>
   </group>
 
   <node name="unpause_gazebo" pkg="moma_gazebo" type="unpause_gazebo.py">
