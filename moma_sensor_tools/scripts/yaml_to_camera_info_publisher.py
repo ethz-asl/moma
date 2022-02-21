@@ -58,7 +58,7 @@ if __name__ == "__main__":
     # Parse yaml file
     if not os.path.isfile(filename):
         rospy.logerr(f"File {filename} does not exist.")
-        sys.exit(0)
+        sys.exit(1)
     camera_info_msg = yaml_to_CameraInfo(filename)
 
     # Initialize publisher node
