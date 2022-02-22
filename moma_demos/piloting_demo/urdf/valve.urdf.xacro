@@ -1,21 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <robot name="valve_model" xmlns:xacro="http://www.ros.org/wiki/xacro">
-   <xacro:arg name="x"      default="1.2"/>
-   <xacro:arg name="y"      default="0.0"/>
-   <xacro:arg name="z"      default="0.5"/>
-   <xacro:arg name="roll"   default="0.0"/>
-   <xacro:arg name="pitch"  default="0.0"/>
-   <xacro:arg name="yaw"    default="0.0"/>
-   
-   <link name="world">
-   </link>
+    <link name="valve_base"/>
 
     <joint name="valve_base_joint" type="fixed">
-      <origin xyz="$(arg x) $(arg y) $(arg z)" rpy="0 $(arg pitch) $(arg yaw)"/>
-      <parent link="world"/>
+      <origin xyz="1.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+      <parent link="valve_base"/>
       <child link="valve_gt"/>
     </joint>
-   
+
     <link name="valve_gt">
     <inertial>
       <mass value="0.01" />
@@ -26,7 +18,6 @@
         izz = "0.000001" />
       </inertial>
     </link>
-
 
     <link name="wheel">
     <!-- <contact>

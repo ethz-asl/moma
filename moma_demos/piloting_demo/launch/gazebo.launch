@@ -42,9 +42,11 @@
       -J panda_joint6 1.571
       -J panda_joint7 0.785" />
 
-  <param name="valve_description" command="$(find xacro)/xacro --inorder $(find piloting_demo)/urdf/valve.urdf.xacro pitch:=0 yaw:=0.0"/>
+  <param name="valve_base_description" command="$(find xacro)/xacro $(find piloting_demo)/urdf/valve_base.urdf.xacro"/>
+  <param name="valve_description" command="$(find xacro)/xacro $(find piloting_demo)/urdf/valve.urdf.xacro"/>
 
-  <node name="spawn_valve" pkg="gazebo_ros" type="spawn_model" args="-param valve_description -urdf -model valve" output="screen"/> 
+  <node name="spawn_valve_base" pkg="gazebo_ros" type="spawn_model" args="-urdf -param valve_base_description -model valve_base -x 0.5 -z 0.5" output="screen"/>
+  <node name="spawn_valve" pkg="gazebo_ros" type="spawn_model" args="-param valve_description -urdf -model valve" output="screen"/>
 
   <node name="valve_state_publisher"  type="robot_state_publisher"  pkg="robot_state_publisher">
     <remap from="robot_description" to="valve_description"/>

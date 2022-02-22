@@ -4,14 +4,9 @@
 <!-- |    EDITING THIS FILE BY HAND IS NOT RECOMMENDED                                 | -->
 <!-- =================================================================================== -->
 <robot name="valve_model">
-  <link name="world">
-   </link>
-  <joint name="valve_base_joint" type="fixed">
-    <origin rpy="3.14 0.0 0.0" xyz="0.8 0.0 0.5"/>
-    <parent link="world"/>
-    <child link="valve_gt"/>
-  </joint>
+  <link name="valve_base"/>
   <link name="valve_gt">
+    <parent link="valve_base"/>
     <inertial>
       <mass value="0.01"/>
       <origin rpy="0 0 0" xyz="0 0 0.0"/>
@@ -19,29 +14,29 @@
     </inertial>
   </link>
   <link name="wheel">
-    <contact>
+    <!-- <contact>
       <friction_anchor/>
       <stiffness value="30000.0"/>
       <damping value="1000.0"/>
       <spinning_friction value="0.1"/>
       <lateral_friction value="1.0"/>
-    </contact>
+    </contact> -->
     <inertial>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <mass value="1.0"/>
       <!-- Inertia of a torus radius = 0.12 and cross section radius 0.02-->
       <inertia ixx="0.00745" ixy="0.0" ixz="0.0" iyy="0.0147" iyz="0.0" izz="0.00745"/>
     </inertial>
-    <!--collision>
-      <origin xyz="0 0 0" rpy="0 0 0"/>
+    <collision>
+      <origin rpy="3.14 0 0" xyz="0 0 0"/>
       <geometry>
-        <cylinder radius="0.1225" length="0.02"/>
+        <mesh filename="package://piloting_demo/models/valve/meshes/valve.dae" scale="1.0 1.0 1.0"/>
       </geometry>
-    </collision-->
+    </collision>
     <visual>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <origin rpy="3.14 0 0" xyz="0 0 0"/>
       <geometry>
-        <mesh filename="package://piloting_demo/models/valve/meshes/valve.dae" scale="1 1 1"/>
+        <mesh filename="package://piloting_demo/models/valve/meshes/valve.stl" scale="1.0 1.0 1.0"/>
       </geometry>
     </visual>
   </link>

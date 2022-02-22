@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<robot name="valve_base_model" xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <link name="valve_base">
+  		<inertial>
+  			<mass value="0.01"/>
+  			<inertia  ixx="0.0" ixy="0.0"  ixz="0.0" iyy="0.0" iyz="0.0" izz="0.0" />
+  		</inertial>
+  		<visual>
+  			<origin xyz="0 0 0" rpy="0 0 0"/>
+  			<geometry>
+  				<cylinder length="0.3" radius="0.03"/>
+  			</geometry>
+  		</visual>
+  		<collision>
+  			<origin xyz="0 0 0" rpy="0 0 0"/>
+  			<geometry>
+  				<cylinder length="0.3" radius="0.03"/>
+  			</geometry>
+  		</collision>
+  	</link>
+
+  <!--gazebo>
+    <static>true</static>
+  </gazebo-->
+</robot>
