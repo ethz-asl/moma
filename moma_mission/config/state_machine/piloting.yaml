@@ -10,7 +10,7 @@ IDLE:
 
 OPEN_GRIPPER:
   default_outcome: Completed
-  gripper_action_name: /control/franka_gripper/gripper_action
+  gripper_action_name: /panda/franka_gripper/gripper_action
   position: 0.03
   max_effort: 20
   tolerance: 0.001
@@ -18,7 +18,7 @@ OPEN_GRIPPER:
 
 CLOSE_GRIPPER:
   default_outcome: Completed
-  gripper_action_name: /control/franka_gripper/gripper_action
+  gripper_action_name: /panda/franka_gripper/gripper_action
   position: 0.0
   max_effort: 20
   tolerance: 0.001
@@ -27,7 +27,7 @@ CLOSE_GRIPPER:
 HOME_ROBOT:
   default_outcome: None
   action_name: /joint_space_controller_server
-  manager_namespace: control
+  manager_namespace: panda
   startlist: ['joint_space_controller']
   stoplist: ['mpc_controller', 'path_passthrough_controller', 'effort_joint_trajectory_controller']
   joints_configurations:
@@ -37,7 +37,7 @@ HOME_ROBOT:
 HOME_ROBOT_FINAL:
   default_outcome: None
   action_name: /joint_space_controller_server
-  manager_namespace: control
+  manager_namespace: panda
   startlist: ['joint_space_controller']
   stoplist: ['mpc_controller', 'path_passthrough_controller', 'effort_joint_trajectory_controller']
   joints_configurations:
@@ -46,7 +46,7 @@ HOME_ROBOT_FINAL:
 OBSERVATION_POSE:
   default_outcome: None
   sample_name: observation
-  map_frame: world
+  map_frame: map
   object_frame: valve_gt
   camera_frame: hand_eye_color_optical_frame
   controlled_frame: tool_frame
@@ -63,7 +63,7 @@ OBSERVATION_APPROACH:
   target_frame: observation
   startlist: [ 'mpc_controller', 'path_passthrough_controller'] #, 'path_admittance_controller' ]
   stoplist: [ 'joint_space_controller' ]
-  manager_namespace: control
+  manager_namespace: panda
 
 MODEL_FIT_VALVE:
   default_outcome: None
@@ -79,7 +79,7 @@ REACH_DETECTION_HOTSPOT:
   base_pose_topic: /base_pose_measured
   base_odometry_topic: /base_odom
  
-  manager_namespace: control
+  manager_namespace: panda
   startlist: ['smb_diff_drive']
   stoplist: []
   
@@ -94,7 +94,7 @@ WAYPOINT_FOLLOWING:
   base_pose_topic: /base_pose_measured
   base_odometry_topic: /camera/odom/sample
  
-  manager_namespace: control
+  manager_namespace: smb
   startlist: ['smb_diff_drive']
   stoplist: []
   
@@ -105,7 +105,7 @@ WAYPOINT_FOLLOWING:
 REACH_VIEWPOINT:
   default_outcome: Completed
   action_name: /joint_space_controller_server
-  manager_namespace: control
+  manager_namespace: panda
   startlist: ['joint_space_controller']
   stoplist: ['mpc_controller', 'path_passthrough_controller', 'effort_joint_trajectory_controller']
   joints_configurations:
@@ -115,21 +115,21 @@ REACH_VIEWPOINT:
 LATERAL_GRASP:
   default_outcome: Completed
   controller_name: mpc_controller
-  manager_namespace: control
+  manager_namespace: panda
   startlist: ['mpc_controller', 'path_passthrough_controller']
   stoplist: ['joint_space_controller']
   path_topic_name: /desired_path
 
 POST_LATERAL_GRASP:
   default_outcome: FullRotationDone
-  manager_namespace: control
+  manager_namespace: panda
   startlist: ['mpc_controller', 'path_passthrough_controller']
   stoplist: ['joint_space_controller']
   path_topic_name: /desired_path
 
 MANIPULATE_VALVE:
   default_outcome: Completed
-  manager_namespace: control
+  manager_namespace: panda
   startlist: ['mpc_controller', 'path_passthrough_controller']
   stoplist: ['joint_space_controller']
   
