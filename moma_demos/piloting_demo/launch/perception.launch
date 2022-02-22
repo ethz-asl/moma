@@ -17,20 +17,20 @@
     args="$(arg custom_intrinsics_file)" output="screen" if="$(arg custom_intrinsics)"/>
 
   <include file="$(find object_keypoints_ros)/launch/keypoints.launch">
-    <arg name="load_bag_filepath" default="false"/>
-    <arg name="calibration_file"  default="$(arg calibration_file)"/>
-    <arg name="image_topic"       default="$(arg image_topic)"/>
-    <arg name="depth_topic"       default="$(arg depth_topic)"/>
-    <arg name="calibration_topic" default="$(arg calibration_topic)"/>
-    <arg name="base_frame"        default="$(arg base_frame)"/>
-    <arg name="camera_frame"      default="$(arg camera_frame)"/>
-    <arg name="model_name"        default="valve"/>
-    <arg name="keypoints_file"    default="$(find object_keypoints_ros)/config/valve.json"/>
-    <arg name="image_file"        default=""/>
-    <arg name="rviz_config"       default="$(find piloting_demo)/config/rviz/perception.rviz"/>
-    <arg name="rviz"              default="$(arg rviz)"/>
-    <arg name="gpu"               default="false"/>
-    <arg name="operation_mode"    default="service"/>
+    <arg name="load_bag_filepath" value="false"/>
+    <arg name="calibration_file"  value="$(arg calibration_file)"/>
+    <arg name="image_topic"       value="$(arg image_topic)"/>
+    <arg name="depth_topic"       value="$(arg depth_topic)"/>
+    <arg name="calibration_topic" value="$(arg calibration_topic)"/>
+    <arg name="base_frame"        value="$(arg base_frame)"/>
+    <arg name="camera_frame"      value="$(arg camera_frame)"/>
+    <arg name="model_name"        value="valve"/>
+    <arg name="keypoints_file"    value="$(find object_keypoints_ros)/config/valve.json"/>
+    <arg name="image_file"        value=""/>
+    <arg name="rviz_config"       value="$(find piloting_demo)/config/rviz/perception.rviz"/>
+    <arg name="rviz"              value="$(arg rviz)"/>
+    <arg name="gpu"               value="false"/>
+    <arg name="operation_mode"    value="service"/>
   </include>
   
   <node pkg="rosbag" type="play" name="rosbag_play" args="-r 0.1 $(arg bag_file)" launch-prefix="bash -c 'sleep 3.0; $0 $@' " if="$(arg play_bag)"/>
