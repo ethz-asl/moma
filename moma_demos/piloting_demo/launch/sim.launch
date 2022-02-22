@@ -39,7 +39,7 @@
               pkg="controller_manager" 
               type="spawner"
               output="screen" args="--stopped mpc_controller path_passthrough_controller"
-              launch-prefix="bash -c 'sleep 20; $0 $@' " />
+              launch-prefix="bash -c 'sleep 12; $0 $@' " />
     </group>
 
     <!-- Joint the readings published by Smb and Panda -->
