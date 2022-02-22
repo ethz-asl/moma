@@ -66,6 +66,7 @@
   <xacro:panda 
     connected_to="arm_mount_link" 
     use_fixed_realsense="$(arg use_fixed_realsense)" 
+    wrist_camera_name="hand_eye"
     tool="$(arg tool)"/>
 
   <!-- Rigid fix between SMB and Panda -->
