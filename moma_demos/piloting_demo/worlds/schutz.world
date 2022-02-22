@@ -104,7 +104,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>model://map/meshes/map.dae</uri>
+              <uri>model://opfikon/meshes/map.dae</uri>
             </mesh>
           </geometry>
           <max_contacts>10</max_contacts>
@@ -125,7 +125,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>model://map/meshes/map.dae</uri>
+              <uri>model://opfikon/meshes/map.dae</uri>
             </mesh>
           </geometry>
         </visual>
