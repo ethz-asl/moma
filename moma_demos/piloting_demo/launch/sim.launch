@@ -16,6 +16,7 @@
         <param name="robot_description_ocs2" command="$(find xacro)/xacro $(find moma_description)/urdf/superpanda.urdf.xacro 
             mpc_model:=true use_nominal_extrinsics:=true tool:='none'"/>
         <param name="base_type" value="1"/>
+        <param name="reference_frame" value="tracking_camera_odom"/>
     </group>
 
     <group ns="panda">
@@ -65,7 +66,7 @@
   <node name="camera_intrinsics_publisher" 
         pkg="moma_sensor_tools" 
         type="yaml_to_camera_info_publisher.py" 
-        args="$(arg intrinsics_file)" output="screen"/>
+        args="$(arg intrinsics_file) /hand_eye/color/camera_info" output="screen"/>
 
   <!-- Perception -->
   <include file="$(find piloting_demo)/launch/perception.launch">

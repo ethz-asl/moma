@@ -68,7 +68,7 @@ if __name__ == "__main__":
 
     # Initialize publisher node
     rospy.init_node("camera_info_publisher", anonymous=True)
-    publisher = rospy.Publisher("camera_info", CameraInfo)
+    publisher = rospy.Publisher("camera_info", CameraInfo, queue_size=1)
     subscriber = rospy.Subscriber(args.image_topic, CameraInfo, lambda msg: callback(msg, camera_info_msg, publisher))
 
     rospy.spin()
