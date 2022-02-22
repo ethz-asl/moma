@@ -1,5 +1,7 @@
 #! /bin/bash
-#outpath="$1"
+outpath="$1"
+name="${2:-valve_perception}"
+mode="${3:-default}"
 
 # Other variables
 now="$(date +"%F-%H-%M-%S")"
@@ -19,8 +21,24 @@ if [ ! -d "${outpath}" ]; then
 fi
 
 # Record
+echo "Recording will be saved with the name ${name}"
 rosparam dump ${outpath}/${now}.yaml
-rosbag record --output-name="${outpath}/${now}_valve_perception" \
-/tf \
-/tf_static \
-/hand_eye/color/image_raw \
+if [ $3 = "full" ]; then
+  echo "Recording full set of topics (might become huge!)"
+  rosbag record --repeat-latched --output-name="${outpath}/${now}_${name}" \
+    /tf \
+    /tf_static \
+    /camera_info \
+    /hand_eye/color/image_raw_throttle \
+    /hand_eye/depth/image_rect_raw_throttle \
+    /hand_eye/depth/color/points_throttle \
+    /joint_states
+else
+  echo "Recording default set of topics"
+  rosbag record --repeat-latched --output-name="${outpath}/${now}_${name}" \
+    /tf \
+    /tf_static \
+    /camera_info \
+    /hand_eye/color/image_raw_throttle \
+    /joint_states
+fi

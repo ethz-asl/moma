@@ -6,6 +6,8 @@ Panels:
       Expanded:
         - /World1/TF1/Frames1
         - /Controllers1/MPC1
+        - /Base Navigation1/Global Base Path1
+        - /Localization1/Registered PCL1
       Splitter Ratio: 0.5
     Tree Height: 198
   - Class: rviz/Selection
@@ -123,11 +125,17 @@ Visualization Manager:
               Value: false
             imu_link:
               Value: false
+            init_odom_source:
+              Value: true
             lidar_mount_link:
               Value: false
+            map:
+              Value: true
             mono_link:
               Value: false
-            observation:
+            odom:
+              Value: false
+            odom_source:
               Value: true
             panda_default_ee:
               Value: false
@@ -155,6 +163,10 @@ Visualization Manager:
               Value: false
             panda_rightfinger:
               Value: false
+            range_sensor:
+              Value: true
+            raw_odometry_source:
+              Value: true
             realsense_t265:
               Value: false
             realsense_t265_odom_frame:
@@ -182,78 +194,78 @@ Visualization Manager:
           Show Axes: true
           Show Names: true
           Tree:
-            base_link:
-              LF_WHEEL:
-                {}
-              LH_WHEEL:
-                {}
-              RF_WHEEL:
-                {}
-              RH_WHEEL:
-                {}
-              arm_mount_link:
-                panda_link0:
-                  panda_link1:
-                    panda_link2:
-                      panda_link3:
-                        panda_link4:
-                          panda_link5:
-                            panda_link6:
-                              panda_link7:
-                                hand_eye_bottom_screw_frame:
-                                  hand_eye_link:
-                                    hand_eye_color_frame:
-                                      hand_eye_color_optical_frame:
-                                        {}
-                                    hand_eye_depth_frame:
-                                      hand_eye_depth_optical_frame:
-                                        {}
-                                    hand_eye_infra1_frame:
-                                      hand_eye_infra1_optical_frame:
-                                        {}
-                                    hand_eye_infra2_frame:
-                                      hand_eye_infra2_optical_frame:
-                                        {}
-                                panda_link8:
-                                  panda_default_ee:
-                                    {}
-                                  panda_hand:
-                                    panda_leftfinger:
-                                      {}
-                                    panda_rightfinger:
-                                      {}
-                                  tool_frame:
-                                    {}
-              base_inertia:
-                {}
-              blackfly0_link:
-                blackfly0_optical_link:
+            map:
+              init_odom_source:
+                raw_odometry_source:
                   {}
-              blackfly1_link:
-                blackfly1_optical_link:
-                  {}
-              blackfly_left_link:
-                blackfly_left_optical_link:
-                  {}
-              blackfly_right_link:
-                blackfly_right_optical_link:
-                  {}
-              imu_link:
-                imu:
-                  {}
-                realsense_t265:
-                  realsense_t265_odom_frame:
-                    camera_imu_optical_frame:
+              odom:
+                odom_source:
+                  base_link:
+                    LF_WHEEL:
                       {}
-                  world:
-                    observation:
+                    LH_WHEEL:
                       {}
-                    valve_gt:
-                      wheel:
+                    RF_WHEEL:
+                      {}
+                    RH_WHEEL:
+                      {}
+                    arm_mount_link:
+                      panda_link0:
+                        panda_link1:
+                          panda_link2:
+                            panda_link3:
+                              panda_link4:
+                                panda_link5:
+                                  panda_link6:
+                                    panda_link7:
+                                      panda_link8:
+                                        panda_default_ee:
+                                          {}
+                                        panda_hand:
+                                          panda_leftfinger:
+                                            {}
+                                          panda_rightfinger:
+                                            {}
+                                        tool_frame:
+                                          {}
+                                      wrist_camera_bottom_screw_frame:
+                                        wrist_camera_link:
+                                          {}
+                    base_inertia:
+                      {}
+                    blackfly0_link:
+                      blackfly0_optical_link:
                         {}
-              lidar_mount_link:
-                rslidar_base_link:
-                  rslidar:
+                    blackfly1_link:
+                      blackfly1_optical_link:
+                        {}
+                    blackfly_left_link:
+                      blackfly_left_optical_link:
+                        {}
+                    blackfly_right_link:
+                      blackfly_right_optical_link:
+                        {}
+                    imu_link:
+                      imu:
+                        {}
+                      realsense_t265:
+                        camera_pose_frame:
+                          {}
+                        realsense_t265_odom_frame:
+                          camera_imu_optical_frame:
+                            {}
+                    lidar_mount_link:
+                      rslidar_base_link:
+                        rslidar:
+                          {}
+                    mono_link:
+                      {}
+                    top:
+                      {}
+                    tracking_camera_odom:
+                      camera_pose_frame_odom:
+                        {}
+                  range_sensor:
                     {}
               mono_link:
                 {}
@@ -686,7 +698,7 @@ Visualization Manager:
         - Alpha: 0.699999988079071
           Class: rviz/Map
           Color Scheme: costmap
-          Draw Behind: false
+          Draw Behind: true
           Enabled: true
           Name: Global Cost Map
           Topic: /move_base/global_costmap/costmap
@@ -725,23 +737,6 @@ Visualization Manager:
       Name: Base Navigation
     - Class: rviz/Group
       Displays:
-        - Class: jsk_rviz_plugin/CameraInfo
-          Enabled: true
-          Image Topic: ""
-          Name: HandEye Camera
-          Queue Size: 10
-          Topic: /hand_eye/color/camera_info
-          Unreliable: false
-          Value: true
-          alpha: 0.30000001192092896
-          color: 85; 255; 255
-          edge color: 125; 125; 125
-          far clip: 0.20000000298023224
-          not show side polygons: true
-          show edges: true
-          show polygons: true
-          transport hints: raw
-          use image: false
         - Alpha: 1
           Autocompute Intensity Bounds: true
           Autocompute Value Bounds:
@@ -752,80 +747,31 @@ Visualization Manager:
           Channel Name: intensity
           Class: rviz/PointCloud2
           Color: 255; 255; 255
-          Color Transformer: RGB8
+          Color Transformer: Intensity
           Decay Time: 0
           Enabled: true
           Invert Rainbow: false
           Max Color: 255; 255; 255
           Min Color: 0; 0; 0
-          Name: Hand Eye PCL
+          Name: Registered PCL
           Position Transformer: XYZ
           Queue Size: 10
           Selectable: true
           Size (Pixels): 3
-          Size (m): 0.009999999776482582
+          Size (m): 0.029999999329447746
           Style: Flat Squares
-          Topic: /hand_eye/depth/color/points
+          Topic: /icp_node/registered_cloud
           Unreliable: false
           Use Fixed Frame: true
           Use rainbow: true
           Value: true
-        - Class: rviz/Image
-          Enabled: true
-          Image Topic: /hand_eye/color/image_raw
-          Max Value: 1
-          Median window: 5
-          Min Value: 0
-          Name: Hand Eye RGB
-          Normalize Range: true
-          Queue Size: 2
-          Transport Hint: raw
-          Unreliable: false
-          Value: true
-        - Alpha: 1
-          Arrow Length: 0.30000001192092896
-          Axes Length: 0.05000000074505806
-          Axes Radius: 0.004999999888241291
-          Class: rviz/PoseArray
-          Color: 255; 25; 0
-          Enabled: true
-          Head Length: 0.07000000029802322
-          Head Radius: 0.029999999329447746
-          Name: Sampled Viewpoints
-          Queue Size: 10
-          Shaft Length: 0.23000000417232513
-          Shaft Radius: 0.009999999776482582
-          Shape: Axes
-          Topic: /sampled_viewpoints
-          Unreliable: false
-          Value: true
-        - Class: rviz/MarkerArray
-          Enabled: true
-          Marker Topic: /object_keypoints_ros/perception
-          Name: Keypoints
-          Namespaces:
-            {}
-          Queue Size: 100
-          Value: true
-        - Class: rviz/Image
-          Enabled: true
-          Image Topic: /object_keypoints_ros/result_img
-          Max Value: 1
-          Median window: 5
-          Min Value: 0
-          Name: Result Image
-          Normalize Range: true
-          Queue Size: 2
-          Transport Hint: raw
-          Unreliable: false
-          Value: true
       Enabled: true
-      Name: Perception
+      Name: Localization
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
     Default Light: true
-    Fixed Frame: world
+    Fixed Frame: map
     Frame Rate: 30
   Name: root
   Tools:
@@ -849,7 +795,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 4.0589776039123535
+      Distance: 31.800617218017578
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -857,17 +803,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 0.6806246638298035
-        Y: 1.6717349290847778
-        Z: -0.008219530805945396
+        X: -0.7049927711486816
+        Y: -1.6640636920928955
+        Z: 6.668954849243164
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.4047970771789551
+      Pitch: 0.5847973823547363
       Target Frame: <Fixed Frame>
-      Yaw: 4.743585109710693
+      Yaw: 2.098583459854126
     Saved: ~
 Window Geometry:
   Displays:
