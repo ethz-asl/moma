@@ -1,12 +1,8 @@
 <?xml version="1.0"?>
 <launch>
     <arg name="sim"               default="false"/>
-    <arg name="use_global_map"    default="true"/>
     <arg name="global_map_file"   default="$(env HOME)/maps/jfloor/map.yaml"/>
     <arg name="map_file_name"     default="$(env HOME)/maps/jfloor/jfloor.pcd"/>
-    <arg name="global_frame"      default="map"/>
-    <arg name="robot_base_frame"  default="base_link"/>
-    <arg name="odom_topic"        default="/base_odom"/>
 
     <!-- localize agains prebuilt map -->
     <include file="$(find smb_slam)/launch/localization.launch">
@@ -21,11 +17,11 @@
     <!-- Base planner can use a global map and locally replans for obstacle avoidance -->
     <include file="$(find smb_navigation)/launch/navigate2d_ompl.launch">
         <arg name="sim"                 value="$(arg sim)"/>
-        <arg name="global_frame"        value="$(arg global_frame)"/>
-        <arg name="use_global_map"      value="$(arg use_global_map)"/>
+        <arg name="global_frame"        value="map"/>
+        <arg name="use_global_map"      value="true"/>
         <arg name="global_map"          value="$(arg global_map_file)"/>
-        <arg name="robot_base_frame"    value="$(arg robot_base_frame)"/>
-        <arg name="odom_topic"          value="$(arg odom_topic)"/>
+        <arg name="robot_base_frame"    value="base_link"/>
+        <arg name="odom_topic"          value="/base_odom"/>
     </include>
 
     <!-- Publish base odometry from tracking cam odometry measurements -->

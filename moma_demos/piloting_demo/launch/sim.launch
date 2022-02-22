@@ -1,10 +1,8 @@
 <?xml version="1.0"?>
 <launch>
-    <arg name="gui" default="false" />
-    <arg name="rviz" default="true" />
-    <arg name="use_fixed_realsense" default="false"/>
     <arg name="tool" default="panda_hand"/>
-    <arg name="launch_navigation" default="true"/>
+    <arg name="launch_global_navigation" default="true" />
+    
 
     <!-- Control-->
     <!-- load a arm only description for the arm controllers -->
@@ -39,7 +37,7 @@
         <node name="arm_stop_controller_spawner" 
               pkg="controller_manager" 
               type="spawner"
-              output="screen" args="--stopped mpc_controller path_passthrough_controller"
+              output="screen" args="--stopped mpc_controller joint_space_controller path_passthrough_controller"
               launch-prefix="bash -c 'sleep 12; $0 $@' " />
     </group>
 
@@ -81,16 +79,22 @@
     <arg name="rviz"              value="false"/>
   </include>
 
-    <!-- Localization and Navigation -->
-    <include file="$(find piloting_demo)/launch/navigation.launch" if="$(arg launch_navigation)">
-        <arg name="sim"               value="true"/>
-        <arg name="use_global_map"    value="true"/>
-        <arg name="global_frame"      value="map"/> 
-    </include>
+    <!-- Global or Local Navigation: global navigation will run also the localization pipeline -->
+    <group if="$(arg launch_global_navigation)">
+        <include file="$(find piloting_demo)/launch/global_navigation.launch">
+            <arg name="sim"               value="true"/>
+        </include>
+    </group>
+    <group unless="$(arg launch_global_navigation)">
+        <include file="$(find piloting_demo)/launch/local_navigation.launch">
+            <arg name="sim"               value="true"/>
+        </include>
+    </group>
   
+
     <!-- Gazebo -->
     <include file="$(find piloting_demo)/launch/gazebo.launch">
-        <arg name="use_fixed_realsense" value="$(arg use_fixed_realsense)"/>
+        <arg name="use_fixed_realsense" value="false"/>
         <arg name="control_mode" value="Effort"/>
         <arg name="tool" value="$(arg tool)"/>
         <arg name="gui"  value="false"/>

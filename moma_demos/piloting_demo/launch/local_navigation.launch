@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<launch>
+    <arg name="sim"  default="false"/>
+    
+    <!-- Base planner can use a global map and locally replans for obstacle avoidance -->
+    <include file="$(find smb_navigation)/launch/navigate2d_ompl.launch">
+        <arg name="sim"                 value="$(arg sim)"/>
+        <arg name="global_frame"        value="tracking_camera_odom"/>
+        <arg name="use_global_map"      value="false"/>
+        <arg name="robot_base_frame"    value="base_link"/>
+        <arg name="odom_topic"          value="/base_odom"/>
+    </include>
+
+    <!-- Publish base odometry from tracking cam odometry measurements -->
+    <node pkg="odometry_conversion" type="odometry_conversion_node" name="tracking_camera_odometry_conversion" output="screen"/> 
+
+    <!-- Publish world to map transform to allow interchangability with case where global localization is running -->
+    <node pkg="tf2_ros" type="static_transform_publisher" name="static_transform_publisher" args="0 0 0 0 0 0 world map"/> 
+</launch>
