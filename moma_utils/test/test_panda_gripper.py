@@ -18,7 +18,7 @@ def main():
         if res == "g":
             gripper.grasp()
         elif res == "r":
-            gripper.release()
+            gripper.release(width=0.08)
         elif res == "s":
             gripper.stop()
         else:

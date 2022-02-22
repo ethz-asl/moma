@@ -17,7 +17,8 @@
                   hand:=$(arg use_gripper)
                   arm_id:=$(arg arm_id)
                   xyz:='$(arg x) $(arg y) $(arg z)'
-                  rpy:='$(arg roll) $(arg pitch) $(arg yaw)'">
+                  rpy:='$(arg roll) $(arg pitch) $(arg yaw)'
+                  use_nominal_extrinsics:=true">
   </param>
 
   <include file="$(find franka_gazebo)/launch/panda.launch">

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="panda">
-  <xacro:macro name="moma_panda" params="use_fixed_realsense:=false">
+  <xacro:macro name="moma_panda" params="use_fixed_realsense:=false use_nominal_extrinsics:=false">
 
     <!-- panda arm  -->
     <xacro:include filename="$(find franka_description)/robots/panda_arm.urdf.xacro"/>
@@ -19,7 +19,7 @@
     <xacro:realsense_gazebo_plugin camera_name="wrist_camera"/>
     <xacro:property name="panda_link7_camera_bottom_screw_frame_rpy" value="-2.68850999 -1.56973844 -1.20267232" />
     <xacro:property name="panda_link7_camera_bottom_screw_frame_xyz" value="0.06585917 -0.06861364 0.14820608" />
-    <xacro:sensor_d435 parent="panda_link7" name="wrist_camera">
+    <xacro:sensor_d435 parent="panda_link7" name="wrist_camera" use_nominal_extrinsics="${use_nominal_extrinsics}">
       <origin rpy="${panda_link7_camera_bottom_screw_frame_rpy}" xyz="${panda_link7_camera_bottom_screw_frame_xyz}" />
     </xacro:sensor_d435>
 
