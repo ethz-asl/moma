@@ -86,7 +86,7 @@ class ValvePlanner(object):
                 filtered_grasps.append(grasp)
         return filtered_grasps
 
-    def _filter_graspable_grasps(self, grasps):
+    def _filter_graspable_ranges(self, grasps):
         radius = self.valve_model.r
         center = self.valve_model.c 
         axis_1 = self.valve_model.v1
@@ -98,13 +98,24 @@ class ValvePlanner(object):
         spokes_angles = [2*k*np.pi /num_spokes for k in range(num_spokes)]
         spokes_position = [center + radius * (axis_1 * np.cos(a) + axis_2 * np.sin(a)) for a in spokes_angles]
 
-        indices = []
+        grasps_ranges = []
         grasps_filtered = []
+        creating_new_range = False
         for idx, g in enumerate(grasps):
+            
             if np.all((np.linalg.norm(g["position"] - spokes_position, axis=1) - spokes_width) > 0):
-                indices.append(idx)
                 grasps_filtered.append(g)
-        return indices, grasps_filtered
+
+                if not creating_new_range:
+                    range_start = idx
+                    creating_new_range = True
+
+            elif creating_new_range:
+                range_end = idx-1
+                grasps_ranges.append([range_start, range_end])
+                creating_new_range = False
+    
+        return grasps_ranges, grasps_filtered
     
     def _grasps_to_angle(self, grasps):
         """
@@ -118,7 +129,7 @@ class ValvePlanner(object):
             angles.append(np.arctan2(sin_angle, cos_angle))
         return angles
 
-    def get_path(self, max_angle=np.pi/3.0):
+    def get_path(self, max_angle=np.pi/2.0):
         """
         Given a maximum angle that we can achieve withing a single manipulation step
         extrct a path with the following properties
@@ -127,32 +138,28 @@ class ValvePlanner(object):
         3. all poses along the path are continuous
         4. motion from the last to 
         """
-        radius = self.valve_model.r
-        center = self.valve_model.c 
-        axis_1 = self.valve_model.v1
-        axis_2 = self.valve_model.v2
-        num_spokes = self.valve_model.k
-
-        # find where the spokes are
-        spokes_width = 0.02 # TODO set this from param or valve model
-        spokes_angles = [2*k*np.pi /num_spokes for k in range(num_spokes)]
-        spokes_position = [center + radius * (axis_1 * np.cos(a) + axis_2 * np.sin(a)) for a in spokes_angles]
 
         grasps = self._get_all_grasping_poses()            # get all grasps geometrycally feasible
         grasps = self._filter_radial_grasps(grasps)        # get only grasps pointing to the center
         grasps = self._filter_singular_grasps(grasps)      # grasps where we the z axis cannot point down at all  
         grasps_angles = self._grasps_to_angle(grasps)      # compute inverse -> corresponding angle in the current valve model
-        indices, grasps_feasible = self._filter_graspable_grasps(grasps) # filter what is not currently graspable as there is a spoke there
+        grasps_ranges, grasps_feasible = self._filter_graspable_ranges(grasps) # filter what is not currently graspable as there is a spoke there
 
-        # take the first feasible grasps and construct a path that goes from the first feasble grasp
-        # to the last that is pointing down and for which delta angle is <= max_angle
-        start_idx = indices[0]
-        start_angle = grasps_angles[start_idx]
+        # get the longest range
+        current_range = 0
+        max_range = None
+        for grasp_range in grasps_ranges:
+            if abs(grasp_range[1] - grasp_range[0]) > current_range:
+                current_range = abs(grasp_range[1]- grasp_range[0])
+                max_range = grasp_range
+
         path = []
-        for i in range(len(grasps) - start_idx):
-            path.append(grasps[start_idx + i])
-            if abs(grasps_angles[start_idx + i] - start_angle) > max_angle:
-                break
+        for i in range(max_range[0], max_range[1]):
+            
+            path.append(grasps[i])
+            # TODO this does not properly work as the angle computed in the previous function is also negative...
+            # if abs(grasps_angles[i] - grasps_angles[max_range[0]]) > max_angle:
+            #     break
         return path
 
     def poses_to_ros(self, poses):
@@ -190,8 +197,8 @@ if __name__ == "__main__":
         poses = valve_planner._get_all_grasping_poses()
         poses = valve_planner._filter_radial_grasps(poses)
         poses = valve_planner._filter_singular_grasps(poses)
-        _, poses = valve_planner._filter_graspable_grasps(poses)
-        #poses = valve_planner.get_path()
+        _, poses = valve_planner._filter_graspable_ranges(poses)
+        poses = valve_planner.get_path()
 
         poses_ros = valve_planner.poses_to_ros(poses)
         poses_pub.publish(poses_ros)
