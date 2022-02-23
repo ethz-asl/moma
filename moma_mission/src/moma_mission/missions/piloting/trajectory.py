@@ -2,14 +2,14 @@ import rospy
 import tf2_ros
 import numpy as np
 import pinocchio as pin
-from geometry_msgs.msg import PoseStamped, TransformStamped
+from geometry_msgs.msg import PoseStamped, TransformStamped, PoseArray, Pose
 from nav_msgs.msg import Path
 
 from moma_mission.missions.piloting.frames import Frames
 from moma_mission.missions.piloting.valve import Valve
 from moma_mission.utils.transforms import se3_to_pose_ros, tf_to_se3
 from moma_mission.utils.rotation import CompatibleRotation as R
-
+from moma_mission.missions.piloting.valve_fitting import ValveModel
 
 class ValveTrajectoryGenerator(object):
     """
@@ -22,6 +22,7 @@ class ValveTrajectoryGenerator(object):
     def __init__(self):
 
         self.valve = Valve
+        self.valve_model = ValveModel()
         self.frames = Frames
 
         self.valve_origin = None
@@ -184,3 +185,59 @@ class ValveTrajectoryGenerator(object):
         path.header = path.poses[0].header
         rospy.loginfo("Generated trajectory with {} poses.".format(len(path.poses)))
         return path
+
+    def get_grasping_poses(self, pitch_deg=0.0, flip_x=False):
+        valve_model = ValveModel(c=np.array([0.0, 0.0, 0.0]), r=0.12, delta=0.0)
+        valve_model.transform(roll_deg=0, pitch_deg=pitch_deg, yaw_deg=0)
+        radius = valve_model.r
+        center = valve_model.c 
+        axis_1 = valve_model.v1
+        axis_2 = valve_model.v2
+        
+        samples = 100
+        thetas = [i * 2 * np.pi / samples for i in range(samples)]
+        points = [center + np.cos(theta) * radius * axis_1 + np.sin(theta) * radius * axis_2 for theta in thetas]
+        
+        zdes = np.array([0.0, 0.0, -1.0])
+        xs = [-np.sin(theta) * axis_1 + np.cos(theta) * axis_2 for theta in thetas]
+        if flip_x:
+            xs = [-x for x in xs]
+        
+        zs = [zdes - np.dot(zdes, x) * x for x in xs]
+        zs = [z / np.linalg.norm(z) for z in zs]
+        ys = [np.cross(z, x) for x, z in zip(xs, zs)]
+
+        poses = PoseArray()
+        poses.header.frame_id = "world"
+        poses.header.stamp = rospy.get_rostime()
+        for p, x, y, z in zip(points, xs, ys, zs):
+            rot = np.eye(3)
+            rot[:, 0] = x
+            rot[:, 1] = y
+            rot[:, 2] = z
+            q = R.from_matrix(rot).as_quat()
+            pose = Pose()
+            pose.position.x = p[0]
+            pose.position.y = p[1]
+            pose.position.z = p[2]
+            pose.orientation.x = q[0]
+            pose.orientation.y = q[1]
+            pose.orientation.z = q[2]
+            pose.orientation.w = q[3]
+            poses.poses.append(pose)
+        return poses
+
+            
+if __name__ == "__main__":
+    rospy.init_node("trajectory_generator_test")
+    poses_pub = rospy.Publisher("/grasping_poses", PoseArray, queue_size=1)
+    generator = ValveTrajectoryGenerator()
+    samples = 1000
+    for i in range(samples):
+        if rospy.is_shutdown():
+            break
+        pitch = i * 360.0 / samples     
+        poses = generator.get_grasping_poses(pitch_deg=pitch)
+        poses_pub.publish(poses)
+        rospy.sleep(0.02)
+
