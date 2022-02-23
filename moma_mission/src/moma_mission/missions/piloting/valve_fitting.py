@@ -14,6 +14,9 @@ from scipy.spatial.transform import Rotation as R
 from scipy.optimize import NonlinearConstraint, LinearConstraint
 from scipy.optimize import minimize
 
+
+from moma_mission.missions.piloting.valve_model import ValveModel
+
 import cv2
 
 # Functions from @Mateen Ulhaq and @karlo
@@ -323,60 +326,6 @@ radius = {x[10]}
         r = x[10]
         return ValveModel(c=c, r=r, v1=v1, v2=v2, k=self.k, delta=delta)
 
-class ValveModel:
-    def __init__(self, c=np.array([0.0, 0.0, 0.0]), r=0.12, v1=np.array([1.0, 0.0, 0.0]), v2=np.array([0.0, 1.0, 0.0]), k=3, delta=0.02):
-        """
-        c: center
-        r: radius
-        v1: first axis
-        v2: second axis
-        k: number of rims
-        delta: distance center from wheel plane
-        """
-        self.c = c
-        self.r = r
-        self.v1 = v1
-        self.v2 = v2
-        self.k = k
-        self.n = np.cross(v1, v2)
-        self.delta = delta
-        self.camera = None
-
-        self.observations = []
-        
-        # the circle points
-        N = 50 # number of points used for the discretization of the circle
-        theta = np.linspace(0, 2.0 * np.pi, N)
-        self.circle = np.zeros((3, N))      
-        for i, th in enumerate(theta):
-            self.circle[:, i] = self.c + self.delta * self.n +  r * self.v1 * np.cos(th) + r * self.v2 * np.sin(th)
-
-        self.delta_angle = 2 * np.pi / self.k
-        self.keypoints = np.zeros((3, k+1)) # k keypoints and the center
-        self.keypoints[:, 0] = self.c
-        for i in range(k):
-            theta = 2 * i * np.pi / self.k
-            self.keypoints[:, i+1] = self.c + self.delta * self.n + r * self.v1 * np.cos(theta) + r * self.v2 * np.sin(theta)
-
-    def transform(self, dx=0.0, dy=0.0, dz=0.0, roll_deg=0.0, pitch_deg=0.0, yaw_deg=0.0):
-        r = R.from_euler('xyz', [roll_deg, pitch_deg, yaw_deg], degrees=True).as_matrix()
-        t = np.array([dx, dy, dz])
-        
-        self.c = r @ self.c + t
-        self.v1 = r @ self.v1
-        self.v2 = r @ self.v2
-        self.n = np.cross(self.v1, self.v2)
-        self.keypoints = ((r @ self.keypoints).T + t).T
-        self.circle = ((r @ self.circle).T + t).T
-        
-    def __str__(self):
-        return f"""
-center = {self.c}
-axis 1 = {self.v1}
-axis 2 = {self.v2}
-delta = {self.delta}
-radius = {self.r}
-"""
 
 class FeatureMatcher:
     def __init__(self, acceptance_ratio=np.inf):
