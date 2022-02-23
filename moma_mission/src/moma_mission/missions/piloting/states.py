@@ -280,7 +280,18 @@ class ModelFitValve(ModelFitState):
         return object_pose
 
 
+class GraspState(StateRosControl):
+    def __init__(self, ns):
+        StateRosControl.__init__(self, ns=ns)
+        path_topic_name = self.get_scoped_param("path_topic_name")
+        self.path_publisher = rospy.Publisher(path_topic_name, Path, queue_size=1)
+        self.offset = self.get_scoped_param("offset")
 
+    def run(self):
+        valve_model = self.global_context.ctx.valve_model
+        self.trajectory_generator.set_model(valve_model)
+
+        
 class LateralGraspState(StateRosControl):
     """
     Switch and send target pose to the controller
