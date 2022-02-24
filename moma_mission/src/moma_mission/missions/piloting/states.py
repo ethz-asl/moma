@@ -253,17 +253,17 @@ class ModelFitValve(ModelFitState):
         valve = self.valve_fitter.estimate_from_3d_points(points_3d)
         marker = self._make_default_marker()
         marker.header.frame_id = frame
-        marker.scale.x = 2 * valve.r
-        marker.scale.y = 2 * valve.r
+        marker.scale.x = 2 * valve.radius
+        marker.scale.y = 2 * valve.radius
         marker.scale.z = 0.03
 
         rot = np.zeros((3, 3))
-        rot[:, 0] = valve.v1
-        rot[:, 1] = valve.v2
+        rot[:, 0] = valve.axis_1
+        rot[:, 1] = valve.axis_2
         rot[:, 2] = valve.n
         q = Rotation.from_matrix(rot).as_quat()
 
-        center = valve.c + valve.delta * valve.n
+        center = valve.wheel_center
         marker.pose.position.x = center[0]
         marker.pose.position.y = center[1]
         marker.pose.position.z = center[2]

@@ -1,8 +1,8 @@
 import numpy as np
-from moma_mission.missions.piloting.valve import Valve
 import rospy
 from visualization_msgs.msg import Marker, MarkerArray
 from scipy.spatial.transform import Rotation as R
+from moma_mission.missions.piloting.frames import Frames
 
 
 class ValveModel:
@@ -14,124 +14,158 @@ class ValveModel:
     spoke: The inner connection between torus and center
     """
 
-    def __init__(self, c=np.array([0.0, 0.0, 0.0]), r=0.12, s=0.01, v1=np.array([1.0, 0.0, 0.0]), v2=np.array([0.0, 1.0, 0.0]), k=3, delta=0.0):
+    def __init__(self, center=np.array([0.0, 0.0, 0.0]), radius=0.12, spoke_radius=0.01, axis_1=np.array([1.0, 0.0, 0.0]), axis_2=np.array([0.0, 1.0, 0.0]), num_spokes=3, depth=0.0):
         """
-        c: center
-        r: valve radius
-        s: spoke radius
-        k: number of spokes
-        v1: first axis
-        v2: second axis
-        delta: distance center from wheel plane
+        @param center: valve center point
+        @param radius: valve radius
+        @param spoke_radius: spoke radius
+        @param num_spokes: number of spokes
+        @param axis_1: first axis
+        @param axis_2: second axis
+        @param depth: distance center from wheel plane
         """
-        self.c = c
-        self.r = r
-        self.v1 = v1
-        self.v2 = v2
-        self.k = k
-        self.n = np.cross(v1, v2)
-        self.delta = delta
-        self.camera = None
-        self.s = s
+        self.__c = center
+        self.__r = radius
+        self.__s = spoke_radius
+        self.__k = num_spokes
+        self.__v1 = axis_1 / np.linalg.norm(axis_1)
+        self.__v2 = axis_2 / np.linalg.norm(axis_2)
+        self.__d = depth
 
-        self.observations = []
-        
-        # the circle points
-        N = 50 # number of points used for the discretization of the circle
-        theta = np.linspace(0, 2.0 * np.pi, N)
-        self.circle = np.zeros((3, N))      
-        for i, th in enumerate(theta):
-            self.circle[:, i] = self.c + self.delta * self.n +  r * self.v1 * np.cos(th) + r * self.v2 * np.sin(th)
-
-        self.delta_angle = 2 * np.pi / self.k
-        self.keypoints = np.zeros((3, k+1)) # k keypoints and the center
-        self.keypoints[:, 0] = self.c
-        for i in range(k):
-            theta = 2 * i * np.pi / self.k
-            self.keypoints[:, i+1] = self.c + self.delta * self.n + r * self.v1 * np.cos(theta) + r * self.v2 * np.sin(theta)
+        self.marker_pub = rospy.Publisher("/valve_marker", MarkerArray, queue_size=1, latch=True)
+        try:
+            self.publish_markers()
+        except:
+            pass
 
     def transform(self, dx=0.0, dy=0.0, dz=0.0, roll_deg=0.0, pitch_deg=0.0, yaw_deg=0.0):
         r = R.from_euler('xyz', [roll_deg, pitch_deg, yaw_deg], degrees=True).as_matrix()
         t = np.array([dx, dy, dz])
         
-        self.c = self.c + t
-        self.v1 = r @ self.v1
-        self.v2 = r @ self.v2
-        self.n = np.cross(self.v1, self.v2)
-        self.keypoints = ((r @ self.keypoints).T + t).T
-        self.circle = ((r @ self.circle).T + t).T
+        self.__c = self.__c + t
+        self.__v1 = r @ self.__v1
+        self.__v2 = r @ self.__v2
+
+        self.publish_markers()
+
+    @property
+    def center(self):
+        return self.__c
+
+    @property
+    def wheel_center(self):
+        return self.__c + self.normal * self.__d
+
+    @property
+    def axis_1(self):
+        return self.__v1
+
+    @property
+    def axis_2(self):
+        return self.__v2
+
+    @property
+    def radius(self):
+        return self.__r
+
+    @property
+    def spoke_radius(self):
+        return self.__s
+
+    @property
+    def spoke_length(self):
+        return np.sqrt(np.power(self.__r, 2) + np.power(self.__d, 2))
+
+    @property
+    def normal(self):
+        return np.cross(self.__v1, self.__v2)
+
+    @property
+    def spokes_angles(self):
+        """
+        Angles of all spokes
+        """
+        return [2 * np.pi * k / self.__k for k in range(self.__k)]
+
+    @property
+    def spokes_positions(self):
+        """
+        Positions of all spokes
+        """
+        return [self.get_point_on_wheel(angle) for angle in self.spokes_angles]
+
+    @property
+    def keypoints(self):
+        """
+        All keypoints (including center one)
+        """
+        keypoints = np.zeros((3, self.__k + 1)) # k keypoints and the center
+        keypoints[:, 0] = self.__c
+        keypoints[:, 1:] = self.spokes_positions
+        return keypoints
 
     def get_point_on_wheel(self, angle):
         """
         Get a centered point on the wheel at a given angle
         """
-        return self.c + self.r * (np.cos(angle) * self.v1 + np.sin(angle) * self.v2)
+        return self.__c + self.__r * (np.cos(angle) * self.__v1 + np.sin(angle) * self.__v2) + self.__d * self.normal
 
     def get_tangent_on_wheel(self, angle):
         """
         Get the tangent on the wheel at a given angle
         """
-        return -np.sin(angle) * self.v1 + np.cos(angle) * self.v2
+        return -np.sin(angle) * self.__v1 + np.cos(angle) * self.__v2
 
-    def get_spokes_angles(self):
-        """
-        Get the angles of all spokes
-        """
-        return [2 * np.pi * k / self.k for k in range(self.k)]
-
-    def get_spokes_positions(self):
-        return [self.get_point_on_wheel(angle) for angle in self.get_spokes_angles()]
-
-    def get_markers(self, frame_id):
+    def get_markers(self, frame=Frames.map_frame):
         markers = MarkerArray()
         wheel_marker = Marker()
-        wheel_marker.header.frame_id = frame_id
+        wheel_marker.header.frame_id = frame
         wheel_marker.id = 0
         wheel_marker.action = Marker.ADD
         wheel_marker.type = Marker.CYLINDER
-        wheel_marker.scale.x = 2 * self.r
-        wheel_marker.scale.y = 2 * self.r
-        wheel_marker.scale.z = 2 * self.s
+        wheel_marker.scale.x = 2 * self.__r
+        wheel_marker.scale.y = 2 * self.__r
+        wheel_marker.scale.z = 2 * self.__s
         
-        rot = np.array([self.v1, self.v2,  self.n]).T
+        rot = np.array([self.__v1, self.__v2, self.normal]).T
         q = R.from_matrix(rot).as_quat()
         wheel_marker.pose.orientation.x = q[0]
         wheel_marker.pose.orientation.y = q[1]
         wheel_marker.pose.orientation.z = q[2]
         wheel_marker.pose.orientation.w = q[3]
-        wheel_marker.pose.position.x = self.c[0]
-        wheel_marker.pose.position.y = self.c[1]
-        wheel_marker.pose.position.z = self.c[2]
+        wheel_marker.pose.position.x = self.wheel_center[0]
+        wheel_marker.pose.position.y = self.wheel_center[1]
+        wheel_marker.pose.position.z = self.wheel_center[2]
         wheel_marker.color.r = 1.0
         wheel_marker.color.g = 0.0
-        wheel_marker.color.b = 0.0
-        wheel_marker.color.a = 0.1
+        wheel_marker.color.b = 1.0
+        wheel_marker.color.a = 0.2
         
         markers.markers.append(wheel_marker)
         
-        for i in range(self.k):
-            angle = 2 * i * np.pi / self.k
+        for i in range(self.__k):
+            angle = 2 * i * np.pi / self.__k
             spoke_position = self.get_point_on_wheel(angle)
             spoke_marker = Marker()
-            spoke_marker.header.frame_id = frame_id
+            spoke_marker.header.frame_id = frame
             spoke_marker.id = i + 1
             spoke_marker.action = Marker.ADD
             spoke_marker.type = Marker.CYLINDER
-            spoke_marker.scale.x = 2 * self.s
-            spoke_marker.scale.y = 2 * self.s
-            spoke_marker.scale.z = self.r
+            spoke_marker.scale.x = 2 * self.__s
+            spoke_marker.scale.y = 2 * self.__s
+            spoke_marker.scale.z = self.spoke_length
             spoke_marker.color.r = 1.0
             spoke_marker.color.g = 0.0
-            spoke_marker.color.b = 0.0
+            spoke_marker.color.b = 1.0
             spoke_marker.color.a = 0.4
             
             # z axis of the spoke cylinder points as P - c
-            z = spoke_position - self.c 
+            z = spoke_position - self.__c
             z = z / np.linalg.norm(z)
             x = np.array([-z[1], z[0], 0.0])
             y = np.cross(z, x)
             spoke_rotation = np.array([x, y, z]).T
-            spoke_marker_position = (self.c + spoke_position)/2.0 
+            spoke_marker_position = (self.__c + spoke_position) / 2.0
             q = R.from_matrix(spoke_rotation).as_quat()
             spoke_marker.pose.orientation.x = q[0]
             spoke_marker.pose.orientation.y = q[1]
@@ -142,14 +176,17 @@ class ValveModel:
             spoke_marker.pose.position.z = spoke_marker_position[2]
             markers.markers.append(spoke_marker)
         return markers
-        
+
+    def publish_markers(self):
+        self.marker_pub.publish(self.get_markers())
+
     def __str__(self):
         return f"""
-center = {self.c}
-axis 1 = {self.v1}
-axis 2 = {self.v2}
-delta = {self.delta}
-radius = {self.r}
+center = {self.__c}
+axis 1 = {self.__v1}
+axis 2 = {self.__v2}
+depth = {self.__d}
+radius = {self.__r}
 """
 
 
