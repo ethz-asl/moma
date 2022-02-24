@@ -40,94 +40,60 @@ class ValvePlanner(object):
         target = self.compute_target(self.theta_desired)
         self.target_pose_pub.publish(target)
 
-    def _get_all_grasping_poses(self):
+    def _get_all_grasping_poses(self, samples=100):
+        """
+        Get all potential grasping poses
+        """
         radius = self.valve_model.r
         center = self.valve_model.c 
         axis_1 = self.valve_model.v1
         axis_2 = self.valve_model.v2
 
-        samples = 100
         thetas = [i * 2 * np.pi / samples for i in range(samples)]
-        points = [center + np.cos(theta) * radius * axis_1 + np.sin(theta) * radius * axis_2 for theta in thetas]
+        points = [self.valve_model.get_point_on_wheel(theta) for theta in thetas]
 
         zdes = np.array([0.0, 0.0, -1.0])
-        xs = [-np.sin(theta) * axis_1 + np.cos(theta) * axis_2 for theta in thetas]
+        xs = [self.valve_model.get_tangent_on_wheel(theta) for theta in thetas]
         zs = [zdes - np.dot(zdes, x) * x for x in xs]
         zs = [z / np.linalg.norm(z) for z in zs]
         ys = [np.cross(z, x) for x, z in zip(xs, zs)]
         rot = [np.array([x, y, z]).transpose() for x, y, z, in zip(xs, ys, zs)]
         quat = [R.from_matrix(r).as_quat() for r in rot]
-        poses = [{"position": p, "orientation": q} for p, q in zip(points, quat)]
+        # Also store the index and the total count to be able
+        # to restore continuous sequences after filtering grasps
+        poses = [{"index": i, "samples": samples, "angle": t, "position": p, "orientation": q} for i, (p, q, t) in enumerate(zip(points, quat, thetas))]
         return poses
 
-    def _filter_radial_grasps(self, grasps):
+    def _is_radial_grasp(self, grasp):
         """ 
-        Filter the grasps such that they are pointing to the center
+        Check if grasp is pointing to the center
         """
-        filtered_grasps = []
-        for grasp in grasps:
-            radial = self.valve_model.c - grasp["position"]
-            z_axis = R.from_quat(grasp["orientation"]).as_matrix()[:, 2]
-            if np.dot(z_axis, radial) > 0:
-                filtered_grasps.append(grasp)
-        return filtered_grasps
+        radial = self.valve_model.c - grasp["position"]
+        z_axis = R.from_quat(grasp["orientation"]).as_matrix()[:, 2]
+        return np.dot(z_axis, radial) > 0
 
-    def _filter_singular_grasps(self, grasps):
+    def _is_non_singular_grasp(self, grasp, threshold=0.1):
         """
-        Filter grasps where the tangential direction is basically parallel to the z axis and would 
+        Check if the tangential direction of the grasp is basically parallel to the z axis and would
         force a very unnatural and difficult grasp
 
+        :param threshold: Projection to z-axis threshold
         """
-        filtered_grasps = []
-        threshold = 1e-3
-        for grasp in grasps:
-            z_axis = R.from_quat(grasp["orientation"]).as_matrix()[:, 2]
-            if np.dot(z_axis, np.array([0, 0, -1])) > threshold:
-                filtered_grasps.append(grasp)
-        return filtered_grasps
+        z_axis = R.from_quat(grasp["orientation"]).as_matrix()[:, 2]
+        return np.dot(z_axis, np.array([0, 0, -1])) > threshold
 
-    def _filter_graspable_ranges(self, grasps):
-        radius = self.valve_model.r
-        center = self.valve_model.c 
-        axis_1 = self.valve_model.v1
-        axis_2 = self.valve_model.v2
-        num_spokes = self.valve_model.k
-
-        # find where the spokes are
-        spokes_width = 0.04 # TODO set this from param or valve model
-        spokes_angles = [2*k*np.pi /num_spokes for k in range(num_spokes)]
-        spokes_position = [center + radius * (axis_1 * np.cos(a) + axis_2 * np.sin(a)) for a in spokes_angles]
-
-        grasps_ranges = []
-        grasps_filtered = []
-        creating_new_range = False
-        for idx, g in enumerate(grasps):
-            
-            if np.all((np.linalg.norm(g["position"] - spokes_position, axis=1) - spokes_width) > 0):
-                grasps_filtered.append(g)
-
-                if not creating_new_range:
-                    range_start = idx
-                    creating_new_range = True
-
-            elif creating_new_range:
-                range_end = idx-1
-                grasps_ranges.append([range_start, range_end])
-                creating_new_range = False
-    
-        return grasps_ranges, grasps_filtered
-    
-    def _grasps_to_angle(self, grasps):
+    def _is_non_obstructed_grasp(self, grasp, safety_distance=-1):
         """
-        Given a grasp position tells to which angle this corresponds
+        Check if grasp is non obstructed, for example obstruction by spokes
+
+        :param safety_distance: Minimum distance to spokes
         """
-        angles = []
-        for grasp in grasps:
-            vector = grasp["position"] - self.valve_model.c
-            cos_angle = np.dot(vector, self.valve_model.v1) / np.linalg.norm(vector)
-            sin_angle = np.dot(vector, self.valve_model.v2) / np.linalg.norm(vector)
-            angles.append(np.arctan2(sin_angle, cos_angle))
-        return angles
+        if safety_distance < 0:
+            safety_distance = self.valve_model.s
+
+        spokes_radius = self.valve_model.s
+        spokes_positions = self.valve_model.get_spokes_positions()
+        return np.all((np.linalg.norm(grasp["position"] - spokes_positions, axis=1) - spokes_radius) > safety_distance)
 
     def get_path(self, max_angle=np.pi/2.0):
         """
@@ -186,7 +152,7 @@ if __name__ == "__main__":
     poses_pub = rospy.Publisher("/plan", PoseArray, queue_size=1)
     marker_pub = rospy.Publisher("/valve_marker", MarkerArray, queue_size=1)
     
-    valve_model = ValveModel()
+    valve_model = ValveModel(c=[0.5, 0.5, 0.5])
     valve_planner = ValvePlanner()
     valve_planner.set_valve(valve_model)
 
@@ -195,10 +161,10 @@ if __name__ == "__main__":
         valve_planner.set_valve(valve_model)
 
         poses = valve_planner._get_all_grasping_poses()
-        poses = valve_planner._filter_radial_grasps(poses)
-        poses = valve_planner._filter_singular_grasps(poses)
-        _, poses = valve_planner._filter_graspable_ranges(poses)
-        poses = valve_planner.get_path()
+        poses = filter(valve_planner._is_radial_grasp, poses)
+        poses = filter(valve_planner._is_non_singular_grasp, poses)
+        poses = filter(valve_planner._is_non_obstructed_grasp, poses)
+        #poses = valve_planner.get_path()
 
         poses_ros = valve_planner.poses_to_ros(poses)
         poses_pub.publish(poses_ros)
