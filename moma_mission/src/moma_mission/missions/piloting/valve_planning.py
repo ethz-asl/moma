@@ -7,33 +7,14 @@ from moma_mission.missions.piloting.frames import Frames
 from moma_mission.utils.rotation import CompatibleRotation as R
 from moma_mission.missions.piloting.valve_fitting import ValveModel
 
-class ValvePlanner(object):
+
+class ValvePlanner:
     """
     Utilities class to generate graps and paths given a valve model
     """
 
-    def __init__(self):
-        self.frames = Frames
-        self.valve_model = ValveModel()
-
-  
-    def set_valve(self, valve_model: ValveModel):
+    def __init__(self, valve_model=ValveModel()):
         self.valve_model = valve_model
-
-    def reset(self):
-        self.theta_desired = 0.0
-        self.theta = 0.0
-
-    def advance(self, dt):
-        """
-        Increment theta according to current velocity and step size and computes the new
-        target pose for the end effector
-        :param dt:
-        :return:
-        """
-        self.theta_desired += self.theta_dot * dt
-        target = self.compute_target(self.theta_desired)
-        self.target_pose_pub.publish(target)
 
     def _get_all_grasping_poses(self, samples=100):
         """
@@ -58,11 +39,11 @@ class ValvePlanner(object):
         """ 
         Check if grasp is pointing to the center
         """
-        radial = self.valve_model.c - grasp["position"]
+        radial = self.valve_model.center - grasp["position"]
         z_axis = R.from_quat(grasp["orientation"]).as_matrix()[:, 2]
         return np.dot(z_axis, radial) > 0
 
-    def _is_non_singular_grasp(self, grasp, threshold=0.1):
+    def _is_non_singular_grasp(self, grasp, threshold=0.2):
         """
         Check if the tangential direction of the grasp is basically parallel to the z axis and would
         force a very unnatural and difficult grasp
@@ -79,11 +60,11 @@ class ValvePlanner(object):
         :param safety_distance: Minimum distance to spokes
         """
         if safety_distance < 0:
-            safety_distance = self.valve_model.s
+            safety_distance = self.valve_model.spoke_radius
 
-        spokes_radius = self.valve_model.s
-        spokes_positions = self.valve_model.get_spokes_positions()
-        return np.all((np.linalg.norm(grasp["position"] - spokes_positions, axis=1) - spokes_radius) > safety_distance)
+        pos = self.valve_model.spokes_positions
+        rad = self.valve_model.spoke_radius
+        return np.all((np.linalg.norm(grasp["position"] - pos, axis=1) - rad) > safety_distance)
 
     def get_path(self, max_angle=np.pi/2.0):
         """
@@ -118,9 +99,9 @@ class ValvePlanner(object):
             #     break
         return path
 
-    def poses_to_ros(self, poses):
+    def poses_to_ros(self, poses, frame=Frames.map_frame):
         posesa = PoseArray()
-        posesa.header.frame_id = self.frames.map_frame
+        posesa.header.frame_id = Frames.map_frame
         posesa.header.stamp = rospy.get_rostime()
         for p in poses:
             pose = Pose()
@@ -139,15 +120,12 @@ if __name__ == "__main__":
     rospy.init_node("valve_planner_test")
     
     poses_pub = rospy.Publisher("/plan", PoseArray, queue_size=1)
-    marker_pub = rospy.Publisher("/valve_marker", MarkerArray, queue_size=1)
     
-    valve_model = ValveModel(c=[0.5, 0.5, 0.5])
-    valve_planner = ValvePlanner()
-    valve_planner.set_valve(valve_model)
+    valve_model = ValveModel(depth=0.0)
+    valve_planner = ValvePlanner(valve_model)
 
     while not rospy.is_shutdown():
         valve_model.transform(pitch_deg=1)
-        valve_planner.set_valve(valve_model)
 
         poses = valve_planner._get_all_grasping_poses()
         poses = filter(valve_planner._is_radial_grasp, poses)
@@ -158,7 +136,5 @@ if __name__ == "__main__":
         poses_ros = valve_planner.poses_to_ros(poses)
         poses_pub.publish(poses_ros)
     
-        valve_marker = valve_model.get_markers(frame_id=Frames.map_frame)
-        marker_pub.publish(valve_marker)
         rospy.sleep(0.02)
     
