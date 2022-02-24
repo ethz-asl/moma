@@ -1,14 +1,9 @@
 import rospy
-import tf2_ros
 import numpy as np
-import pinocchio as pin
 from visualization_msgs.msg import MarkerArray
-from geometry_msgs.msg import PoseStamped, TransformStamped, PoseArray, Pose
-from nav_msgs.msg import Path
+from geometry_msgs.msg import PoseArray, Pose
 
 from moma_mission.missions.piloting.frames import Frames
-from moma_mission.missions.piloting.valve import Valve
-from moma_mission.utils.transforms import se3_to_pose_ros, tf_to_se3
 from moma_mission.utils.rotation import CompatibleRotation as R
 from moma_mission.missions.piloting.valve_fitting import ValveModel
 
@@ -44,11 +39,6 @@ class ValvePlanner(object):
         """
         Get all potential grasping poses
         """
-        radius = self.valve_model.r
-        center = self.valve_model.c
-        axis_1 = self.valve_model.v1
-        axis_2 = self.valve_model.v2
-
         thetas = [i * 2 * np.pi / samples for i in range(samples)]
         points = [self.valve_model.get_point_on_wheel(theta) for theta in thetas]
 
@@ -65,7 +55,7 @@ class ValvePlanner(object):
         return poses
 
     def _is_radial_grasp(self, grasp):
-        """ 
+        """
         Check if grasp is pointing to the center
         """
         radial = self.valve_model.c - grasp["position"]
@@ -143,7 +133,6 @@ class ValvePlanner(object):
             pose.orientation.w = p["orientation"][3]
             posesa.poses.append(pose)
         return posesa
-
 
 
 if __name__ == "__main__":
