@@ -45,17 +45,17 @@ class ValvePlanner(object):
         center = self.valve_model.c 
         axis_1 = self.valve_model.v1
         axis_2 = self.valve_model.v2
-        
+
         samples = 100
         thetas = [i * 2 * np.pi / samples for i in range(samples)]
         points = [center + np.cos(theta) * radius * axis_1 + np.sin(theta) * radius * axis_2 for theta in thetas]
-        
+
         zdes = np.array([0.0, 0.0, -1.0])
         xs = [-np.sin(theta) * axis_1 + np.cos(theta) * axis_2 for theta in thetas]
         zs = [zdes - np.dot(zdes, x) * x for x in xs]
         zs = [z / np.linalg.norm(z) for z in zs]
         ys = [np.cross(z, x) for x, z in zip(xs, zs)]
-        rot = [np.array([x, y, z]) for x, y, z, in zip(xs, ys, zs)]
+        rot = [np.array([x, y, z]).transpose() for x, y, z, in zip(xs, ys, zs)]
         quat = [R.from_matrix(r).as_quat() for r in rot]
         poses = [{"position": p, "orientation": q} for p, q in zip(points, quat)]
         return poses
