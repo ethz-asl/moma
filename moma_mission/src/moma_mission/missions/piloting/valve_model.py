@@ -6,13 +6,22 @@ from scipy.spatial.transform import Rotation as R
 
 
 class ValveModel:
-    def __init__(self, c=np.array([0.0, 0.0, 0.0]), r=0.12, v1=np.array([1.0, 0.0, 0.0]), v2=np.array([0.0, 1.0, 0.0]), k=3, delta=0.0):
+    """
+    Nomenclature:
+
+    valve: The entire structure
+    wheel: The main torus
+    spoke: The inner connection between torus and center
+    """
+
+    def __init__(self, c=np.array([0.0, 0.0, 0.0]), r=0.12, s=0.01, v1=np.array([1.0, 0.0, 0.0]), v2=np.array([0.0, 1.0, 0.0]), k=3, delta=0.0):
         """
         c: center
-        r: radius
+        r: valve radius
+        s: spoke radius
+        k: number of spokes
         v1: first axis
         v2: second axis
-        k: number of rims
         delta: distance center from wheel plane
         """
         self.c = c
@@ -23,7 +32,7 @@ class ValveModel:
         self.n = np.cross(v1, v2)
         self.delta = delta
         self.camera = None
-        self.h = 0.02 # the "height" which is the small diameter of the torus TODO make it a param
+        self.s = s
 
         self.observations = []
         
@@ -45,13 +54,34 @@ class ValveModel:
         r = R.from_euler('xyz', [roll_deg, pitch_deg, yaw_deg], degrees=True).as_matrix()
         t = np.array([dx, dy, dz])
         
-        self.c = r @ self.c + t
+        self.c = self.c + t
         self.v1 = r @ self.v1
         self.v2 = r @ self.v2
         self.n = np.cross(self.v1, self.v2)
         self.keypoints = ((r @ self.keypoints).T + t).T
         self.circle = ((r @ self.circle).T + t).T
-    
+
+    def get_point_on_wheel(self, angle):
+        """
+        Get a centered point on the wheel at a given angle
+        """
+        return self.c + self.r * (np.cos(angle) * self.v1 + np.sin(angle) * self.v2)
+
+    def get_tangent_on_wheel(self, angle):
+        """
+        Get the tangent on the wheel at a given angle
+        """
+        return -np.sin(angle) * self.v1 + np.cos(angle) * self.v2
+
+    def get_spokes_angles(self):
+        """
+        Get the angles of all spokes
+        """
+        return [2 * np.pi * k / self.k for k in range(self.k)]
+
+    def get_spokes_positions(self):
+        return [self.get_point_on_wheel(angle) for angle in self.get_spokes_angles()]
+
     def get_markers(self, frame_id):
         markers = MarkerArray()
         wheel_marker = Marker()
@@ -61,7 +91,7 @@ class ValveModel:
         wheel_marker.type = Marker.CYLINDER
         wheel_marker.scale.x = 2 * self.r
         wheel_marker.scale.y = 2 * self.r
-        wheel_marker.scale.z = self.h
+        wheel_marker.scale.z = 2 * self.s
         
         rot = np.array([self.v1, self.v2,  self.n]).T
         q = R.from_matrix(rot).as_quat()
@@ -81,20 +111,19 @@ class ValveModel:
         
         for i in range(self.k):
             angle = 2 * i * np.pi / self.k
-            spoke_position = self.c + self.r * self.v1 * np.cos(angle) + self.r * self.v2 * np.sin(angle)
+            spoke_position = self.get_point_on_wheel(angle)
             spoke_marker = Marker()
             spoke_marker.header.frame_id = frame_id
             spoke_marker.id = i + 1
             spoke_marker.action = Marker.ADD
             spoke_marker.type = Marker.CYLINDER
-            spoke_marker.scale.x = self.h 
-            spoke_marker.scale.y = self.h
+            spoke_marker.scale.x = 2 * self.s
+            spoke_marker.scale.y = 2 * self.s
             spoke_marker.scale.z = self.r
             spoke_marker.color.r = 1.0
             spoke_marker.color.g = 0.0
             spoke_marker.color.b = 0.0
             spoke_marker.color.a = 0.4
-     
             
             # z axis of the spoke cylinder points as P - c
             z = spoke_position - self.c 
