@@ -67,6 +67,9 @@ class ValvePlanner:
         return np.all((np.linalg.norm(grasp["position"] - pos, axis=1) - rad) > safety_distance)
 
     def _get_grasp_score(self, grasp):
+        """
+        Get a score for a particular grasping pose - the higher the better
+        """
         z_axis = R.from_quat(grasp["orientation"]).as_matrix()[:, 2]
         return np.dot(z_axis, np.array([0, 0, -1]))
 
