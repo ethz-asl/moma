@@ -74,6 +74,14 @@ class ValvePlanner:
         return np.dot(z_axis, np.array([0, 0, -1]))
 
     def _get_valid_paths(self, grasps_start, grasps, angle_max=2*np.pi):
+        """
+        Get a list of valid paths
+
+        :param grasps_start: grasps that are valid for starting the path
+        :param grasps: grasps that are valid during path execution, while the gripper is closed
+        :param angle_max: desired turning angle (positive means forwards turning, negative means backwards turning)
+        :return: list of dicts, containing paths and their corresponding scores
+        """
         step = 1 if angle_max > 0 else -1
 
         # Longest chain of consecutive grasps
@@ -116,7 +124,7 @@ class ValvePlanner:
     def get_path(self, angle_max=2*np.pi):
         """
         Given a maximum angle that we want to achieve withing a single manipulation step
-        extrct a path with the following properties
+        extract a path with the following properties
         1. the first grasp does not intersect with a spoke
         2. all the poses along the path points toward the center (if possible)
         3. all poses along the path are continuous
@@ -143,8 +151,8 @@ class ValvePlanner:
             rospy.logdebug_throttle(1.0, "No path meets max angle specification, using longest one")
             return max(all_paths, key=lambda path: path["angle"])
 
-        rospy.logdebug_throttle(1.0, "Path with highest score is chosen")
         # Otherwise choose path with highest score
+        rospy.logdebug_throttle(1.0, "Path with highest score is chosen")
         return max(valid_paths, key=lambda path: path["score"])
 
     def poses_to_ros(self, poses, frame=Frames.map_frame):
