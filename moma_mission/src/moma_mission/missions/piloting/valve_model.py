@@ -7,11 +7,14 @@ from moma_mission.missions.piloting.frames import Frames
 
 class ValveModel:
     """
+    A mechanical valve, consisting of a wheel and several spokes
+    connecting the wheel with the valve center.
+
     Nomenclature:
 
-    valve: The entire structure
-    wheel: The main torus
-    spoke: The inner connection between torus and center
+    - valve: The entire structure
+    - wheel: The main torus
+    - spoke: The inner connection between torus and center
     """
 
     def __init__(self, center=np.array([0.0, 0.0, 0.0]), radius=0.12, spoke_radius=0.01, axis_1=np.array([1.0, 0.0, 0.0]), axis_2=np.array([0.0, 1.0, 0.0]), num_spokes=3, depth=0.0):
@@ -24,6 +27,9 @@ class ValveModel:
         @param axis_2: second axis
         @param depth: distance center from wheel plane
         """
+
+        # Keeping internal representation separate from interface
+        # to be able to exchange internals without breaking interface
         self.__c = center
         self.__r = radius
         self.__s = spoke_radius
@@ -48,12 +54,29 @@ class ValveModel:
 
         self.publish_markers()
 
+    def turn(self, angle_deg):
+        """
+        Turn the valve by a given angle
+        """
+        r = R.from_rotvec(self.normal * angle_deg, degrees=True).as_matrix()
+
+        self.__v1 = r @ self.__v1
+        self.__v2 = r @ self.__v2
+
+        self.publish_markers()
+
     @property
     def center(self):
+        """
+        Valve center, point where all spokes coincide
+        """
         return self.__c
 
     @property
     def wheel_center(self):
+        """
+        Wheel center, virtual center point in the wheel plane
+        """
         return self.__c + self.normal * self.__d
 
     @property
@@ -66,18 +89,37 @@ class ValveModel:
 
     @property
     def radius(self):
+        """
+        Wheel radius (major wheel torus radius)
+        """
         return self.__r
 
     @property
+    def handle_radius(self):
+        """
+        Handle radius (minor wheel torus radius)
+        """
+        return self.spoke_radius
+
+    @property
     def spoke_radius(self):
+        """
+        Spoke radius, assuming cylindrical spokes
+        """
         return self.__s
 
     @property
     def spoke_length(self):
+        """
+        Spoke length from the valve center to the center of the wheel torus intersection
+        """
         return np.sqrt(np.power(self.__r, 2) + np.power(self.__d, 2))
 
     @property
     def normal(self):
+        """
+        Vector normal to the wheel plane
+        """
         return np.cross(self.__v1, self.__v2)
 
     @property
