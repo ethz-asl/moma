@@ -1,7 +1,7 @@
 import rospy
 import numpy as np
-from visualization_msgs.msg import MarkerArray
-from geometry_msgs.msg import PoseArray, Pose
+from geometry_msgs.msg import PoseArray, Pose, PoseStamped
+from nav_msgs.msg import Path
 
 from moma_mission.missions.piloting.frames import Frames
 from moma_mission.utils.rotation import CompatibleRotation as R
@@ -39,9 +39,9 @@ class ValvePlanner:
         """ 
         Check if grasp is pointing to the center
         """
-        radial = self.valve_model.center - grasp["position"]
+        radial = self.valve_model.wheel_center - grasp["position"]
         z_axis = R.from_quat(grasp["orientation"]).as_matrix()[:, 2]
-        return np.dot(z_axis, radial) > 0
+        return np.dot(z_axis, radial) >= 0
 
     def _is_non_singular_grasp(self, grasp, threshold=0.2):
         """
@@ -66,38 +66,83 @@ class ValvePlanner:
         rad = self.valve_model.spoke_radius
         return np.all((np.linalg.norm(grasp["position"] - pos, axis=1) - rad) > safety_distance)
 
-    def get_path(self, max_angle=np.pi/2.0):
+    def _get_grasp_score(self, grasp):
+        z_axis = R.from_quat(grasp["orientation"]).as_matrix()[:, 2]
+        return np.dot(z_axis, np.array([0, 0, -1]))
+
+    def _get_valid_paths(self, grasps_start, grasps, angle_max=2*np.pi):
+        step = 1 if angle_max > 0 else -1
+
+        # Longest chain of consecutive grasps
+        paths = []
+        for grasp_start in grasps_start:
+            poses = []
+            angle = 0
+            score = 0
+            index = grasp_start["index"]
+            while True:
+                # Find next pose in this path
+                pose_next = [grasp for grasp in grasps if grasp["index"] == index]
+                if len(pose_next) > 0:
+                    poses.append(pose_next[0])
+                else:
+                    # No more poses in this path
+                    break
+                # Pay attention to wrap-around
+                index = (index + step) % grasps[0]["samples"]
+
+                score += self._get_grasp_score(pose_next[0])
+
+                if len(poses) > 1:
+                    # Shortest angular distance
+                    angle += min((poses[-1]["angle"] - poses[-2]["angle"]) % (2 * np.pi),
+                                 (poses[-2]["angle"] - poses[-1]["angle"]) % (2 * np.pi))
+                if angle >= abs(angle_max):
+                    break
+
+            # Store path metadata for analysis
+            # Note that due to different starting poses, paths for the same angle_max parameter
+            # may have different actual turning angles and pose counts
+            # Thus it is important to average the final score
+            # Note that the angle is always positive, independent of turning direction
+            # to simplify evaluation and avoid taking abs() in comparisons
+            paths.append({"angle": angle, "score": score / len(poses), "poses": poses})
+
+        return paths
+
+    def get_path(self, angle_max=2*np.pi):
         """
-        Given a maximum angle that we can achieve withing a single manipulation step
+        Given a maximum angle that we want to achieve withing a single manipulation step
         extrct a path with the following properties
         1. the first grasp does not intersect with a spoke
         2. all the poses along the path points toward the center (if possible)
         3. all poses along the path are continuous
-        4. motion from the last to 
+        4. the path meets the turning angle (otherwise, use longest available one)
+        5. prefer motion with a high score (if possible)
+
+        @param angle_max: maximum turning angle (sign determines turning direction)
         """
 
-        grasps = self._get_all_grasping_poses()            # get all grasps geometrycally feasible
-        grasps = self._filter_radial_grasps(grasps)        # get only grasps pointing to the center
-        grasps = self._filter_singular_grasps(grasps)      # grasps where we the z axis cannot point down at all  
-        grasps_angles = self._grasps_to_angle(grasps)      # compute inverse -> corresponding angle in the current valve model
-        grasps_ranges, grasps_feasible = self._filter_graspable_ranges(grasps) # filter what is not currently graspable as there is a spoke there
+        grasps = valve_planner._get_all_grasping_poses()
+        grasps = filter(valve_planner._is_radial_grasp, grasps)
+        grasps = list(filter(valve_planner._is_non_singular_grasp, grasps))
+        grasps_start = filter(valve_planner._is_non_obstructed_grasp, grasps)
 
-        # get the longest range
-        current_range = 0
-        max_range = None
-        for grasp_range in grasps_ranges:
-            if abs(grasp_range[1] - grasp_range[0]) > current_range:
-                current_range = abs(grasp_range[1]- grasp_range[0])
-                max_range = grasp_range
+        all_paths = self._get_valid_paths(grasps_start, grasps, angle_max)
+        valid_paths = [path for path in all_paths if path["angle"] >= abs(angle_max)]
 
-        path = []
-        for i in range(max_range[0], max_range[1]):
-            
-            path.append(grasps[i])
-            # TODO this does not properly work as the angle computed in the previous function is also negative...
-            # if abs(grasps_angles[i] - grasps_angles[max_range[0]]) > max_angle:
-            #     break
-        return path
+        if len(all_paths) == 0:
+            rospy.logerr("No valid path found")
+            return None
+
+        # If no path meets angle specification, choose longest path
+        if len(valid_paths) == 0:
+            rospy.logdebug_throttle(1.0, "No path meets max angle specification, using longest one")
+            return max(all_paths, key=lambda path: path["angle"])
+
+        rospy.logdebug_throttle(1.0, "Path with highest score is chosen")
+        # Otherwise choose path with highest score
+        return max(valid_paths, key=lambda path: path["score"])
 
     def poses_to_ros(self, poses, frame=Frames.map_frame):
         posesa = PoseArray()
@@ -115,25 +160,45 @@ class ValvePlanner:
             posesa.poses.append(pose)
         return posesa
 
+    def poses_to_ros_path(self, poses, frame=Frames.map_frame, speed=1.0):
+        path = Path()
+        path.header.frame_id = frame
+        poses = self.poses_to_ros(poses, frame).poses
+        t0 = rospy.get_rostime()
+        dt = 1 / (speed * len(poses))
+        for i, pose in enumerate(poses):
+            pose_stamped = PoseStamped()
+            pose_stamped.pose = pose
+            pose_stamped.header.frame_id = frame
+            pose_stamped.header.stamp = t0 + rospy.Duration.from_sec(i * dt)
+
+
             
 if __name__ == "__main__":
     rospy.init_node("valve_planner_test")
     
     poses_pub = rospy.Publisher("/plan", PoseArray, queue_size=1)
     
-    valve_model = ValveModel(depth=0.0)
+    valve_model = ValveModel(center=[0.5,0.5,0.5], depth=0.1)
     valve_planner = ValvePlanner(valve_model)
 
+    #valve_model.transform(pitch_deg=45)
+    #valve_model.turn(45)
     while not rospy.is_shutdown():
         valve_model.transform(pitch_deg=1)
+        valve_model.turn(1)
 
-        poses = valve_planner._get_all_grasping_poses()
-        poses = filter(valve_planner._is_radial_grasp, poses)
-        poses = filter(valve_planner._is_non_singular_grasp, poses)
-        poses = filter(valve_planner._is_non_obstructed_grasp, poses)
-        #poses = valve_planner.get_path()
+        grasps = valve_planner._get_all_grasping_poses()
+        grasps = filter(valve_planner._is_radial_grasp, grasps)
+        grasps = filter(valve_planner._is_non_singular_grasp, grasps)
+        grasps = filter(valve_planner._is_non_obstructed_grasp, grasps)
+        path = valve_planner.get_path(angle_max=-np.pi/2)
+        if path is None:
+            continue
+        rospy.loginfo_throttle(1.0, f"Turning angle: {path['angle']}, score: {path['score']}")
+        grasps = path["poses"]
 
-        poses_ros = valve_planner.poses_to_ros(poses)
+        poses_ros = valve_planner.poses_to_ros(grasps)
         poses_pub.publish(poses_ros)
     
         rospy.sleep(0.02)
