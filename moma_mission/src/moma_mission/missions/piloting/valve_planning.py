@@ -188,11 +188,13 @@ if __name__ == "__main__":
         valve_model.transform(pitch_deg=1)
         valve_model.turn(1)
 
-        grasps = valve_planner._get_all_grasping_poses()
-        grasps = filter(valve_planner._is_radial_grasp, grasps)
-        grasps = filter(valve_planner._is_non_singular_grasp, grasps)
-        grasps = filter(valve_planner._is_non_obstructed_grasp, grasps)
-        path = valve_planner.get_path(angle_max=-np.pi/2)
+        #grasps = valve_planner._get_all_grasping_poses()
+        #grasps = filter(valve_planner._is_radial_grasp, grasps)
+        #grasps = filter(valve_planner._is_non_singular_grasp, grasps)
+        #grasps = filter(valve_planner._is_non_obstructed_grasp, grasps)
+
+        #path = valve_planner.get_path(angle_max=np.pi/2) # turn forwards
+        path = valve_planner.get_path(angle_max=-np.pi/2) # turn backwards
         if path is None:
             continue
         rospy.loginfo_throttle(1.0, f"Turning angle: {path['angle']}, score: {path['score']}")
