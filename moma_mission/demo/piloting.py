@@ -6,6 +6,7 @@ import smach_ros
 from moma_mission.core.state_ros import *
 from moma_mission.missions.piloting.states import *
 from moma_mission.missions.piloting.sequences import *
+from moma_mission.states.path_visitor import PathVisitorState
 
 
 # Init ros
@@ -38,19 +39,31 @@ try:
                                                                                        'Failure': 'Failure',
                                                                                        'NextWaypoint': 'WAYPOINT_FOLLOWING'})
 
-        state_machine.add('DETECTION', detection_sequence_factory(), transitions={'Success': 'LATERAL_MANIPULATION',
+        state_machine.add('DETECTION', detection_sequence_factory(), transitions={'Success': 'APPROACH_VALVE',
                                                                                   'Failure': 'Failure'})
 
-        state_machine.add('LATERAL_MANIPULATION', lateral_manipulation_sequence_factory(), transitions={'Success': 'HOMING_FINAL',
-                                                                                                        'Failure': 'Failure'})
+        state_machine.add('APPROACH_VALVE', PathVisitorState, transitions={'Completed': 'GRASP_VALVE',
+                                                                           'Failure': 'DETECTION'})
+
+        state_machine.add('GRASP_VALVE', PathVisitorState, transitions={'Completed': 'CLOSE_GRIPPER',
+                                                                        'Failure': 'DETECTION'})
+
+        state_machine.add('CLOSE_GRIPPER', GripperControl, transitions={'Completed': 'MANIPULATE_VALVE',
+                                                                        'Failure': 'MANIPULATE_VALVE'})
+
+        state_machine.add('MANIPULATE_VALVE', PathVisitorState, transitions={'Completed': 'OPEN_GRIPPER',
+                                                                             'Failure': 'OPEN_GRIPPER'})
+
+        state_machine.add('OPEN_GRIPPER', GripperControl, transitions={'Completed': 'BACKOFF_VALVE',
+                                                                       'Failure': 'Failure'})
+
+        state_machine.add('BACKOFF_VALVE', PathVisitorState, transitions={'Completed': 'HOMING_FINAL',
+                                                                          'Failure': 'Failure'})
 
         homing_sequence_final = StateMachineRos(
             outcomes=['Success', 'Failure'])
 
         with homing_sequence_final:
-            homing_sequence_final.add('OPEN_GRIPPER', GripperControl, transitions={'Completed': 'HOME_ROBOT_FINAL',
-                                                                                   'Failure': 'Failure'})
-
             homing_sequence_final.add('HOME_ROBOT_FINAL', JointsConfigurationAction, transitions={'Completed': 'Success',
                                                                                                   'Failure': 'Failure'})
 
