@@ -51,7 +51,7 @@ class StateRos(smach.State):
         self.tf_buffer = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener(self.tf_buffer)
 
-    def get_scoped_param(self, param_name, safe=True):
+    def get_scoped_param(self, param_name, default=None, safe=True):
         """
         Get the parameter namespaced under the state name
         e.g get_scoped_param('/my_param') --> looks for '/state_name/my_param'
@@ -63,10 +63,10 @@ class StateRos(smach.State):
             named_param = join(rospy.get_namespace(), self.namespace, param_name)
 
         if safe:
-            return ros.get_param_safe(named_param)
+            return ros.get_param_safe(named_param) if default is None else ros.get_param_safe(named_param, default)
         else:
             if rospy.has_param(named_param):
-                return rospy.get_param(named_param)
+                return rospy.get_param(named_param) if default is None else rospy.get_param(named_param, default)
             else:
                 return None
 
@@ -104,13 +104,13 @@ class StateRos(smach.State):
                                                     rospy.Duration(3))
         return tf_to_se3(transform)
 
-    def wait_until_reached(self, target_frame, target_pose, linear_tolerance=0.01, angular_tolerance=0.1, timeout=200, quiet=False):
+    def wait_until_reached(self, target_frame, target_pose, linear_tolerance=0.02, angular_tolerance=0.1, timeout=200, quiet=False):
         """
         Returns once the target pose has been reached
         """
         rospy.loginfo("Reaching target ... linear tol={}, angular tol={}".format(linear_tolerance, angular_tolerance))
         tolerance_met = False
-        time_elapsed = 0.0
+        start_time = rospy.Time.now()
         rate = rospy.Rate(10)
         while not rospy.is_shutdown():
             if tolerance_met:
@@ -124,19 +124,19 @@ class StateRos(smach.State):
             if linear_error < linear_tolerance and angular_error < angular_tolerance:
                 tolerance_met = True
 
-            rospy.loginfo_throttle(3.0, "Reaching target ... lin_err={}, ang_err={}".format(linear_error, angular_error))
+            elapsed = (rospy.Time.now() - start_time).secs
+            rospy.loginfo_throttle(3.0, "Reaching target ... lin_err={}, ang_err={}, elapsed={}, timeout={}".format(linear_error, angular_error, elapsed, timeout))
 
-            rate.sleep()
-            time_elapsed += 0.1
-
-            if timeout != 0 and time_elapsed > timeout:
+            if timeout != 0 and elapsed > timeout:
                 if quiet:
                     rospy.logwarn(
                         "Timeout elapsed while reaching a pose. Current distance to target is: {}".format(linear_error))
                     return True
                 else:
-                    rospy.logerror("Timeout elapsed while reaching a pose")
+                    rospy.logerr("Timeout elapsed while reaching a pose")
                     return False
+
+            rate.sleep()
 
 
 if __name__ == "__main__":

@@ -5,6 +5,7 @@
     <arg name="use_fixed_realsense" default="false"/>
     <arg name="tool" default="panda_hand"/>
     <arg name="launch_navigation" default="true"/>
+    <arg name="base_type" default="1"/>
 
     <!-- Control-->
     <!-- load a arm only description for the arm controllers -->
@@ -15,7 +16,8 @@
         <param name="task_file" value="$(find moma_ocs2)/config/mpc/task_panda.info"/>
         <param name="robot_description_ocs2" command="$(find xacro)/xacro $(find moma_description)/urdf/superpanda.urdf.xacro 
             mpc_model:=true use_nominal_extrinsics:=true tool:='none'"/>
-        <param name="base_type" value="1"/>
+        <param name="base_type" value="$(arg base_type)"/>
+        <param name="reference_frame" value="tracking_camera_odom"/>
     </group>
 
     <group ns="panda">
@@ -38,7 +40,7 @@
         <node name="arm_stop_controller_spawner" 
               pkg="controller_manager" 
               type="spawner"
-              output="screen" args="--stopped mpc_controller path_passthrough_controller"
+              output="screen" args="--stopped mpc_controller joint_space_controller path_passthrough_controller"
               launch-prefix="bash -c 'sleep 12; $0 $@' " />
     </group>
 
@@ -75,8 +77,30 @@
         <arg name="gui"  value="false"/>
     </include>
 
-    <!-- try cleaner start waiting some time before unpausing -->
-    <node name="unpause_gazebo" pkg="moma_gazebo" type="unpause_gazebo.py">
-        <param name="wait_before_unpause" value="8.0"/>
-    </node>
+
+  <!-- Customer camera info publisher as per real robot -->
+  <arg name="intrinsics_file" value="$(find moma_description)/config/intrinsics_sim.yaml"/>
+  <arg name="camera_info_topic" value="/hand_eye/color/camera_info"/>
+  <node name="camera_intrinsics_publisher" 
+        pkg="moma_sensor_tools" 
+        type="yaml_to_camera_info_publisher.py" 
+        args="$(arg intrinsics_file) $(arg camera_info_topic)" output="screen"/>
+
+  <!-- Perception -->
+  <include file="$(find piloting_demo)/launch/perception.launch">
+    <arg name="play_bag"          value="false"/>
+    <arg name="base_frame"        value="tracking_camera_odom"/>
+    <arg name="camera_frame"      value="hand_eye_color_optical_frame"/>
+    <arg name="image_topic"       value="/hand_eye/color/image_raw"/>
+    <arg name="depth_topic"       value="/hand_eye/depth/image_rect_raw"/>
+    <arg name="calibration_topic" value="/camera_info"/>
+    <arg name="calibration_file"  value="none"/>
+    <arg name="custom_intrinsics" value="false"/>
+    <arg name="rviz"              value="false"/>
+  </include>
+
+  <!-- try cleaner start waiting some time before unpausing -->
+  <node name="unpause_gazebo" pkg="moma_gazebo" type="unpause_gazebo.py">
+      <param name="wait_before_unpause" value="8.0"/>
+  </node>
 </launch>

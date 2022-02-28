@@ -10,6 +10,8 @@ The yaml parsing is courtesy ROS-user Stephan:
     http://answers.ros.org/question/33929/camera-calibration-parser-in-python/
 This file just extends that parser into a rosnode.
 """
+import os
+import sys
 import rospy
 import yaml
 from sensor_msgs.msg import CameraInfo
@@ -59,11 +61,14 @@ if __name__ == "__main__":
     filename = args.filename
 
     # Parse yaml file
+    if not os.path.isfile(filename):
+        rospy.logerr(f"File {filename} does not exist.")
+        sys.exit(1)
     camera_info_msg = yaml_to_CameraInfo(filename)
 
     # Initialize publisher node
     rospy.init_node("camera_info_publisher", anonymous=True)
-    publisher = rospy.Publisher("camera_info", CameraInfo)
-    subscriber = rospy.Subscriber(args.image_topic, CameraInfo, lambda msg: callback(msg, camera_info_msg, publisher))
+    publisher = rospy.Publisher("camera_info", CameraInfo, queue_size=1)
+    subscriber = rospy.Subscriber(args.image_topic, CameraInfo, lambda msg: callback(msg, camera_info_msg, publisher), queue_size=1)
 
     rospy.spin()

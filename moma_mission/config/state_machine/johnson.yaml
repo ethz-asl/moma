@@ -1,0 +1,61 @@
+# Config file for the combined mission
+# Namespaces mirror (optionally) the state for better readability
+
+OPEN_GRIPPER:
+  default_outcome: Completed
+  gripper_action_name: /control/franka_gripper/gripper_action
+  position: 0.035
+  max_effort: 20
+  tolerance: 0.08
+  timeout: 5.0
+
+CLOSE_GRIPPER:
+  default_outcome: Completed
+  gripper_action_name: /control/franka_gripper/gripper_action
+  position: 0.0
+  max_effort: 20
+  tolerance: 0.001
+  timeout: 5.0
+
+OBSERVATION_POSE:
+  default_outcome: None
+  object_position_estimate: [-0.4, -0.3, 0.12]
+  radius_range: [0.4, 0.45]
+  phi_range: [0, 0.3]
+  heading: [1, 1, 0]
+
+OBSERVATION_APPROACH:
+  default_outcome: None
+  duration: 5.0
+  target_frame: observation
+  startlist: [ 'mpc_ur_controller', 'path_admittance_ur_controller' ]
+  stoplist: [ 'scaled_pos_joint_traj_controller' ]
+  manager_namespace: ''
+
+MODEL_FIT_AUTOINJECTOR:
+  dummy: false
+  dummy_position: [0.0, 0.0, 0.0]
+  dummy_orientation: [0.0, 0.0, 0.0, 1.0]
+  default_outcome: None
+
+OBJECT_APPROACH:
+  default_outcome: None
+  duration: 10.0
+  target_frame: autoinjector
+  offset: [ 0, 0, -0.3 ]
+  angle_z: 1.57
+  allow_flip: true
+  startlist: [ 'mpc_ur_controller', 'path_admittance_ur_controller' ]
+  stoplist: [ 'scaled_pos_joint_traj_controller' ]
+  manager_namespace: ''
+
+OBJECT_CONTACT:
+  default_outcome: None
+  duration: 4.0
+  target_frame: autoinjector
+  offset: [ 0, 0, -0.27 ]
+  angle_z: 1.57
+  allow_flip: true
+  startlist: [ 'mpc_ur_controller', 'path_admittance_ur_controller' ]
+  stoplist: [ 'scaled_pos_joint_traj_controller' ]
+  manager_namespace: ''

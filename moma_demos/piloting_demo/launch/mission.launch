@@ -6,5 +6,4 @@
   <node pkg="moma_mission" type="piloting.py" name="piloting_demo" output="screen">
     <param name="telemetry_odom_topic" value="/camera/odom/sample"/>
   </node>
-
 </launch>

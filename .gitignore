@@ -5,7 +5,7 @@ __pycache__/
 
 # Editor files
 .idea
-.vscode 
+.vscode
 
 # Environments
 .env
