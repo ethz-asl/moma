@@ -55,7 +55,7 @@ def switch_ros_controller(startlist=[], stoplist=[], manager_namespace=''):
         if controllers_map[controller] == 'running':
             controller_stop_list.append(controller)
         else:
-            rospy.logwarn("Controller [{}] is already not running.".format(controller))
+            rospy.logwarn("Controller [{}] is not running yet, so it cannot be stopped.".format(controller))
         
     rospy.loginfo("Stopping controllers: {}".format(controller_stop_list))
     rospy.loginfo("Starting controllers: {}".format(controller_start_list))

@@ -16,7 +16,8 @@ class StateRosControl(StateRos):
         self.manager_namespace = self.get_scoped_param("manager_namespace", "")
         self.ee_frame_param = self.get_scoped_param("ee_frame_param",
                                                     "/{}/{}/tool_link".format(self.manager_namespace,
-                                                                              self.startlist[0]))
+                                                                              self.startlist[0])
+                                                    if len(self.startlist) > 0 else "")
         self.ee_frame = rospy.get_param(self.ee_frame_param, None)
         
     def do_switch(self, wait_before_return=3.0):

@@ -4,7 +4,7 @@ import pinocchio as pin
 
 import rospy
 import tf2_ros
-from geometry_msgs.msg import Pose, PoseStamped
+from geometry_msgs.msg import Pose, PoseStamped, TransformStamped
 from moma_mission.utils.rotation import CompatibleRotation as R
 
 
@@ -48,6 +48,21 @@ def se3_to_pose_stamped(se3pose, frame_id):
     pose.header.frame_id = frame_id
     return pose
 
+
+def se3_to_transform(se3pose, stamp, frame_id, child_frame_id):
+    tf = TransformStamped()
+    tf.header.stamp = stamp
+    tf.header.frame_id = frame_id
+    tf.child_frame_id = child_frame_id
+    tf.transform.translation.x = se3pose.translation[0]
+    tf.transform.translation.y = se3pose.translation[1]
+    tf.transform.translation.z = se3pose.translation[2]
+    q = R.from_matrix(se3pose.rotation).as_quat()
+    tf.transform.rotation.x = q[0]
+    tf.transform.rotation.y = q[1]
+    tf.transform.rotation.z = q[2]
+    tf.transform.rotation.w = q[3]
+    return tf
 
 def tf_to_se3(transform):
     q = pin.Quaternion(transform.transform.rotation.w,

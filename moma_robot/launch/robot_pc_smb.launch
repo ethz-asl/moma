@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<launch>
+    <!-- Control -->
+    <include file="$(find smb_control)/launch/smb_control.launch">
+        <arg name="description_name"        value="smb_description"/>
+        <arg name="control_namespace"       value="control"/>
+        <arg name="robot_namespace"         value=""/>
+        <arg name="enable_ekf"              value="false" /> <!-- we cannot use ekf when localization through icp -->
+        <arg name="simulation"              value="false"/>
+        <arg name="mpc"                     value="false"/>
+        <arg name="publish_robot_state"     value="false"/>  <!-- Since we do this in the current launch for the full robot -->
+    </include>
+  
+    <!-- Sensors -->
+    <include file="$(find smb)/launch/sensors.launch">
+      <arg name="launch_versavis"       value="true"/>
+      <arg name="launch_depth_cam"      value="false"/>
+      <arg name="launch_tracking_cam"   value="true"/>
+    </include>
+  
+    <!-- Low level smb controller -->
+    <include file="$(find smb_lowlevel_controller)/launch/smb_lowlevel_controller.launch" ns="smb">
+	  <arg name="description_name"            value="/smb_description"/>
+	  <arg name="command_smb"                 value="true"/>
+  </include>
+</launch>

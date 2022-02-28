@@ -59,7 +59,7 @@
       <rosparam command="load" file="$(find moma_robot)/config/controllers.yaml" />
 
       <!-- Load but do not start these controllers -->
-      <arg name="controllers_load_list" value="mpc_ur_controller path_admittance_controller path_passthrough_controller"/>
+      <arg name="controllers_load_list" value="mpc_ur_controller path_admittance_ur_controller path_passthrough_controller"/>
       <node name="controller_loader" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="--stopped $(arg controllers_load_list)" />
 
       <!-- Already start these controllers -->

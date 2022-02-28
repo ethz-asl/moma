@@ -70,7 +70,7 @@ class MpcController {
       return 0;
     }
 
-    if (!nh_.param("/ocs2_mpc/reference_frame", referenceFrame_, {})){
+    if (!nh_.param("/ocs2_mpc/reference_frame", referenceFrame_, {"odom"})){
       ROS_ERROR("Failed to retrieve /ocs2_mpc/reference_frame from param server.");
       return 0;
     }
@@ -302,9 +302,14 @@ class MpcController {
 
     {
       std::unique_lock<std::mutex> lock(policyMutex_);
-      mpc_mrt_interface_->updatePolicy();
-      mpc_mrt_interface_->evaluatePolicy(observation_.time, observation_.state, mpcState, mpcInput,
-                                         mode);
+      try {
+        mpc_mrt_interface_->updatePolicy();
+        mpc_mrt_interface_->evaluatePolicy(observation_.time, observation_.state, mpcState, mpcInput,
+                                           mode);
+      } catch (const std::runtime_error& error) {
+        ROS_ERROR("[MpcController::updateCommand] Error on calling evaluatePolicy()");
+        return;
+      }
     }
     positionCommand_ = mpcState;
     velocityCommand_ = mpcInput;
@@ -352,7 +357,7 @@ class MpcController {
   bool sanityCheck(const nav_msgs::Path& path) {
     // check that path adheres to conventional frame
     if (path.header.frame_id != referenceFrame_) {
-      ROS_ERROR_STREAM("[MpcController::transformPath] Desired path must be in [" << referenceFrame_ << "] frame. This should coincide at initialization, with the base link.");
+      ROS_ERROR_STREAM("[MpcController::transformPath] Desired path must be in [" << referenceFrame_ << "] frame. This should coincide at initialization, with the root of the kinematic chain.");
       return false;
     }
 
