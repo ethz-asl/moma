@@ -700,5 +700,4 @@ if __name__ == "__main__":
         if not bridge.upload_checklist():
             rospy.loginfo("[checklist test]: Failed to upload the checklist.")
         rospy.sleep(2.0)
-        rospy.loginfo("[checklist test]: Done")        
-        
+        rospy.loginfo("[checklist test]: Done")
