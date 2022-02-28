@@ -4,8 +4,28 @@ import pinocchio as pin
 
 import rospy
 import tf2_ros
-from geometry_msgs.msg import Pose, PoseStamped, TransformStamped
+from geometry_msgs.msg import Pose, PoseStamped, TransformStamped, PoseArray
 from moma_mission.utils.rotation import CompatibleRotation as R
+
+
+def yaw_from_quaternion(q):
+    rot = R.from_quat(q).as_matrix()
+    return yaw_from_rotation_matrix(rot)
+
+def yaw_from_quaternion_ros(q_ros):
+    q = np.array([q_ros.x, q_ros.y, q_ros.z, q_ros.w])
+    return yaw_from_quaternion(q)
+
+def yaw_from_rotation_matrix(rot):
+    assert rot.shape == (3,3)
+    return np.arctan2(rot[0, 1], rot[0, 0])
+
+def poses_with_cov_to_pose_array(poses_list, frame):
+    """Used to publish waypoints as pose array so that you can see them in rviz, etc."""
+    poses = PoseArray()
+    poses.header.frame_id = frame
+    poses.poses = [pose.pose.pose for pose in poses_list]
+    return poses
 
 
 def numpy_to_pose(translation, orientation):
