@@ -1,6 +1,6 @@
 OPEN_GRIPPER:
   default_outcome: None
-  gripper_action_name: /control/franka_gripper/gripper_action
+  gripper_action_name: /panda/franka_gripper/gripper_action
   position: 0.03
   max_effort: 20
   tolerance: 0.001
@@ -8,7 +8,7 @@ OPEN_GRIPPER:
 
 CLOSE_GRIPPER:
   default_outcome: None
-  gripper_action_name: /control/franka_gripper/gripper_action
+  gripper_action_name: /panda/franka_gripper/gripper_action
   position: 0.0
   max_effort: 20
   tolerance: 0.03
@@ -16,7 +16,7 @@ CLOSE_GRIPPER:
 
 APPROACH_VALVE:
   default_outcome: None
-  manager_namespace: control
+  manager_namespace: panda
   startlist: ['mpc_controller', 'path_passthrough_controller']
   stoplist: ['effort_joint_trajectory_controller']
 
@@ -24,7 +24,7 @@ APPROACH_VALVE:
 
 MANIPULATE_VALVE:
   default_outcome: None
-  manager_namespace: control
+  manager_namespace: panda
   startlist: ['mpc_controller', 'path_passthrough_controller']
   stoplist: ['effort_joint_trajectory_controller']
 
