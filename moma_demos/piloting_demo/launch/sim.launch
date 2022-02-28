@@ -1,89 +1,95 @@
 <?xml version="1.0"?>
 <launch>
-  <arg name="gui" default="false" />
-  <arg name="rviz" default="true" />
-  <arg name="use_fixed_realsense" default="false"/>
-  <arg name="tool" default="panda_hand"/>
-  <arg name="base_type" default="1"/>
+    <arg name="gui" default="false" />
+    <arg name="rviz" default="true" />
+    <arg name="use_fixed_realsense" default="false"/>
+    <arg name="tool" default="panda_hand"/>
+    <arg name="launch_navigation" default="true"/>
+    <arg name="base_type" default="1"/>
 
-  <!-- load a arm only description for the arm controllers -->
-  <param name="arm_description" command="$(find xacro)/xacro $(find moma_description)/urdf/panda.urdf.xacro 
-    use_nominal_extrinsics:=true use_fixed_realsense:=false tool:=$(arg tool)"/>
+    <!-- Control-->
+    <!-- load a arm only description for the arm controllers -->
+    <param name="arm_description" command="$(find xacro)/xacro $(find moma_description)/urdf/panda.urdf.xacro 
+      use_nominal_extrinsics:=true use_fixed_realsense:=false tool:=$(arg tool) control_mode:='Effort' include_gazebo_control:=false"/>
 
-  <!-- spawn panda in siumulation -->
-  <include file="$(find piloting_demo)/launch/gazebo.launch">
-    <arg name="use_fixed_realsense" value="$(arg use_fixed_realsense)"/>
-    <arg name="control_mode" value="Effort"/>
-    <arg name="tool" value="$(arg tool)"/>
-    <arg name="gui"  value="$(arg gui)"/>
-  </include>
-
-  <!-- smb control -->
-  <include file="$(find smb_control)/launch/smb_control.launch">
-    <arg name="description_name"        value="smb_description"/>
-    <arg name="control_namespace"       value="control"/>
-    <arg name="robot_namespace"         value=""/>
-    <arg name="enable_ekf"              value="false" />
-    <arg name="simulation"              value="true"/>
-    <arg name="mpc"                     value="false"/>
-    <arg name="publish_robot_state"     value="false"/>  <!-- Since we do this in the current launch for the full robot -->
-  </include>
-
-  <!-- Publish camera odometry tf-->
-  <node pkg="odometry_conversion" type="odometry_conversion_node" name="tracking_camera_odometry_conversion" output="screen"/>
-
-  <group ns="ocs2_mpc">
-    <param name="task_file" value="$(find moma_ocs2)/config/mpc/task_panda.info"/>
-    <param name="robot_description_ocs2" command="$(find xacro)/xacro $(find moma_description)/urdf/superpanda.urdf.xacro 
-      mpc_model:=true use_nominal_extrinsics:=true tool:='none'"/>
-    <param name="base_type" value="$(arg base_type)"/>
-    <param name="reference_frame" value="tracking_camera_odom"/>
-  </group>
-
-  <rosparam file="$(find moma_gazebo)/config/gripper_controllers.yaml" command="load" />
-
-  <group ns="control">
-    <group if="$(eval arg('tool') == 'panda_hand')">
-      <node name="gripper_controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="franka_gripper" />
+    <group ns="ocs2_mpc">
+        <param name="task_file" value="$(find moma_ocs2)/config/mpc/task_panda.info"/>
+        <param name="robot_description_ocs2" command="$(find xacro)/xacro $(find moma_description)/urdf/superpanda.urdf.xacro 
+            mpc_model:=true use_nominal_extrinsics:=true tool:='none'"/>
+        <param name="base_type" value="$(arg base_type)"/>
+        <param name="reference_frame" value="tracking_camera_odom"/>
     </group>
 
-    <group if="$(eval arg('tool') in ['robotiq_2f_85', 'robotiq_2f_toolset'])">
-      <node name="gripper_controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="robotiq_2f_85_controller" />
+    <group ns="panda">
+        <group if="$(eval arg('tool') == 'panda_hand')">
+            <node name="gripper_controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="franka_gripper" />
+        </group>
+
+        <group if="$(eval arg('tool') in ['robotiq_2f_85', 'robotiq_2f_toolset'])">
+            <node name="gripper_controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="robotiq_2f_85_controller" />
+        </group>
+
+        <!-- start joint position trajectory controller -->
+        <rosparam file="$(find moma_gazebo)/config/panda_controllers.yaml" command="load" />
+        <rosparam file="$(find moma_gazebo)/config/gripper_controllers.yaml" command="load" />
+
+        <node name="arm_start_controller_spawner" 
+              pkg="controller_manager" 
+              type="spawner" 
+              output="screen" args="joint_state_controller effort_joint_trajectory_controller" />
+        <node name="arm_stop_controller_spawner" 
+              pkg="controller_manager" 
+              type="spawner"
+              output="screen" args="--stopped mpc_controller joint_space_controller path_passthrough_controller"
+              launch-prefix="bash -c 'sleep 12; $0 $@' " />
     </group>
 
-    <!-- start a robot state publisher -->
+    <!-- Joint the readings published by Smb and Panda -->
+    <node name="joint_state_publisher" type="joint_state_publisher" pkg="joint_state_publisher" output="screen">
+        <rosparam param="source_list">[panda/joint_states, smb/joint_states] </rosparam>
+        <param name="rate" value="200"/>
+    </node>
     <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="true" output="screen" />
 
     <!-- start joint position trajectory controller -->
     <rosparam file="$(find moma_gazebo)/config/gripper_controllers.yaml" command="load" />
     <rosparam file="$(find moma_gazebo)/config/panda_controllers.yaml" command="load" />
 
-    <node name="arm_controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="joint_state_controller effort_joint_trajectory_controller path_passthrough_controller" />
-    
-    <!-- Add some delay larger then gazebo start delay, otherwise sim stalls -->
-    <node name="stopped_controller_spawner" 
-          pkg="controller_manager"
-          type="spawner" respawn="false" output="screen" 
-          args="--stopped joint_space_controller mpc_controller"
-          launch-prefix="bash -c 'sleep 20; $0 $@' "/>
-  </group>
+    <include file="$(find smb_control)/launch/smb_control.launch">
+        <arg name="description_name"        value="smb_description"/>
+        <arg name="control_namespace"       value="smb"/>
+        <arg name="robot_namespace"         value=""/>
+        <arg name="enable_ekf"              value="false" /> <!-- we cannot use ekf when localization through icp -->
+        <arg name="simulation"              value="true"/>
+        <arg name="mpc"                     value="false"/>
+        <arg name="publish_robot_state"     value="false"/>  <!-- Since we do this in the current launch for the full robot -->
+    </include>
 
-  <node name="unpause_gazebo" pkg="moma_gazebo" type="unpause_gazebo.py">
-    <param name="wait_before_unpause" value="8.0"/>
-  </node>
 
-  <!-- launch the base planner -->
-  <include file="$(find smb_navigation)/launch/navigate2d_ompl.launch">
-    <arg name="sim" value="true"/>
-    <arg name="global_frame" value="tracking_camera_odom"/>
-  </include>
+    <!-- Localization and Navigation -->
+    <include file="$(find piloting_demo)/launch/navigation.launch" if="$(arg launch_navigation)">
+        <arg name="sim"               value="true"/>
+        <arg name="use_global_map"    value="true"/>
+        <arg name="global_frame"      value="map"/> 
+    </include>
+  
+    <!-- Gazebo -->
+    <include file="$(find piloting_demo)/launch/gazebo.launch">
+        <arg name="use_fixed_realsense" value="$(arg use_fixed_realsense)"/>
+        <arg name="control_mode" value="Effort"/>
+        <arg name="tool" value="$(arg tool)"/>
+        <arg name="gui"  value="false"/>
+    </include>
+
+
 
   <!-- Customer camera info publisher as per real robot -->
   <arg name="intrinsics_file" value="$(find moma_description)/config/intrinsics_sim.yaml"/>
+  <arg name="camera_info_topic" value="/hand_eye/color/camera_info"/>
   <node name="camera_intrinsics_publisher" 
         pkg="moma_sensor_tools" 
         type="yaml_to_camera_info_publisher.py" 
-        args="$(arg intrinsics_file)" output="screen"/>
+        args="$(arg intrinsics_file) $(arg camera_info_topic)" output="screen"/>
 
   <!-- Perception -->
   <include file="$(find piloting_demo)/launch/perception.launch">
@@ -98,5 +104,8 @@
     <arg name="rviz"              value="false"/>
   </include>
 
-
+  <!-- try cleaner start waiting some time before unpausing -->
+  <node name="unpause_gazebo" pkg="moma_gazebo" type="unpause_gazebo.py">
+      <param name="wait_before_unpause" value="8.0"/>
+  </node>
 </launch>

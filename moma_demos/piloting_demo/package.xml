@@ -9,27 +9,24 @@
     <license>TODO</license>
 
     <buildtool_depend>catkin</buildtool_depend>
-    <exec_depend>franka_hw</exec_depend>
+    <!-- <exec_depend>franka_hw</exec_depend>
     <exec_depend>franka_description</exec_depend>
     <exec_depend>franka_ros</exec_depend>
-    <exec_depend>franka_control</exec_depend>
-    <exec_depend>panda_mpc</exec_depend>
-    <exec_depend>path_admittance_controller</exec_depend>
-    <exec_depend>moma_joint_space_controller</exec_depend>
-    <exec_depend>moma_sensor_tools</exec_depend>
+    <exec_depend>franka_control</exec_depend> -->
+    <!-- <exec_depend>panda_mpc</exec_depend> -->
+    <!-- <exec_depend>path_admittance_controller</exec_depend> -->
+    <!-- <exec_depend>moma_joint_space_controller</exec_depend> -->
+    <!-- <exec_depend>moma_sensor_tools</exec_depend>
     <exec_depend>moma_mission</exec_depend>
     <exec_depend>moma_robot</exec_depend>
-    <exec_depend>odometry_conversion</exec_depend>
+    <exec_depend>odometry_conversion</exec_depend> -->
 
     <!-- piloting dependencies -->
     <exec_depend>mavsdk_ros</exec_depend>
 
     <!-- smb dependencies -->
-    <exec_depend>smb_control</exec_depend>
-    <exec_depend>smb_description</exec_depend>
-    <exec_depend>smb_gazebo</exec_depend>
-    <exec_depend>smb_path_planner</exec_depend>
-
-    <!-- visualization dependencies -->
-    <exec_depend>jsk_rviz_plugins</exec_depend>
+    <!-- <exec_depend>smb_control</exec_depend> -->
+    <!-- <exec_depend>smb_description</exec_depend> -->
+    <!-- <exec_depend>smb_gazebo</exec_depend> -->
+    <!-- <exec_depend>smb_path_planner</exec_depend> -->
 </package>

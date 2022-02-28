@@ -5,7 +5,8 @@
   <xacro:arg name="control_mode" default='Position'/>
   <xacro:arg name="include_gazebo_control" default="true"/>
   <xacro:include filename="$(find moma_description)/urdf/panda.xacro"/>
-
+  <xacro:include filename="$(find moma_description)/urdf/panda_arm.gazebo.xacro"/>
+  
   <link name="world"/>
   <link name="base_link"/>
   <joint name="base_link_joint" type="fixed">
@@ -13,6 +14,6 @@
     <child link="base_link"/>
     <origin rpy="0 0 0" xyz="0 0 0"/>
   </joint>
-  <xacro:panda connected_to="base_link" use_fixed_realsense="$(arg use_fixed_realsense)" control_mode="$(arg control_mode)" tool="$(arg tool)" include_gazebo_control="$(arg include_gazebo_control)"/>
-
+  <xacro:panda connected_to="base_link" use_fixed_realsense="$(arg use_fixed_realsense)" tool="$(arg tool)"/>
+  <xacro:panda_gazebo arm_id="panda" include_gazebo_control="false" control_mode="$(arg control_mode)"/>
 </robot>
