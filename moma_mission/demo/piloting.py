@@ -11,9 +11,7 @@ from moma_mission.missions.piloting.sequences import *
 # Init ros
 rospy.init_node("piloting_demo")
 
-# Init data
-Valve.init_from_ros()
-Frames.init_from_ros()
+# Print frames info
 Frames.print_summary()
 
 # Build the state machine
@@ -30,7 +28,7 @@ try:
         state_machine.add('IDLE', Idle, transitions={'ExecuteInspectionPlan': 'WAYPOINT_FOLLOWING',
                                                      'ExecuteManipulationPlan': 'REACH_DETECTION_HOTSPOT',
                                                      'Failure': 'Failure'})
-
+        
         state_machine.add('REACH_DETECTION_HOTSPOT', NavigationState, transitions={'Completed': 'DETECTION',
                                                                                    'Failure': 'Failure'})
 
