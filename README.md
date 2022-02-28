@@ -22,13 +22,18 @@ First, clone this repository and its submodules into the `src` folder of a new o
 git clone --recurse-submodules git@github.com:ethz-asl/moma.git
 ```
 
+Set the environment variable `$CATKIN_WS` to the root of your catkin workspace.
+```bash
+export CATKIN_WS=~/catkin_ws
+```
+
 To download the dependency packages, the vcs command-line tools will be used. For more information about the tool you can check this [link](http://wiki.ros.org/vcstool).
 ```bash
-sudo apt install python3-wstool
+sudo apt install python3-vcstool
 ```
 To download the moma packages by using vcs tool run the following terminal commands in order.
 ```
-cd ~/catkin_ws/src
+cd $CATKIN_WS/src
 vcs import --recursive --input moma/moma_core.repos
 ```
 
@@ -41,8 +46,14 @@ where `<NAME>` needs to be replaced by the corresponding repos filename.
 Install the remaning dependencies using the provided script. 
 
 ```bash
-cd ~/catkin_ws/src
+cd $CATKIN_WS/src
 ./moma/install_dependencies.sh
+```
+
+Ensure to build in `RelWithDebInfo` mode. Otherwise, many controllers are very slow.
+
+```bash
+catkin config --cmake-args -DCMAKE_BUILD_TYPE=RelWithDebInfo
 ```
 
 ### Wiki

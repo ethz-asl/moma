@@ -58,3 +58,8 @@ repositories:
     type: git  
     url: https://github.com/ETHZ-RobotX/smb_rviz_plugins
     version: 23161b07c5d7f38fa25ba938286e080d90fedbec
+
+  piloting-mavsdk-ros:
+    type: git
+    url: https://github.com/fada-catec/piloting-mavsdk-ros
+    version: 89ebd1be217ddbd066757c0af02de677c7889fe2

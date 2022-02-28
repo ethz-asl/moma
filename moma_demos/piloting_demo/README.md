@@ -40,7 +40,7 @@ In order to run the simulation the SMB stack needs to be cloned. This is reflect
 
 4. Build the `piloting_demo` package (see above point if something goes wrong) from whithin the catkin workspace.
     ```
-    catkin build pilotin_demo
+    catkin build piloting_demo
     ```
 
 ## Before running the demo

@@ -11,7 +11,7 @@
    </link>
 
     <joint name="valve_base_joint" type="fixed">
-      <origin xyz="$(arg x) $(arg y) $(arg z)" rpy="3.14 $(arg pitch) $(arg yaw)"/>
+      <origin xyz="$(arg x) $(arg y) $(arg z)" rpy="0 $(arg pitch) $(arg yaw)"/>
       <parent link="world"/>
       <child link="valve_gt"/>
     </joint>
@@ -47,13 +47,13 @@
     </inertial>
 
     <collision>
-      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <origin xyz="0 0 0" rpy="3.14 0 0"/>
         <geometry>
           <mesh filename="package://piloting_demo/models/valve/meshes/valve.dae" scale="1.0 1.0 1.0"/>
         </geometry>
     </collision>
     <visual>
-      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <origin xyz="0 0 0" rpy="3.14 0 0"/>
         <geometry>
           <mesh filename="package://piloting_demo/models/valve/meshes/valve.stl" scale="1.0 1.0 1.0"/>
         </geometry>

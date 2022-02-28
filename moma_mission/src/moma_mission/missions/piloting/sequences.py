@@ -7,7 +7,7 @@ from moma_mission.core import StateMachineRos
 from moma_mission.missions.piloting.states import *
 from moma_mission.states.gripper import GripperControl
 from moma_mission.states.manipulation import JointsConfigurationAction
-from moma_mission.states.observation import SphericalSamplerState
+from moma_mission.states.observation import FOVSamplerState
 from moma_mission.states.transform_visitor import TransformVisitorState
 
 
@@ -25,8 +25,8 @@ def homing_sequence_factory():
 def detection_sequence_factory():
     detection_sequence = StateMachineRos(outcomes=['Success', 'Failure'])
     with detection_sequence:
-        detection_sequence.add('OBSERVATION_POSE', SphericalSamplerState, transitions={'Completed': 'OBSERVATION_APPROACH',
-                                                                                       'Failure': 'Failure'})
+        detection_sequence.add('OBSERVATION_POSE', FOVSamplerState, transitions={'Completed': 'OBSERVATION_APPROACH',
+                                                                                 'Failure': 'Failure'})
 
         detection_sequence.add('OBSERVATION_APPROACH', TransformVisitorState, transitions={'Completed': 'MODEL_FIT_VALVE',
                                                                                            'Failure': 'OBSERVATION_POSE'})
