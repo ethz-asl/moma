@@ -22,7 +22,7 @@ from mavsdk_ros.srv import UpdateSeqWaypointItem, UpdateSeqWaypointItemRequest
 from mavsdk_ros.srv import SetUploadWaypointList, SetUploadWaypointListRequest
 from mavsdk_ros.srv import SetUploadHLAction, SetUploadHLActionRequest
 
-qfrom moma_mission.utils.rotation import CompatibleRotation
+from moma_mission.utils.rotation import CompatibleRotation
 
 class WaypointStatus:
     """ A simple object to represent the current waypoint status """
