@@ -149,6 +149,7 @@ Terminal #2
 ```
 cd ~/piloting_ws/src/smb_path_planner/smb_navigation/script
 ./pcd_to_gridmap.sh /home/maps/decimated.pcd /home/maps/ true
+
 ```
 The previous command will generate a `map.yaml` and `map.pgm` files in the target folder. The `map.yaml` might contain some `nan` in the origin, set it manually to zero and save.
 

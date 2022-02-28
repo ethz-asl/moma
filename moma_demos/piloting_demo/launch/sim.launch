@@ -83,8 +83,6 @@
         <arg name="world_name"  value="$(arg world_name)"/>
     </include>
 
-
-
   <!-- Customer camera info publisher as per real robot -->
   <arg name="intrinsics_file" value="$(find moma_description)/config/intrinsics_sim.yaml"/>
   <arg name="camera_info_topic" value="/hand_eye/color/camera_info"/>
@@ -92,6 +90,7 @@
         pkg="moma_sensor_tools" 
         type="yaml_to_camera_info_publisher.py" 
         args="$(arg intrinsics_file) $(arg camera_info_topic)" output="screen"/>
+
 
   <!-- Perception -->
   <include file="$(find piloting_demo)/launch/perception.launch">
