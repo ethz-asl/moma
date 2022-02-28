@@ -46,12 +46,17 @@ def yaml_to_CameraInfo(yaml_fname):
     camera_info_msg.distortion_model = calib_data["distortion_model"]
     return camera_info_msg
 
+def callback(msg, camera_info_msg, publisher):
+    camera_info_msg.header.stamp = msg.header.stamp
+    publisher.publish(camera_info_msg)
+
 if __name__ == "__main__":
     # Get fname from command line (cmd line input required)
     import argparse
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument("filename", help="Path to yaml file containing " + \
                                              "camera calibration data")
+    arg_parser.add_argument("image_topic", help="ROS camera image topic")
     args, unknown = arg_parser.parse_known_args()
     filename = args.filename
 
@@ -63,10 +68,7 @@ if __name__ == "__main__":
 
     # Initialize publisher node
     rospy.init_node("camera_info_publisher", anonymous=True)
-    publisher = rospy.Publisher("camera_info", CameraInfo, queue_size=10)
-    rate = rospy.Rate(10)
+    publisher = rospy.Publisher("camera_info", CameraInfo, queue_size=1)
+    subscriber = rospy.Subscriber(args.image_topic, CameraInfo, lambda msg: callback(msg, camera_info_msg, publisher), queue_size=1)
 
-    # Run publisher
-    while not rospy.is_shutdown():
-        publisher.publish(camera_info_msg)
-        rate.sleep()
+    rospy.spin()
