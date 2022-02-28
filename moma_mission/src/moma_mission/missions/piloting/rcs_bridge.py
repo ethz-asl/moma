@@ -1,16 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import sys
-from time import time
-from typing import Text
-from grpc import Status
 import yaml
 
 import rospy
 import numpy as np
 import argparse
 
+from std_msgs.msg import UInt16
+from std_srvs.srv import Trigger
 from nav_msgs.msg import Odometry
+from geometry_msgs.msg import PoseArray, Pose, PoseStamped
 
 from mavsdk_ros.msg import CommandLong, CommandAck, WaypointList, WaypointsAck
 from mavsdk_ros.msg import TextStatus, AlarmStatus, AlarmItem, ChecklistItem
@@ -22,10 +21,11 @@ from mavsdk_ros.srv import SetUploadChecklist, SetUploadChecklistRequest
 from mavsdk_ros.srv import UpdateSeqWaypointItem, UpdateSeqWaypointItemRequest
 from mavsdk_ros.srv import SetUploadWaypointList, SetUploadWaypointListRequest
 from mavsdk_ros.srv import SetUploadHLAction, SetUploadHLActionRequest
-from moma_mission.utils import ros
-from std_msgs.msg import UInt16
+
+qfrom moma_mission.utils.rotation import CompatibleRotation
 
 class WaypointStatus:
+    """ A simple object to represent the current waypoint status """
     IN_PROGRESS = 0
     QUEUED = 1
     DONE = 2
@@ -43,6 +43,10 @@ class WaypointStatus:
 
 
 class Waypoint:
+    """ 
+    A 2D waypoint navigation object. Each waypoint is associated with a 
+    task uuid and an execution status @WaypointStatus
+    """
     def __init__(self):
         self.x = 0.0
         self.y = 0.0
@@ -53,6 +57,90 @@ class Waypoint:
     def __str__(self):
         return f"x:{self.x}, y:{self.y}, angle:{self.orientation}, status:{WaypointStatus.to_string(self.status)}"
 
+    def to_pose_ros(self, frame):
+        pose = PoseStamped()
+        pose.header.frame_id = frame
+        pose.header.stamp = rospy.get_rostime()
+        pose.pose.position.x = self.x
+        pose.pose.position.y = self.y
+        pose.pose.position.z = 0.0
+        q = CompatibleRotation.from_euler('z', self.orientation, degrees=False).as_quat()
+        pose.pose.orientation.x = q[0]
+        pose.pose.orientation.y = q[1]
+        pose.pose.orientation.z = q[2]
+        pose.pose.orientation.w = q[3]
+    
+    @staticmethod
+    def from_pose_ros(pose: Pose):
+        wp = Waypoint()
+        wp.x = pose.position.x
+        wp.y = pose.position.y
+        q = [pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w]
+        ix = CompatibleRotation.from_quat(q).as_matrix() @ np.array([1.0, 0.0, 0.0]) # projection of the xaxis
+        wp.orientation = np.arctan2(ix[1], ix[0])
+        return wp
+
+class ManualWaypointsSelector:
+    """
+    Utility class to retrieve waypoints from Rviz using the 2D Nav Goal button
+    (note this requires a custom RVIz that publish nav_goal under /waypoint)
+    """
+    def __init__(self):
+        self.add_pose_topic = "/waypoint"
+        self.pose_array_topic = "/waypoints" 
+        self.pose_array_publisher = rospy.Publisher(self.pose_array_topic, PoseArray, queue_size=1)
+        self.path_reset_srv = rospy.Service("/path_reset", Trigger, self.path_reset_callback)
+        self.path_point_sub = rospy.Subscriber(self.add_pose_topic, PoseStamped, self.path_pose_callback)
+        self.waypoints = []
+        self.waypoints_ros = []
+        self.path_ready = False
+
+    def path_reset_callback(self, req):
+        rospy.loginfo('Received path RESET trigger')
+        self.initialize_path_queue()
+
+    def initialize_path_queue(self):
+        self.waypoints = []  
+        self.waypoints_ros = []
+        self.path_ready = False
+        pose_array = PoseArray()
+        pose_array.header.frame_id = "map"  # it does not matter, is just an empty path
+        self.pose_array_publisher.publish(pose_array)
+
+    def publish_pose_array(self, frame):
+        pose_array = PoseArray()
+        pose_array.header.frame_id = frame
+        pose_array.header.stamp = rospy.get_rostime()
+        pose_array.poses = self.waypoints_ros
+        self.pose_array_publisher.publish(pose_array)
+        rospy.sleep(1.0)
+
+    def path_pose_callback(self, msg: PoseStamped):
+        
+        curr_wp = Waypoint.from_pose_ros(msg.pose)
+        if len(self.waypoints) > 0:
+            prev_wp = self.waypoints[-1]
+            dist = (curr_wp.x - prev_wp.x)**2 + (curr_wp.y - prev_wp.y)**2
+            if dist < 0.01:
+                rospy.loginfo("Skipping waypoint... too close -> detecting that path is complete!")
+                self.path_ready = True
+                return
+
+        rospy.loginfo("Received new waypoint")
+        self.waypoints.append(curr_wp)
+        self.waypoints_ros.append(msg.pose)
+        self.publish_pose_array(frame=msg.header.frame_id)
+        rospy.sleep(1.0)
+
+        
+    def get_waypoints(self):
+        rospy.loginfo(f"Waiting to recieve waypoints via Pose msg on topic {self.add_pose_topic}")
+        rospy.loginfo("To send a path, click on two close waypoints (last will be skipped). '")
+
+        while not self.path_ready:
+            rospy.logwarn_throttle(5.0, "Waiting for the next waypoint.")
+            rospy.sleep(1.0)
+        return self.waypoints
 
 class RCSBridge:
     """
@@ -107,13 +195,14 @@ class RCSBridge:
         # Waypoints
         self.waypoint_current_id = 0
         self.waypoints = []
+        self.waypoints_selector = None
 
         # Waypoints from the inspection plan
         self.inspection_waypoints = None
 
         # Flags
         self.is_inspection_available = False
-        self.current_hl_command_id = -1
+        self.current_hl_command_id = 1
         self.current_hl_command = np.array([])
 
 
@@ -160,13 +249,16 @@ class RCSBridge:
         self.current_waypoint = rospy.Subscriber(
             "/mavsdk_ros/inspection_set_current", UInt16, self.set_current, queue_size=1)
 
+        # Utilities
+        self.waypoints_selector = ManualWaypointsSelector()
+
         # Messages
         self.status_msg = TextStatus()
         self.alarm_msg = AlarmStatus()
         return True
 
     def set_current(self, msg):
-        rospy.loginfo(f"Recevied comdn to {msg.data}")
+        rospy.loginfo(f"Set command to {msg.data}")
 
     ################################
     # Checklist
@@ -239,9 +331,9 @@ class RCSBridge:
         Mainly a debug function to set waypoints from file, otherwise should be received from inspection plan
         See @inspection_server_cb
         """
-        with open(file) as stream:
+        self.waypoints = []
+        with open(file, 'r') as stream:
             rospy.loginfo(f"Loading waypoints from file {file}")
-            self.waypoints = []
             waypoints_list = yaml.load(stream, Loader=yaml.FullLoader)
             if "waypoints" not in waypoints_list.keys():
                 return False
@@ -253,6 +345,9 @@ class RCSBridge:
                 rospy.loginfo(f"Adding waypoint [{wp}]")
                 self.waypoints.append(wp)
         return True
+    
+    def read_waypoints_from_user(self):
+        self.waypoints = self.waypoints_selector.get_waypoints()
 
     def upload_waypoints(self):
         """
@@ -306,13 +401,22 @@ class RCSBridge:
             self.waypoints[self.waypoint_current_id].status = WaypointStatus.IN_PROGRESS
             req = UpdateSeqWaypointItemRequest()
             req.item_seq = self.waypoint_current_id
-            self.update_current_waypoint_item_client.call(req)
+            
+            try:
+                self.update_current_waypoint_item_client.call(req)
+            except (rospy.ROSException, rospy.ServiceException) as exc:
+                rospy.logwarn("Failed to set waypoint status")
+
             return current_wp
 
     def set_waypoint_done(self):
         req = UpdateSeqWaypointItemRequest()
         req.item_seq = self.waypoint_current_id
-        self.update_reached_waypoint_item_client.call(req)
+
+        try:        
+            self.update_reached_waypoint_item_client.call(req)
+        except (rospy.ROSException, rospy.ServiceException) as exc:
+            rospy.logwarn("Failed to set waypoint status")
 
         # set status to done
         self.waypoints[self.waypoint_current_id].status = WaypointStatus.DONE
@@ -456,7 +560,10 @@ class RCSBridge:
         Resend msg received over odom topic to gRCS telemetry topic (relay) 
         """
         # need to be map
-        self.telemetry_pub.publish(msg)
+        try: 
+            self.telemetry_pub.publish(msg)
+        except rospy.ROSException as exc:
+            pass # when state mchine closes
 
     ################################
     # Status
