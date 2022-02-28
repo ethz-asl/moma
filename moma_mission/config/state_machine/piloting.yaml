@@ -2,11 +2,13 @@
 # Namespaces mirror (optionally) the state for better readability
 
 SETUP:
-  default_outcome: Completed
+  default_outcome: None
+  strict: false
+  waypoints_from_user: true
   waypoints_file_path: $(find moma_mission)/config/state_machine/piloting_waypoints.yaml
 
 IDLE:
-  default_outcome: ExecuteManipulationPlan
+  default_outcome: None
 
 OPEN_GRIPPER:
   default_outcome: Completed
@@ -25,7 +27,7 @@ CLOSE_GRIPPER:
   timeout: 5.0
 
 HOME_ROBOT:
-  default_outcome: None
+  default_outcome: Completed
   action_name: /joint_space_controller_server
   manager_namespace: panda
   startlist: ['joint_space_controller']
@@ -35,7 +37,7 @@ HOME_ROBOT:
 
 # hack to avoid self collision in the end
 HOME_ROBOT_FINAL:
-  default_outcome: None
+  default_outcome: Completed
   action_name: /joint_space_controller_server
   manager_namespace: panda
   startlist: ['joint_space_controller']
@@ -89,6 +91,7 @@ REACH_DETECTION_HOTSPOT:
 
 WAYPOINT_FOLLOWING:
   default_outcome: None
+  max_attempts: 3
   goal_action_topic: /move_base
   goal_pose_topic: /move_base_simple/goal
   base_pose_topic: /base_pose_measured
@@ -99,8 +102,8 @@ WAYPOINT_FOLLOWING:
   stoplist: []
   
   timeout: 10000.0
-  tolerance_m: 0.30
-  tolerance_deg: 50
+  tolerance_m: 0.1
+  tolerance_deg: 20
 
 REACH_VIEWPOINT:
   default_outcome: Completed

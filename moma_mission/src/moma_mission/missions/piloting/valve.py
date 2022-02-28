@@ -52,14 +52,6 @@ class Valve:
                                  det_pose_orientation_4,
                                  det_pose_orientation_5]}
 
-    @classmethod
-    def init_from_ros(cls):
-        try:
-            cls.valve_radius = rospy.get_param("~valve_radius")
-            return True
-        except Exception as exc:
-            rospy.logerr(exc)
-            return False
 
     @classmethod
     def get_detection_poses(cls):
