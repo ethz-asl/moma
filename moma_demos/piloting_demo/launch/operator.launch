@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <launch>
    <!-- start rviz -->
-  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find piloting_demo)/config/rviz/sim.rviz" />
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find piloting_demo)/config/rviz/operator.rviz" />
 
   <!-- dashboard -->
   <rosparam command="load" file="$(find piloting_demo)/config/operator/dashboard.yaml"/>
