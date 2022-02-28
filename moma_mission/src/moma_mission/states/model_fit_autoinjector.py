@@ -13,6 +13,10 @@ class ModelFitAutoinjectorState(ModelFitState):
         return 'autoinjector'
 
     def _model_fit(self, keypoints_perception: List[Pose], frame: str) -> TransformStamped:
+        if len(keypoints_perception) != 2:
+            rospy.logerr('Unexpected amount of keypoints')
+            return None
+
         object_vector = [
             keypoints_perception[0].position.x - keypoints_perception[1].position.x,
             keypoints_perception[0].position.y - keypoints_perception[1].position.y,
@@ -20,7 +24,7 @@ class ModelFitAutoinjectorState(ModelFitState):
             ]
         object_length = tf.transformations.vector_norm(object_vector)
         rospy.loginfo('Autoinjector length is {}'.format(object_length))
-        if not 0.09 <= object_length <= 0.15:
+        if not 0.12 <= object_length <= 0.19:
             rospy.logerr('Autoinjector length is not within the expected range')
             return None
         x_axis_dir = tf.transformations.unit_vector(object_vector)

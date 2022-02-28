@@ -2,8 +2,8 @@ import rospy
 
 class Frames:
     map_frame = "map"
-    tool_frame = "end_effector"
-    base_frame = "arm_base"
+    tool_frame = "tool_frame"
+    base_frame = "tracking_camera_odom"
     valve_frame = "valve"
     valve_haptic_frame = "valve_estimated"
 

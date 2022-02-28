@@ -21,8 +21,8 @@ repositories:
   
   smb_path_planner:
     type: git
-    url: https://github.com/VIS4ROB-lab/smb_path_planner.git
-    version: 1080f32486eafabfa3aadac8b32a535eddb46046
+    url: git@github.com:grizzi/smb_path_planner.git
+    version: master
   
   teb_local_planner:
     type: git
@@ -58,3 +58,8 @@ repositories:
     type: git  
     url: https://github.com/ETHZ-RobotX/smb_rviz_plugins
     version: 23161b07c5d7f38fa25ba938286e080d90fedbec
+
+  piloting-mavsdk-ros:
+    type: git
+    url: https://github.com/fada-catec/piloting-mavsdk-ros
+    version: 89ebd1be217ddbd066757c0af02de677c7889fe2
