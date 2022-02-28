@@ -78,7 +78,7 @@
         <arg name="use_fixed_realsense" value="$(arg use_fixed_realsense)"/>
         <arg name="control_mode" value="Effort"/>
         <arg name="tool" value="$(arg tool)"/>
-        <arg name="gui"  value="false"/>
+        <arg name="gui"  value="$(arg gui)"/>
     </include>
 
 
