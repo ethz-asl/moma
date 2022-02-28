@@ -201,7 +201,7 @@ class ValveFitter:
         v2 = T_cam_valve[:3, 1]
         
         r = radius_hypotesis
-        return ValveModel(c=c, r=r, v1=v1, v2=v2, k=self.k, delta=0.0)
+        return ValveModel(center=c, radius=r, axis_1=v1, axis_2=v2, num_spokes=self.k)
 
         
     def residual_fun(self, x):
@@ -266,7 +266,7 @@ class ValveFitter:
         # get radius 
         r  = np.sum([np.linalg.norm(points_3d[:, i+1]- Cg) for i in range(k)]) / k
 
-        return ValveModel(c=C, r=r, v1=v1, v2=v2, k=k, delta=delta)
+        return ValveModel(center=C, radius=r, axis_1=v1, axis_2=v2, num_spokes=k, depth=delta)
 
     def _non_linear_optimization(self):
         
@@ -324,7 +324,7 @@ radius = {x[10]}
         v2 = x[6:9]
         delta = x[9]
         r = x[10]
-        return ValveModel(c=c, r=r, v1=v1, v2=v2, k=self.k, delta=delta)
+        return ValveModel(center=c, radius=r, axis_1=v1, axis_2=v2, num_spokes=self.k, depth=delta)
 
 
 class FeatureMatcher:
@@ -469,7 +469,7 @@ if __name__ == "__main__":
     
     # get ground truth valve
     k = 3
-    valve = ValveModel(r=0.1, k=k, delta=-0.02)
+    valve = ValveModel(radius=0.1, num_spokes=k, depth=-0.02)
     valve.transform(dz=0.8, roll_deg=50, pitch_deg=40)
     
     # get simulated observations
