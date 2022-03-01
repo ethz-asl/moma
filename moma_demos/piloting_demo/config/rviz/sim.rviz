@@ -10,7 +10,7 @@ Panels:
         - /Base Navigation1/Global Base Path1
         - /Localization1/Registered PCL1
       Splitter Ratio: 0.5
-    Tree Height: 313
+    Tree Height: 246
   - Class: rviz/Selection
     Name: Selection
   - Class: rviz/Tool Properties
@@ -29,7 +29,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: LaserScan
+    SyncSource: Hand Eye RGB
   - Class: smb_navigation_rviz/PlanningPanel
     Name: PlanningPanel
 Preferences:
@@ -94,9 +94,15 @@ Visualization Manager:
               Value: false
             blackfly_right_optical_link:
               Value: false
+            camera_accel_frame:
+              Value: true
+            camera_accel_optical_frame:
+              Value: true
+            camera_gyro_frame:
+              Value: true
             camera_imu_optical_frame:
               Value: false
-            camera_odom_frame:
+            camera_link:
               Value: true
             camera_pose_frame:
               Value: false
@@ -128,11 +134,13 @@ Visualization Manager:
               Value: false
             lidar_mount_link:
               Value: false
-            map:
-              Value: true
             mono_link:
               Value: false
-            observation:
+            panda_EE:
+              Value: true
+            panda_K:
+              Value: true
+            panda_NE:
               Value: true
             panda_default_ee:
               Value: false
@@ -174,12 +182,6 @@ Visualization Manager:
               Value: false
             tracking_camera_odom:
               Value: true
-            valve:
-              Value: true
-            valve_gt:
-              Value: true
-            wheel:
-              Value: false
             world:
               Value: true
           Marker Alpha: 1
@@ -189,89 +191,92 @@ Visualization Manager:
           Show Axes: true
           Show Names: true
           Tree:
-            base_link:
-              LF_WHEEL:
-                {}
-              LH_WHEEL:
-                {}
-              RF_WHEEL:
-                {}
-              RH_WHEEL:
-                {}
-              arm_mount_link:
-                panda_link0:
-                  panda_link1:
-                    panda_link2:
-                      panda_link3:
-                        panda_link4:
-                          panda_link5:
-                            panda_link6:
-                              panda_link7:
-                                hand_eye_bottom_screw_frame:
-                                  hand_eye_link:
-                                    hand_eye_color_frame:
-                                      hand_eye_color_optical_frame:
-                                        {}
-                                    hand_eye_depth_frame:
-                                      hand_eye_depth_optical_frame:
-                                        {}
-                                    hand_eye_infra1_frame:
-                                      hand_eye_infra1_optical_frame:
-                                        {}
-                                    hand_eye_infra2_frame:
-                                      hand_eye_infra2_optical_frame:
-                                        {}
-                                panda_link8:
-                                  panda_default_ee:
-                                    {}
-                                  panda_hand:
-                                    panda_leftfinger:
+            world:
+              base_link:
+                LF_WHEEL:
+                  {}
+                LH_WHEEL:
+                  {}
+                RF_WHEEL:
+                  {}
+                RH_WHEEL:
+                  {}
+                arm_mount_link:
+                  panda_link0:
+                    panda_link1:
+                      panda_link2:
+                        panda_link3:
+                          panda_link4:
+                            panda_link5:
+                              panda_link6:
+                                panda_link7:
+                                  hand_eye_bottom_screw_frame:
+                                    hand_eye_link:
+                                      hand_eye_color_frame:
+                                        hand_eye_color_optical_frame:
+                                          {}
+                                      hand_eye_depth_frame:
+                                        hand_eye_depth_optical_frame:
+                                          {}
+                                      hand_eye_infra1_frame:
+                                        hand_eye_infra1_optical_frame:
+                                          {}
+                                      hand_eye_infra2_frame:
+                                        hand_eye_infra2_optical_frame:
+                                          {}
+                                  panda_link8:
+                                    panda_NE:
+                                      panda_EE:
+                                        panda_K:
+                                          {}
+                                    panda_default_ee:
                                       {}
-                                    panda_rightfinger:
+                                    panda_hand:
+                                      panda_leftfinger:
+                                        {}
+                                      panda_rightfinger:
+                                        {}
+                                    tool_frame:
                                       {}
-                                  tool_frame:
-                                    {}
-              base_inertia:
-                {}
-              blackfly0_link:
-                blackfly0_optical_link:
+                base_inertia:
                   {}
-              blackfly1_link:
-                blackfly1_optical_link:
-                  {}
-              blackfly_left_link:
-                blackfly_left_optical_link:
-                  {}
-              blackfly_right_link:
-                blackfly_right_optical_link:
-                  {}
-              imu_link:
-                imu:
-                  {}
-                realsense_t265:
-                  realsense_t265_odom_frame:
-                    camera_imu_optical_frame:
-                      {}
-                  world:
-                    map:
-                      observation:
-                        {}
-                    valve_gt:
-                      wheel:
-                        {}
-              lidar_mount_link:
-                rslidar_base_link:
-                  rslidar:
+                blackfly0_link:
+                  blackfly0_optical_link:
                     {}
-              mono_link:
-                {}
-              top:
-                {}
-              tracking_camera_odom:
-                camera_pose_frame_odom:
+                blackfly1_link:
+                  blackfly1_optical_link:
+                    {}
+                blackfly_left_link:
+                  blackfly_left_optical_link:
+                    {}
+                blackfly_right_link:
+                  blackfly_right_optical_link:
+                    {}
+                imu_link:
+                  imu:
+                    {}
+                  realsense_t265:
+                    camera_pose_frame:
+                      camera_link:
+                        camera_accel_frame:
+                          camera_accel_optical_frame:
+                            {}
+                        camera_gyro_frame:
+                          camera_imu_optical_frame:
+                            {}
+                    realsense_t265_odom_frame:
+                      {}
+                lidar_mount_link:
+                  rslidar_base_link:
+                    rslidar:
+                      {}
+                mono_link:
                   {}
-                valve:
+                top:
                   {}
+                tracking_camera_odom:
+                  camera_pose_frame_odom:
+                    {}
           Update Interval: 0
           Value: true
         - Alpha: 1
@@ -824,7 +829,7 @@ Visualization Manager:
           Marker Topic: /object_keypoints_ros/perception
           Name: Keypoints 3D
           Namespaces:
-            "": true
+            {}
           Queue Size: 100
           Value: true
         - Alpha: 1
@@ -844,13 +849,38 @@ Visualization Manager:
           Topic: /sampled_viewpoints
           Unreliable: false
           Value: true
+        - Alpha: 1
+          Arrow Length: 0.30000001192092896
+          Axes Length: 0.019999999552965164
+          Axes Radius: 0.0010000000474974513
+          Class: rviz/PoseArray
+          Color: 255; 25; 0
+          Enabled: true
+          Head Length: 0.07000000029802322
+          Head Radius: 0.029999999329447746
+          Name: Valve Poses
+          Queue Size: 10
+          Shaft Length: 0.23000000417232513
+          Shaft Radius: 0.009999999776482582
+          Shape: Axes
+          Topic: /valve_poses
+          Unreliable: false
+          Value: true
+        - Class: rviz/MarkerArray
+          Enabled: true
+          Marker Topic: /valve_marker
+          Name: Valve Marker
+          Namespaces:
+            {}
+          Queue Size: 100
+          Value: true
       Enabled: true
       Name: Perception
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
     Default Light: true
-    Fixed Frame: map
+    Fixed Frame: tracking_camera_odom
     Frame Rate: 30
   Name: root
   Tools:
@@ -874,7 +904,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 0.009552083909511566
+      Distance: 3.224782705307007
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -882,31 +912,31 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 0.5056948661804199
-        Y: 1.8762056827545166
-        Z: 2.243994951248169
+        X: 0.03472980856895447
+        Y: 0.3010737895965576
+        Z: 0.15657639503479004
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.6597973108291626
+      Pitch: 0.836470901966095
       Target Frame: <Fixed Frame>
-      Yaw: 1.6635833978652954
+      Yaw: 2.254375457763672
     Saved: ~
 Window Geometry:
   Displays:
     collapsed: false
   Hand Eye RGB:
     collapsed: false
-  Height: 1163
+  Height: 1016
   Hide Left Dock: false
   Hide Right Dock: false
   Keypoints Predictions:
     collapsed: false
   PlanningPanel:
     collapsed: false
-  QMainWindow State: 000000ff00000000fd000000040000000000000217000003edfc020000000bfb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073010000003d000001c4000000c900fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb0000001800480061006e0064002000450079006500200052004700420100000207000000cd0000001600fffffffb0000001a0050006c0061006e006e0069006e006700500061006e0065006c01000002da00000150000000f900fffffffb0000000a0049006d00610067006501000002f0000000a700000000000000000000000100000156000003edfc0200000006fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073010000003d0000024f000000a400fffffffb0000001800480061006e00640020004500790065002000520047004201000001f10000010a0000000000000000fb0000002a004b006500790070006f0069006e00740073002000500072006500640069006300740069006f006e00730100000292000001980000001600fffffffb000000180052006500730075006c007400200049006d0061006700650100000295000001020000000000000000fb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e10000019700000003000007800000003efc0100000002fb0000000800540069006d0065010000000000000780000002eb00fffffffb0000000800540069006d0065010000000000000450000000000000000000000407000003ed00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd0000000400000000000002170000035afc020000000bfb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073010000003d00000181000000c900fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb0000001800480061006e00640020004500790065002000520047004201000001c4000000af0000001600fffffffb0000001a0050006c0061006e006e0069006e006700500061006e0065006c01000002790000011e000000f900fffffffb0000000a0049006d00610067006501000002f0000000a7000000000000000000000001000001560000035afc0200000006fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073010000003d000001f8000000a400fffffffb0000001800480061006e00640020004500790065002000520047004201000001f10000010a0000000000000000fb0000002a004b006500790070006f0069006e00740073002000500072006500640069006300740069006f006e0073010000023b0000015c0000001600fffffffb000000180052006500730075006c007400200049006d0061006700650100000295000001020000000000000000fb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e10000019700000003000007380000003efc0100000002fb0000000800540069006d0065010000000000000738000002eb00fffffffb0000000800540069006d00650100000000000004500000000000000000000003bf0000035a00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Selection:
     collapsed: false
   Time:
@@ -915,6 +945,6 @@ Window Geometry:
     collapsed: false
   Views:
     collapsed: false
-  Width: 1920
-  X: 1920
-  Y: 0
+  Width: 1848
+  X: 72
+  Y: 27
