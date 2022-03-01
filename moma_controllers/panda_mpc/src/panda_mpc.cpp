@@ -49,6 +49,10 @@ bool PandaMpcController::init(hardware_interface::RobotHW* robot_hw,
     return false;
   }
 
+  if (!odom_topic_.empty()){
+    odom_sub_ = node_handle.subscribe(odom_topic_, 1, &PandaMpcController::odom_callback, this);
+  }
+  
   ROS_INFO("Controller successfully initialized!");
   started_ = false;
   return true;
@@ -86,9 +90,6 @@ bool PandaMpcController::init_parameters(ros::NodeHandle& node_handle) {
 
   if (!node_handle.getParam("odom_topic", odom_topic_)) {
     ROS_WARN("PandaMpcController: Could not read parameter odom_topic, ignoring");
-  } else {
-    odom_sub_ = node_handle.subscribe(odom_topic_, 1,
-                                      &PandaMpcController::odom_callback, this);
   }
 
   if (!node_handle.getParam("command_base_topic", command_base_topic_)) {

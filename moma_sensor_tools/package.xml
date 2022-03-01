@@ -19,4 +19,6 @@
     <depend>rqt_easy_handeye</depend>
     <depend>apriltag_ros</depend>
 
+    <exec_depend>topic_tools</exec_depend>
+
 </package>

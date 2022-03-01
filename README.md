@@ -37,6 +37,12 @@ cd $CATKIN_WS/src
 vcs import --recursive --input moma/moma_core.repos
 ```
 
+To install additional packages (as for example required for the demos or piloting), use `vcs`:
+```
+vcs import --recursive --input moma/moma_<NAME>.repos
+```
+where `<NAME>` needs to be replaced by the corresponding repos filename.
+
 Install the remaning dependencies using the provided script. 
 
 ```bash

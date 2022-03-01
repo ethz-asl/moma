@@ -99,7 +99,7 @@ class GripperControl(StateRos):
         if not self.gripper_client.wait_for_result(rospy.Duration(self.server_timeout)):
             rospy.logerr(
                 "Timeout exceeded while waiting the gripper action to complete")
-            return 'Aborted'
+            return 'Failure'
 
         rospy.loginfo(
             f"Sending gripper command: pos={self.gripper_cmd.command.position}, max_eff={self.gripper_cmd.command.max_effort}")
@@ -124,7 +124,7 @@ class GripperControl(StateRos):
             success = True
 
         if success:
-            rospy.sleep(2.0)  # just for safety
+            rospy.sleep(1.0)  # just for safety
             return 'Completed'
         else:
             return 'Failure'

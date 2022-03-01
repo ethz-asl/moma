@@ -1,33 +1,33 @@
 # Config file for the combined mission
 # Namespaces mirror (optionally) the state for better readability
 
-IDLE:
-  default_outcome: None
-
 SETUP:
+  default_outcome: Completed
   waypoints_file_path: $(find moma_mission)/config/state_machine/piloting_waypoints.yaml
-  default_outcome: None
+
+IDLE:
+  default_outcome: ExecuteManipulationPlan
 
 OPEN_GRIPPER:
-  default_outcome: Completed
-  gripper_action_name: /control/franka_gripper/gripper_action
+  default_outcome: None
+  gripper_action_name: /panda/franka_gripper/gripper_action
   position: 0.03
   max_effort: 20
   tolerance: 0.001
   timeout: 5.0
 
 CLOSE_GRIPPER:
-  default_outcome: Completed
-  gripper_action_name: /control/franka_gripper/gripper_action
+  default_outcome: None
+  gripper_action_name: /panda/franka_gripper/gripper_action
   position: 0.0
   max_effort: 20
   tolerance: 0.001
   timeout: 5.0
 
 HOME_ROBOT:
-  default_outcome: Completed
+  default_outcome: None
   action_name: /joint_space_controller_server
-  manager_namespace: control
+  manager_namespace: panda
   startlist: ['joint_space_controller']
   stoplist: ['mpc_controller', 'path_passthrough_controller', 'effort_joint_trajectory_controller']
   joints_configurations:
@@ -35,17 +35,13 @@ HOME_ROBOT:
 
 # hack to avoid self collision in the end
 HOME_ROBOT_FINAL:
-  default_outcome: Completed
+  default_outcome: None
   action_name: /joint_space_controller_server
-  manager_namespace: control
+  manager_namespace: panda
   startlist: ['joint_space_controller']
   stoplist: ['mpc_controller', 'path_passthrough_controller', 'effort_joint_trajectory_controller']
   joints_configurations:
     - [-0.65, -0.885, 0, -2.1, 0, 1.571, 0]
-
-FETCH_DETECTION:
-  default_outcome: Completed
-  detection_topic: "/object_keypoints_ros/pose"
 
 REACH_DETECTION_HOTSPOT:
   default_outcome: Completed
@@ -54,11 +50,11 @@ REACH_DETECTION_HOTSPOT:
   goal_pose_topic: /move_base_simple/goal
   base_pose_topic: /base_pose_measured
   base_odometry_topic: /base_odom
- 
-  manager_namespace: control
+
+  manager_namespace: smb
   startlist: ['smb_diff_drive']
   stoplist: []
-  
+
   timeout: 10000.0
   tolerance_m: 0.30
   tolerance_deg: 50
@@ -69,48 +65,86 @@ WAYPOINT_FOLLOWING:
   goal_pose_topic: /move_base_simple/goal
   base_pose_topic: /base_pose_measured
   base_odometry_topic: /camera/odom/sample
- 
-  manager_namespace: control
+
+  manager_namespace: smb
   startlist: ['smb_diff_drive']
   stoplist: []
-  
+
   timeout: 10000.0
   tolerance_m: 0.30
   tolerance_deg: 50
 
-REACH_VIEWPOINT:
-  default_outcome: Completed
-  action_name: /joint_space_controller_server
-  manager_namespace: control
-  startlist: ['joint_space_controller']
-  stoplist: ['mpc_controller', 'path_passthrough_controller', 'effort_joint_trajectory_controller']
-  joints_configurations:
-    - [1.57, -0.885, 0, -2.1, 0, 1.571, 0]
-    - [-1.57, -0.885, 0, -2.1, 0, 1.571, 0]
+DETECTION_DECISION:
+  default_outcome: Failure
 
-LATERAL_GRASP:
-  default_outcome: Completed
-  controller_name: mpc_controller
-  manager_namespace: control
+OBSERVATION_POSE:
+  default_outcome: None
+  sample_name: observation
+  map_frame: world
+  object_frame: valve_gt
+  camera_frame: hand_eye_color_optical_frame
+  controlled_frame: tool_frame
+  object_size: 0.20
+  camera_info_topic: "/camera_info"
+  lateral_view_angle_deg: 20
+  image_fill_ratio: 0.5
+  heading: [1, 0, 0]
+
+OBSERVATION_APPROACH:
+  default_outcome: None
+  duration: 5.0
+  control_frame: tracking_camera_odom
+  target_frame: observation
+  startlist: ['mpc_controller', 'path_passthrough_controller'] #, 'path_admittance_controller' ]
+  stoplist: ['joint_space_controller']
+  manager_namespace: panda
+
+MODEL_FIT_VALVE:
+  default_outcome: None
+  dummy: false
+  dummy_position: [0.8, 0.0, 0.5]
+  dummy_orientation: [0.0, 0.707, 0.0, 0.707]
+
+MODEL_URDF_VALVE:
+  default_outcome: None
+
+  poses_topic: /valve_poses
+  turning_angle_deg: 120.0
+
+APPROACH_VALVE:
+  default_outcome: None
+  manager_namespace: panda
   startlist: ['mpc_controller', 'path_passthrough_controller']
   stoplist: ['joint_space_controller']
-  path_topic_name: /desired_path
 
-POST_LATERAL_GRASP:
-  default_outcome: Completed
-  manager_namespace: control
+  poses_topic: /valve_poses
+  offset: [0, 0, -0.1]
+  section: 'first'
+
+GRASP_VALVE:
+  default_outcome: None
+  manager_namespace: panda
   startlist: ['mpc_controller', 'path_passthrough_controller']
   stoplist: ['joint_space_controller']
-  path_topic_name: /desired_path
+
+  poses_topic: /valve_poses
+  section: 'first'
 
 MANIPULATE_VALVE:
-  default_outcome: Completed
-  manager_namespace: control
+  default_outcome: None
+  manager_namespace: panda
   startlist: ['mpc_controller', 'path_passthrough_controller']
   stoplist: ['joint_space_controller']
-  
-  angle_step_deg: -60.0   # how much to rotate at once
-  angle_end_deg: -118.0    # total desired rotation
-  angle_delta_deg: 5.0    # controls trajectory discretization
-  speed_deg: 5.0
-  path_topic_name: /desired_path
+
+  poses_topic: /valve_poses
+  angular_speed: 0.5
+
+BACKOFF_VALVE:
+  default_outcome: None
+  manager_namespace: panda
+  startlist: [ 'mpc_controller', 'path_passthrough_controller' ]
+  stoplist: [ 'joint_space_controller' ]
+
+  poses_topic: /valve_poses
+  offset: [ 0, 0, -0.1 ]
+  section: 'last'
