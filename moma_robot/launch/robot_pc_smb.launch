@@ -17,10 +17,15 @@
       <arg name="launch_depth_cam"      value="false"/>
       <arg name="launch_tracking_cam"   value="true"/>
     </include>
-  
+
+    <!-- Publish base odometry from tracking cam odometry measurements -->
+    <node pkg="odometry_conversion"
+          type="odometry_conversion_node"
+          name="tracking_camera_odometry_conversion" output="screen"/>
+
     <!-- Low level smb controller -->
     <include file="$(find smb_lowlevel_controller)/launch/smb_lowlevel_controller.launch" ns="smb">
 	  <arg name="description_name"            value="/smb_description"/>
 	  <arg name="command_smb"                 value="true"/>
-  </include>
+    </include>
 </launch>

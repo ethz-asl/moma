@@ -1,24 +1,28 @@
 <?xml version="1.0"?>
 <launch>
-  <arg name="play_bag"          default="false"/>
-  <arg name="bag_file"          default="$(env HOME)/storage/bags/2022-01-26/2022-01-26-11-11-18_valve_depth_throttled.bag"/>
-  <arg name="base_frame"        default="panda_link0"/>
-  <arg name="camera_frame"      default="hand_eye_color_optical_frame"/>
-  <arg name="image_topic"       default="/hand_eye/color/image_raw_throttle"/>
-  <arg name="depth_topic"       default="/hand_eye/depth/image_rect_raw_throttle"/>
-  <arg name="calibration_topic" default="/camera_info"/>
-  <arg name="calibration_file"  default="$(env HOME)/calibration/intrinsics.yaml"/>
-  <arg name="custom_intrinsics" default="false"/>
-  <arg name="rviz"              default="false"/>
+  <arg name="sim"                       default="false"/>
+  <arg name="play_bag"                  default="false"/>
+  <arg name="bag_file"                  default="$(env HOME)/storage/bags/2022-01-26/2022-01-26-11-11-18_valve_depth_throttled.bag"/>
+  <arg name="base_frame"                default="tracking_camera_odom"/>
+  <arg name="camera_frame"              default="hand_eye_color_optical_frame"/>
+  <arg name="image_topic"               default="/hand_eye/color/image_raw"/>
+  <arg name="depth_topic"               default="/hand_eye/depth/image_rect_raw"/>
+  <arg name="calibration_topic"         default="/camera_info"/>
+  <arg name="custom_intrinsics"         default="false"/>
+  <arg name="custom_intrinsics_file"    default="$(env HOME)/calibration/camera_calibration.yaml" />
+  <arg name="custom_extrinsics_file"    default="$(env HOME)/calibration/handeye_calibration.yaml" />
+  <arg name="rviz"                      default="false"/>
 
   <!-- Custom intrinsics publishers -->
-  <arg name="custom_intrinsics_file" default="$(env HOME)/calibration/camera_calibration.yaml" />
-  <node name="camera_intrinsics_publisher" pkg="moma_sensor_tools" type="yaml_to_camera_info_publisher.py" 
-    args="$(arg custom_intrinsics_file)" output="screen" if="$(arg custom_intrinsics)"/>
+  <node name="camera_intrinsics_publisher"
+        pkg="moma_sensor_tools"
+        type="yaml_to_camera_info_publisher.py"
+        args="--filename $(arg custom_intrinsics_file) --image_topic $(arg calibration_topic)"
+        output="screen" if="$(arg custom_intrinsics)"/>
 
   <include file="$(find object_keypoints_ros)/launch/keypoints.launch">
     <arg name="load_bag_filepath" value="false"/>
-    <arg name="calibration_file"  value="$(arg calibration_file)"/>
+    <arg name="calibration_file"  value=""/>    <!-- we use the camera info topic instead -->
     <arg name="image_topic"       value="$(arg image_topic)"/>
     <arg name="depth_topic"       value="$(arg depth_topic)"/>
     <arg name="calibration_topic" value="$(arg calibration_topic)"/>
@@ -32,7 +36,21 @@
     <arg name="gpu"               value="false"/>
     <arg name="operation_mode"    value="service"/>
   </include>
-  
+
+  <group if="$(arg sim)">
+      <include file="$(find realsense2_camera)/launch/rs_camera.launch">
+        <arg name="camera"                value="hand_eye"/>
+        <arg name="enable_depth"          value="true"/>
+        <arg name="enable_pointcloud"     value="false"/>
+        <arg name="enable_sync"           value="true"/>
+      </include>
+
+      <include file="$(find easy_handeye)/launch/publish.launch">
+        <arg name="calibration_file"  value="$(arg custom_extrinsics_file)"/>
+        <arg name="eye_on_hand"       value="true"/>
+      </include>
+  </group>
+
   <node pkg="rosbag" type="play" name="rosbag_play" args="-r 0.1 $(arg bag_file)" launch-prefix="bash -c 'sleep 3.0; $0 $@' " if="$(arg play_bag)"/>
   <node pkg="moma_sensor_tools" type="consolidate_tf_static.py" name="consolidate_tf" if="$(arg play_bag)"/>
 </launch>

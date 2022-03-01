@@ -13,7 +13,7 @@ cartesian_velocity_controller:
   max_duration_between_commands: 0.1  # velocity is set to 0 if no new command is received within this time
 
 joint_space_controller:
-  simulation: false
+  simulation: $(arg simulation)
   type: moma_controllers/JointSpaceController
   joint_names:
     - panda_joint1
@@ -39,7 +39,7 @@ joint_space_controller:
     panda_joint7: { p: 100.0, i: 0.0, d: 10.0, i_clamp_min: -0.1, i_clamp_max: 0.1 }
 
 joint_velocity_controller:
-  simulation: false
+  simulation: $(arg simulation)
   type: moma_controllers/JointVelocityController
   joint_names:
     - panda_joint1
@@ -59,7 +59,7 @@ joint_velocity_controller:
 
 mpc_controller:
   type: moma_controllers/PandaMpcController
-  simulation: false
+  simulation: $(arg simulation)
   arm_id: panda
 
   robot_name: "panda"

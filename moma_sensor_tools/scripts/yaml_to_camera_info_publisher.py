@@ -54,9 +54,9 @@ if __name__ == "__main__":
     # Get fname from command line (cmd line input required)
     import argparse
     arg_parser = argparse.ArgumentParser()
-    arg_parser.add_argument("filename", help="Path to yaml file containing " + \
+    arg_parser.add_argument("--filename", help="Path to yaml file containing " + \
                                              "camera calibration data")
-    arg_parser.add_argument("image_topic", help="ROS camera image topic")
+    arg_parser.add_argument("--image_topic", help="ROS camera image topic")
     args, unknown = arg_parser.parse_known_args()
     filename = args.filename
 
