@@ -249,5 +249,3 @@ if __name__ == "__main__":
     markers_pub = rospy.Publisher("valve_marker", MarkerArray, queue_size=1)
     while not rospy.is_shutdown():
         markers_pub.publish(markers)
-
-    

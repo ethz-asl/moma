@@ -173,9 +173,9 @@ class ValveModelPlanner:
 
 if __name__ == "__main__":
     rospy.init_node("valve_planner_test")
-    
+
     poses_pub = rospy.Publisher("/plan", PoseArray, queue_size=1)
-    
+
     valve_model = ValveModel(center=[0.5,0.5,0.5], depth=0.1)
     valve_planner = ValvePlanner(valve_model)
 
@@ -199,6 +199,5 @@ if __name__ == "__main__":
 
         poses_ros = valve_planner.poses_to_ros(grasps)
         poses_pub.publish(poses_ros)
-    
+
         rospy.sleep(0.02)
-    
