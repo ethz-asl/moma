@@ -7,7 +7,8 @@
   <arg name="use_fixed_realsense" default="false"/>
   <arg name="control_mode" default='Position'/>
   <arg name="tool" default="panda_hand"/>
-   
+  <arg name="world_name" default="$(find moma_gazebo)/worlds/planner_tutorial.world"/>
+
   <env name="GAZEBO_MODEL_PATH" value="$(optenv GAZEBO_MODEL_PATH):$(find moma_gazebo)/models:$(find piloting_demo)/models"/>
   
   <!-- send the robot XML to param server -->
@@ -27,7 +28,7 @@
     <arg name="paused"      value="true" />
     <arg name="gui"         value="$(arg gui)" />
     <arg name="debug"       value="false"/>
-    <arg name="world_name"  value="$(find piloting_demo)/worlds/schutz.world"/> <!-- value="$(find moma_gazebo)/worlds/planner_tutorial.world"/> -->
+    <arg name="world_name"  value="$(arg world_name)"/>
   </include>
 
   <!-- spawn robot in gazebo -->
@@ -43,7 +44,7 @@
       -J panda_joint6 1.571
       -J panda_joint7 0.785" />
 
-  <param name="valve_description" command="$(find xacro)/xacro --inorder $(find piloting_demo)/urdf/valve.urdf.xacro pitch:=0 yaw:=0.0"/>
+  <param name="valve_description" command="$(find xacro)/xacro --inorder $(find piloting_demo)/urdf/valve.urdf.xacro pitch:=0 yaw:=0.0 x:=0.5"/>
 
   <node name="spawn_valve" pkg="gazebo_ros" type="spawn_model" args="-param valve_description -urdf -model valve" output="screen"/> 
 

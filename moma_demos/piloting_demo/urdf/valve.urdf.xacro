@@ -51,6 +51,16 @@
         <geometry>
           <mesh filename="package://piloting_demo/models/valve/meshes/valve.dae" scale="1.0 1.0 1.0"/>
         </geometry>
+      <surface>
+        <friction>
+          <ode>
+            <mu>1</mu>
+            <mu2>1</mu2>
+            <slip1>0</slip1>
+            <slip2>0</slip2>
+          </ode>
+        </friction>
+      </surface>
     </collision>
     <visual>
       <origin xyz="0 0 0" rpy="3.14 0 0"/>
@@ -60,13 +70,22 @@
     </visual>
   </link>
 
-  <joint name="wheel_joint" type="continuous">
+  <link name="grasp_point" />
+
+  <joint name="wheel_joint" type="revolute">
     <origin xyz="0 0 0" rpy="0.0 0 0"/>
     <axis xyz="0 0 1" rpy="0 0 0"/>
     <parent link="valve_gt"/>
     <child link="wheel"/>
     <dynamics damping="10.0" friction="10.0"/>
     <limit effort="30" velocity="1.0" lower="-3.14" upper="3.14"/>
+  </joint>
+
+  <joint name="grasp_point_joint" type="fixed">
+    <origin xyz="0 0.1 0" rpy="0 0 -1.57"/>
+    <axis xyz="0 0 1" rpy="0 0 0"/>
+    <parent link="wheel"/>
+    <child link="grasp_point"/>
   </joint>
 
   <!-- Gazebo simulation -->

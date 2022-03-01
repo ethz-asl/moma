@@ -17,7 +17,7 @@
         <arg name="map_file_name"           value="$(arg map_file_name)"/>
         <arg name="parameter_filepath"      value="$(find piloting_demo)/config/localization/icp_params.yaml"/>
     </include>
-    
+
     <!-- Base planner can use a global map and locally replans for obstacle avoidance -->
     <include file="$(find smb_navigation)/launch/navigate2d_ompl.launch">
         <arg name="sim"                 value="$(arg sim)"/>
@@ -30,5 +30,5 @@
 
     <!-- Publish base odometry from tracking cam odometry measurements -->
     <node pkg="odometry_conversion" type="odometry_conversion_node" name="tracking_camera_odometry_conversion" output="screen"/>
-    
+
 </launch>

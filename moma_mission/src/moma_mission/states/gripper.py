@@ -124,7 +124,7 @@ class GripperControl(StateRos):
             success = True
 
         if success:
-            rospy.sleep(2.0)  # just for safety
+            rospy.sleep(1.0)  # just for safety
             return 'Completed'
         else:
             return 'Failure'
