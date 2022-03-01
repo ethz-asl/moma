@@ -2,8 +2,9 @@
 <launch>
     <arg name="sim"               default="false"/>
     <arg name="use_global_map"    default="true"/>
-    <arg name="global_map_file"   default="$(env HOME)/maps/jfloor/map.yaml"/>
-    <arg name="map_file_name"     default="$(env HOME)/maps/jfloor/jfloor.pcd"/>
+    <arg name="map_asset"         default="opfikon">
+    <arg name="global_map_file"   default="$(env HOME)/maps/$(arg map_asset)/map.yaml"/>
+    <arg name="map_file_name"     default="$(env HOME)/maps/$(arg map_asset)/map.pcd"/>
     <arg name="global_frame"      default="map"/>
     <arg name="robot_base_frame"  default="base_link"/>
     <arg name="odom_topic"        default="/base_odom"/>
