@@ -1,16 +1,15 @@
 import rospy
 import numpy as np
-from geometry_msgs.msg import PoseArray, Pose, PoseStamped
-from nav_msgs.msg import Path
+from geometry_msgs.msg import PoseArray, Pose
 
 from moma_mission.missions.piloting.frames import Frames
 from moma_mission.utils.rotation import CompatibleRotation as R
 from moma_mission.missions.piloting.valve_fitting import ValveModel
 
 
-class ValvePlanner:
+class ValveModelPlanner:
     """
-    Utilities class to generate graps and paths given a valve model
+    Generate graps and paths given a valve model
     """
 
     def __init__(self, valve_model=ValveModel()):
@@ -36,7 +35,7 @@ class ValvePlanner:
         return poses
 
     def _is_radial_grasp(self, grasp):
-        """ 
+        """
         Check if grasp is pointing to the center
         """
         radial = self.valve_model.wheel_center - grasp["position"]
@@ -134,10 +133,10 @@ class ValvePlanner:
         @param angle_max: maximum turning angle (sign determines turning direction)
         """
 
-        grasps = valve_planner._get_all_grasping_poses()
-        grasps = filter(valve_planner._is_radial_grasp, grasps)
-        grasps = list(filter(valve_planner._is_non_singular_grasp, grasps))
-        grasps_start = filter(valve_planner._is_non_obstructed_grasp, grasps)
+        grasps = self._get_all_grasping_poses()
+        grasps = filter(self._is_radial_grasp, grasps)
+        grasps = list(filter(self._is_non_singular_grasp, grasps))
+        grasps_start = filter(self._is_non_obstructed_grasp, grasps)
 
         all_paths = self._get_valid_paths(grasps_start, grasps, angle_max)
         valid_paths = [path for path in all_paths if path["angle"] >= abs(angle_max)]
@@ -155,9 +154,9 @@ class ValvePlanner:
         rospy.logdebug_throttle(1.0, "Path with highest score is chosen")
         return max(valid_paths, key=lambda path: path["score"])
 
-    def poses_to_ros(self, poses, frame=Frames.map_frame):
+    def poses_to_ros(self, poses):
         posesa = PoseArray()
-        posesa.header.frame_id = Frames.map_frame
+        posesa.header.frame_id = self.valve_model.frame
         posesa.header.stamp = rospy.get_rostime()
         for p in poses:
             pose = Pose()
@@ -171,20 +170,7 @@ class ValvePlanner:
             posesa.poses.append(pose)
         return posesa
 
-    def poses_to_ros_path(self, poses, frame=Frames.map_frame, speed=1.0):
-        path = Path()
-        path.header.frame_id = frame
-        poses = self.poses_to_ros(poses, frame).poses
-        t0 = rospy.get_rostime()
-        dt = 1 / (speed * len(poses))
-        for i, pose in enumerate(poses):
-            pose_stamped = PoseStamped()
-            pose_stamped.pose = pose
-            pose_stamped.header.frame_id = frame
-            pose_stamped.header.stamp = t0 + rospy.Duration.from_sec(i * dt)
 
-
-            
 if __name__ == "__main__":
     rospy.init_node("valve_planner_test")
     

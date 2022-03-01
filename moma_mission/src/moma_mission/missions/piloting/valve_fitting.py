@@ -241,7 +241,7 @@ class ValveFitter:
         else:
             raise NameError(f"Unknown method {method}")
         
-    def estimate_from_3d_points(self, points_3d):
+    def estimate_from_3d_points(self, points_3d, frame):
         C = points_3d[:, 0]
 
         # get normal from 3 keypoints
@@ -266,7 +266,7 @@ class ValveFitter:
         # get radius 
         r  = np.sum([np.linalg.norm(points_3d[:, i+1]- Cg) for i in range(k)]) / k
 
-        return ValveModel(center=C, radius=r, axis_1=v1, axis_2=v2, num_spokes=k, depth=delta)
+        return ValveModel(frame=frame, center=C, radius=r, axis_1=v1, axis_2=v2, num_spokes=k, depth=delta)
 
     def _non_linear_optimization(self):
         

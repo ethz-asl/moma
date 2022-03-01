@@ -3,13 +3,14 @@ import rospy
 import numpy as np
 from typing import List
 from scipy.spatial.transform import Rotation
-from geometry_msgs.msg import PoseStamped, TransformStamped, Pose
+from geometry_msgs.msg import PoseStamped, TransformStamped, Pose, PoseArray
 
 from nav_msgs.msg import Path
 from visualization_msgs.msg import Marker
 
 from moma_mission.utils.transforms import se3_to_pose_ros
 from moma_mission.utils.trajectory import get_timed_path_to_target
+from moma_mission.utils.robot import Robot
 from moma_mission.states.navigation import SingleNavGoalState
 from moma_mission.states.model_fit import ModelFitState
 
@@ -19,12 +20,15 @@ from moma_mission.utils.transforms import numpy_to_pose_stamped
 from moma_mission.missions.piloting.frames import Frames
 from moma_mission.missions.piloting.valve import Valve
 from moma_mission.missions.piloting.valve_fitting import ValveFitter, ValveModel
+from moma_mission.missions.piloting.valve_urdf_planner import ValveUrdfPlanner
+from moma_mission.missions.piloting.valve_model_planner import ValveModelPlanner
 from moma_mission.missions.piloting.grasping import GraspPlanner
 from moma_mission.missions.piloting.trajectory import ValveTrajectoryGenerator
 from moma_mission.missions.piloting.rcs_bridge import RCSBridge
 
 
 gRCS = RCSBridge()
+
 
 class SetUp(StateRos):
     def __init__(self, ns):
@@ -54,6 +58,7 @@ class SetUp(StateRos):
             return 'Failure'
         return 'Completed'
 
+
 class Idle(StateRos):
     """
     Parses the command from the gRCS and start the execution of the mission. 
@@ -74,6 +79,7 @@ class Idle(StateRos):
                 return 'Failure'
             rospy.sleep(1.0)
             rospy.loginfo_throttle(3.0, "In [IDLE] state... Waiting from gRCS commands.")
+
 
 class HomePose(StateRosControl):
     """
@@ -150,6 +156,7 @@ class WaypointNavigationState(SingleNavGoalState):
         gRCS.set_waypoint_done()
         return 'NextWaypoint'
 
+
 class NavigationState(SingleNavGoalState):
     """
     Depends on a service to provide a goal for the base
@@ -175,6 +182,7 @@ class NavigationState(SingleNavGoalState):
             return 'Failure'
 
         return 'Completed'
+
 
 class DetectionPosesVisitor(StateRosControl):
     """
@@ -213,7 +221,7 @@ class DetectionPosesVisitor(StateRosControl):
         return 'Completed'
 
 
-class ModelFitValve(ModelFitState):
+class ModelFitValveState(ModelFitState):
     """
     Call a detection service to fit a valve model
     """
@@ -250,7 +258,9 @@ class ModelFitValve(ModelFitState):
             points_3d[:, i] = np.array([kpt.position.x, kpt.position.y, kpt.position.z])
 
         valve: ValveModel
-        valve = self.valve_fitter.estimate_from_3d_points(points_3d)
+        valve = self.valve_fitter.estimate_from_3d_points(points_3d, frame)
+        self.set_context('valve_model', valve)
+
         marker = self._make_default_marker()
         marker.header.frame_id = frame
         marker.scale.x = 2 * valve.radius
@@ -260,7 +270,7 @@ class ModelFitValve(ModelFitState):
         rot = np.zeros((3, 3))
         rot[:, 0] = valve.axis_1
         rot[:, 1] = valve.axis_2
-        rot[:, 2] = valve.n
+        rot[:, 2] = valve.normal
         q = Rotation.from_matrix(rot).as_quat()
 
         center = valve.wheel_center
@@ -280,18 +290,55 @@ class ModelFitValve(ModelFitState):
         return object_pose
 
 
-class GraspState(StateRosControl):
+class ValveManipulationUrdfState(StateRos):
     def __init__(self, ns):
-        StateRosControl.__init__(self, ns=ns)
-        path_topic_name = self.get_scoped_param("path_topic_name")
-        self.path_publisher = rospy.Publisher(path_topic_name, Path, queue_size=1)
-        self.offset = self.get_scoped_param("offset")
+        StateRos.__init__(self, ns=ns)
+
+        self.turning_angle = np.deg2rad(
+            self.get_scoped_param("turning_angle_deg", 45.0))
+
+        valve_description_name = self.get_scoped_param(
+            "valve_description_name", "valve_description")
+
+        poses_topic = self.get_scoped_param("poses_topic", "/valve_poses")
+        self.poses_publisher = rospy.Publisher(poses_topic, PoseArray, queue_size=1, latch=True)
+
+        self.valve_urdf_planner = ValveUrdfPlanner(robot=Robot(valve_description_name),
+                                                   world_frame=self.get_scoped_param("world_frame", "world"),
+                                                   grasp_frame=self.get_scoped_param("grasp_frame", "grasp_point"),
+                                                   grasp_orientation=self.get_scoped_param("grasp_orientation",
+                                                                                           [0.0, 180.0, -90.0]))
+
+    def run(self):
+        poses = self.generate_valve_turning_poses(self.turning_angle)
+        self.poses_publisher.publish(poses)
+
+        return 'Completed'
+
+
+class ValveManipulationModelState(StateRos):
+    def __init__(self, ns):
+        StateRos.__init__(self, ns=ns)
+
+        self.turning_angle = np.deg2rad(
+            self.get_scoped_param("turning_angle_deg", 45.0))
+
+        poses_topic = self.get_scoped_param("poses_topic", "/valve_poses")
+        self.poses_publisher = rospy.Publisher(poses_topic, PoseArray, queue_size=1, latch=True)
 
     def run(self):
         valve_model = self.global_context.ctx.valve_model
-        self.trajectory_generator.set_model(valve_model)
+        valve_planner = ValveModelPlanner(valve_model)
+        path = valve_planner.get_path(angle_max=self.turning_angle)
+        if path is None:
+            rospy.logerr("Could not obtain a valid valve manipulation path")
+            return 'Failure'
 
-        
+        self.poses_publisher.publish(valve_planner.poses_to_ros(path['poses']))
+
+        return 'Completed'
+
+
 class LateralGraspState(StateRosControl):
     """
     Switch and send target pose to the controller

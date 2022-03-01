@@ -75,7 +75,7 @@ WAYPOINT_FOLLOWING:
   tolerance_deg: 50
 
 DETECTION_DECISION:
-  default_outcome: Failure
+  default_outcome: Completed
 
 OBSERVATION_POSE:
   default_outcome: None
@@ -105,7 +105,13 @@ MODEL_FIT_VALVE:
   dummy_position: [0.8, 0.0, 0.5]
   dummy_orientation: [0.0, 0.707, 0.0, 0.707]
 
-MODEL_URDF_VALVE:
+PLAN_MODEL_VALVE:
+  default_outcome: None
+
+  poses_topic: /valve_poses
+  turning_angle_deg: 120.0
+
+PLAN_URDF_VALVE:
   default_outcome: None
 
   poses_topic: /valve_poses

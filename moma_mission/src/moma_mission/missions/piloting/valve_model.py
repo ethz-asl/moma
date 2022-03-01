@@ -17,8 +17,9 @@ class ValveModel:
     - spoke: The inner connection between torus and center
     """
 
-    def __init__(self, center=np.array([0.0, 0.0, 0.0]), radius=0.12, spoke_radius=0.01, axis_1=np.array([1.0, 0.0, 0.0]), axis_2=np.array([0.0, 1.0, 0.0]), num_spokes=3, depth=0.0):
+    def __init__(self, frame=Frames.map_frame, center=np.array([0.0, 0.0, 0.0]), radius=0.12, spoke_radius=0.01, axis_1=np.array([1.0, 0.0, 0.0]), axis_2=np.array([0.0, 1.0, 0.0]), num_spokes=3, depth=0.0):
         """
+        @param frame: frame in which valve is defined
         @param center: valve center point
         @param radius: valve radius
         @param spoke_radius: spoke radius
@@ -30,6 +31,7 @@ class ValveModel:
 
         # Keeping internal representation separate from interface
         # to be able to exchange internals without breaking interface
+        self.__frame = frame
         self.__c = center
         self.__r = radius
         self.__s = spoke_radius
@@ -64,6 +66,13 @@ class ValveModel:
         self.__v2 = r @ self.__v2
 
         self.publish_markers()
+
+    @property
+    def frame(self):
+        """
+        Valve frame
+        """
+        return self.__frame
 
     @property
     def center(self):
@@ -158,10 +167,10 @@ class ValveModel:
         """
         return -np.sin(angle) * self.__v1 + np.cos(angle) * self.__v2
 
-    def get_markers(self, frame=Frames.map_frame):
+    def get_markers(self):
         markers = MarkerArray()
         wheel_marker = Marker()
-        wheel_marker.header.frame_id = frame
+        wheel_marker.header.frame_id = self.__frame
         wheel_marker.id = 0
         wheel_marker.action = Marker.ADD
         wheel_marker.type = Marker.CYLINDER
@@ -189,7 +198,7 @@ class ValveModel:
             angle = 2 * i * np.pi / self.__k
             spoke_position = self.get_point_on_wheel(angle)
             spoke_marker = Marker()
-            spoke_marker.header.frame_id = frame
+            spoke_marker.header.frame_id = self.__frame
             spoke_marker.id = i + 1
             spoke_marker.action = Marker.ADD
             spoke_marker.type = Marker.CYLINDER
