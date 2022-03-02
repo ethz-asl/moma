@@ -59,7 +59,7 @@ class ValveModelPlanner:
         :param safety_distance: Minimum distance to spokes
         """
         if safety_distance < 0:
-            safety_distance = self.valve_model.spoke_radius
+            safety_distance = 4 * self.valve_model.spoke_radius
 
         pos = self.valve_model.spokes_positions
         rad = self.valve_model.spoke_radius
