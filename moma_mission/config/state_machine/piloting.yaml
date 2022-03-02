@@ -13,7 +13,7 @@ OPEN_GRIPPER:
   gripper_action_name: /panda/franka_gripper/gripper_action
   position: 0.03
   max_effort: 20
-  tolerance: 0.001
+  tolerance: 0.1
   timeout: 5.0
 
 CLOSE_GRIPPER:
@@ -21,7 +21,7 @@ CLOSE_GRIPPER:
   gripper_action_name: /panda/franka_gripper/gripper_action
   position: 0.0
   max_effort: 20
-  tolerance: 0.001
+  tolerance: 0.1
   timeout: 5.0
 
 HOME_ROBOT:
