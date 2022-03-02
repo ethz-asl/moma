@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="sim" default="false"/>
+
+  <param name="valve_description" command="$(find xacro)/xacro --inorder $(find piloting_demo)/urdf/valve.urdf.xacro pitch:=0 yaw:=0.0 x:=0.66 y:=0.017 z:=0.426"/>
+
+  <node name="spawn_valve" pkg="gazebo_ros" type="spawn_model" args="-param valve_description -urdf -model valve" output="screen"/>
+
+  <node name="valve_robot_state_publisher"  type="robot_state_publisher"  pkg="robot_state_publisher">
+    <remap from="robot_description" to="valve_description"/>
+    <remap from="/joint_states"     to="/valve/joint_states"/>
+  </node>
+
+  <node name="valve_joint_state_publisher"  type="joint_state_publisher"  pkg="joint_state_publisher" unless="$(arg sim)">
+    <remap from="robot_description" to="valve_description"/>
+    <remap from="/joint_states"     to="/valve/joint_states"/>
+  </node>
+</launch>

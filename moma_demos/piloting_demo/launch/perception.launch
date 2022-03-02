@@ -7,8 +7,9 @@
   <arg name="camera_frame"              default="hand_eye_color_optical_frame"/>
   <arg name="image_topic"               default="/hand_eye/color/image_raw"/>
   <arg name="depth_topic"               default="/hand_eye/depth/image_rect_raw"/>
+  <arg name="factory_calibration_topic" default="/hand_eye/color/camera_info"/>
   <arg name="calibration_topic"         default="/camera_info"/>
-  <arg name="custom_intrinsics"         default="false"/>
+  <arg name="custom_intrinsics"         default="true"/>
   <arg name="custom_intrinsics_file"    default="$(env HOME)/calibration/camera_calibration.yaml" />
   <arg name="custom_extrinsics_file"    default="$(env HOME)/calibration/handeye_calibration.yaml" />
   <arg name="rviz"                      default="false"/>
@@ -17,7 +18,7 @@
   <node name="camera_intrinsics_publisher"
         pkg="moma_sensor_tools"
         type="yaml_to_camera_info_publisher.py"
-        args="--filename $(arg custom_intrinsics_file) --image_topic $(arg calibration_topic)"
+        args="--filename $(arg custom_intrinsics_file) --info_topic $(arg factory_calibration_topic)"
         output="screen" if="$(arg custom_intrinsics)"/>
 
   <include file="$(find object_keypoints_ros)/launch/keypoints.launch">
@@ -37,7 +38,7 @@
     <arg name="operation_mode"    value="service"/>
   </include>
 
-  <group if="$(arg sim)">
+  <group unless="$(arg sim)">
       <include file="$(find realsense2_camera)/launch/rs_camera.launch">
         <arg name="camera"                value="hand_eye"/>
         <arg name="enable_depth"          value="true"/>

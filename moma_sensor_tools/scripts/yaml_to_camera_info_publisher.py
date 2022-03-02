@@ -56,7 +56,7 @@ if __name__ == "__main__":
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument("--filename", help="Path to yaml file containing " + \
                                              "camera calibration data")
-    arg_parser.add_argument("--image_topic", help="ROS camera image topic")
+    arg_parser.add_argument("--info_topic", help="ROS camera info topic")
     args, unknown = arg_parser.parse_known_args()
     filename = args.filename
 
@@ -69,6 +69,6 @@ if __name__ == "__main__":
     # Initialize publisher node
     rospy.init_node("camera_info_publisher", anonymous=True)
     publisher = rospy.Publisher("camera_info", CameraInfo, queue_size=1)
-    subscriber = rospy.Subscriber(args.image_topic, CameraInfo, lambda msg: callback(msg, camera_info_msg, publisher), queue_size=1)
+    subscriber = rospy.Subscriber(args.info_topic, CameraInfo, lambda msg: callback(msg, camera_info_msg, publisher), queue_size=1)
 
     rospy.spin()
