@@ -241,7 +241,7 @@ class ValveFitter:
         else:
             raise NameError(f"Unknown method {method}")
         
-    def estimate_from_3d_points(self, points_3d, frame):
+    def estimate_from_3d_points(self, points_3d, frame, handle_radius=0.01):
         C = points_3d[:, 0]
 
         # get normal from 3 keypoints
@@ -253,7 +253,7 @@ class ValveFitter:
         
         # get geometric center as the mean
         k = points_3d.shape[1] - 1
-        Cg = np.sum(points_3d[:, 1:], axis=1) / k
+        Cg = np.mean(points_3d[:, 1:], axis=1)
 
         # get v1 and v2 from Cg and P1, v2 from n and v1
         v1 = P1 - Cg
@@ -261,10 +261,12 @@ class ValveFitter:
         v2 = np.cross(n, v1)
 
         # get delta as the distance along n between Cg and C
-        delta = np.sum(n * (Cg - C)) # dot product
+        delta = np.sum(n * (Cg - C))  # dot product
 
         # get radius 
-        r  = np.sum([np.linalg.norm(points_3d[:, i+1]- Cg) for i in range(k)]) / k
+        r = np.mean([np.linalg.norm(points_3d[:, i+1] - Cg) for i in range(k)]) + handle_radius
+
+        # TODO validity check if n * (Cg - C) is roughly equal to (Cg - C)
 
         return ValveModel(frame=frame, center=C, radius=r, axis_1=v1, axis_2=v2, num_spokes=k, depth=delta)
 
