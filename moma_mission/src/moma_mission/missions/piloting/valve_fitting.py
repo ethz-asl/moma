@@ -1,3 +1,4 @@
+import rospy
 from copy import deepcopy
 import numpy as np
 
@@ -241,7 +242,7 @@ class ValveFitter:
         else:
             raise NameError(f"Unknown method {method}")
         
-    def estimate_from_3d_points(self, points_3d, frame, handle_radius=0.01):
+    def estimate_from_3d_points(self, points_3d, frame, handle_radius=0.0, error_threshold=0.003):
         C = points_3d[:, 0]
 
         # get normal from 3 keypoints
@@ -263,12 +264,21 @@ class ValveFitter:
         # get delta as the distance along n between Cg and C
         delta = np.sum(n * (Cg - C))  # dot product
 
-        # get radius 
-        r = np.mean([np.linalg.norm(points_3d[:, i+1] - Cg) for i in range(k)]) + handle_radius
+        # get radius
+        radii = [np.linalg.norm(points_3d[:, i+1] - Cg) for i in range(k)]
+        r = np.mean(radii)
+        r_with_handle = r + handle_radius
 
         # TODO validity check if n * (Cg - C) is roughly equal to (Cg - C)
+        
+        residual_error = max([abs(r - radius) for radius in radii])
+        rospy.loginfo(f"Valve fitting residual error is {residual_error}")
 
-        return ValveModel(frame=frame, center=C, radius=r, axis_1=v1, axis_2=v2, num_spokes=k, depth=delta)
+        if residual_error <= error_threshold:
+            return ValveModel(frame=frame, center=C, radius=r_with_handle, axis_1=v1, axis_2=v2, num_spokes=k, depth=delta)
+        else:
+            rospy.logerr("Could not fit the 3d points to a circular valve wheel")
+            return None
 
     def _non_linear_optimization(self):
         
