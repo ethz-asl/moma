@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="panda">
   <xacro:arg name="use_fixed_realsense" default="false"/>
+  <xacro:arg name="use_nominal_extrinsics" default="false"/>
   <xacro:include filename="$(find moma_description)/urdf/panda.xacro"/>
-  <xacro:moma_panda use_fixed_realsense="$(arg use_fixed_realsense)"/>
+  <xacro:moma_panda use_fixed_realsense="$(arg use_fixed_realsense)" use_nominal_extrinsics="$(arg use_nominal_extrinsics)"/>
 </robot>

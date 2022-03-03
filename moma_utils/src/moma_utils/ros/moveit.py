@@ -31,6 +31,8 @@ class MoveItClient:
             raise ValueError
 
         plan = self.move_group.plan()
+        if type(plan) is tuple:
+            plan = plan[1]
 
         return plan
 
