@@ -16,7 +16,7 @@
   </include>
 
   <!-- Start required controller -->
-  <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="effort_joint_trajectory_controller"/>
+  <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="position_joint_trajectory_controller"/>
 
   <!-- Fix panda to world -->
   <node if="$(arg publish_world_link)" pkg="tf" type="static_transform_publisher" name="world_link_broadcaster" args="0 0 0 0 0 0 1 world panda_link0 100"/>
