@@ -70,7 +70,7 @@ try:
         state_machine.add('MODEL_FIT_VALVE',
                           ModelFitValveState,
                           transitions={'Completed': 'PLAN_MODEL_VALVE',
-                                       'Failure': 'OBSERVATION_POSE',
+                                       'Failure': 'Failure',
                                        'NextDetection': 'OBSERVATION_POSE'})
 
         state_machine.add('PLAN_MODEL_VALVE',
