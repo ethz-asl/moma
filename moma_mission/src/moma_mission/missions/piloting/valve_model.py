@@ -1,3 +1,4 @@
+from turtle import shape
 import numpy as np
 import rospy
 from visualization_msgs.msg import Marker, MarkerArray
@@ -139,11 +140,11 @@ class ValveModel:
         return [2 * np.pi * k / self.__k for k in range(self.__k)]
 
     @property
-    def spokes_positions(self):
+    def spokes_positions(self) -> np.ndarray:
         """
         Positions of all spokes
         """
-        return [self.get_point_on_wheel(angle) for angle in self.spokes_angles]
+        return np.array([self.get_point_on_wheel(angle) for angle in self.spokes_angles])
 
     @property
     def keypoints(self):
@@ -152,7 +153,7 @@ class ValveModel:
         """
         keypoints = np.zeros((3, self.__k + 1)) # k keypoints and the center
         keypoints[:, 0] = self.__c
-        keypoints[:, 1:] = self.spokes_positions
+        keypoints[:, 1:] = self.spokes_positions.T
         return keypoints
 
     def get_point_on_wheel(self, angle):
@@ -161,6 +162,12 @@ class ValveModel:
         """
         return self.__c + self.__r * (np.cos(angle) * self.__v1 + np.sin(angle) * self.__v2) + self.__d * self.normal
 
+    def get_points_on_wheel(self, n=100):
+        points = np.zeros((3, n))
+        for i in range(n):
+            points[:, i] = self.get_point_on_wheel(2 * i * np.pi / n)
+        return points
+    
     def get_tangent_on_wheel(self, angle):
         """
         Get the tangent on the wheel at a given angle
