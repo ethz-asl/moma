@@ -351,6 +351,7 @@ class ModelFitValveState(StateRos):
             keypoints3d[i, 1] = kpt3d.position.y
             keypoints3d[i, 2] = kpt3d.position.z
         self.ransac_matcher.add_observation(camera, keypoints2d, keypoints3d)
+        return True
 
     def run(self):
         object_pose = TransformStamped()
@@ -367,9 +368,13 @@ class ModelFitValveState(StateRos):
             object_pose.transform.rotation.z = self.dummy_orientation[2]
             object_pose.transform.rotation.w = self.dummy_orientation[3]
         else:
+
             if self._request_keypoints():
                 self.successful_detections += 1
-            
+            else:
+                rospy.logwarn("Failed to detect keypoints in the image")
+                rospy.logwarn(f"Current number of successful detections:  {self.successful_detections}")
+
             if self.successful_detections < self.min_successful_detections:
                 return 'NextDetection'
             

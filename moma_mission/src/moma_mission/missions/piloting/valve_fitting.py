@@ -142,11 +142,13 @@ class Camera:
         self.M = self.K @ self.T[:3, :]
 
     def set_extrinsics_from_pose(self, msg: Pose):
-        r = R.from_quat([msg.orientation.x, msg.orientation.y, msg.orientation.z, msg.orientation.w]).as_matrix()
+        r = R.from_quat([msg.orientation.x, msg.orientation.y,
+                        msg.orientation.z, msg.orientation.w]).as_matrix()
         t = np.array([msg.position.x, msg.position.y, msg.position.z])
         self.T[:3, :3] = r
         self.T[:3, 3] = t
         self.M = self.K @ self.T[:3, :]
+
 
 class ValveFitter:
     def __init__(self, k) -> None:
@@ -397,6 +399,7 @@ class FeatureMatcher:
         lines = self._compute_epilines(camera1, camera2, points1, points2)
         points1 = points1.reshape((-1, 2))
         points2 = points2.reshape((-1, 2))
+        print("Matching\n{points1}\n with points {points2}")
         N = points1.shape[0]
         assert N == len(lines) and "Need as many epipolar lines as keypoints"
 
@@ -469,6 +472,10 @@ class RansacMatcher:
         self.observations3d = []
 
     def add_observation(self, camera: Camera, observation: np.ndarray, observation3d: np.array):
+        print("Adding new observation")
+        print(f"2d observation:\n{observation}s")
+        print(f"3d observation:\n{observation3d}")
+
         self.cameras.append(camera)
         self.observations.append(observation)
         self.observations3d.append(observation3d)
@@ -476,8 +483,9 @@ class RansacMatcher:
     def filter(self):
         """ Return the filtered and matched 2d and 3d features """
         if len(self.observations) < self.min_consensus:
-            raise NameError("Cannot filter with less observations than minimum required consensus")
-        
+            raise NameError(
+                "Cannot filter with less observations than minimum required consensus")
+
         success = True
         max_matches = -1
         max_reference = 0
@@ -490,7 +498,8 @@ class RansacMatcher:
             matched_observations3d = deepcopy(self.observations3d)
             for j, (cam, obs, obs3d) in enumerate(zip(self.cameras, self.observations, self.observations3d)):
                 if j != i:
-                    matches = self.feature_matcher.match(cam_ref, cam, obs_ref, obs)
+                    matches = self.feature_matcher.match(
+                        cam_ref, cam, obs_ref, obs)
                     if np.all(matches >= 0):
                         matched_observations[j] = obs[matches, :]
                         matched_observations3d[j] = obs3d[matches, :]
@@ -504,10 +513,11 @@ class RansacMatcher:
                 max_matches = matched_total
                 best_matched_observations = matched_observations
                 best_matched_observations3d = matched_observations3d
-        max_matches += 1 # count also the reference view
+        max_matches += 1  # count also the reference view
         if max_matches < self.min_consensus:
             success = False
-        print(f"Max #matches: {max_matches}, with ref#{max_reference} (min consensus={self.min_consensus})")
+        print(
+            f"Max #matches: {max_matches}, with ref#{max_reference} (min consensus={self.min_consensus})")
         return success, best_matched_observations, best_matched_observations3d
 
 
@@ -589,7 +599,7 @@ if __name__ == "__main__":
     camera4.transform(dz=0.02, dx=-0.1, pitch_deg=10)
     camera5 = deepcopy(camera1)
     camera5.transform(dz=0.03, dx=-0.2, pitch_deg=20)
-    
+
     # camera2.transform(dz=0.4, dx=0.8, pitch_deg=-40)
     # camera3 = deepcopy(camera1)
     # camera3.transform(dx=0.4, pitch_deg=-40)
@@ -620,7 +630,7 @@ if __name__ == "__main__":
         proj_keypoints = add_noise(proj_keypoints, low=0, high=10)
         observations.append(proj_keypoints)
     observations[0][0] = 300.0  # create an artificial outlier
-    
+
     # Use epipolar line to find correspondences and first camera as reference
     # Do a sort of outlier rejection through RANSAC
     # Take each camera view as reference to find matches. The camera with the
