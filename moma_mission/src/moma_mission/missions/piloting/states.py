@@ -259,6 +259,8 @@ class ModelFitValveState(ModelFitState):
 
         valve: ValveModel
         valve = self.valve_fitter.estimate_from_3d_points(points_3d, frame)
+        if valve is None:
+            return None
         self.set_context('valve_model', valve)
 
         marker = self._make_default_marker()

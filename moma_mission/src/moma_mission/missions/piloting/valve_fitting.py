@@ -269,7 +269,7 @@ class ValveFitter:
         else:
             raise NameError(f"Unknown method {method}")
 
-    def estimate_from_3d_points(self, points_3d, frame, handle_radius=0.01):
+    def estimate_from_3d_points(self, points_3d, frame, handle_radius=0.0, error_threshold=0.003):
         C = points_3d[:, 0]
 
         # get normal from 3 keypoints
@@ -292,12 +292,21 @@ class ValveFitter:
         delta = np.sum(n * (Cg - C))  # dot product
 
         # get radius
-        r = np.mean([np.linalg.norm(points_3d[:, i+1] - Cg)
-                    for i in range(k)]) + handle_radius
+        radii = [np.linalg.norm(points_3d[:, i+1] - Cg) for i in range(k)]
+        r = np.mean(radii)
+        r_with_handle = r + handle_radius
 
         # TODO validity check if n * (Cg - C) is roughly equal to (Cg - C)
 
-        return ValveModel(frame=frame, center=C, radius=r, axis_1=v1, axis_2=v2, num_spokes=k, depth=delta)
+        residual_error = max([abs(r - radius) for radius in radii])
+        rospy.loginfo(f"Valve fitting residual error is {residual_error}")
+
+        if residual_error <= error_threshold:
+            return ValveModel(frame=frame, center=C, radius=r_with_handle, axis_1=v1, axis_2=v2, num_spokes=k, depth=delta)
+        else:
+            rospy.logerr(
+                "Could not fit the 3d points to a circular valve wheel")
+            return None
 
     def _non_linear_optimization(self):
 
@@ -387,15 +396,10 @@ class FeatureMatcher:
             distances.append([point_line_distance(points2[i, :], l)
                              for i in range(N)])
 
-        print("distances are:")
-        print(distances)
-
         # find first and second best matches for each line
         matches = -np.ones(N)
         for i, d in enumerate(distances):
             d_np = np.asarray(d)
-            print("min distances")
-            print(d_np)
             idx_min = d_np.argmin()
             min1 = np.min(d_np[idx_min])
 
@@ -408,8 +412,10 @@ class FeatureMatcher:
 
                 # point in image 2 at point2_idx matches point in image 1 at point1_idx
                 matches[point1_idx] = point2_idx
-        print("matches are:")
-        print(matches)
+
+        if len(np.unique(matches[matches > -1])) != len(matches):
+            # print("There is an ambiguity in the found mathces.")
+            matches = -np.ones(N)
         return matches.astype(int)
 
     def draw_epilines(self, camera1, camera2, points1, points2):
@@ -442,6 +448,58 @@ class FeatureMatcher:
         ax[1].set_title("camera 2")
         ax[0].legend()
         ax[1].legend()
+
+
+class RansacMatcher:
+    def __init__(self, acceptance_ratio=0.6, min_consensus=2):
+        self.feature_matcher = FeatureMatcher(
+            acceptance_ratio=acceptance_ratio)
+        self.min_consensus = min_consensus
+        self.cameras = []
+        self.observations = []
+        self.observations3d = []
+
+    def add_observation(self, camera: Camera, observation: np.ndarray, observation3d: np.array):
+        self.cameras.append(camera)
+        self.observations.append(observation)
+        self.observations3d.append(observation3d)
+
+    def filter(self):
+        """ Return the filtered and matched 2d and 3d features """
+        if len(self.observations) < self.min_consensus:
+            raise NameError("Cannot filter with less observations than minimum required consensus")
+        
+        success = True
+        max_matches = -1
+        max_reference = 0
+        best_matched_observations = None
+        best_matched_observations3d = None
+
+        for i, (cam_ref, obs_ref) in enumerate(zip(self.cameras, self.observations)):
+            matched_total = 0
+            matched_observations = deepcopy(self.observations)
+            matched_observations3d = deepcopy(self.observations3d)
+            for j, (cam, obs, obs3d) in enumerate(zip(self.cameras, self.observations, self.observations3d)):
+                if j != i:
+                    matches = self.feature_matcher.match(cam_ref, cam, obs_ref, obs)
+                    if np.all(matches >= 0):
+                        matched_observations[j] = obs[matches, :]
+                        matched_observations3d[j] = obs3d[matches, :]
+                        matched_total += 1
+                    else:
+                        matched_observations[j] = None
+                        matched_observations3d[j] = None
+
+            if matched_total > max_matches:
+                max_reference = i
+                max_matches = matched_total
+                best_matched_observations = matched_observations
+                best_matched_observations3d = matched_observations3d
+        max_matches += 1 # count also the reference view
+        if max_matches < self.min_consensus:
+            success = False
+        print(f"Max #matches: {max_matches}, with ref#{max_reference} (min consensus={self.min_consensus})")
+        return success, best_matched_observations, best_matched_observations3d
 
 
 class ValveVisualizer:
@@ -489,11 +547,11 @@ class ValveVisualizer:
                 self.ax_cam.set_ylim([0, camera.resolution[1]])
                 self.ax_cam.set_aspect('equal')
 
-        markers = ['x', 'o', '+', 's', '<', '>', '*']
-        for label, points in self.points2d.items():
-            for i, p in enumerate(points):
-                self.ax_cam.scatter(p[0], p[1],
-                                    marker=markers[i], color='r')
+                markers = ['x', 'o', '+', 's', '<', '>', '*']
+                if label in self.points2d.keys():
+                    for i, p in enumerate(self.points2d[label]):
+                        self.ax_cam.scatter(p[0], p[1],
+                                            marker=markers[i], color=sc.get_facecolor())
 
         self.ax_cam.grid(True)
         self.ax_cam.legend()
@@ -515,15 +573,23 @@ if __name__ == "__main__":
     # Look at the valve from different points of view
     camera1 = Camera(camera_intrinsics, camera_distortion, camera_resolution)
     camera2 = deepcopy(camera1)
-    camera2.transform(dz=0.4, dx=0.8, pitch_deg=-40)
+    camera2.transform(dz=0.02, dx=0.1, pitch_deg=-10)
     camera3 = deepcopy(camera1)
-    camera3.transform(dx=0.4, pitch_deg=-40)
+    camera3.transform(dz=0.03, dx=0.2, pitch_deg=-20)
+    camera4 = deepcopy(camera1)
+    camera4.transform(dz=0.02, dx=-0.1, pitch_deg=10)
+    camera5 = deepcopy(camera1)
+    camera5.transform(dz=0.03, dx=-0.2, pitch_deg=20)
+    
+    # camera2.transform(dz=0.4, dx=0.8, pitch_deg=-40)
+    # camera3 = deepcopy(camera1)
+    # camera3.transform(dx=0.4, pitch_deg=-40)
     # camera4 = deepcopy(camera1)
     # camera4.transform(dx=0.5, pitch_deg=-50)
     # camera5 = deepcopy(camera1)
     # camera5.transform(dx=-0.4, pitch_deg=40)
-    cameras = [camera1, camera2, camera3]  # , camera4, camera5]
-    cameras_labels = ["cam1", "cam2", "cam3"]  # , "cam4", "cam5"]
+    cameras = [camera1, camera2, camera3, camera4, camera5]
+    cameras_labels = ["cam1", "cam2", "cam3", "cam4", "cam5"]
 
     # Generate the ground truth valve model
     valve = ValveModel(radius=0.1, num_spokes=3, depth=-0.02)
@@ -544,57 +610,27 @@ if __name__ == "__main__":
         proj_keypoints = camera.project(shuffled_keypoints)
         proj_keypoints = add_noise(proj_keypoints, low=0, high=10)
         observations.append(proj_keypoints)
-
-    observations[0][0] = 300.0
-    print(observations[0])
-    print("\n\n")
-
+    observations[0][0] = 300.0  # create an artificial outlier
+    
     # Use epipolar line to find correspondences and first camera as reference
     # Do a sort of outlier rejection through RANSAC
     # Take each camera view as reference to find matches. The camera with the
     # largest amount of matches is the one to go with
 
-    matcher = FeatureMatcher(acceptance_ratio=0.5)
+    rmatcher = RansacMatcher(acceptance_ratio=0.5)
+    obs3d = np.random.rand(4, 3)
+    for cam, obs in zip(cameras, observations):
+        rmatcher.add_observation(cam, obs, obs3d)
+    success, mathced_2d, matched_3d = rmatcher.filter()
 
-    max_matches = 0
-    max_reference = 0
-    best_matched_observations = None
-
-    for i, (camera_ref, observation_ref) in enumerate(zip(cameras, observations)):
-        matched_total = 0
-        matched_observations = deepcopy(observations)
-        for j, (camera, observation) in enumerate(zip(cameras, observations)):
-            if j != i:
-                matches = matcher.match(
-                    camera_ref, camera, observation_ref, observation)
-                if np.all(matches >= 0):
-                    matched_observations[j] = observation[matches, :]
-                    matched_total += 1
-                else:
-                    matched_observations[j] = None
-
-        if matched_total > max_matches:
-            max_reference = i
-            max_matches = matched_total
-            best_matched_observations = matched_observations
-    print(
-        f"Maximum amount of matches: {max_matches} with reference observation {max_reference}")
     # Draw observations
     visualizer = ValveVisualizer()
-    for camera, camera_label, matched_obs in zip(cameras, cameras_labels, best_matched_observations):
+    for camera, camera_label, matched_obs in zip(cameras, cameras_labels, mathced_2d):
         visualizer.add_camera(camera_label, camera)
         visualizer.add_estimation(camera_label, valve)
         if matched_obs is not None:
             visualizer.add_points(camera_label, matched_obs)
     visualizer.draw()
-
-    # visualizer.add_points(p1.T, "backprojection 1")
-    # visualizer.add_points(p2.T, "backprojection 2")
-
-    # get simulated observations
-    # proj_keypoints1 = camera1.project(valve.keypoints)
-    # proj_keypoints2 = camera2.project(valve.keypoints)
-    # proj_keypoints3 = camera3.project(valve.keypoints)
 
     # # define a problem, add observations and
     # problem = ValveFitter(k=k)
@@ -617,56 +653,4 @@ if __name__ == "__main__":
     # # try triangulation
     # points_triangulated = problem.triangulate()
 
-    # create visualizer to see points and projections
-    #visualizer.add_item(camera1, valve_trn, "trn camera1")
-    #visualizer.add_item(camera, valve_opt, "fit in camera")
-
-    #visualizer.add_item(camera2, valve_opt, "fit opt in camera2")
-
-    #visualizer.add_item(camera, valve_pnp, "fit pnp in camera")
-    # visualizer.add_points(points_triangulated, "triangulation")
-
-    # p1 = camera1.project(points_triangulated)
-    # p2 = camera2.project(points_triangulated)
-
-    # visualizer.add_points(p1.T, "backprojection 1")
-    # visualizer.add_points(p2.T, "backprojection 2")
-
-    # # by hand backprojection
-    # # p1_hom_test = camera.M @ to_homogeneous(valve.keypoints)
-    # # p2_hom_test = camera2.M @ to_homogeneous(valve.keypoints)
-
-    # # p1_test = p1_hom_test[:2] / p1_hom_test[2]
-    # # p2_test = p2_hom_test[:2] / p2_hom_test[2]
-
-    # # visualizer.add_points(p1_test, "backprop test 1")
-    # # visualizer.add_points(p2_test, "backprop test 2")
-
-    # #visualizer.add_item(camera3, valve, "gt camera 3")
-    # #visualizer.add_item(camera3, valve_opt, "fit in camera3")
-
-    # visualizer.draw()
-
-    # matcher = FeatureMatcher()
-    # matcher.draw_epilines(camera1, camera2, proj_keypoints1_n, proj_keypoints2_n)
-
-    # print("proj keypoints before swap")
-    # print(proj_keypoints2)
-
-    # # swap keypoints to test matching strategy
-    # proj_keypoints2_n[[0, 1, 2, 3], :] = proj_keypoints2_n[[3, 0, 2, 1], :]
-
-    # # point 1 is the closest to line 0 == point0 in first image
-    # print("proj keypoints after swap")
-    # print(proj_keypoints2)
-
-    # matches = matcher.match(camera1, camera2, proj_keypoints1_n, proj_keypoints2_n)
-
-    # # reshuffle keypoints to match
-    # # map 0, 1, 2, 3 to their location in the original image
-    # proj_keypoints2_n[matches.astype(int), :] = proj_keypoints2_n[[0, 1, 2, 3], :]
-    # print("matches are")
-    # print(matches)
-    # print("proj keypoints after match")
-    # print(proj_keypoints2)
     plt.show()
