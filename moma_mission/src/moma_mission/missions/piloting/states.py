@@ -341,9 +341,9 @@ class ModelFitValveState(StateRos):
         self.frame = res.header.frame_id
         camera = Camera()
         camera.set_intrinsics_from_camera_info(res.camera_info)
-        camera.set_extrinsics_from_pose(res.pose)
-        keypoints2d = np.zeros(len(res.keypoints2d, 2))
-        keypoints3d = np.zeros(len(res.keypoints.poses, 3))
+        camera.set_extrinsics_from_pose(res.camera_pose)
+        keypoints2d = np.zeros((len(res.keypoints2d), 2))
+        keypoints3d = np.zeros((len(res.keypoints.poses), 3))
         for i, (kpt2d, kpt3d) in enumerate(zip(res.keypoints2d, res.keypoints.poses)):
             keypoints2d[i, 0] = kpt2d.x
             keypoints2d[i, 1] = kpt2d.y

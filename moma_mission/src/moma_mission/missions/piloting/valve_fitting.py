@@ -70,7 +70,7 @@ def point_line_distance(p, l):
 
 class Camera:
     # taken from https://github.com/demul/extrinsic2pyramid
-    def __init__(self, K, D, resolution):
+    def __init__(self, K=np.zeros((3, 3)), D=[], resolution=[600, 300]):
         self.K = K
         self.D = D
         self.resolution = resolution
@@ -142,7 +142,7 @@ class Camera:
         self.M = self.K @ self.T[:3, :]
 
     def set_extrinsics_from_pose(self, msg: Pose):
-        r = R.from_quat([msg.orientation.x, msg.orientation.y, msg.orientation.z, msg.orientation.w])
+        r = R.from_quat([msg.orientation.x, msg.orientation.y, msg.orientation.z, msg.orientation.w]).as_matrix()
         t = np.array([msg.position.x, msg.position.y, msg.position.z])
         self.T[:3, :3] = r
         self.T[:3, 3] = t
