@@ -21,4 +21,6 @@ sudo apt-get install \
 	ros-$ROS_DISTRO-ros-numpy \
 	ros-$ROS_DISTRO-smach\
 	ros-$ROS_DISTRO-smach-ros\
+	ros-$ROS_DISTRO-realsense2-camera\
+	ros-$ROS_DISTRO-realsense2-description\
 	qtbase5-dev
