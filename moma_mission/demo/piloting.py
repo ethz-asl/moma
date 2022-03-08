@@ -71,7 +71,7 @@ try:
                           ModelFitValveState,
                           transitions={'Completed': 'PLAN_MODEL_VALVE',
                                        'Failure': 'OBSERVATION_POSE',
-                                       'Retry': 'OBSERVATION_POSE'})
+                                       'NextDetection': 'OBSERVATION_POSE'})
 
         state_machine.add('PLAN_MODEL_VALVE',
                           ValveManipulationModelState,

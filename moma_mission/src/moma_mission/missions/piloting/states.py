@@ -1,12 +1,14 @@
 
 import rospy
 import numpy as np
+import tf2_ros
 from typing import List
 from scipy.spatial.transform import Rotation
 from geometry_msgs.msg import PoseStamped, TransformStamped, Pose, PoseArray
 
 from nav_msgs.msg import Path
 from visualization_msgs.msg import Marker
+from object_keypoints_ros.srv import KeypointsPerception, KeypointsPerceptionRequest
 
 from moma_mission.utils.transforms import se3_to_pose_ros
 from moma_mission.utils.trajectory import get_timed_path_to_target
@@ -19,7 +21,7 @@ from moma_mission.utils.transforms import numpy_to_pose_stamped
 
 from moma_mission.missions.piloting.frames import Frames
 from moma_mission.missions.piloting.valve import Valve
-from moma_mission.missions.piloting.valve_fitting import ValveFitter, ValveModel
+from moma_mission.missions.piloting.valve_fitting import ValveFitter, ValveModel, RansacMatcher, Camera
 from moma_mission.missions.piloting.valve_urdf_planner import ValveUrdfPlanner
 from moma_mission.missions.piloting.valve_model_planner import ValveModelPlanner
 from moma_mission.missions.piloting.grasping import GraspPlanner
@@ -40,7 +42,7 @@ class SetUp(StateRos):
         if not gRCS.read_params():
             rospy.logerr("Failed to read gRCS params")
             return 'Failure'
-        
+
         if not gRCS.init_ros():
             rospy.logerr('Failed to initialize RCSBridge ros')
             return 'Failure'
@@ -48,7 +50,7 @@ class SetUp(StateRos):
         if not gRCS.read_waypoints_from_file(self.waypoints_file):
             rospy.logerr("Failed to read waypoints from file")
             return 'Failure'
-        
+
         if not gRCS.upload_waypoints():
             rospy.logerr("Failed to upload waypoints.")
             return 'Failure'
@@ -61,24 +63,28 @@ class SetUp(StateRos):
 
 class Idle(StateRos):
     """
-    Parses the command from the gRCS and start the execution of the mission. 
+    Parses the command from the gRCS and start the execution of the mission.
     Otherwise it idles
     """
+
     def __init__(self, ns):
-        StateRos.__init__(self, ns=ns, outcomes=['ExecuteInspectionPlan', 'ExecuteManipulationPlan', 'Failure'])
-    
+        StateRos.__init__(self, ns=ns, outcomes=[
+                          'ExecuteInspectionPlan', 'ExecuteManipulationPlan', 'Failure'])
+
     def run(self):
         while True:
             command_id, command = gRCS.get_current_hl_command()
             if command_id == 0:
                 return 'ExecuteManipulationPlan'
             elif command_id == 1:
-                rospy.loginfo("Received high level command {}: {}".format(command_id, command))
+                rospy.loginfo("Received high level command {}: {}".format(
+                    command_id, command))
                 return 'ExecuteInspectionPlan'
             elif command_id == 2:
                 return 'Failure'
             rospy.sleep(1.0)
-            rospy.loginfo_throttle(3.0, "In [IDLE] state... Waiting from gRCS commands.")
+            rospy.loginfo_throttle(
+                3.0, "In [IDLE] state... Waiting from gRCS commands.")
 
 
 class HomePose(StateRosControl):
@@ -90,7 +96,8 @@ class HomePose(StateRosControl):
         StateRosControl.__init__(self, ns=ns)
         path_topic_name = self.get_scoped_param("path_topic_name")
 
-        self.path_publisher = rospy.Publisher(path_topic_name, Path, queue_size=1)
+        self.path_publisher = rospy.Publisher(
+            path_topic_name, Path, queue_size=1)
 
     def run(self):
         controller_switched = self.do_switch()
@@ -102,7 +109,8 @@ class HomePose(StateRosControl):
         home_pose_position = np.array([0.096, 0.266, 0.559])
         home_pose_orientation = np.array([0.011, 0.751, 0.660, 0.010])
 
-        home_pose = numpy_to_pose_stamped(home_pose_position, home_pose_orientation, frame_id=Frames.base_frame)
+        home_pose = numpy_to_pose_stamped(
+            home_pose_position, home_pose_orientation, frame_id=Frames.base_frame)
 
         target_pose = PoseStamped()
         target_pose.header.frame_id = Frames.base_frame
@@ -113,7 +121,7 @@ class HomePose(StateRosControl):
                                         target_pose=target_pose,
                                         linear_velocity=0.25, angular_velocity=0.25)
         self.path_publisher.publish(path)
-        if not self.wait_until_reached(target_frame=Frames.tool_frame, 
+        if not self.wait_until_reached(target_frame=Frames.tool_frame,
                                        quiet=True):
             return 'Failure'
         else:
@@ -132,14 +140,14 @@ class WaypointNavigationState(SingleNavGoalState):
 
     def run(self):
         waypoint = gRCS.next_waypoint()
-        
+
         if waypoint is None:
             return 'Completed'
-    
+
         goal = PoseStamped()
         goal.header.frame_id = Frames.odom_frame
         goal.header.stamp = rospy.get_rostime()
-        goal.pose.position.x = waypoint.x 
+        goal.pose.position.x = waypoint.x
         goal.pose.position.y = waypoint.y
         goal.pose.position.z = 0.0
         goal.pose.orientation.x = 0.0
@@ -147,7 +155,8 @@ class WaypointNavigationState(SingleNavGoalState):
         goal.pose.orientation.z = np.sin(waypoint.orientation/2.0)
         goal.pose.orientation.w = np.cos(waypoint.orientation/2.0)
 
-        rospy.loginfo("Reaching goal at {}, {}".format(goal.pose.position.x, goal.pose.position.y))
+        rospy.loginfo("Reaching goal at {}, {}".format(
+            goal.pose.position.x, goal.pose.position.y))
         success = self.reach_goal(goal, action=True)
         if not success:
             rospy.logerr("Failed to reach base goal.")
@@ -167,7 +176,8 @@ class NavigationState(SingleNavGoalState):
         self.target_frame = self.get_scoped_param("target_frame")
 
     def run(self):
-        T_map_target = self.get_transform(target=Frames.map_frame, source=self.target_frame)
+        T_map_target = self.get_transform(
+            target=Frames.map_frame, source=self.target_frame)
         if T_map_target is None:
             return 'Failure'
 
@@ -175,7 +185,8 @@ class NavigationState(SingleNavGoalState):
         goal.header.frame_id = Frames.map_frame
         goal.pose = se3_to_pose_ros(T_map_target)
 
-        rospy.loginfo("Reaching goal at {}, {}".format(goal.pose.position.x, goal.pose.position.y))
+        rospy.loginfo("Reaching goal at {}, {}".format(
+            goal.pose.position.x, goal.pose.position.y))
         success = self.reach_goal(goal)
         if not success:
             rospy.logerr("Failed to reach base goal.")
@@ -192,7 +203,8 @@ class DetectionPosesVisitor(StateRosControl):
     def __init__(self, ns):
         StateRosControl.__init__(self, ns=ns)
         path_topic_name = self.get_scoped_param("path_topic_name")
-        self.path_publisher = rospy.Publisher(path_topic_name, Path, queue_size=1)
+        self.path_publisher = rospy.Publisher(
+            path_topic_name, Path, queue_size=1)
 
     def run(self):
         controller_switched = self.do_switch()
@@ -221,20 +233,46 @@ class DetectionPosesVisitor(StateRosControl):
         return 'Completed'
 
 
-class ModelFitValveState(ModelFitState):
+class ModelFitValveState(StateRos):
     """
     Call a detection service to fit a valve model
     """
-    def __init__(self, ns):
-        ModelFitState.__init__(self, ns=ns, outcomes=["Completed", "Retry", "Failure"])
-        self.k = 3 # TODO remove the hard coded 3 = number of spokes in the valve
-        self.valve_fitter = ValveFitter(k=3) 
 
+    def __init__(self, ns):
+        StateRos.__init__(self, ns=ns, outcomes=[
+                          "Completed", "NextDetection", "Failure"])
+        self.object_pose_broadcaster = tf2_ros.StaticTransformBroadcaster()
+        self.perception_srv_client = rospy.ServiceProxy(self.get_scoped_param(
+            "detection_topic", "object_keypoints_ros/perceive"), KeypointsPerception)
+
+        # Way to specify dummy valve, to run without the detection call
+        self.dummy = self.get_scoped_param("dummy")
+        self.dummy_position = self.get_scoped_param("dummy_position")
+        self.dummy_orientation = self.get_scoped_param("dummy_orientation")
+
+        # TODO move to params
+        self.k = 3
+        self.min_successful_detections = 3
+        self.acceptance_ratio = 0.6
+        self.min_consensus = 2
+
+        self.frame = None
+        self.successful_detections = 0
+        self.valve_fitter = ValveFitter(k=self.k)
+        self.ransac_matcher = RansacMatcher(acceptance_ratio=0.6, min_consensus=2)
         self.marker_publisher = rospy.Publisher("/detected_valve/marker", Marker, queue_size=1)
 
     def _object_name(self) -> str:
         return Frames.valve_frame
 
+    @staticmethod
+    def reject_outliers(data, m = 2.):
+        """ Returns the filtered array and the index of the corresponding entries """
+        d = np.abs(data - np.median(data))
+        mdev = np.median(d)
+        s = d/mdev if mdev else 0.
+        return data[s<m], s<m
+    
     def _make_default_marker(self) -> Marker:
         marker = Marker()
         marker.type = marker.CYLINDER
@@ -252,13 +290,10 @@ class ModelFitValveState(ModelFitState):
         marker.pose.position.z = 0
         return marker
 
-    def _model_fit(self, keypoints_perception: List[Pose], frame: str) -> TransformStamped:
-        points_3d = np.zeros((3, self.k +1)) # spokes plus center
-        for i, kpt in enumerate(keypoints_perception):
-            points_3d[:, i] = np.array([kpt.position.x, kpt.position.y, kpt.position.z])
+    def _model_fit(self, points3d: np.ndarray, frame: str) -> TransformStamped:
 
         valve: ValveModel
-        valve = self.valve_fitter.estimate_from_3d_points(points_3d, frame)
+        valve = self.valve_fitter.estimate_from_3d_points(points3d, frame)
         if valve is None:
             return None
         self.set_context('valve_model', valve)
@@ -279,18 +314,100 @@ class ModelFitValveState(ModelFitState):
         marker.pose.position.x = center[0]
         marker.pose.position.y = center[1]
         marker.pose.position.z = center[2]
-        
+
         marker.pose.orientation.x = q[0]
         marker.pose.orientation.y = q[1]
         marker.pose.orientation.z = q[2]
         marker.pose.orientation.w = q[3]
         self.marker_publisher.publish(marker)
-       
+
         object_pose = TransformStamped()
         object_pose.transform.translation = marker.pose.position
         object_pose.transform.rotation = marker.pose.orientation
         return object_pose
 
+    def _object_name(self) -> str:
+        return 'object'
+
+    def _request_keypoints(self):
+        try:
+            self.perception_srv_client.wait_for_service(timeout=10)
+        except rospy.ROSException as exc:
+            rospy.logwarn("Service {} not available yet".format(self.perception_srv_client.resolved_name))
+            return False
+        
+        req = KeypointsPerceptionRequest()
+        res = self.perception_srv_client.call(req)
+        self.frame = res.header.frame_id
+        camera = Camera()
+        camera.set_intrinsics_from_camera_info(res.camera_info)
+        camera.set_extrinsics_from_pose(res.pose)
+        keypoints2d = np.zeros(len(res.keypoints2d, 2))
+        keypoints3d = np.zeros(len(res.keypoints.poses, 3))
+        for i, (kpt2d, kpt3d) in enumerate(zip(res.keypoints2d, res.keypoints.poses)):
+            keypoints2d[i, 0] = kpt2d.x
+            keypoints2d[i, 1] = kpt2d.y
+            keypoints3d[i, 0] = kpt3d.position.x
+            keypoints3d[i, 1] = kpt3d.position.y
+            keypoints3d[i, 2] = kpt3d.position.z
+        self.ransac_matcher.add_observation(camera, keypoints2d, keypoints3d)
+
+    def run(self):
+        object_pose = TransformStamped()
+        if self.dummy:
+            rospy.logwarn("[ModelFitState]: running dummy detection")
+            object_pose.header.frame_id = "world"
+            object_pose.header.stamp = rospy.get_rostime()
+            object_pose.child_frame_id = self._object_name()
+            object_pose.transform.translation.x = self.dummy_position[0]
+            object_pose.transform.translation.y = self.dummy_position[1]
+            object_pose.transform.translation.z = self.dummy_position[2]
+            object_pose.transform.rotation.x = self.dummy_orientation[0]
+            object_pose.transform.rotation.y = self.dummy_orientation[1]
+            object_pose.transform.rotation.z = self.dummy_orientation[2]
+            object_pose.transform.rotation.w = self.dummy_orientation[3]
+        else:
+            if self._request_keypoints():
+                self.successful_detections += 1
+            
+            if self.successful_detections < self.min_successful_detections:
+                return 'NextDetection'
+            
+            success, keypoints2d, keypoints3d = self.ransac_matcher.filter()
+            if not success:
+                rospy.logerr("Failed to match and filter detections.")
+                return 'Failure'
+
+            # Keyoints3d is a list [ (num_kpts x 3), (num_kpts x 3), None, ... ] num_observations long
+            # and node if the observation was rejected
+
+            # loop each keypoint and remove outliers based on their distance from the origin
+            # create a matrix where each row corresponds to an observation set and each column is the 
+            # norm distance for that keypoint
+            norms = [np.linalg.norm(kpts3d, axis=1) for kpts3d in keypoints3d if kpts3d is not None]
+            norms = np.asarray(norms)  # [n_obs x n_keypoints]
+
+            # compoare keypoints norm among different observations set
+            # 1) remove outliers based on the norm of each keypoint
+            # 2) average remaining keypoints to filter out noise
+            num_observations, num_keypoints = norms.shape
+            points = np.zeros(3, num_keypoints)
+
+            for i in range(num_keypoints):
+                _, idxs = self.reject_outliers(norms[:, i])
+                points[:, i] = np.sum([keypoints3d[j][i, :] for j in idxs], axis=0)   # average keypoint i of observation j (not outlier)    
+                points[:, i] /= len(idxs)                                             # cannot fail, we must at least have one in the list
+
+            object_pose = self._model_fit(points, self.frame_id)
+            if object_pose is None:
+                return 'Failure'
+            object_pose.header.frame_id = self.frame
+            object_pose.header.stamp = rospy.get_rostime()
+            object_pose.child_frame_id = self._object_name()
+
+        self.object_pose_broadcaster.sendTransform(object_pose)
+        rospy.sleep(2.0)
+        return 'Completed'
 
 class ValveManipulationUrdfState(StateRos):
     def __init__(self, ns):

@@ -1,7 +1,7 @@
 import rospy
 
 class Frames:
-    map_frame = "map"
+    map_frame = "tracking_camera_odom"
     tool_frame = "tool_frame"
     base_frame = "tracking_camera_odom"
     valve_frame = "valve"

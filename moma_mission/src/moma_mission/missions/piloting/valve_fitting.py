@@ -2,24 +2,21 @@
 # -*- coding: utf-8 -*-
 
 
-from copy import copy, deepcopy
 import rospy
 import numpy as np
+from copy import deepcopy
 
-import matplotlib as mpl
 import matplotlib.pyplot as plt
 from matplotlib.patches import Patch
 from mpl_toolkits import mplot3d
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
-from numpy import linalg
-from numpy.core.fromnumeric import shape
-from numpy.linalg.linalg import inv
 
 from scipy.spatial.transform import Rotation as R
 from scipy.optimize import NonlinearConstraint, LinearConstraint
 from scipy.optimize import minimize
 
-
+from sensor_msgs.msg import CameraInfo
+from geometry_msgs.msg import Pose
 from moma_mission.missions.piloting.valve_model import ValveModel
 
 import cv2
@@ -138,6 +135,18 @@ class Camera:
         self.T = T
         self.M = self.K @ self.T[:3, :]
 
+    def set_intrinsics_from_camera_info(self, msg: CameraInfo):
+        self.K = np.asarray(msg.K).reshape(3, 3)
+        self.D = np.asarray(msg.D)
+        self.resolution = np.array([msg.width, msg.height])
+        self.M = self.K @ self.T[:3, :]
+
+    def set_extrinsics_from_pose(self, msg: Pose):
+        r = R.from_quat([msg.orientation.x, msg.orientation.y, msg.orientation.z, msg.orientation.w])
+        t = np.array([msg.position.x, msg.position.y, msg.position.z])
+        self.T[:3, :3] = r
+        self.T[:3, 3] = t
+        self.M = self.K @ self.T[:3, :]
 
 class ValveFitter:
     def __init__(self, k) -> None:
