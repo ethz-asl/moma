@@ -250,11 +250,10 @@ class ModelFitValveState(StateRos):
         self.dummy_position = self.get_scoped_param("dummy_position")
         self.dummy_orientation = self.get_scoped_param("dummy_orientation")
 
-        # TODO move to params
-        self.k = 3
-        self.min_successful_detections = 1
-        self.acceptance_ratio = 0.6
-        self.min_consensus = 1
+        self.k = 3 # TODO move to params or constants
+        self.min_successful_detections = self.get_scoped_param("min_successful_detections")
+        self.acceptance_ratio = self.get_scoped_param("feature_matcher_acceptance_ratio")
+        self.min_consensus = self.get_scoped_param("ransac_min_consensus")
         if self.min_consensus > self.min_successful_detections:
             raise NameError(f"min consensor < min successful detections {self.min_consensus} < {self.min_successful_detections}")
 
@@ -358,10 +357,10 @@ class ModelFitValveState(StateRos):
     @staticmethod
     def _filter_3d_observations(points, method='average'):
         """
+        # TODO more methods, probably this can be outsourced to the ValveFitter
         Filter a list of [n x 3] representing multiple observations of 
         the same 3d points. Supported methods are:
-        - average: just compute the average over all observations
-        - TODO : more methods 
+        - average: just compute the average over all observations 
         """
         if method == 'average':
             n_points = len(points)

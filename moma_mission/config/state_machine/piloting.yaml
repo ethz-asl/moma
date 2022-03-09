@@ -104,6 +104,9 @@ MODEL_FIT_VALVE:
   dummy: false
   dummy_position: [0.8, 0.0, 0.5]
   dummy_orientation: [0.0, 0.707, 0.0, 0.707]
+  min_successful_detections: 1
+  feature_matcher_acceptance_ratio: 0.6
+  ransac_min_consensus: 1   # must be > min_successful detections
 
 PLAN_MODEL_VALVE:
   default_outcome: None
