@@ -252,14 +252,16 @@ class ModelFitValveState(StateRos):
 
         # TODO move to params
         self.k = 3
-        self.min_successful_detections = 3
+        self.min_successful_detections = 1
         self.acceptance_ratio = 0.6
-        self.min_consensus = 2
+        self.min_consensus = 1
+        if self.min_consensus > self.min_successful_detections:
+            raise NameError(f"min consensor < min successful detections {self.min_consensus} < {self.min_successful_detections}")
 
-        self.frame = None
+        self.frame_id = None
         self.successful_detections = 0
         self.valve_fitter = ValveFitter(k=self.k)
-        self.ransac_matcher = RansacMatcher(acceptance_ratio=0.6, min_consensus=2)
+        self.ransac_matcher = RansacMatcher(acceptance_ratio=self.acceptance_ratio, min_consensus=self.min_consensus)
         self.marker_publisher = rospy.Publisher("/detected_valve/marker", Marker, queue_size=1)
 
     def _object_name(self) -> str:
@@ -338,7 +340,7 @@ class ModelFitValveState(StateRos):
         
         req = KeypointsPerceptionRequest()
         res = self.perception_srv_client.call(req)
-        self.frame = res.header.frame_id
+        self.frame_id = res.keypoints.header.frame_id
         camera = Camera()
         camera.set_intrinsics_from_camera_info(res.camera_info)
         camera.set_extrinsics_from_pose(res.camera_pose)
@@ -352,6 +354,21 @@ class ModelFitValveState(StateRos):
             keypoints3d[i, 2] = kpt3d.position.z
         self.ransac_matcher.add_observation(camera, keypoints2d, keypoints3d)
         return True
+
+    @staticmethod
+    def _filter_3d_observations(points, method='average'):
+        """
+        Filter a list of [n x 3] representing multiple observations of 
+        the same 3d points. Supported methods are:
+        - average: just compute the average over all observations
+        - TODO : more methods 
+        """
+        if method == 'average':
+            n_points = len(points)
+            points = np.sum(points, axis=0) / n_points
+            return points
+        else:   
+            raise NameError(f"Unrecognized method {method}")
 
     def run(self):
         object_pose = TransformStamped()
@@ -368,7 +385,6 @@ class ModelFitValveState(StateRos):
             object_pose.transform.rotation.z = self.dummy_orientation[2]
             object_pose.transform.rotation.w = self.dummy_orientation[3]
         else:
-
             if self._request_keypoints():
                 self.successful_detections += 1
             else:
@@ -378,35 +394,21 @@ class ModelFitValveState(StateRos):
             if self.successful_detections < self.min_successful_detections:
                 return 'NextDetection'
             
+            # keyoints3d is a list [ (num_kpts x 3), (num_kpts x 3), None, ... ] num_observations long
+            # and None if the observation was rejected
             success, keypoints2d, keypoints3d = self.ransac_matcher.filter()
             if not success:
                 rospy.logerr("Failed to match and filter detections.")
                 return 'Failure'
 
-            # Keyoints3d is a list [ (num_kpts x 3), (num_kpts x 3), None, ... ] num_observations long
-            # and node if the observation was rejected
+            # filter only valid and matched observations
+            valid_observations = [ kpts3d for kpts3d in keypoints3d if kpts3d is not None]
+            points = self._filter_3d_observations(valid_observations, method='average')
 
-            # loop each keypoint and remove outliers based on their distance from the origin
-            # create a matrix where each row corresponds to an observation set and each column is the 
-            # norm distance for that keypoint
-            norms = [np.linalg.norm(kpts3d, axis=1) for kpts3d in keypoints3d if kpts3d is not None]
-            norms = np.asarray(norms)  # [n_obs x n_keypoints]
-
-            # compoare keypoints norm among different observations set
-            # 1) remove outliers based on the norm of each keypoint
-            # 2) average remaining keypoints to filter out noise
-            num_observations, num_keypoints = norms.shape
-            points = np.zeros(3, num_keypoints)
-
-            for i in range(num_keypoints):
-                _, idxs = self.reject_outliers(norms[:, i])
-                points[:, i] = np.sum([keypoints3d[j][i, :] for j in idxs], axis=0)   # average keypoint i of observation j (not outlier)    
-                points[:, i] /= len(idxs)                                             # cannot fail, we must at least have one in the list
-
-            object_pose = self._model_fit(points, self.frame_id)
+            object_pose = self._model_fit(points.T, self.frame_id)
             if object_pose is None:
                 return 'Failure'
-            object_pose.header.frame_id = self.frame
+            object_pose.header.frame_id = self.frame_id
             object_pose.header.stamp = rospy.get_rostime()
             object_pose.child_frame_id = self._object_name()
 

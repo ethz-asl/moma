@@ -399,7 +399,7 @@ class FeatureMatcher:
         lines = self._compute_epilines(camera1, camera2, points1, points2)
         points1 = points1.reshape((-1, 2))
         points2 = points2.reshape((-1, 2))
-        print("Matching\n{points1}\n with points {points2}")
+        print(f"Matching\n{points1}\n with points {points2}")
         N = points1.shape[0]
         assert N == len(lines) and "Need as many epipolar lines as keypoints"
 
@@ -463,6 +463,13 @@ class FeatureMatcher:
 
 
 class RansacMatcher:
+    """
+    Filter 3d observations based on matches between sets of 2d observation.
+    Takes one set as a reference observation to match agains others using the epipolar
+    line constraint. The mathc also reorder observations such that they are paired consistently
+    The observation with most matches and corresponindg matches is returned with the filter method
+     
+    """
     def __init__(self, acceptance_ratio=0.6, min_consensus=2):
         self.feature_matcher = FeatureMatcher(
             acceptance_ratio=acceptance_ratio)
@@ -472,10 +479,6 @@ class RansacMatcher:
         self.observations3d = []
 
     def add_observation(self, camera: Camera, observation: np.ndarray, observation3d: np.array):
-        print("Adding new observation")
-        print(f"2d observation:\n{observation}s")
-        print(f"3d observation:\n{observation3d}")
-
         self.cameras.append(camera)
         self.observations.append(observation)
         self.observations3d.append(observation3d)
@@ -498,12 +501,14 @@ class RansacMatcher:
             matched_observations3d = deepcopy(self.observations3d)
             for j, (cam, obs, obs3d) in enumerate(zip(self.cameras, self.observations, self.observations3d)):
                 if j != i:
+                    # first reorder features according the epipolar constraint
                     matches = self.feature_matcher.match(
                         cam_ref, cam, obs_ref, obs)
+                    # if some feature was not matched because of the acceptance ration the index is set to -1
                     if np.all(matches >= 0):
                         matched_observations[j] = obs[matches, :]
                         matched_observations3d[j] = obs3d[matches, :]
-                        matched_total += 1
+                        matched_total += 1  # we mathced all features with respect to the reference observation
                     else:
                         matched_observations[j] = None
                         matched_observations3d[j] = None
@@ -513,7 +518,7 @@ class RansacMatcher:
                 max_matches = matched_total
                 best_matched_observations = matched_observations
                 best_matched_observations3d = matched_observations3d
-        max_matches += 1  # count also the reference view
+        max_matches += 1  # count also the reference observation as "match with itself"
         if max_matches < self.min_consensus:
             success = False
         print(
