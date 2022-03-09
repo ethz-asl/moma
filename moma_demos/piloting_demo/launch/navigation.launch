@@ -2,7 +2,7 @@
 <launch>
     <arg name="sim"               default="false"/>
     <arg name="use_global_map"    default="true"/>
-    <arg name="map_asset"         default="opfikon">
+    <arg name="map_asset"         default="opfikon"/>
     <arg name="global_map_file"   default="$(env HOME)/maps/$(arg map_asset)/map.yaml"/>
     <arg name="map_file_name"     default="$(env HOME)/maps/$(arg map_asset)/map.pcd"/>
     <arg name="global_frame"      default="map"/>
