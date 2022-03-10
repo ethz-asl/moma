@@ -4,15 +4,9 @@
   <arg name="robot_ip" default="$(env FRANKA_IP)"/>
   <arg name="publish_world_link" default="false"/>
 
-  <!-- Load robot description -->
-  <param name="robot_description" command="xacro $(find moma_description)/urdf/panda.urdf.xacro hand:=true gazebo:=true">
-  </param>
-
   <!-- Launch control -->
-  <include file="$(find franka_control)/launch/franka_control.launch">
+  <include file="$(find moma_bringup)/launch/franka_control.launch">
     <arg name="robot_ip" value="$(arg robot_ip)"/>
-    <arg name="load_gripper" value="true"/>
-    <arg name="load_description" value="false"/>
   </include>
 
   <!-- Start required controller -->
