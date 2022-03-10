@@ -23,4 +23,6 @@ sudo apt-get install \
 	ros-$ROS_DISTRO-smach-ros\
 	ros-$ROS_DISTRO-realsense2-camera\
 	ros-$ROS_DISTRO-realsense2-description\
+	ros-$ROS_DISTRO-tf-conversions\
+	ros-$ROS_DISTRO-rviz-visual-tools\
 	qtbase5-dev
