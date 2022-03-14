@@ -274,7 +274,7 @@ class ValveFitter:
             return self._non_linear_optimization()
         elif method == 'triangulation':
             points_3d = self.triangulate()
-            return self.estimate_from_3d_points(points_3d)
+            return self.estimate_from_3d_points(points_3d)[1]
         elif method == 'pnp':
             return self._pnp(kwargs['radius_hypothesis'])
         else:
@@ -309,11 +309,13 @@ class ValveFitter:
 
         # TODO validity check if n * (Cg - C) is roughly equal to (Cg - C)
 
-        residual_error = max([abs(r - radius) for radius in radii])
+        #residual_error = max([abs(r - radius) for radius in radii])
+        # we care about a keypoint being very off
+        residual_error = max([abs(np.linalg.norm(points_3d[:, i+1] - Cg)-r) for i in range(k)])
         rospy.loginfo(f"Valve fitting residual error is {residual_error}")
 
         if residual_error <= error_threshold:
-            return ValveModel(frame=frame, center=C, radius=r_with_handle, axis_1=v1, axis_2=v2, num_spokes=k, depth=delta)
+            return residual_error, ValveModel(frame=frame, center=C, radius=r_with_handle, axis_1=v1, axis_2=v2, num_spokes=k, depth=delta)
         else:
             rospy.logerr(
                 "Could not fit the 3d points to a circular valve wheel")
@@ -395,11 +397,11 @@ class FeatureMatcher:
         lines2 = cv2.computeCorrespondEpilines(points1.reshape(-1, 1, 2), 1, F)
         return lines2.reshape(-1, 3)
 
-    def match(self, camera1, camera2, points1, points2):
+    def match(self, camera1, camera2, points1, points2, mask=None):
         lines = self._compute_epilines(camera1, camera2, points1, points2)
         points1 = points1.reshape((-1, 2))
         points2 = points2.reshape((-1, 2))
-        print(f"Matching\n{points1}\n with points {points2}")
+        print(f"Matching\n{points1}\n with points\n{points2}")
         N = points1.shape[0]
         assert N == len(lines) and "Need as many epipolar lines as keypoints"
 
@@ -408,25 +410,34 @@ class FeatureMatcher:
             distances.append([point_line_distance(points2[i, :], l)
                              for i in range(N)])
 
-        # find first and second best matches for each line
+        distances = np.asarray(distances)
+        print(f"distances from epipolar lines are:\n{distances}")
+
+        # find closest epipolar line to the current point
         matches = -np.ones(N)
-        for i, d in enumerate(distances):
-            d_np = np.asarray(d)
-            idx_min = d_np.argmin()
-            min1 = np.min(d_np[idx_min])
+        for i in range(distances.shape[1]):
 
-            d_np2 = np.delete(d_np, idx_min)
-            min2 = np.min(d_np2)
+            if mask is not None and i in mask:
+                matches[i] = i
+                distances[i, :] = np.max(distances)
+            else:  
+              idx_first_min = np.argmin(distances[:, i])
+              first_min = distances[idx_first_min, i]
 
-            if (min1 / min2) < self.acceptance_ratio:
-                point2_idx = idx_min
-                point1_idx = i
+              distances[idx_first_min, :] = np.max(distances)  # avoid this line to be found again
+              idx_second_min = np.argmin(distances[:, i])
+              second_min = distances[idx_second_min, i]
 
-                # point in image 2 at point2_idx matches point in image 1 at point1_idx
-                matches[point1_idx] = point2_idx
+              if (first_min / second_min) < self.acceptance_ratio:
+                  point2_idx = i
+                  point1_idx = idx_first_min
 
+                  # point in image 2 at point2_idx matches point in image 1 at point1_idx
+                  matches[point1_idx] = point2_idx
+
+        print(f"Matches are: {matches}")
         if len(np.unique(matches[matches > -1])) != len(matches):
-            # print("There is an ambiguity in the found mathces.")
+            print("There is an ambiguity in the found mathces.")
             matches = -np.ones(N)
         return matches.astype(int)
 
@@ -470,9 +481,10 @@ class RansacMatcher:
     The observation with most matches and corresponindg matches is returned with the filter method
      
     """
-    def __init__(self, acceptance_ratio=0.6, min_consensus=2):
+    def __init__(self, acceptance_ratio=0.6, min_consensus=2, mask=None):
         self.feature_matcher = FeatureMatcher(
             acceptance_ratio=acceptance_ratio)
+        self.mask = mask
         self.min_consensus = min_consensus
         self.cameras = []
         self.observations = []
@@ -503,7 +515,7 @@ class RansacMatcher:
                 if j != i:
                     # first reorder features according the epipolar constraint
                     matches = self.feature_matcher.match(
-                        cam_ref, cam, obs_ref, obs)
+                        cam_ref, cam, obs_ref, obs, mask=self.mask)
                     # if some feature was not matched because of the acceptance ration the index is set to -1
                     if np.all(matches >= 0):
                         matched_observations[j] = obs[matches, :]
@@ -634,14 +646,13 @@ if __name__ == "__main__":
         proj_keypoints = camera.project(shuffled_keypoints)
         proj_keypoints = add_noise(proj_keypoints, low=0, high=10)
         observations.append(proj_keypoints)
-    observations[0][0] = 300.0  # create an artificial outlier
 
     # Use epipolar line to find correspondences and first camera as reference
     # Do a sort of outlier rejection through RANSAC
     # Take each camera view as reference to find matches. The camera with the
     # largest amount of matches is the one to go with
 
-    rmatcher = RansacMatcher(acceptance_ratio=0.5)
+    rmatcher = RansacMatcher(acceptance_ratio=0.5, mask=[0])
     obs3d = np.random.rand(4, 3)
     for cam, obs in zip(cameras, observations):
         rmatcher.add_observation(cam, obs, obs3d)

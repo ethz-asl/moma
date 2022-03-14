@@ -24,27 +24,32 @@ state_machine = StateMachineRos(outcomes=['Success', 'Failure'])
 
 try:
     with state_machine:
+        rospy.loginfo("Setup")
         state_machine.add('SETUP',
                           SetUp,
                           transitions={'Completed': 'HOME_ROBOT_START',
                                        'Failure': 'Failure'})
 
+        rospy.loginfo("Home robot start")
         state_machine.add('HOME_ROBOT_START',
                           homing_sequence_factory(),
                           transitions={'Success': 'IDLE',
                                        'Failure': 'Failure'})
 
+        rospy.loginfo("Idle")
         state_machine.add('IDLE',
                           Idle,
                           transitions={'ExecuteInspectionPlan': 'WAYPOINT_FOLLOWING',
                                        'ExecuteManipulationPlan': 'REACH_DETECTION_HOTSPOT',
                                        'Failure': 'Failure'})
 
+        rospy.loginfo("Reach detection hotspot")
         state_machine.add('REACH_DETECTION_HOTSPOT',
                           NavigationState,
                           transitions={'Completed': 'DETECTION_DECISION',
                                        'Failure': 'Failure'})
 
+        rospy.loginfo("Waypoint following")
         state_machine.add('WAYPOINT_FOLLOWING',
                           WaypointNavigationState,
                           transitions={'Completed': 'Success',
@@ -52,62 +57,74 @@ try:
                                        'NextWaypoint': 'WAYPOINT_FOLLOWING'})
 
         # Hacky, but avoids to define an almost empty class with additional outcomes
+        rospy.loginfo("Detection decision")
         state_machine.add('DETECTION_DECISION',
                           StateRos,
                           transitions={'Completed': 'OBSERVATION_POSE',
                                        'Failure': 'PLAN_URDF_VALVE'})
 
+        rospy.loginfo("Observation pose")
         state_machine.add('OBSERVATION_POSE',
                           FOVSamplerState,
                           transitions={'Completed': 'OBSERVATION_APPROACH',
                                        'Failure': 'Failure'})
 
+        rospy.loginfo("Observation approach")
         state_machine.add('OBSERVATION_APPROACH',
                           TransformVisitorState,
                           transitions={'Completed': 'MODEL_FIT_VALVE',
                                        'Failure': 'OBSERVATION_POSE'})
 
+        rospy.loginfo("Model fit valve")
         state_machine.add('MODEL_FIT_VALVE',
                           ModelFitValveState,
                           transitions={'Completed': 'PLAN_MODEL_VALVE',
                                        'Failure': 'Failure',
                                        'NextDetection': 'OBSERVATION_POSE'})
 
+        rospy.loginfo("Plan model valve")
         state_machine.add('PLAN_MODEL_VALVE',
                           ValveManipulationModelState,
                           transitions={'Completed': 'APPROACH_VALVE',
                                        'Failure': 'Failure'})
 
+        rospy.loginfo("Plan urdf valve")
         state_machine.add('PLAN_URDF_VALVE',
                           ValveManipulationUrdfState,
                           transitions={'Completed': 'APPROACH_VALVE',
                                        'Failure': 'Failure'})
 
+        rospy.loginfo("Approach valve")
         state_machine.add('APPROACH_VALVE',
                           PathVisitorState,
                           transitions={'Completed': 'GRASP_VALVE',
                                        'Failure': 'DETECTION_DECISION'})
 
+        rospy.loginfo("Grasp valve")
         state_machine.add('GRASP_VALVE',
                           PathVisitorState,
                           transitions={'Completed': 'CLOSE_GRIPPER',
                                        'Failure': 'DETECTION_DECISION'})
 
+        rospy.loginfo("Close gripper")
         state_machine.add('CLOSE_GRIPPER',
                           GripperControl,
                           transitions={'Completed': 'MANIPULATE_VALVE',
                                        'Failure': 'MANIPULATE_VALVE'})
 
+        rospy.loginfo("Manipulate valve")
         state_machine.add('MANIPULATE_VALVE',
                           PathVisitorState,
                           transitions={'Completed': 'OPEN_GRIPPER',
                                        'Failure': 'OPEN_GRIPPER'})
 
+        rospy.loginfo("Open gripper")
         state_machine.add('OPEN_GRIPPER',
                           GripperControl,
                           transitions={'Completed': 'BACKOFF_VALVE',
                                        'Failure': 'Failure'})
 
+        rospy.loginfo("Backoff valve")
         state_machine.add('BACKOFF_VALVE',
                           PathVisitorState,
                           transitions={'Completed': 'HOMING_FINAL',
@@ -117,6 +134,7 @@ try:
             outcomes=['Success', 'Failure'])
 
         with homing_sequence_final:
+            rospy.loginfo("Home robot final")
             homing_sequence_final.add('HOME_ROBOT_FINAL',
                                       JointsConfigurationAction,
                                       transitions={'Completed': 'Success',
@@ -131,13 +149,14 @@ except Exception as exc:
     sys.exit(0)
 
 # Create and start the introspection server
-introspection_server = smach_ros.IntrospectionServer(
-    'piloting_mission_server', state_machine, '/mission_planner')
-introspection_server.start()
+# introspection_server = smach_ros.IntrospectionServer(
+#     'piloting_mission_server', state_machine, '/mission_planner')
+# introspection_server.start()
 
 # Execute state machine
+rospy.loginfo("\n\nRunning the mission state machine!\n\n")
 outcome = state_machine.execute()
 rospy.loginfo("Mission plan terminated with outcome {}.".format(outcome))
 
 # Wait for ctrl-c to stop the application
-introspection_server.stop()
+# introspection_server.stop()

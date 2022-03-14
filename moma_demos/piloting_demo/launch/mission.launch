@@ -1,5 +1,8 @@
 <?xml version="1.0"?>
 <launch>
+  <!-- valve model -->
+  <include file="$(find piloting_demo)/launch/valve.launch"/>
+  
   <!-- mission state machine -->
   <rosparam command="load" file="$(find moma_mission)/config/state_machine/piloting.yaml" subst_value="true"/>
   <rosparam command="load" file="$(find moma_mission)/config/state_machine/piloting_frames.yaml"/>
