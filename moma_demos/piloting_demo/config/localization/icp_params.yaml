@@ -1,11 +1,11 @@
 icp_localization:
   initial_pose:
-    x: 1.283 
-    y: -0.876 
-    z: 0.326 
+    x: 15.859
+    y: -27.155
+    z: -0.300
     roll: 0.0  #rpy in deg
     pitch: 0.0
-    yaw: 88.0 
+    yaw: -124.0 
   imu_data_topic: "/versavis/imu" #"/sensors/imu" #
   odometry_data_topic: "/camera/odom/sample" #"/camera/odom/sample" "/msf_core/odometry" #
   num_accumulated_range_data: 1
@@ -32,3 +32,4 @@ calibration:
     roll: 0.0
     pitch: 0.0
     yaw: 1.571  
+ 
