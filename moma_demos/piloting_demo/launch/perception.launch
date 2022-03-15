@@ -42,7 +42,7 @@
       <include file="$(find realsense2_camera)/launch/rs_camera.launch">
         <arg name="camera"                value="hand_eye"/>
         <arg name="enable_depth"          value="true"/>
-        <arg name="enable_pointcloud"     value="false"/>
+        <arg name="enable_pointcloud"     value="true"/>
         <arg name="enable_sync"           value="true"/>
       </include>
 
