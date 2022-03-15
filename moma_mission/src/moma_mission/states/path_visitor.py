@@ -35,10 +35,17 @@ class PathVisitorState(StateRosControl):
         self.linear_speed = self.get_scoped_param("linear_speed", 0.1) # m/s
         self.angular_speed = self.get_scoped_param("angular_speed", 0.5) # rad/s
         self.section = self.get_scoped_param("section", "all") # "first", "last"
+        self.mode = self.get_scoped_param("mode", "path") # "path", "pose"
         self.poses = None
+
+        if self.mode not in {"path", "pose"}:
+            raise NameError(f"Wrong path following mode: {self.mode}")
 
         self.poses_subscriber = rospy.Subscriber(
             self.get_scoped_param("poses_topic", "/poses"), PoseArray, self._poses_msg, queue_size=1)
+        self.pose_publisher = rospy.Publisher(
+            self.get_scoped_param("pose_topic", "/desired_pose", PoseStamped, queue_size=1)
+        )
         self.path_publisher = rospy.Publisher(
             self.get_scoped_param("path_topic", "/desired_path"), Path, queue_size=1)
 
@@ -102,7 +109,14 @@ class PathVisitorState(StateRosControl):
 
             path.poses.append(pose_stamped)
 
-        self.path_publisher.publish(path)
+        if mode == 'path':
+            self.path_publisher.publish(path)
+        elif mode == 'pose':
+            for i, pose in enumerate(path.poses):
+                self.pose_publisher.publish(pose)
+                if i < len(path.poses) -1:
+                    rospy.sleep(path.poses[i+1].header.stamp.to_sec() - path.poses[i].header.stamp.to_sec())
+
         if not self.wait_until_reached(self.ee_frame, path.poses[-1], timeout=max(self.timeout_factor * (t.to_sec() - rospy.get_rostime().to_sec()), 5.0)):
             return 'Failure'
 

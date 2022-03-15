@@ -3,6 +3,9 @@
   <!-- valve model -->
   <include file="$(find piloting_demo)/launch/valve.launch"/>
   
+  <!-- set the correct internal ee frame -->
+  <node pkg="moma_cartesian_impedance_controller" type="set_EE_frame.py" name="set_EE_frame_node" output="scree" respawn="true"/>
+  
   <!-- mission state machine -->
   <rosparam command="load" file="$(find moma_mission)/config/state_machine/piloting.yaml" subst_value="true"/>
   <rosparam command="load" file="$(find moma_mission)/config/state_machine/piloting_frames.yaml"/>

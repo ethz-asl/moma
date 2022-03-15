@@ -123,9 +123,12 @@ PLAN_URDF_VALVE:
 
 APPROACH_VALVE:
   default_outcome: None
+  mode: pose
+  control_frame: panda_link0
+  pose_topic: '/panda/cartesian_impedance_controller/equilibrium_pose'
   manager_namespace: panda
-  startlist: ['mpc_controller', 'path_passthrough_controller']
-  stoplist: ['joint_space_controller']
+  startlist: ['cartesian_impedance_controller']
+  stoplist: ['mpc_controller', 'joint_space_controller', 'path_passthrough_controller']
 
   poses_topic: /valve_poses
   offset: [0, 0, -0.1]
@@ -133,8 +136,11 @@ APPROACH_VALVE:
 
 GRASP_VALVE:
   default_outcome: None
+  mode: pose
+  control_frame: panda_link0
+  pose_topic: '/panda/cartesian_impedance_controller/equilibrium_pose'
   manager_namespace: panda
-  startlist: ['mpc_controller', 'path_admittance_controller']
+  startlist: ['cartesian_impedance_controller']
   stoplist: ['joint_space_controller', 'path_passthrough_controller']
 
   poses_topic: /valve_poses
@@ -142,8 +148,11 @@ GRASP_VALVE:
 
 MANIPULATE_VALVE:
   default_outcome: None
+  mode: pose
+  control_frame: panda_link0
+  pose_topic: '/panda/cartesian_impedance_controller/equilibrium_pose'
   manager_namespace: panda
-  startlist: ['mpc_controller', 'path_admittance_controller']
+  startlist: ['cartesian_impedance_controller']
   stoplist: ['joint_space_controller', 'path_passthrough_controller']
 
   poses_topic: /valve_poses
@@ -151,8 +160,11 @@ MANIPULATE_VALVE:
 
 BACKOFF_VALVE:
   default_outcome: None
+  mode: pose
+  control_frame: panda_link0
+  pose_topic: '/panda/cartesian_impedance_controller/equilibrium_pose'
   manager_namespace: panda
-  startlist: [ 'mpc_controller', 'path_admittance_controller' ]
+  startlist: [ 'cartesian_impedance_controller']
   stoplist: [ 'joint_space_controller', 'path_passthrough_controller' ]
   duration: 10.0
 
