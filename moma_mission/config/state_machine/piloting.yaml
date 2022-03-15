@@ -80,13 +80,13 @@ DETECTION_DECISION:
 OBSERVATION_POSE:
   default_outcome: None
   sample_name: observation
-  map_frame: world
+  map_frame: tracking_camera_odom
   object_frame: valve_gt
   camera_frame: hand_eye_color_optical_frame
   controlled_frame: tool_frame
   object_size: 0.20
   camera_info_topic: "/camera_info"
-  lateral_view_angle_deg: 20
+  lateral_view_angle_deg: 30
   image_fill_ratio: 0.5
   heading: [1, 0, 0]
 
@@ -104,9 +104,10 @@ MODEL_FIT_VALVE:
   dummy: false
   dummy_position: [0.8, 0.0, 0.5]
   dummy_orientation: [0.0, 0.707, 0.0, 0.707]
-  min_successful_detections: 1
-  feature_matcher_acceptance_ratio: 0.6
-  ransac_min_consensus: 1   # must be > min_successful detections
+  error_threshold: 0.03
+  min_successful_detections: 3
+  feature_matcher_acceptance_ratio: 1000.0
+  ransac_min_consensus: 1 #2   # must be > min_successful detections
 
 PLAN_MODEL_VALVE:
   default_outcome: None

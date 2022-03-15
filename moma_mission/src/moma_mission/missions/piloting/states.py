@@ -7,7 +7,7 @@ from scipy.spatial.transform import Rotation
 from geometry_msgs.msg import PoseStamped, TransformStamped, Pose, PoseArray
 
 from nav_msgs.msg import Path
-from visualization_msgs.msg import Marker
+from visualization_msgs.msg import Marker, MarkerArray
 from object_keypoints_ros.srv import KeypointsPerception, KeypointsPerceptionRequest
 
 from moma_mission.utils.transforms import se3_to_pose_ros
@@ -251,6 +251,7 @@ class ModelFitValveState(StateRos):
         self.dummy_orientation = self.get_scoped_param("dummy_orientation")
 
         self.k = 3 # TODO move to params or constants
+        self.error_threshold = self.get_scoped_param("error_threshold")
         self.min_successful_detections = self.get_scoped_param("min_successful_detections")
         self.acceptance_ratio = self.get_scoped_param("feature_matcher_acceptance_ratio")
         self.min_consensus = self.get_scoped_param("ransac_min_consensus")
@@ -259,9 +260,10 @@ class ModelFitValveState(StateRos):
 
         self.frame_id = None
         self.successful_detections = 0
+        self.detections = []
         self.valve_fitter = ValveFitter(k=self.k)
-        self.ransac_matcher = RansacMatcher(acceptance_ratio=self.acceptance_ratio, min_consensus=self.min_consensus)
-        self.marker_publisher = rospy.Publisher("/detected_valve/marker", Marker, queue_size=1)
+        self.ransac_matcher = RansacMatcher(acceptance_ratio=self.acceptance_ratio, min_consensus=self.min_consensus, mask=[0])
+        self.matches_publisher = rospy.Publisher("/matched_keypoints", MarkerArray, queue_size=1)
 
     def _object_name(self) -> str:
         return Frames.valve_frame
@@ -273,7 +275,7 @@ class ModelFitValveState(StateRos):
         mdev = np.median(d)
         s = d/mdev if mdev else 0.
         return data[s<m], s<m
-    
+
     def _make_default_marker(self) -> Marker:
         marker = Marker()
         marker.type = marker.CYLINDER
@@ -291,19 +293,43 @@ class ModelFitValveState(StateRos):
         marker.pose.position.z = 0
         return marker
 
-    def _model_fit(self, points3d: np.ndarray, frame: str) -> TransformStamped:
+    @staticmethod
+    def _markers_from_keypoints(points, frame) -> MarkerArray:
+        colors = [[1.0, 0.0, 0.0], 
+                  [0.0, 1.0, 0.0],
+                  [0.0, 0.0, 1.0],
+                  [0.5, 0.0, 0.5],
+                  [0.5, 0.5, 0.0],
+                  [1.0, 0.0, 1.0]]
+        markers = MarkerArray()
+        for i in range(points.shape[0]):
+            marker = Marker()
+            marker.header.stamp = rospy.get_rostime()
+            marker.header.frame_id = frame
+            marker.id = i
+            marker.type = marker.SPHERE
+            marker.action = marker.ADD
+            marker.scale.x = 0.05
+            marker.scale.y = 0.05
+            marker.scale.z = 0.05
+            marker.color.a = 1.0
+            marker.color.r = colors[i][0]
+            marker.color.g = colors[i][1]
+            marker.color.b = colors[i][2]
+            marker.pose.orientation.w = 1.0
+            marker.pose.position.x = points[i][0]
+            marker.pose.position.y = points[i][1]
+            marker.pose.position.z = points[i][2]
+            markers.markers.append(marker)
+        return markers
 
+    def _model_fit(self, points3d: np.ndarray, frame: str) -> TransformStamped:
         valve: ValveModel
-        valve = self.valve_fitter.estimate_from_3d_points(points3d, frame)
+        resisual, valve = self.valve_fitter.estimate_from_3d_points(points3d, frame, 
+          error_threshold=self.error_threshold)
         if valve is None:
             return None
         self.set_context('valve_model', valve)
-
-        marker = self._make_default_marker()
-        marker.header.frame_id = frame
-        marker.scale.x = 2 * valve.radius
-        marker.scale.y = 2 * valve.radius
-        marker.scale.z = 0.03
 
         rot = np.zeros((3, 3))
         rot[:, 0] = valve.axis_1
@@ -311,20 +337,14 @@ class ModelFitValveState(StateRos):
         rot[:, 2] = valve.normal
         q = Rotation.from_matrix(rot).as_quat()
 
-        center = valve.wheel_center
-        marker.pose.position.x = center[0]
-        marker.pose.position.y = center[1]
-        marker.pose.position.z = center[2]
-
-        marker.pose.orientation.x = q[0]
-        marker.pose.orientation.y = q[1]
-        marker.pose.orientation.z = q[2]
-        marker.pose.orientation.w = q[3]
-        self.marker_publisher.publish(marker)
-
         object_pose = TransformStamped()
-        object_pose.transform.translation = marker.pose.position
-        object_pose.transform.rotation = marker.pose.orientation
+        object_pose.transform.translation.x = valve.wheel_center[0]
+        object_pose.transform.translation.y = valve.wheel_center[1]
+        object_pose.transform.translation.z = valve.wheel_center[2]
+        object_pose.transform.rotation.x = q[0]
+        object_pose.transform.rotation.y = q[1]
+        object_pose.transform.rotation.z = q[2]
+        object_pose.transform.rotation.w = q[3]
         return object_pose
 
     def _object_name(self) -> str:
@@ -336,7 +356,7 @@ class ModelFitValveState(StateRos):
         except rospy.ROSException as exc:
             rospy.logwarn("Service {} not available yet".format(self.perception_srv_client.resolved_name))
             return False
-        
+
         req = KeypointsPerceptionRequest()
         res = self.perception_srv_client.call(req)
         self.frame_id = res.keypoints.header.frame_id
@@ -351,21 +371,47 @@ class ModelFitValveState(StateRos):
             keypoints3d[i, 0] = kpt3d.position.x
             keypoints3d[i, 1] = kpt3d.position.y
             keypoints3d[i, 2] = kpt3d.position.z
+        print(f"New detection is\n{keypoints3d}")
+        self.detections.append(keypoints3d)
+        print(f"{len(self.detections)} successful detections")
         self.ransac_matcher.add_observation(camera, keypoints2d, keypoints3d)
         return True
 
-    @staticmethod
-    def _filter_3d_observations(points, method='average'):
+    def _filter_3d_observations(self, points, method='average'):
         """
         # TODO more methods, probably this can be outsourced to the ValveFitter
         Filter a list of [n x 3] representing multiple observations of 
         the same 3d points. Supported methods are:
         - average: just compute the average over all observations 
+        - geometric: tries to fit a valve to each observation of 3d points, if the residual is too high
+          discards observation before final averaging
         """
         if method == 'average':
             n_points = len(points)
             points = np.sum(points, axis=0) / n_points
             return points
+        elif method == 'geometric':
+            min_residual = np.inf
+            points_new = []
+            for p in points:
+              print(f"Fitting to\n{p.T} with shape\n{p.T.shape}")
+              residual, valve_fit = self.valve_fitter.estimate_from_3d_points(p.T, self.frame_id, 
+                                                                    handle_radius=0.01,
+                                                                    error_threshold=self.error_threshold)
+              # if valve_fit is not None:
+              #     points_new.append(p)
+              if valve_fit is not None and residual < min_residual:
+                points_new = [p]
+                min_residual = residual
+              else:
+                  rospy.loginfo("Observation did not pass geometric validation step.")
+
+            n_points = len(points_new)
+            if n_points == 0:
+                rospy.logerr("After filtering no points left.")
+                return None 
+            points_new = np.sum(points_new, axis=0) / n_points
+            return points_new
         else:   
             raise NameError(f"Unrecognized method {method}")
 
@@ -392,7 +438,8 @@ class ModelFitValveState(StateRos):
 
             if self.successful_detections < self.min_successful_detections:
                 return 'NextDetection'
-            
+
+            # trying to match keypoints and filtering based on best epipolar match
             # keyoints3d is a list [ (num_kpts x 3), (num_kpts x 3), None, ... ] num_observations long
             # and None if the observation was rejected
             success, keypoints2d, keypoints3d = self.ransac_matcher.filter()
@@ -400,9 +447,18 @@ class ModelFitValveState(StateRos):
                 rospy.logerr("Failed to match and filter detections.")
                 return 'Failure'
 
-            # filter only valid and matched observations
+            # visualize all the matches
             valid_observations = [ kpts3d for kpts3d in keypoints3d if kpts3d is not None]
-            points = self._filter_3d_observations(valid_observations, method='average')
+            for points in valid_observations:
+                rospy.loginfo("Visualizing keypoints matches")
+                self.matches_publisher.publish(self._markers_from_keypoints(points, self.frame_id))
+                rospy.sleep(5.0)
+
+            # filter only valid and matched observations
+            points = self._filter_3d_observations(valid_observations, method='geometric')
+            if points is None:
+                rospy.logerr("Failed to fit 3d observations.")
+                return 'Failure'
 
             object_pose = self._model_fit(points.T, self.frame_id)
             if object_pose is None:
