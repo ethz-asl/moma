@@ -29,7 +29,7 @@ HOME_ROBOT:
   action_name: /joint_space_controller_server
   manager_namespace: panda
   startlist: ['joint_space_controller']
-  stoplist: ['mpc_controller', 'path_passthrough_controller', 'effort_joint_trajectory_controller']
+  stoplist: ['mpc_controller', 'cartesian_impedance_controller', 'path_passthrough_controller', 'effort_joint_trajectory_controller']
   joints_configurations:
     - [0, -0.885, 0, -2.1, 0, 1.571, 0]
 
@@ -123,12 +123,11 @@ PLAN_URDF_VALVE:
 
 APPROACH_VALVE:
   default_outcome: None
-  mode: pose
-  control_frame: panda_link0
-  pose_topic: '/panda/cartesian_impedance_controller/equilibrium_pose'
+  mode: path
+  control_frame: tracking_camera_odom
   manager_namespace: panda
-  startlist: ['cartesian_impedance_controller']
-  stoplist: ['mpc_controller', 'joint_space_controller', 'path_passthrough_controller']
+  startlist: ['mpc_controller', 'path_passthrough_controller']
+  stoplist: ['joint_space_controller']
 
   poses_topic: /valve_poses
   offset: [0, 0, -0.1]
@@ -141,7 +140,7 @@ GRASP_VALVE:
   pose_topic: '/panda/cartesian_impedance_controller/equilibrium_pose'
   manager_namespace: panda
   startlist: ['cartesian_impedance_controller']
-  stoplist: ['joint_space_controller', 'path_passthrough_controller']
+  stoplist: ['mpc_controller', 'joint_space_controller', 'path_passthrough_controller']
 
   poses_topic: /valve_poses
   section: 'first'
@@ -153,7 +152,7 @@ MANIPULATE_VALVE:
   pose_topic: '/panda/cartesian_impedance_controller/equilibrium_pose'
   manager_namespace: panda
   startlist: ['cartesian_impedance_controller']
-  stoplist: ['joint_space_controller', 'path_passthrough_controller']
+  stoplist: ['mpc_controller', 'joint_space_controller', 'path_passthrough_controller']
 
   poses_topic: /valve_poses
   angular_speed: 0.5
@@ -165,7 +164,7 @@ BACKOFF_VALVE:
   pose_topic: '/panda/cartesian_impedance_controller/equilibrium_pose'
   manager_namespace: panda
   startlist: [ 'cartesian_impedance_controller']
-  stoplist: [ 'joint_space_controller', 'path_passthrough_controller' ]
+  stoplist: [ 'mpc_controller', 'joint_space_controller', 'path_passthrough_controller' ]
   duration: 10.0
 
   poses_topic: /valve_poses

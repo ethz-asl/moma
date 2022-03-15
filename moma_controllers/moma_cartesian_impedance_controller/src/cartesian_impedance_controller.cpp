@@ -14,6 +14,10 @@
 
 #include <moma_cartesian_impedance_controller/pseudo_inversion.hpp>
 
+// TODO become stiffer next to joint limits
+// TODO when force is above a certain threshold do not accept poses and keep the current one
+// TODO (optional) get the desired pose for nullspace prjection (could come from MPC for example)
+
 namespace moma_controllers
 {
 
