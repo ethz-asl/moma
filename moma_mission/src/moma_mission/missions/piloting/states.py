@@ -325,8 +325,9 @@ class ModelFitValveState(StateRos):
 
     def _model_fit(self, points3d: np.ndarray, frame: str) -> TransformStamped:
         valve: ValveModel
-        resisual, valve = self.valve_fitter.estimate_from_3d_points(points3d, frame, 
+        residual, valve = self.valve_fitter.estimate_from_3d_points(points3d, frame, 
           error_threshold=self.error_threshold)
+        print(f"Fit valve with residual {residual}")
         if valve is None:
             return None
         self.set_context('valve_model', valve)
@@ -398,6 +399,8 @@ class ModelFitValveState(StateRos):
               residual, valve_fit = self.valve_fitter.estimate_from_3d_points(p.T, self.frame_id, 
                                                                     handle_radius=0.01,
                                                                     error_threshold=self.error_threshold)
+              print(f"Residual is {residual}")
+
               # if valve_fit is not None:
               #     points_new.append(p)
               if valve_fit is not None and residual < min_residual:

@@ -319,7 +319,7 @@ class ValveFitter:
         else:
             rospy.logerr(
                 "Could not fit the 3d points to a circular valve wheel")
-            return None
+            return np.inf, None
 
     def _non_linear_optimization(self):
 

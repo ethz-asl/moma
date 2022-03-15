@@ -2,7 +2,7 @@
 <launch>
   <arg name="sim" default="false"/>
 
-  <param name="valve_description" command="$(find xacro)/xacro --inorder $(find piloting_demo)/urdf/valve.urdf.xacro pitch:=0 yaw:=0.0 x:=0.66 y:=0.017 z:=0.426"/>
+  <param name="valve_description" command="$(find xacro)/xacro --inorder $(find piloting_demo)/urdf/valve.urdf.xacro pitch:=0 yaw:=0.0 x:=0.71 y:=0.017 z:=0.426"/>
 
   <node name="spawn_valve" pkg="gazebo_ros" type="spawn_model" args="-param valve_description -urdf -model valve" output="screen" if="$(arg sim)"/>
 

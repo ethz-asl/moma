@@ -92,7 +92,7 @@ OBSERVATION_POSE:
 
 OBSERVATION_APPROACH:
   default_outcome: None
-  duration: 5.0
+  duration: 10.0
   control_frame: tracking_camera_odom
   target_frame: observation
   startlist: ['mpc_controller', 'path_passthrough_controller'] #, 'path_admittance_controller' ]
@@ -134,8 +134,8 @@ APPROACH_VALVE:
 GRASP_VALVE:
   default_outcome: None
   manager_namespace: panda
-  startlist: ['mpc_controller', 'path_passthrough_controller']
-  stoplist: ['joint_space_controller']
+  startlist: ['mpc_controller', 'path_admittance_controller']
+  stoplist: ['joint_space_controller', 'path_passthrough_controller']
 
   poses_topic: /valve_poses
   section: 'first'
@@ -143,8 +143,8 @@ GRASP_VALVE:
 MANIPULATE_VALVE:
   default_outcome: None
   manager_namespace: panda
-  startlist: ['mpc_controller', 'path_passthrough_controller']
-  stoplist: ['joint_space_controller']
+  startlist: ['mpc_controller', 'path_admittance_controller']
+  stoplist: ['joint_space_controller', 'path_passthrough_controller']
 
   poses_topic: /valve_poses
   angular_speed: 0.5
@@ -152,9 +152,11 @@ MANIPULATE_VALVE:
 BACKOFF_VALVE:
   default_outcome: None
   manager_namespace: panda
-  startlist: [ 'mpc_controller', 'path_passthrough_controller' ]
-  stoplist: [ 'joint_space_controller' ]
+  startlist: [ 'mpc_controller', 'path_admittance_controller' ]
+  stoplist: [ 'joint_space_controller', 'path_passthrough_controller' ]
+  duration: 10.0
 
   poses_topic: /valve_poses
   offset: [ 0, 0, -0.1 ]
   section: 'last'
+
