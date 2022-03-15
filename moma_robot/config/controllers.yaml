@@ -153,8 +153,8 @@ path_admittance_ur_controller:
   force_threshold: [2.0, 2.0, 2.0]
   torque_threshold: [0.5, 0.5, 0.5]
 
-cartesian_impedance_example_controller:
-    type: franka_example_controllers/CartesianImpedanceExampleController
+cartesian_impedance_controller:
+    type: moma_controllers/CartesianImpedanceController
     arm_id: panda
     joint_names:
         - panda_joint1

@@ -12,9 +12,9 @@ rospy.loginfo(f"Waiting for service server...")
 client.wait_for_service()
 rospy.loginfo(f"... service server found")
 
-NE_T_EE = np.array([[1., 0., 0., 0.],
-                    [0., 1., 0., 0.],
-                    [0., 0., 1., 0.1],
+NE_T_EE = np.array([[0.7071068, 0.7071068, 0., 0.],
+                    [-0.7071068, 0.7071068, 0., 0.],
+                    [0., 0., 1., 0.12],
                     [0., 0., 0., 1.]])
 NE_T_EE = np.reshape(NE_T_EE.transpose(), -1).tolist()
 
