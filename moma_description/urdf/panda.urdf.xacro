@@ -11,5 +11,13 @@
   <xacro:arg name="use_nominal_extrinsics" default="false"/>
 
   <xacro:include filename="$(find moma_description)/urdf/panda_arm.xacro"/>
-  <xacro:moma_panda use_fixed_realsense="$(arg use_fixed_realsense)" use_nominal_extrinsics="$(arg use_nominal_extrinsics)"/>
+  <xacro:moma_panda arm_id="$(arg arm_id)"
+                    hand="$(arg hand)"
+                    gazebo="$(arg gazebo)"
+                    fixed_to_world="$(arg fixed_to_world)"
+                    connected_to="$(arg connected_to)"
+                    xyz="$(arg xyz)"
+                    rpy="$(arg rpy)"
+                    use_fixed_realsense="$(arg use_fixed_realsense)"
+                    use_nominal_extrinsics="$(arg use_nominal_extrinsics)"/>
 </robot>

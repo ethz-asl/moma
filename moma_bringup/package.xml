@@ -9,6 +9,7 @@
 
   <buildtool_depend>catkin</buildtool_depend>
   <depend>panda_moveit_config</depend>
+  <depend>royalpanda_moveit_config</depend>
   <depend>moma_description</depend>
   <depend>franka_gazebo</depend>
 </package>
