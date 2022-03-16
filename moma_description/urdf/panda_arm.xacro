@@ -1,0 +1,123 @@
+<?xml version='1.0' encoding='utf-8'?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="panda">
+
+<!-- Adapted from franka_description/robots/panda_arm.urdf.xacro -->
+
+<xacro:macro name="moma_panda" params="arm_id:='panda'
+                                       hand:=true
+                                       gazebo:=false
+                                       fixed_to_world:=false
+                                       connected_to:=''
+                                       xyz:='0 0 0'
+                                       rpy:='0 0 0'
+                                       use_fixed_realsense:=false
+                                       use_nominal_extrinsics:=false">
+  <xacro:unless value="${gazebo}">
+    <!-- Create a URDF for a real hardware -->
+    <xacro:include filename="$(find franka_description)/robots/panda_arm.xacro" />
+    <xacro:panda_arm arm_id="${arm_id}"
+                     connected_to="${connected_to}"
+                     xyz="${xyz}"
+                     rpy="${rpy}"
+                     safety_distance="0.03"/>
+
+    <xacro:if value="${hand}">
+      <xacro:include filename="$(find franka_description)/robots/hand.xacro"/>
+      <xacro:hand arm_id="${arm_id}" rpy="0 0 ${-pi/4}" connected_to="${arm_id}_link8" safety_distance="0.03"/>
+    </xacro:if>
+  </xacro:unless>
+
+  <xacro:if value="${gazebo}">
+    <!-- Create a simulatable URDF -->
+    <xacro:include filename="$(find franka_description)/robots/utils.xacro" />
+    <xacro:include filename="$(find franka_description)/robots/panda_gazebo.xacro" />
+
+    <xacro:panda_arm arm_id="${arm_id}"
+                     connected_to="${connected_to}"
+                     xyz="${xyz}"
+                     rpy="${rpy}"/>
+
+    <xacro:if value="${hand}">
+      <xacro:hand arm_id="${arm_id}" rpy="0 0 ${-pi/4}" connected_to="${arm_id}_link8" />
+      <xacro:gazebo-joint joint="${arm_id}_finger_joint1" transmission="hardware_interface/EffortJointInterface" />
+      <xacro:gazebo-joint joint="${arm_id}_finger_joint2" transmission="hardware_interface/EffortJointInterface" />
+    </xacro:if>
+
+    <!-- Gazebo requires a joint to a link called "world" for statically mounted robots -->
+    <xacro:if value="${fixed_to_world}">
+      <link name="world" />
+      <joint name="world_joint" type="fixed">
+        <origin xyz="${xyz}" rpy="${rpy}" />
+        <parent link="world" />
+        <child  link="${arm_id}_link0" />
+      </joint>
+    </xacro:if>
+
+    <xacro:gazebo-joint joint="${arm_id}_joint1" transmission="hardware_interface/PositionJointInterface" />
+    <xacro:gazebo-joint joint="${arm_id}_joint2" transmission="hardware_interface/PositionJointInterface" />
+    <xacro:gazebo-joint joint="${arm_id}_joint3" transmission="hardware_interface/PositionJointInterface" />
+    <xacro:gazebo-joint joint="${arm_id}_joint4" transmission="hardware_interface/PositionJointInterface" />
+    <xacro:gazebo-joint joint="${arm_id}_joint5" transmission="hardware_interface/PositionJointInterface" />
+    <xacro:gazebo-joint joint="${arm_id}_joint6" transmission="hardware_interface/PositionJointInterface" />
+    <xacro:gazebo-joint joint="${arm_id}_joint7" transmission="hardware_interface/PositionJointInterface" />
+
+    <xacro:gazebo-joint joint="${arm_id}_joint1" transmission="hardware_interface/VelocityJointInterface" />
+    <xacro:gazebo-joint joint="${arm_id}_joint2" transmission="hardware_interface/VelocityJointInterface" />
+    <xacro:gazebo-joint joint="${arm_id}_joint3" transmission="hardware_interface/VelocityJointInterface" />
+    <xacro:gazebo-joint joint="${arm_id}_joint4" transmission="hardware_interface/VelocityJointInterface" />
+    <xacro:gazebo-joint joint="${arm_id}_joint5" transmission="hardware_interface/VelocityJointInterface" />
+    <xacro:gazebo-joint joint="${arm_id}_joint6" transmission="hardware_interface/VelocityJointInterface" />
+    <xacro:gazebo-joint joint="${arm_id}_joint7" transmission="hardware_interface/VelocityJointInterface" />
+
+    <xacro:gazebo-joint joint="${arm_id}_joint1" transmission="hardware_interface/EffortJointInterface" />
+    <xacro:gazebo-joint joint="${arm_id}_joint2" transmission="hardware_interface/EffortJointInterface" />
+    <xacro:gazebo-joint joint="${arm_id}_joint3" transmission="hardware_interface/EffortJointInterface" />
+    <xacro:gazebo-joint joint="${arm_id}_joint4" transmission="hardware_interface/EffortJointInterface" />
+    <xacro:gazebo-joint joint="${arm_id}_joint5" transmission="hardware_interface/EffortJointInterface" />
+    <xacro:gazebo-joint joint="${arm_id}_joint6" transmission="hardware_interface/EffortJointInterface" />
+    <xacro:gazebo-joint joint="${arm_id}_joint7" transmission="hardware_interface/EffortJointInterface" />
+
+    <xacro:transmission-franka-state arm_id="${arm_id}" />
+    <xacro:transmission-franka-model arm_id="${arm_id}"
+       root="${arm_id}_joint1"
+       tip="${arm_id}_joint8"
+     />
+
+    <gazebo>
+      <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
+        <controlPeriod>0.001</controlPeriod>
+        <robotSimType>franka_gazebo/FrankaHWSim</robotSimType>
+      </plugin>
+      <self_collide>true</self_collide>
+    </gazebo>
+  </xacro:if>
+
+  <!-- end effector frame for MoveIt -->
+  <link name="panda_default_ee"/>
+  <joint name="joint_link8_default_ee" type="fixed">
+    <parent link="panda_link8"/>
+    <child link="panda_default_ee"/>
+    <origin rpy="0.0 0.0 -0.785" xyz="0.0 0.0 0.103"/>
+  </joint>
+
+  <!-- wrist realsense -->
+  <xacro:include filename="$(find realsense2_description)/urdf/_d435.urdf.xacro" />
+  <xacro:include filename="$(find moma_description)/urdf/realsense.gazebo.xacro" />
+  <xacro:realsense_gazebo_plugin camera_name="wrist_camera"/>
+  <xacro:property name="panda_link7_camera_bottom_screw_frame_rpy" value="-0.5033 -1.566 2.865" />
+  <xacro:property name="panda_link7_camera_bottom_screw_frame_xyz" value="0.0256 -0.0246 0.1522" />
+  <xacro:sensor_d435 parent="panda_link7" name="wrist_camera">
+    <origin rpy="${panda_link7_camera_bottom_screw_frame_rpy}" xyz="${panda_link7_camera_bottom_screw_frame_xyz}" />
+  </xacro:sensor_d435>
+
+  <!-- fixed realsense -->
+  <xacro:if value="${use_fixed_realsense}">
+    <xacro:realsense_gazebo_plugin camera_name="fixed_camera"/>
+    <xacro:property name="base_link_camera_bottom_screw_frame_rpy" value="0 0.79 -0.79" />
+    <xacro:property name="base_link_camera_bottom_screw_frame_xyz" value="0.1 0.75 0.9" />
+    <xacro:sensor_d435 parent="base_link" name="fixed_camera">
+      <origin rpy="${base_link_camera_bottom_screw_frame_rpy}" xyz="${base_link_camera_bottom_screw_frame_xyz}" />
+    </xacro:sensor_d435>
+  </xacro:if>
+</xacro:macro>
+</robot>
