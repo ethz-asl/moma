@@ -106,7 +106,7 @@
   <xacro:realsense_gazebo_plugin camera_name="wrist_camera"/>
   <xacro:property name="panda_link7_camera_bottom_screw_frame_rpy" value="-0.5033 -1.566 2.865" />
   <xacro:property name="panda_link7_camera_bottom_screw_frame_xyz" value="0.0256 -0.0246 0.1522" />
-  <xacro:sensor_d435 parent="panda_link7" name="wrist_camera">
+  <xacro:sensor_d435 parent="panda_link7" name="wrist_camera" use_nominal_extrinsics="${use_nominal_extrinsics}">
     <origin rpy="${panda_link7_camera_bottom_screw_frame_rpy}" xyz="${panda_link7_camera_bottom_screw_frame_xyz}" />
   </xacro:sensor_d435>
 
@@ -115,7 +115,7 @@
     <xacro:realsense_gazebo_plugin camera_name="fixed_camera"/>
     <xacro:property name="base_link_camera_bottom_screw_frame_rpy" value="0 0.79 -0.79" />
     <xacro:property name="base_link_camera_bottom_screw_frame_xyz" value="0.1 0.75 0.9" />
-    <xacro:sensor_d435 parent="base_link" name="fixed_camera">
+    <xacro:sensor_d435 parent="base_link" name="fixed_camera" use_nominal_extrinsics="${use_nominal_extrinsics}">
       <origin rpy="${base_link_camera_bottom_screw_frame_rpy}" xyz="${base_link_camera_bottom_screw_frame_xyz}" />
     </xacro:sensor_d435>
   </xacro:if>
