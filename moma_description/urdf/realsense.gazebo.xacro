@@ -2,7 +2,7 @@
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="realsense">
   <xacro:macro name="realsense_gazebo_plugin" params="camera_name:=camera">
     <gazebo reference="${camera_name}_link">
-      <sensor type="depth" name="${camera_name}">
+      <sensor type="depth" name="depth">
         <always_on>true</always_on>
         <update_rate>30</update_rate>
         <camera>
@@ -17,7 +17,7 @@
             <far>10</far>
           </clip>
         </camera>
-        <plugin filename="libgazebo_ros_openni_kinect.so" name="camera_plugin">
+        <plugin filename="libgazebo_ros_openni_kinect.so" name="depth_camera_plugin">
           <alwaysOn>true</alwaysOn>
           <!-- <baseline>0.2</baseline> -->
           <updateRate>0.0</updateRate>
@@ -37,6 +37,7 @@
           <distortionT2>0</distortionT2>
         </plugin>
       </sensor>
+
     </gazebo>
   </xacro:macro>
 </robot>

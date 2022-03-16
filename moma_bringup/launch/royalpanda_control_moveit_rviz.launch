@@ -11,7 +11,7 @@
   <!-- Launch the panda control node -->
   <include file="$(find panda_control)/launch/panda_control.launch">
     <arg name="robot_description" value="$(find moma_description)/urdf/royalpanda.urdf.xacro"/>
-    <arg name="load_robot_description" value="false"/>
+    <!-- <arg name="load_robot_description" value="false"/> -->
   </include>
 
   <!-- Start a joint trajectory controller -->
@@ -19,7 +19,7 @@
 
   <!-- Launch MoveIt -->
   <include file="$(find royalpanda_moveit_config)/launch/move_group.launch">
-    <arg name="load_robot_description" value="false"/>
+    <!-- <arg name="load_robot_description" value="false"/> -->
   </include>
 
   <!-- If desired, launch a preconfigured Rviz -->
