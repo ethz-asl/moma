@@ -12,6 +12,10 @@
 #include <geometry_msgs/WrenchStamped.h>
 #include <std_msgs/Float64MultiArray.h>
 
+#include <tf2_ros/buffer.h>
+#include <tf2_ros/transform_listener.h>
+#include <geometry_msgs/TransformStamped.h>
+
 #include <moma_cartesian_impedance_controller/pseudo_inversion.hpp>
 
 // TODO become stiffer next to joint limits
@@ -57,17 +61,24 @@ bool CartesianImpedanceController::init_params(ros::NodeHandle& node_handle)
   if (!node_handle.getParam("safety_margin", safety_margin_) || safety_margin_ < 0)
   {
     ROS_ERROR_STREAM("Failed to get safety margin or invalid param.");
+    return false;
   }
 
   std::vector<double> q_nullspace{};
   if (!node_handle.getParam("q_nullspace", q_nullspace) || q_nullspace.size() != 7)
   {
-    ROS_ERROR_STREAM("Failed to get safety margin or invalid param.");
+    ROS_ERROR_STREAM("Failed to get q nullspace or invalid param.");
+    return false;
+  }
+
+  if (!node_handle.getParam("target_frame", target_frame_id_) || target_frame_id_.empty())
+  {
+    ROS_ERROR_STREAM("Failed to get target_frame or invalid param.");
+    return false;
   }
 
   for (size_t i{}; i < 7; i++)
   {
-    // params_.q_d_nullspace_[i] = q_nullspace[i];
     q_min_(i) = lower_limit[i] + safety_margin_;
     q_max_(i) = upper_limit[i] - safety_margin_;
   }
@@ -259,6 +270,22 @@ bool CartesianImpedanceController::init(hardware_interface::RobotHW* robot_hw, r
   init_reference();
 
   init_ros_sub_pub(node_handle);
+
+  // find transform from target to hand
+  tf2_ros::Buffer buffer;
+  tf2_ros::TransformListener listener(buffer);
+  geometry_msgs::TransformStamped tf_tool_ee;
+  try
+  {
+    tf_tool_ee = buffer.lookupTransform(target_frame_id_, ee_frame_id_, ros::Time(0), ros::Duration(3.0));
+    tf::transformMsgToEigen(tf_tool_ee.transform, T_tool_ee_);
+    ROS_INFO_STREAM("Relative transfor end effector to tool frame is\n" << T_tool_ee_.matrix());
+  }
+  catch (tf2::TransformException& ex)
+  {
+    ROS_WARN(ex.what());
+    return false;
+  }
 
   ROS_INFO("Controller successfully initialized.");
   return true;
@@ -464,21 +491,20 @@ void CartesianImpedanceController::complianceParamCallback(
 
 void CartesianImpedanceController::equilibriumPoseCallback(const geometry_msgs::PoseStampedConstPtr& msg)
 {
-  // clang-format off
-    std::lock_guard<std::mutex> position_d_target_mutex_lock(position_and_orientation_d_target_mutex_);
-    position_d_target_ << msg->pose.position.x,
-                          msg->pose.position.y,
-                          msg->pose.position.z;
+  Eigen::Affine3d T_base_tool;
+  tf::poseMsgToEigen(msg->pose, T_base_tool);
+  Eigen::Affine3d T_base_ee = T_base_tool * T_tool_ee_;
 
-    Eigen::Quaterniond last_orientation_d_target(orientation_d_target_);
-    orientation_d_target_.coeffs() << msg->pose.orientation.x,
-                                      msg->pose.orientation.y,
-                                      msg->pose.orientation.z, 
-                                      msg->pose.orientation.w;
-    if (last_orientation_d_target.coeffs().dot(orientation_d_target_.coeffs()) < 0.0)
-    {
-      orientation_d_target_.coeffs() << -orientation_d_target_.coeffs();
-    }
+  // clang-format off
+  std::lock_guard<std::mutex> position_d_target_mutex_lock(position_and_orientation_d_target_mutex_);
+  position_d_target_ << T_base_ee.translation();
+
+  Eigen::Quaterniond last_orientation_d_target(orientation_d_target_);
+  orientation_d_target_.coeffs() << Eigen::Quaterniond(T_base_ee.linear()).coeffs();
+  if (last_orientation_d_target.coeffs().dot(orientation_d_target_.coeffs()) < 0.0)
+  {
+    orientation_d_target_.coeffs() << -orientation_d_target_.coeffs();
+  }
   // clang-format on
 }
 
