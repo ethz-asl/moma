@@ -113,8 +113,9 @@ private:
   std::string arm_id_;
   std::string arm_description_;
   std::vector<std::string> joint_names_;
-  std::string ee_frame_id_ = "panda_hand";
-  std::string base_frame_id_ = "panda_link0";
+  const std::string ee_frame_id_ = "panda_hand";
+  const std::string base_frame_id_ = "panda_link0";
+  std::string target_frame_id_ = "panda_hand";
   const double delta_tau_max_{ 1.0 };
 
   Eigen::Vector3d position_d_;
@@ -132,6 +133,7 @@ private:
   Vector7d q_min_;
   Vector7d q_max_;
   double safety_margin_;
+  Eigen::Affine3d T_tool_ee_;
   std::unique_ptr<rc::RobotWrapper> model_;
 
   // Dynamic reconfigure
