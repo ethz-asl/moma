@@ -50,10 +50,15 @@ bool CartesianImpedanceController::init_params(ros::NodeHandle& node_handle)
     return false;
   }
 
+  if (!node_handle.getParam("safety_margin", safety_margin_) || safety_margin_ < 0)
+  {
+    ROS_ERROR_STREAM("Failed to get safety margin or invalid param.");
+  }
+
   for (size_t i{}; i < 7; i++)
   {
-    q_min_(i) = lower_limit[i];
-    q_max_(i) = upper_limit[i];
+    q_min_(i) = lower_limit[i] + safety_margin_;
+    q_max_(i) = upper_limit[i] - safety_margin_;
   }
 
   ROS_INFO("All parameters successfully initialized.");
@@ -351,6 +356,7 @@ void CartesianImpedanceController::update(const ros::Time& /*time*/, const ros::
   Vector7d tau_task;
   Vector7d tau_nullspace;
   Vector7d tau_d;
+  Vector7d tau_limits;
 
   // pseudoinverse for nullspace handling
   // kinematic pseuoinverse
@@ -377,8 +383,12 @@ void CartesianImpedanceController::update(const ros::Time& /*time*/, const ros::
                        (params_.nullspace_stiffness_ * (params_.q_d_nullspace_ - q_.head<7>()) -
                         (2.0 * sqrt(params_.nullspace_stiffness_)) * qd_.head<7>());
 
+  // Avoid to hit joint limits
+  Vector7d delta_q_limits_ = (q_max_ - q_).cwiseMin(0.0) + (q_min_ - q_).cwiseMax(0.0);
+  tau_limits = params_.limits_stiffness_ * delta_q_limits_;
+
   // Desired torque
-  tau_d << tau_task + tau_nullspace + non_linear_terms;
+  tau_d << tau_task + tau_nullspace + tau_limits + non_linear_terms;
 
   // Saturate torque rate to avoid discontinuities
   if (!sim_)
@@ -436,6 +446,7 @@ void CartesianImpedanceController::complianceParamCallback(
   new_params_.cartesian_damping_.bottomRightCorner(3, 3)
       << 2.0 * sqrt(config.rotational_stiffness) * Eigen::Matrix3d::Identity() * config.rotational_damping_ratio;
   new_params_.nullspace_stiffness_ = config.nullspace_stiffness;
+  new_params_.limits_stiffness_ = config.limits_stiffness;
   new_params_.resetIntegratorThreshold_ = config.reset_integrator_threshold;
   new_params_.forceLimit_ = config.max_force;
   new_params_.torqueLimit_ = config.max_torque;

@@ -81,6 +81,6 @@ install(FILES plugin.xml
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
 catkin_install_python(
-  PROGRAMS scripts/recover.py scripts/set_EE_frame.py
+  PROGRAMS scripts/recover.py scripts/set_EE_frame.py scripts/interactive_marker.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )

@@ -33,6 +33,7 @@ struct CartesianImpedanceParams
   double torqueLimit_;
   double nullspace_stiffness_{ 20.0 };
   double resetIntegratorThreshold_{ 2.0 };
+  double limits_stiffness_{ 100.0 };
   Matrix6d cartesian_stiffness_;
   Matrix6d cartesian_stiffness_i_;
   Vector6d windup_limit_;
@@ -62,6 +63,7 @@ struct CartesianImpedanceParams
     blend(windup_limit_, new_params.windup_limit_, alpha);
     blend(forceLimit_, new_params.forceLimit_, alpha);
     blend(torqueLimit_, new_params.torqueLimit_, alpha);
+    blend(limits_stiffness_, new_params.limits_stiffness_, alpha);
     resetIntegratorThreshold_ = new_params.resetIntegratorThreshold_;
     q_d_nullspace_ = new_params.q_d_nullspace_;
   }
@@ -129,6 +131,7 @@ private:
   Vector7d tau_;
   Vector7d q_min_;
   Vector7d q_max_;
+  double safety_margin_;
   std::unique_ptr<rc::RobotWrapper> model_;
 
   // Dynamic reconfigure
