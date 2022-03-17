@@ -48,6 +48,7 @@ HOME_ROBOT_FINAL:
   stoplist:
     [
       "mpc_controller",
+      "cartesian_impedance_controller",
       "path_passthrough_controller",
       "effort_joint_trajectory_controller",
     ]
