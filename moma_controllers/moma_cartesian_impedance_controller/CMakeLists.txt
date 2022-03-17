@@ -5,7 +5,7 @@ set(CMAKE_BUILD_TYPE Release)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(catkin REQUIRED COMPONENTS
+set(PROJECT_DEPENDENCIES 
   controller_interface
   dynamic_reconfigure
   eigen_conversions
@@ -18,6 +18,10 @@ find_package(catkin REQUIRED COMPONENTS
   pluginlib
   realtime_tools
   roscpp
+  robot_control)
+
+find_package(catkin REQUIRED COMPONENTS
+  ${PROJECT_DEPENDENCIES}
 )
 
 find_package(Eigen3 REQUIRED)
@@ -29,20 +33,8 @@ generate_dynamic_reconfigure_options(
 
 catkin_package(
   INCLUDE_DIRS include
-  LIBRARIES moma_cartesian_impedance_controller
-  CATKIN_DEPENDS
-    controller_interface
-    dynamic_reconfigure
-    eigen_conversions
-    franka_hw
-    franka_gripper
-    geometry_msgs
-    hardware_interface
-    tf
-    tf_conversions
-    pluginlib
-    realtime_tools
-    roscpp
+  LIBRARIES ${PROJECT_NAME}
+  CATKIN_DEPENDS ${PROJECT_DEPENDENCIES}
   DEPENDS Franka
 )
 
@@ -85,10 +77,10 @@ install(DIRECTORY launch
 install(DIRECTORY config
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
-install(FILES moma_cartesian_impedance_controller.xml
+install(FILES plugin.xml
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
 catkin_install_python(
-  PROGRAMS scripts/recover.py scripts/set_EE_frame.py
+  PROGRAMS scripts/recover.py scripts/set_EE_frame.py scripts/interactive_marker.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
