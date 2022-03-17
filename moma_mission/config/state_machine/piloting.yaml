@@ -145,7 +145,6 @@ APPROACH_VALVE:
   section: "first"
 
 GRASP_VALVE:
-  ee_frame: panda_hand
   default_outcome: None
   mode: pose
   control_frame: panda_link0
@@ -159,7 +158,6 @@ GRASP_VALVE:
   section: "first"
 
 MANIPULATE_VALVE:
-  ee_frame: panda_hand
   default_outcome: None
   mode: pose
   control_frame: panda_link0
@@ -173,7 +171,6 @@ MANIPULATE_VALVE:
   angular_speed: 0.5
 
 BACKOFF_VALVE:
-  ee_frame: panda_hand
   default_outcome: None
   mode: pose
   control_frame: panda_link0

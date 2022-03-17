@@ -89,7 +89,7 @@
     </include>
 
   <!-- Perception -->
-  <include file="$(find piloting_demo)/launch/perception.launch">
+  <!-- <include file="$(find piloting_demo)/launch/perception.launch">
     <arg name="sim"                     value="true"/>
     <arg name="play_bag"                value="false"/>
     <arg name="base_frame"              value="tracking_camera_odom"/>
@@ -99,7 +99,7 @@
     <arg name="calibration_topic"       value="/camera_info"/>
     <arg name="custom_intrinsics"       value="true"/>
     <arg name="rviz"                    value="false"/>
-  </include>
+  </include> -->
 
   <!-- try cleaner start waiting some time before unpausing -->
   <node name="unpause_gazebo" pkg="moma_gazebo" type="unpause_gazebo.py">

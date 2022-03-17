@@ -98,7 +98,7 @@ try:
         state_machine.add('APPROACH_VALVE',
                           PathVisitorState,
                           transitions={'Completed': 'GRASP_VALVE',
-                                       'Failure': 'DETECTION_DECISION'})
+                                       'Failure': 'Failure'})
 
         rospy.loginfo("Grasp valve")
         state_machine.add('GRASP_VALVE',
