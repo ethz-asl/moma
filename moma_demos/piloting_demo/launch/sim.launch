@@ -5,7 +5,7 @@
     <arg name="use_fixed_realsense" default="false"/>
     <arg name="tool" default="panda_hand"/>
     <arg name="launch_navigation" default="true"/>
-    <arg name="base_type" default="1"/>
+    <arg name="base_type" default="0"/>
     <arg name="world_name" default="$(find piloting_demo)/worlds/schutz.world"/>
 
     <!-- Control-->
