@@ -55,8 +55,15 @@ bool CartesianImpedanceController::init_params(ros::NodeHandle& node_handle)
     ROS_ERROR_STREAM("Failed to get safety margin or invalid param.");
   }
 
+  std::vector<double> q_nullspace{};
+  if (!node_handle.getParam("q_nullspace", q_nullspace) || q_nullspace.size() != 7)
+  {
+    ROS_ERROR_STREAM("Failed to get safety margin or invalid param.");
+  }
+
   for (size_t i{}; i < 7; i++)
   {
+    params_.q_d_nullspace_[i] = q_nullspace[i];
     q_min_(i) = lower_limit[i] + safety_margin_;
     q_max_(i) = upper_limit[i] - safety_margin_;
   }
@@ -310,7 +317,6 @@ void CartesianImpedanceController::update(const ros::Time& /*time*/, const ros::
     transform = model_->getFramePlacement(ee_frame_id_).toHomogeneousMatrix();
     position = transform.translation();
     orientation = transform.linear();
-    ROS_INFO_STREAM_THROTTLE(1.0, "Non linear terms are: " << non_linear_terms.transpose());
   }
   else
   {
@@ -345,7 +351,6 @@ void CartesianImpedanceController::update(const ros::Time& /*time*/, const ros::
   error.tail(3) << error_quaternion.x(), error_quaternion.y(), error_quaternion.z();
   // Transform to base frame
   error.tail(3) << -transform.linear() * error.tail(3);
-  ROS_INFO_STREAM_THROTTLE(0.5, error.transpose());
 
   error_integrator_ += params_.cartesian_stiffness_i_ * error;
   error_integrator_ = error_integrator_.cwiseMin(params_.windup_limit_);

@@ -10,7 +10,7 @@ cartesian_velocity_controller:
       velocity: 0.5
       acceleration: 5.0
       jerk: 2000.0
-  max_duration_between_commands: 0.1  # velocity is set to 0 if no new command is received within this time
+  max_duration_between_commands: 0.1 # velocity is set to 0 if no new command is received within this time
 
 joint_space_controller:
   simulation: false
@@ -30,13 +30,20 @@ joint_space_controller:
   gain: 1.0
   tolerance: 0.017 # 1 deg
   pid_gains:
-    panda_joint1: { p: 100.0, i: 0.0, d: 10.0, i_clamp_min: -100.0, i_clamp_max: 100.0 }
-    panda_joint2: { p: 100.0, i: 0.0, d: 10.0, i_clamp_min: -5.0, i_clamp_max: 5.0 }
-    panda_joint3: { p: 100.0, i: 0.0, d: 10.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
-    panda_joint4: { p: 100.0, i: 0.0, d: 10.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
-    panda_joint5: { p: 200.0, i: 0.0, d: 0.2, i_clamp_min: -1.0, i_clamp_max: 1.0 }
-    panda_joint6: { p: 200.0, i: 0.0, d: 10.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
-    panda_joint7: { p: 100.0, i: 0.0, d: 10.0, i_clamp_min: -0.1, i_clamp_max: 0.1 }
+    panda_joint1:
+      { p: 100.0, i: 0.0, d: 10.0, i_clamp_min: -100.0, i_clamp_max: 100.0 }
+    panda_joint2:
+      { p: 100.0, i: 0.0, d: 10.0, i_clamp_min: -5.0, i_clamp_max: 5.0 }
+    panda_joint3:
+      { p: 100.0, i: 0.0, d: 10.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
+    panda_joint4:
+      { p: 100.0, i: 0.0, d: 10.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
+    panda_joint5:
+      { p: 200.0, i: 0.0, d: 0.2, i_clamp_min: -1.0, i_clamp_max: 1.0 }
+    panda_joint6:
+      { p: 200.0, i: 0.0, d: 10.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
+    panda_joint7:
+      { p: 100.0, i: 0.0, d: 10.0, i_clamp_min: -0.1, i_clamp_max: 0.1 }
 
 joint_velocity_controller:
   simulation: false
@@ -80,13 +87,20 @@ mpc_controller:
   path_topic: /mpc_reference_path
 
   gains:
-    panda_joint1: { p: 800.0, i: 0.0, d: 50.0, i_clamp_min: -100.0, i_clamp_max: 100.0 }
-    panda_joint2: { p: 500.0, i: 0.0, d: 30.0, i_clamp_min: -5.0, i_clamp_max: 5.0 }
-    panda_joint3: { p: 500.0, i: 0.0, d: 30.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
-    panda_joint4: { p: 500.0, i: 0.0, d: 30.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
-    panda_joint5: { p: 300.0, i: 0.0, d: 10.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
-    panda_joint6: { p: 300.0, i: 0.0, d: 10.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
-    panda_joint7: { p: 100.0, i: 0.0, d: 5.0, i_clamp_min: -0.1, i_clamp_max: 0.1 }
+    panda_joint1:
+      { p: 800.0, i: 0.0, d: 50.0, i_clamp_min: -100.0, i_clamp_max: 100.0 }
+    panda_joint2:
+      { p: 500.0, i: 0.0, d: 30.0, i_clamp_min: -5.0, i_clamp_max: 5.0 }
+    panda_joint3:
+      { p: 500.0, i: 0.0, d: 30.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
+    panda_joint4:
+      { p: 500.0, i: 0.0, d: 30.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
+    panda_joint5:
+      { p: 300.0, i: 0.0, d: 10.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
+    panda_joint6:
+      { p: 300.0, i: 0.0, d: 10.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
+    panda_joint7:
+      { p: 100.0, i: 0.0, d: 5.0, i_clamp_min: -0.1, i_clamp_max: 0.1 }
 
 mpc_ur_controller:
   type: moma_controllers/UrMpcController
@@ -105,12 +119,18 @@ mpc_ur_controller:
   path_topic: /mpc_reference_path
 
   gains:
-    shoulder_pan_joint:   { p: 5.0, i: 0.0, d: 0.03, i_clamp_min: -0.01, i_clamp_max: 0.01 }
-    shoulder_lift_joint:  { p: 4.0, i: 0.0, d: 0.03, i_clamp_min: -0.01, i_clamp_max: 0.01 }
-    elbow_joint:          { p: 4.0, i: 0.0, d: 0.03, i_clamp_min: -0.01, i_clamp_max: 0.01 }
-    wrist_1_joint:        { p: 4.0, i: 0.0, d: 0.03, i_clamp_min: -0.01, i_clamp_max: 0.01 }
-    wrist_2_joint:        { p: 3.0, i: 0.0, d: 0.008, i_clamp_min: -0.01, i_clamp_max: 0.01 }
-    wrist_3_joint:        { p: 3.0, i: 0.0, d: 0.008, i_clamp_min: -0.01, i_clamp_max: 0.01 }
+    shoulder_pan_joint:
+      { p: 5.0, i: 0.0, d: 0.03, i_clamp_min: -0.01, i_clamp_max: 0.01 }
+    shoulder_lift_joint:
+      { p: 4.0, i: 0.0, d: 0.03, i_clamp_min: -0.01, i_clamp_max: 0.01 }
+    elbow_joint:
+      { p: 4.0, i: 0.0, d: 0.03, i_clamp_min: -0.01, i_clamp_max: 0.01 }
+    wrist_1_joint:
+      { p: 4.0, i: 0.0, d: 0.03, i_clamp_min: -0.01, i_clamp_max: 0.01 }
+    wrist_2_joint:
+      { p: 3.0, i: 0.0, d: 0.008, i_clamp_min: -0.01, i_clamp_max: 0.01 }
+    wrist_3_joint:
+      { p: 3.0, i: 0.0, d: 0.008, i_clamp_min: -0.01, i_clamp_max: 0.01 }
 
 path_passthrough_controller:
   type: moma_controllers/PathPassthroughController
@@ -153,16 +173,18 @@ path_admittance_ur_controller:
   torque_threshold: [0.5, 0.5, 0.5]
 
 cartesian_impedance_controller:
-    type: moma_controllers/CartesianImpedanceController
-    arm_id: panda
-    joint_names:
-        - panda_joint1
-        - panda_joint2
-        - panda_joint3
-        - panda_joint4
-        - panda_joint5
-        - panda_joint6
-        - panda_joint7
-    filter_params: 0.1
-    lower_limit: [-2.8973, -1.7628, -2.8973, -3.0718, -2.8973, -0.0175, -2.8973]
-    upper_limit: [2.8973, 1.7628, 2.8973, -0.0698, 2.8973, 3.7525, 2.8973]
+  type: moma_controllers/CartesianImpedanceController
+  arm_id: panda
+  joint_names:
+    - panda_joint1
+    - panda_joint2
+    - panda_joint3
+    - panda_joint4
+    - panda_joint5
+    - panda_joint6
+    - panda_joint7
+  filter_params: 0.1
+  safety_margin: 0.087 # ~5 degrees
+  q_nullspace: [0.0, 0.0, 0.0, -1.5, 0.0, 0.0, 1.5, 0.0]
+  lower_limit: [-2.8973, -1.7628, -2.8973, -3.0718, -2.8973, -0.0175, -2.8973]
+  upper_limit: [2.8973, 1.7628, 2.8973, -0.0698, 2.8973, 3.7525, 2.8973]
