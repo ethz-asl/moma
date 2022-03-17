@@ -1,15 +1,23 @@
 <?xml version="1.0"?>
 <launch>
-  <!-- valve model -->
-  <include file="$(find piloting_demo)/launch/valve.launch"/>
+  <!-- interactive marker -->
+  <node pkg="moma_cartesian_impedance_controller" type="interactive_marker.py" name="interactive_marker" output="screen">
+    <param name="base_frame" value="panda_link0"/>
+    <param name="target_frame" value="panda_hand"/>
+    <param name="topic_name" value="/panda/cartesian_impedance_controller/equilibrium_pose"/>
+  </node>
   
   <!-- set the correct internal ee frame -->
   <node pkg="moma_cartesian_impedance_controller" type="set_EE_frame.py" name="set_EE_frame_node" output="screen" respawn="true"/>
+  
+  <!-- valve model -->
+  <include file="$(find piloting_demo)/launch/valve.launch"/>
+  
 
   <!-- mission state machine -->
   <rosparam command="load" file="$(find moma_mission)/config/state_machine/piloting.yaml" subst_value="true"/>
   <rosparam command="load" file="$(find moma_mission)/config/state_machine/piloting_frames.yaml"/>
-  <node pkg="moma_mission" type="piloting.py" name="piloting_demo" output="screen">
+  <!-- <node pkg="moma_mission" type="piloting.py" name="piloting_demo" output="screen">
     <param name="telemetry_odom_topic" value="/camera/odom/sample"/>
-  </node>
+  </node> -->
 </launch>

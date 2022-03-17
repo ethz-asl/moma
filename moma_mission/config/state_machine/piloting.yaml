@@ -28,8 +28,14 @@ HOME_ROBOT:
   default_outcome: None
   action_name: /joint_space_controller_server
   manager_namespace: panda
-  startlist: ['joint_space_controller']
-  stoplist: ['mpc_controller', 'cartesian_impedance_controller', 'path_passthrough_controller', 'effort_joint_trajectory_controller']
+  startlist: ["joint_space_controller"]
+  stoplist:
+    [
+      "mpc_controller",
+      "cartesian_impedance_controller",
+      "path_passthrough_controller",
+      "effort_joint_trajectory_controller",
+    ]
   joints_configurations:
     - [0, -0.885, 0, -2.1, 0, 1.571, 0]
 
@@ -38,8 +44,13 @@ HOME_ROBOT_FINAL:
   default_outcome: None
   action_name: /joint_space_controller_server
   manager_namespace: panda
-  startlist: ['joint_space_controller']
-  stoplist: ['mpc_controller', 'path_passthrough_controller', 'effort_joint_trajectory_controller']
+  startlist: ["joint_space_controller"]
+  stoplist:
+    [
+      "mpc_controller",
+      "path_passthrough_controller",
+      "effort_joint_trajectory_controller",
+    ]
   joints_configurations:
     - [-0.65, -0.885, 0, -2.1, 0, 1.571, 0]
 
@@ -52,7 +63,7 @@ REACH_DETECTION_HOTSPOT:
   base_odometry_topic: /base_odom
 
   manager_namespace: smb
-  startlist: ['smb_diff_drive']
+  startlist: ["smb_diff_drive"]
   stoplist: []
 
   timeout: 10000.0
@@ -67,7 +78,7 @@ WAYPOINT_FOLLOWING:
   base_odometry_topic: /camera/odom/sample
 
   manager_namespace: smb
-  startlist: ['smb_diff_drive']
+  startlist: ["smb_diff_drive"]
   stoplist: []
 
   timeout: 10000.0
@@ -75,7 +86,7 @@ WAYPOINT_FOLLOWING:
   tolerance_deg: 50
 
 DETECTION_DECISION:
-  default_outcome: Completed
+  default_outcome: Failure
 
 OBSERVATION_POSE:
   default_outcome: None
@@ -95,8 +106,8 @@ OBSERVATION_APPROACH:
   duration: 10.0
   control_frame: tracking_camera_odom
   target_frame: observation
-  startlist: ['mpc_controller', 'path_passthrough_controller'] #, 'path_admittance_controller' ]
-  stoplist: ['joint_space_controller']
+  startlist: ["mpc_controller", "path_passthrough_controller"] #, 'path_admittance_controller' ]
+  stoplist: ["joint_space_controller"]
   manager_namespace: panda
 
 MODEL_FIT_VALVE:
@@ -126,33 +137,35 @@ APPROACH_VALVE:
   mode: path
   control_frame: tracking_camera_odom
   manager_namespace: panda
-  startlist: ['mpc_controller', 'path_passthrough_controller']
-  stoplist: ['joint_space_controller']
+  startlist: ["mpc_controller", "path_passthrough_controller"]
+  stoplist: ["joint_space_controller"]
 
   poses_topic: /valve_poses
   offset: [0, 0, -0.1]
-  section: 'first'
+  section: "first"
 
 GRASP_VALVE:
   default_outcome: None
   mode: pose
   control_frame: panda_link0
-  pose_topic: '/panda/cartesian_impedance_controller/equilibrium_pose'
+  pose_topic: "/panda/cartesian_impedance_controller/equilibrium_pose"
   manager_namespace: panda
-  startlist: ['cartesian_impedance_controller']
-  stoplist: ['mpc_controller', 'joint_space_controller', 'path_passthrough_controller']
+  startlist: ["cartesian_impedance_controller"]
+  stoplist:
+    ["mpc_controller", "joint_space_controller", "path_passthrough_controller"]
 
   poses_topic: /valve_poses
-  section: 'first'
+  section: "first"
 
 MANIPULATE_VALVE:
   default_outcome: None
   mode: pose
   control_frame: panda_link0
-  pose_topic: '/panda/cartesian_impedance_controller/equilibrium_pose'
+  pose_topic: "/panda/cartesian_impedance_controller/equilibrium_pose"
   manager_namespace: panda
-  startlist: ['cartesian_impedance_controller']
-  stoplist: ['mpc_controller', 'joint_space_controller', 'path_passthrough_controller']
+  startlist: ["cartesian_impedance_controller"]
+  stoplist:
+    ["mpc_controller", "joint_space_controller", "path_passthrough_controller"]
 
   poses_topic: /valve_poses
   angular_speed: 0.5
@@ -161,13 +174,13 @@ BACKOFF_VALVE:
   default_outcome: None
   mode: pose
   control_frame: panda_link0
-  pose_topic: '/panda/cartesian_impedance_controller/equilibrium_pose'
+  pose_topic: "/panda/cartesian_impedance_controller/equilibrium_pose"
   manager_namespace: panda
-  startlist: [ 'cartesian_impedance_controller']
-  stoplist: [ 'mpc_controller', 'joint_space_controller', 'path_passthrough_controller' ]
+  startlist: ["cartesian_impedance_controller"]
+  stoplist:
+    ["mpc_controller", "joint_space_controller", "path_passthrough_controller"]
   duration: 10.0
 
   poses_topic: /valve_poses
-  offset: [ 0, 0, -0.1 ]
-  section: 'last'
-
+  offset: [0, 0, -0.1]
+  section: "last"

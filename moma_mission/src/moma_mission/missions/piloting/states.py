@@ -494,7 +494,7 @@ class ValveManipulationUrdfState(StateRos):
                                                                                            [0.0, 180.0, -90.0]))
 
     def run(self):
-        poses = self.generate_valve_turning_poses(self.turning_angle)
+        poses = self.valve_urdf_planner.generate_valve_turning_poses(self.turning_angle)
         self.poses_publisher.publish(poses)
 
         return 'Completed'
