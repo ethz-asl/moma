@@ -63,7 +63,7 @@ bool CartesianImpedanceController::init_params(ros::NodeHandle& node_handle)
 
   for (size_t i{}; i < 7; i++)
   {
-    params_.q_d_nullspace_[i] = q_nullspace[i];
+    // params_.q_d_nullspace_[i] = q_nullspace[i];
     q_min_(i) = lower_limit[i] + safety_margin_;
     q_max_(i) = upper_limit[i] - safety_margin_;
   }
