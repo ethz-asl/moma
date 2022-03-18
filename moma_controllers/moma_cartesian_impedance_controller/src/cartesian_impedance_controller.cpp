@@ -322,7 +322,7 @@ void CartesianImpedanceController::starting(const ros::Time& /*time*/)
   orientation_d_target_ = Eigen::Quaterniond(initial_transform.linear());
 
   // set nullspace equilibrium configuration to initial q
-  params_.q_d_nullspace_ = q_;
+  params_.q_d_nullspace_ = q_.head<7>();
   error_integrator_.setZero();
 }
 
