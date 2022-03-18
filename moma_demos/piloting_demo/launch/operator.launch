@@ -9,4 +9,11 @@
       <param name="capability_group" value="GUI"/>
   </node>
 
+  <!-- Interactive marker -->
+  <node pkg="moma_cartesian_impedance_controller" name="interactive_marker" type="interactive_marker.py">
+    <param name="base_frame"    value="panda_link0"/>
+    <param name="target_frame"  value="tool_frame"/>
+    <param name="topic_name"    value="/panda/cartesian_impedance_controller/equilibrium_pose"/>
+  </node>
+
 </launch>
