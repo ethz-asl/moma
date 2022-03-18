@@ -33,7 +33,6 @@ struct CartesianImpedanceParams
   double torqueLimit_;
   double nullspace_stiffness_{ 20.0 };
   double resetIntegratorThreshold_{ 2.0 };
-  double limits_stiffness_{ 100.0 };
   Matrix6d cartesian_stiffness_;
   Matrix6d cartesian_stiffness_i_;
   Vector6d windup_limit_;
@@ -63,7 +62,6 @@ struct CartesianImpedanceParams
     blend(windup_limit_, new_params.windup_limit_, alpha);
     blend(forceLimit_, new_params.forceLimit_, alpha);
     blend(torqueLimit_, new_params.torqueLimit_, alpha);
-    blend(limits_stiffness_, new_params.limits_stiffness_, alpha);
     resetIntegratorThreshold_ = new_params.resetIntegratorThreshold_;
     q_d_nullspace_ = new_params.q_d_nullspace_;
   }
@@ -113,9 +111,9 @@ private:
   std::string arm_id_;
   std::string arm_description_;
   std::vector<std::string> joint_names_;
-  const std::string ee_frame_id_ = "panda_hand";
+  const std::string ee_frame_id_ = "panda_EE";
   const std::string base_frame_id_ = "panda_link0";
-  std::string target_frame_id_ = "panda_hand";
+  std::string target_frame_id_ = "panda_EE";
   const double delta_tau_max_{ 1.0 };
 
   Eigen::Vector3d position_d_;
@@ -129,6 +127,7 @@ private:
   // Model for simulation
   Eigen::VectorXd q_;  // they might contain the finger in
   Eigen::VectorXd qd_;
+  Vector7d limits_gains_;
   Vector7d tau_;
   Vector7d q_min_;
   Vector7d q_max_;
