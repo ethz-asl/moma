@@ -56,16 +56,16 @@ HOME_ROBOT_FINAL:
     - [-0.65, -0.885, 0, -2.1, 0, 1.571, 0]
 
 REACH_DETECTION_HOTSPOT:
-  default_outcome: Completed
+  default_outcome: None
   goal_action_topic: /move_base
-  target_frame: navigation_target
+  target_frame: hotspot
   goal_pose_topic: /move_base_simple/goal
   base_pose_topic: /base_pose_measured
   base_odometry_topic: /base_odom
 
   manager_namespace: smb
-  startlist: ["smb_diff_drive"]
-  stoplist: []
+  startlist: ['smb_diff_drive']
+  stoplist: ['mpc_controller']
 
   timeout: 10000.0
   tolerance_m: 0.30
@@ -79,8 +79,8 @@ WAYPOINT_FOLLOWING:
   base_odometry_topic: /camera/odom/sample
 
   manager_namespace: smb
-  startlist: ["smb_diff_drive"]
-  stoplist: []
+  startlist: ['smb_diff_drive']
+  stoplist: ['mpc_controller']
 
   timeout: 10000.0
   tolerance_m: 0.30
