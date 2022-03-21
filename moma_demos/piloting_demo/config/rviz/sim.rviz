@@ -29,7 +29,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: Hand Eye RGB
+    SyncSource: ""
   - Class: smb_navigation_rviz/PlanningPanel
     Name: PlanningPanel
 Preferences:
@@ -64,6 +64,126 @@ Visualization Manager:
           Frame Timeout: 15
           Frames:
             All Enabled: false
+            LF_WHEEL:
+              Value: false
+            LH_WHEEL:
+              Value: false
+            RF_WHEEL:
+              Value: false
+            RH_WHEEL:
+              Value: false
+            arm_mount_link:
+              Value: false
+            base_inertia:
+              Value: false
+            base_link:
+              Value: false
+            blackfly0_link:
+              Value: false
+            blackfly0_optical_link:
+              Value: false
+            blackfly1_link:
+              Value: false
+            blackfly1_optical_link:
+              Value: false
+            blackfly_left_link:
+              Value: false
+            blackfly_left_optical_link:
+              Value: false
+            blackfly_right_link:
+              Value: false
+            blackfly_right_optical_link:
+              Value: false
+            camera_accel_frame:
+              Value: true
+            camera_accel_optical_frame:
+              Value: true
+            camera_gyro_frame:
+              Value: true
+            camera_imu_optical_frame:
+              Value: false
+            camera_link:
+              Value: true
+            camera_pose_frame:
+              Value: false
+            camera_pose_frame_odom:
+              Value: false
+            hand_eye_bottom_screw_frame:
+              Value: false
+            hand_eye_color_frame:
+              Value: false
+            hand_eye_color_optical_frame:
+              Value: false
+            hand_eye_depth_frame:
+              Value: false
+            hand_eye_depth_optical_frame:
+              Value: false
+            hand_eye_infra1_frame:
+              Value: false
+            hand_eye_infra1_optical_frame:
+              Value: false
+            hand_eye_infra2_frame:
+              Value: false
+            hand_eye_infra2_optical_frame:
+              Value: false
+            hand_eye_link:
+              Value: false
+            imu:
+              Value: false
+            imu_link:
+              Value: false
+            lidar_mount_link:
+              Value: false
+            mono_link:
+              Value: false
+            panda_EE:
+              Value: true
+            panda_K:
+              Value: true
+            panda_NE:
+              Value: true
+            panda_default_ee:
+              Value: false
+            panda_hand:
+              Value: false
+            panda_leftfinger:
+              Value: false
+            panda_link0:
+              Value: false
+            panda_link1:
+              Value: false
+            panda_link2:
+              Value: false
+            panda_link3:
+              Value: false
+            panda_link4:
+              Value: false
+            panda_link5:
+              Value: false
+            panda_link6:
+              Value: false
+            panda_link7:
+              Value: false
+            panda_link8:
+              Value: false
+            panda_rightfinger:
+              Value: false
+            realsense_t265:
+              Value: false
+            realsense_t265_odom_frame:
+              Value: false
+            rslidar:
+              Value: false
+            rslidar_base_link:
+              Value: false
+            tool_frame:
+              Value: true
+            top:
+              Value: false
+            tracking_camera_odom:
+              Value: true
+            world:
+              Value: true
           Marker Alpha: 1
           Marker Scale: 0.800000011920929
           Name: TF
@@ -71,7 +191,92 @@ Visualization Manager:
           Show Axes: true
           Show Names: true
           Tree:
-            {}
+            world:
+              base_link:
+                LF_WHEEL:
+                  {}
+                LH_WHEEL:
+                  {}
+                RF_WHEEL:
+                  {}
+                RH_WHEEL:
+                  {}
+                arm_mount_link:
+                  panda_link0:
+                    panda_link1:
+                      panda_link2:
+                        panda_link3:
+                          panda_link4:
+                            panda_link5:
+                              panda_link6:
+                                panda_link7:
+                                  hand_eye_bottom_screw_frame:
+                                    hand_eye_link:
+                                      hand_eye_color_frame:
+                                        hand_eye_color_optical_frame:
+                                          {}
+                                      hand_eye_depth_frame:
+                                        hand_eye_depth_optical_frame:
+                                          {}
+                                      hand_eye_infra1_frame:
+                                        hand_eye_infra1_optical_frame:
+                                          {}
+                                      hand_eye_infra2_frame:
+                                        hand_eye_infra2_optical_frame:
+                                          {}
+                                  panda_link8:
+                                    panda_NE:
+                                      panda_EE:
+                                        panda_K:
+                                          {}
+                                    panda_default_ee:
+                                      {}
+                                    panda_hand:
+                                      panda_leftfinger:
+                                        {}
+                                      panda_rightfinger:
+                                        {}
+                                    tool_frame:
+                                      {}
+                base_inertia:
+                  {}
+                blackfly0_link:
+                  blackfly0_optical_link:
+                    {}
+                blackfly1_link:
+                  blackfly1_optical_link:
+                    {}
+                blackfly_left_link:
+                  blackfly_left_optical_link:
+                    {}
+                blackfly_right_link:
+                  blackfly_right_optical_link:
+                    {}
+                imu_link:
+                  imu:
+                    {}
+                  realsense_t265:
+                    camera_pose_frame:
+                      camera_link:
+                        camera_accel_frame:
+                          camera_accel_optical_frame:
+                            {}
+                        camera_gyro_frame:
+                          {}
+                    realsense_t265_odom_frame:
+                      camera_imu_optical_frame:
+                        {}
+                lidar_mount_link:
+                  rslidar_base_link:
+                    rslidar:
+                      {}
+                mono_link:
+                  {}
+                top:
+                  {}
+                tracking_camera_odom:
+                  camera_pose_frame_odom:
+                    {}
           Update Interval: 0
           Value: false
         - Alpha: 1
@@ -442,7 +647,11 @@ Visualization Manager:
         - Class: rviz/Group
           Displays:
             - Alpha: 1
+<<<<<<< HEAD
               Axes Length: 0.05000000074505806
+=======
+              Axes Length: 0.10000000149011612
+>>>>>>> projects/piloting_feature/cartesian_impedance_controller
               Axes Radius: 0.009999999776482582
               Class: rviz/Pose
               Color: 255; 25; 0
@@ -467,7 +676,7 @@ Visualization Manager:
               Update Topic: /interactive_pose_marker/update
               Value: true
           Enabled: true
-          Name: Cartesian Impedance
+          Name: Cartesian Impedance Controller
       Enabled: true
       Name: Controllers
     - Class: rviz/Group
@@ -748,7 +957,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 2.6467182636260986
+      Distance: 2.956787109375
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
