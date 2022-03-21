@@ -1,7 +1,17 @@
 <?xml version="1.0"?>
 <launch>
   <!-- valve model -->
-  <include file="$(find piloting_demo)/launch/valve.launch"/>
+  <include file="$(find piloting_demo)/launch/valve.launch">
+    <!-- param name="x" value="0"/-->
+    <!-- param name="y" value="0"/-->
+    <!-- param name="z" value="0"/-->
+  </include>
+
+  <!-- detection hotspot -->
+  <node pkg="tf2_ros"
+        type="static_transform_publisher"
+        name="hotspot_broadcaster"
+        args="-2 0 0 0 0 0 valve_gt hotspot" />
   
   <!-- mission state machine -->
   <rosparam command="load" file="$(find moma_mission)/config/state_machine/piloting.yaml" subst_value="true"/>

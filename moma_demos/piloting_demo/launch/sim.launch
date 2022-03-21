@@ -7,6 +7,7 @@
     <arg name="launch_navigation" default="true"/>
     <arg name="base_type" default="1"/>
     <arg name="world_name" default="$(find piloting_demo)/worlds/schutz.world"/>
+    <arg name="use_global_map" default="true"/>
 
     <!-- Control-->
     <!-- load a arm only description for the arm controllers -->
@@ -70,7 +71,7 @@
     <!-- Localization and Navigation -->
     <include file="$(find piloting_demo)/launch/navigation.launch" if="$(arg launch_navigation)">
         <arg name="sim"               value="true"/>
-        <arg name="use_global_map"    value="true"/>
+        <arg name="use_global_map"    value="$(arg use_global_map)"/>
         <arg name="global_frame"      value="map"/> 
     </include>
 

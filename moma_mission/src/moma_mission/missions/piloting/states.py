@@ -187,7 +187,7 @@ class NavigationState(SingleNavGoalState):
 
         rospy.loginfo("Reaching goal at {}, {}".format(
             goal.pose.position.x, goal.pose.position.y))
-        success = self.reach_goal(goal)
+        success = self.reach_goal(goal, action=True)
         if not success:
             rospy.logerr("Failed to reach base goal.")
             return 'Failure'
