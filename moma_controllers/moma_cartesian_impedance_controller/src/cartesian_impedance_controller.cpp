@@ -330,7 +330,7 @@ void CartesianImpedanceController::starting(const ros::Time& /*time*/)
   ROS_INFO_STREAM("position desired is: " << position_d_.transpose());
 
   // set nullspace equilibrium configuration to initial q
-  params_.q_d_nullspace_ = q_.head<7>();
+  q_d_nullspace_ = q_.head<7>();
   error_integrator_.setZero();
 }
 
@@ -428,13 +428,13 @@ void CartesianImpedanceController::update(const ros::Time& /*time*/, const ros::
   ROS_INFO_STREAM("qd_" << qd_.head<7>().transpose());
   ROS_INFO_STREAM("j: \n" << jacobian);
   ROS_INFO_STREAM("jt_inv: \n" << jacobian_transpose_pinv);
-  ROS_INFO_STREAM("q_d_nullspace_: \n" << params_.q_d_nullspace_.transpose());
+  ROS_INFO_STREAM("q_d_nullspace_: \n" << q_d_nullspace_.transpose());
   ROS_INFO_STREAM("nullspace_stiffness_: \n" << params_.nullspace_stiffness_);
   
   
   tau_nullspace << (Eigen::MatrixXd::Identity(7, 7) -
                     jacobian.transpose() * jacobian_transpose_pinv) *
-                       (params_.nullspace_stiffness_ * (params_.q_d_nullspace_ - q_.head<7>()) -
+                       (params_.nullspace_stiffness_ * (q_d_nullspace_ - q_.head<7>()) -
                         (2.0 * sqrt(params_.nullspace_stiffness_)) * qd_.head<7>());
 
   // joint limit attractor with damping ratio = 1
@@ -544,7 +544,6 @@ std::ostream& operator<<(std::ostream& os, const moma_controllers::CartesianImpe
   os << "Cartesian damping: " << params.cartesian_damping_.diagonal().transpose() << std::endl;
   os << "Cartesian integral " << params.cartesian_stiffness_i_.diagonal().transpose() << std::endl;
   os << "Windup limit: " << params.windup_limit_.transpose() << std::endl;
-  os << "q nullspace: " << params.q_d_nullspace_.transpose() << std::endl;
   os << "reset integrator threshold: " << params.resetIntegratorThreshold_ << std::endl;
   os << "nullspace stiffness: " << params.nullspace_stiffness_ << std::endl;
   return os;

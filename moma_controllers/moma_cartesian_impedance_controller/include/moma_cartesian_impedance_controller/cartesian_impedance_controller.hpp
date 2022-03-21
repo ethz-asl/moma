@@ -37,7 +37,6 @@ struct CartesianImpedanceParams
   Matrix6d cartesian_stiffness_i_;
   Vector6d windup_limit_;
   Matrix6d cartesian_damping_;
-  Vector7d q_d_nullspace_;
 
   CartesianImpedanceParams()
   {
@@ -63,7 +62,6 @@ struct CartesianImpedanceParams
     blend(forceLimit_, new_params.forceLimit_, alpha);
     blend(torqueLimit_, new_params.torqueLimit_, alpha);
     resetIntegratorThreshold_ = new_params.resetIntegratorThreshold_;
-    q_d_nullspace_ = new_params.q_d_nullspace_;
   }
 };
 
@@ -118,6 +116,8 @@ private:
 
   Eigen::Vector3d position_d_;
   Eigen::Quaterniond orientation_d_;
+  Vector7d q_d_nullspace_;
+
 
   std::mutex position_and_orientation_d_target_mutex_;
   Eigen::Vector3d position_d_target_;
