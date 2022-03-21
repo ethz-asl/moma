@@ -104,7 +104,8 @@ private:
   CartesianImpedanceParams params_;
   CartesianImpedanceParams new_params_;
 
-  double filter_params_{ 0.005 };
+  bool initialized_ = false;
+  double filter_params_{0.005};
   bool sim_{ false };
   std::string arm_id_;
   std::string arm_description_;

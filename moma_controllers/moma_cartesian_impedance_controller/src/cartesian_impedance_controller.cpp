@@ -82,8 +82,8 @@ bool CartesianImpedanceController::init_params(ros::NodeHandle& node_handle)
 
   for (size_t i{}; i < 7; i++)
   {
-    q_min_(i) = lower_limit[i] + safety_margin_;
-    q_max_(i) = upper_limit[i] - safety_margin_;
+    q_min_(i) = lower_limit[i] + 2*safety_margin_;
+    q_max_(i) = upper_limit[i] - 2*safety_margin_;
     limits_gains_(i) = limits_gains[i];
   }
 
@@ -192,6 +192,8 @@ void CartesianImpedanceController::init_ros_sub_pub(ros::NodeHandle& node_handle
   trackingErrorPub_ = node_handle.advertise<std_msgs::Float64MultiArray>("tracking_error", 1, false);
   integratorWrenchPub_ = node_handle.advertise<geometry_msgs::WrenchStamped>("integrator_wrench", 1, false);
   publishingTimer_ = node_handle.createTimer(ros::Duration(0.02), [this](const ros::TimerEvent& timerEvent) {
+    if (!initialized_) return;
+
     auto time = timerEvent.current_real;
     const auto frameId = base_frame_id_;
 
@@ -207,27 +209,38 @@ void CartesianImpedanceController::init_ros_sub_pub(ros::NodeHandle& node_handle
     integratorWrench.header.frame_id = frameId;
     integratorWrench.header.stamp = time;
 
-    Eigen::Affine3d transform;
+    Eigen::Affine3d T_base_ee_;
     if (sim_)
     {
-      transform = model_->getFramePlacement(ee_frame_id_).toHomogeneousMatrix();
+      T_base_ee_ = model_->getFramePlacement(ee_frame_id_).toHomogeneousMatrix();
     }
     else
     {
       franka::RobotState robot_state = state_handle_->getRobotState();
-      transform = Eigen::Affine3d(Eigen::Matrix4d::Map(robot_state.O_T_EE.data()));
+      T_base_ee_ = Eigen::Affine3d(Eigen::Matrix4d::Map(robot_state.O_T_EE.data()));
     }
-    tf::poseEigenToMsg(transform, measuredPose.pose);
+    Eigen::Affine3d T_base_tool_ = T_base_ee_ * T_tool_ee_.inverse();
+    tf::poseEigenToMsg(T_base_tool_, measuredPose.pose);
 
     {
       std::lock_guard<std::mutex> lock(position_and_orientation_d_target_mutex_);
-      tf::pointEigenToMsg(position_d_target_, desiredPose.pose.position);
-      tf::quaternionEigenToMsg(orientation_d_target_, desiredPose.pose.orientation);
-      tf::pointEigenToMsg(position_d_, desiredPoseFiltered.pose.position);
-      tf::quaternionEigenToMsg(orientation_d_, desiredPoseFiltered.pose.orientation);
+      Eigen::Affine3d T_base_tool_desired;
+      Eigen::Affine3d T_base_tool_desired_filtered;
 
-      error.data.push_back((position_d_target_ - transform.translation()).norm());
-      error.data.push_back(orientation_d_target_.angularDistance(Eigen::Quaterniond(transform.linear())));
+      T_base_tool_desired.translation() = position_d_target_;
+      T_base_tool_desired.linear() = Eigen::Matrix3d(orientation_d_target_);
+      T_base_tool_desired = T_base_tool_desired * T_tool_ee_.inverse();
+      tf::pointEigenToMsg(T_base_tool_desired.translation(), desiredPose.pose.position);
+      tf::quaternionEigenToMsg(Eigen::Quaterniond(T_base_tool_desired.linear()), desiredPose.pose.orientation);
+
+      T_base_tool_desired_filtered.translation() = position_d_target_;
+      T_base_tool_desired_filtered.linear() = Eigen::Matrix3d(orientation_d_target_);
+      T_base_tool_desired_filtered = T_base_tool_desired_filtered * T_tool_ee_.inverse();
+      tf::pointEigenToMsg(T_base_tool_desired_filtered.translation(), desiredPoseFiltered.pose.position);
+      tf::quaternionEigenToMsg(Eigen::Quaterniond(T_base_tool_desired_filtered.linear()), desiredPoseFiltered.pose.orientation);
+
+      error.data.push_back((T_base_tool_desired_filtered.translation() - T_base_tool_.translation()).norm());
+      error.data.push_back(Eigen::Quaterniond(T_base_tool_desired_filtered.linear()).angularDistance(Eigen::Quaterniond(T_base_tool_.linear())));
 
       Eigen::Vector3d force = error_integrator_.head(3);
       Eigen::Vector3d torque = error_integrator_.tail(3);
@@ -288,6 +301,7 @@ bool CartesianImpedanceController::init(hardware_interface::RobotHW* robot_hw, r
     return false;
   }
 
+  initialized_ = true;
   ROS_INFO("Controller successfully initialized.");
   return true;
 }
@@ -373,7 +387,6 @@ void CartesianImpedanceController::update(const ros::Time& /*time*/, const ros::
     transform = Eigen::Affine3d(Eigen::Matrix4d::Map(robot_state.O_T_EE.data()));
     position = Eigen::Vector3d(transform.translation());
     orientation = Eigen::Quaterniond(transform.linear());
-    ROS_INFO_STREAM_THROTTLE(1.0, "Current position is: " << position.transpose());
   }
 
   // compute error to desired pose
@@ -391,7 +404,7 @@ void CartesianImpedanceController::update(const ros::Time& /*time*/, const ros::
   error.tail(3) << error_quaternion.x(), error_quaternion.y(), error_quaternion.z();
   // Transform to base frame
   error.tail(3) << -transform.linear() * error.tail(3);
-  ROS_INFO_STREAM_THROTTLE(1.0, "error=" << error.transpose());
+  //ROS_INFO_STREAM_THROTTLE(1.0, "error=" << error.transpose());
 
   error_integrator_ += params_.cartesian_stiffness_i_ * error;
   error_integrator_ = error_integrator_.cwiseMin(params_.windup_limit_);
@@ -425,33 +438,50 @@ void CartesianImpedanceController::update(const ros::Time& /*time*/, const ros::
   tau_task << jacobian.transpose() * targetWrench;
 
   // nullspace PD control with damping ratio = 1
-  ROS_INFO_STREAM("qd_" << qd_.head<7>().transpose());
-  ROS_INFO_STREAM("j: \n" << jacobian);
-  ROS_INFO_STREAM("jt_inv: \n" << jacobian_transpose_pinv);
-  ROS_INFO_STREAM("q_d_nullspace_: \n" << q_d_nullspace_.transpose());
-  ROS_INFO_STREAM("nullspace_stiffness_: \n" << params_.nullspace_stiffness_);
-  
-  
   tau_nullspace << (Eigen::MatrixXd::Identity(7, 7) -
                     jacobian.transpose() * jacobian_transpose_pinv) *
                        (params_.nullspace_stiffness_ * (q_d_nullspace_ - q_.head<7>()) -
                         (2.0 * sqrt(params_.nullspace_stiffness_)) * qd_.head<7>());
 
-  // joint limit attractor with damping ratio = 1
-  Vector7d dq_limits_ = (q_max_ - q_.head<7>()).cwiseMin(0.0) + (q_min_ - q_.head<7>()).cwiseMax(0.0);
-  tau_limits = dq_limits_.cwiseProduct(limits_gains_) -
-               qd_.head<7>().cwiseProduct(2.0 * limits_gains_.cwiseSqrt());
-  
+  /* 
+   * we apply limits 2 * safety_margin_ far from the actual limits
+   * split the calucation in two parts:
+   *  
+   * a) 0 < abs(delta) < safety_margin_
+   *    linearly interpolate towards 0 tau_task and tau_nullspace
+   *  
+   * b) safety_margin_ < abs(delta) < 2*safety_margin_
+   *    set all other tau to zero and only apply tau limits
+   *
+   * tau limits is computed as a PD term, where D is to add virtual damping
+   */
+  Vector7d dq_limits_ =
+      (q_max_ - q_.head<7>()).cwiseMin(0.0) + (q_min_ - q_.head<7>()).cwiseMax(0.0);
+
+  tau_limits.setZero();
+  for (size_t i{}; i < 7; i++) {
+    const static double tol = 1e-4;
+    const double delta = dq_limits_[i];
+    const double delta_abs = std::abs(delta);
+    const double alpha = (1 - delta_abs / safety_margin_);
+
+    if (delta_abs > tol && (tau_task[i] * delta) < 0) {  // change tau only if acts against the limit
+      tau_limits[i] = delta * limits_gains_[i] - qd_[i] * 2.0 * std::sqrt(limits_gains_[i]);
+      if (delta_abs < safety_margin_){
+        tau_task[i] *= alpha;
+        tau_nullspace[i] *= alpha;
+      }
+      else{
+        tau_task[i] = 0.0;
+        tau_nullspace[i] = 0.0;
+      }
+    }
+  }
+
   // Desired torque
   tau_d << tau_task + tau_nullspace + tau_limits + non_linear_terms;
 
-  ROS_INFO_STREAM("Tau d: " << tau_d.transpose());
-  ROS_INFO_STREAM("Tau task: " << tau_task.transpose());
-  ROS_INFO_STREAM("Tau nullspace: " << tau_nullspace.transpose());
-  ROS_INFO_STREAM("Tau limits: " << tau_limits.transpose());
-  ROS_INFO_STREAM("non linear terms: " << non_linear_terms.transpose());
-  ROS_INFO("======================");
-
+  
   // Saturate torque rate to avoid discontinuities
   if (!sim_)
   {
