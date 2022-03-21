@@ -17,7 +17,7 @@
     <!-- param name="z" value="0"/-->
   </include>
 
-  <!-- detection hotspot -->
+  <!-- detection hotspot relative to estimated valve pose -->
   <node pkg="tf2_ros"
         type="static_transform_publisher"
         name="hotspot_broadcaster"
