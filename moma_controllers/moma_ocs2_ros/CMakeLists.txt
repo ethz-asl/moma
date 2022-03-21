@@ -7,6 +7,7 @@ find_package(Eigen3 3.3 REQUIRED)
 set(PROJECT_DEPENDENCIES
         roscpp
         realtime_tools
+        dynamic_reconfigure
         robot_control
         moma_ocs2
         angles
@@ -18,6 +19,12 @@ set(PROJECT_DEPENDENCIES
         )
 
 find_package(catkin REQUIRED COMPONENTS ${PROJECT_DEPENDENCIES})
+
+#add dynamic reconfigure api
+#find_package(catkin REQUIRED dynamic_reconfigure)
+generate_dynamic_reconfigure_options(
+        cfg/Mpc.cfg
+)
 
 catkin_package(
         INCLUDE_DIRS include

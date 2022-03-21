@@ -10,6 +10,7 @@
     <depend>eigen</depend>
     <depend>roscpp</depend>
     <depend>realtime_tools</depend>
+    <depend>dynamic_reconfigure</depend>
     <depend>robot_control</depend>
     <depend>moma_ocs2</depend>
     <depend>angles</depend>

@@ -26,6 +26,8 @@
 #include <nav_msgs/Path.h>
 #include <ros/ros.h>
 #include <ros/package.h>
+#include <dynamic_reconfigure/server.h>
+#include <moma_ocs2_ros/MpcConfig.h>
 
 #include <eigen_conversions/eigen_msg.h>
 
@@ -59,6 +61,11 @@ class MpcController {
 
   bool init() {
     std::string robotName;
+
+    dynamic_reconfigure::Server<moma_ocs2_ros::MpcConfig> server;
+    dynamic_reconfigure::Server<moma_ocs2_ros::MpcConfig>::CallbackType f;
+    f = boost::bind(&MpcController::reconfigure, this, _1, _2);
+    server.setCallback(f);
 
     // Params
     if (!nh_.param("/ocs2_mpc/task_file", taskFile_, {})){
@@ -234,6 +241,10 @@ class MpcController {
   virtual void adjustPath(nav_msgs::Path& desiredPath) {};
 
  private:
+  void reconfigure(moma_ocs2_ros::MpcConfig &config, uint32_t level) {
+    ROS_INFO("MPC reconfigure request: %d", config.base_type);
+  }
+
   void advanceMpc() {
     while (!unloaded_) {
       while (stopped_) {
