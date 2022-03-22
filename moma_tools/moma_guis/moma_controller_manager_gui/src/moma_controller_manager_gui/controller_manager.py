@@ -177,6 +177,9 @@ class ControllerManager(Plugin):
             if len(relevant_items) > 0:
                 self._widget.cm_combo.setCurrentIndex(relevant_items[0])
                 self._on_cm_change(self._widget.cm_combo.itemText(relevant_items[0]))
+            else:
+                self._widget.cm_combo.setCurrentIndex(0)
+                self._on_cm_change(self._widget.cm_combo.itemText(0))
 
     def _on_cm_change(self, cm_ns):
         self._cm_ns = cm_ns
