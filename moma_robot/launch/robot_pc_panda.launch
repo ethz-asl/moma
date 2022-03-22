@@ -52,6 +52,7 @@
            value="joint_space_controller
                   joint_velocity_controller
                   mpc_controller
+                  cartesian_impedance_controller
                   path_admittance_controller"/>
       <node name="controller_loader" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="--stopped $(arg controllers_load_list)" />
 

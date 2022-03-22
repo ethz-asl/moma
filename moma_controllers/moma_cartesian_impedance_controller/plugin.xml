@@ -1,0 +1,7 @@
+<library path="lib/libmoma_cartesian_impedance_controller">
+  <class name="moma_controllers/CartesianImpedanceController" type="moma_controllers::CartesianImpedanceController" base_class_type="controller_interface::ControllerBase">
+    <description>
+      A controller that renders a spring damper system in cartesian space. Compliance parameters and the equilibrium pose can be modified online with dynamic reconfigure.
+    </description>
+  </class>
+</library>

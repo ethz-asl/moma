@@ -28,13 +28,20 @@ effort_joint_trajectory_controller:
   constraints:
     goal_time: 0.5
   gains:
-    panda_joint1: {p: 3000.0, i: 0.0, d: 2.0, i_clamp_min: -100.0, i_clamp_max: 100.0}
-    panda_joint2: {p: 50000.0, i: 0.0, d: 0.0, i_clamp_min: -5.0, i_clamp_max: 5.0}
-    panda_joint3: {p: 3000.0, i: 0.0, d: 0.0, i_clamp_min: -1.0, i_clamp_max: 1.0}
-    panda_joint4: {p: 50000.0, i: 0.0, d: 0.0, i_clamp_min: -1.0, i_clamp_max: 1.0}
-    panda_joint5: {p: 750.0, i: 0.0, d: 0.2, i_clamp_min: -1.0, i_clamp_max: 1.0}
-    panda_joint6: {p: 5000.0, i: 0.0, d: 1.0, i_clamp_min: -1.0, i_clamp_max: 1.0}
-    panda_joint7: {p: 100.0, i: 0.0, d: 0.0, i_clamp_min: -0.1, i_clamp_max: 0.1}
+    panda_joint1:
+      { p: 3000.0, i: 0.0, d: 2.0, i_clamp_min: -100.0, i_clamp_max: 100.0 }
+    panda_joint2:
+      { p: 50000.0, i: 0.0, d: 0.0, i_clamp_min: -5.0, i_clamp_max: 5.0 }
+    panda_joint3:
+      { p: 3000.0, i: 0.0, d: 0.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
+    panda_joint4:
+      { p: 50000.0, i: 0.0, d: 0.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
+    panda_joint5:
+      { p: 750.0, i: 0.0, d: 0.2, i_clamp_min: -1.0, i_clamp_max: 1.0 }
+    panda_joint6:
+      { p: 5000.0, i: 0.0, d: 1.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
+    panda_joint7:
+      { p: 100.0, i: 0.0, d: 0.0, i_clamp_min: -0.1, i_clamp_max: 0.1 }
 
 franka_gripper:
   type: position_controllers/GripperActionController
@@ -42,8 +49,8 @@ franka_gripper:
 
 gazebo_ros_control:
   pid_gains:
-    panda_finger_joint1: {p: 100, i: 0.1, d: 10, i_clamp: 0.2}
-    panda_finger_joint2: {p: 100, i: 0.1, d: 10, i_clamp: 0.2}
+    panda_finger_joint1: { p: 100, i: 0.1, d: 10, i_clamp: 0.2 }
+    panda_finger_joint2: { p: 100, i: 0.1, d: 10, i_clamp: 0.2 }
 
 joint_space_controller:
   simulation: true
@@ -63,13 +70,20 @@ joint_space_controller:
   gain: 1.0
   tolerance: 0.017 # 1 deg
   pid_gains:
-    panda_joint1: { p: 100.0, i: 0.0, d: 10.0, i_clamp_min: -100.0, i_clamp_max: 100.0 }
-    panda_joint2: { p: 100.0, i: 0.0, d: 10.0, i_clamp_min: -5.0, i_clamp_max: 5.0 }
-    panda_joint3: { p: 100.0, i: 0.0, d: 10.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
-    panda_joint4: { p: 100.0, i: 0.0, d: 10.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
-    panda_joint5: { p: 200.0, i: 0.0, d: 0.2, i_clamp_min: -1.0, i_clamp_max: 1.0 }
-    panda_joint6: { p: 200.0, i: 0.0, d: 10.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
-    panda_joint7: { p: 100.0, i: 0.0, d: 10.0, i_clamp_min: -0.1, i_clamp_max: 0.1 }
+    panda_joint1:
+      { p: 100.0, i: 0.0, d: 10.0, i_clamp_min: -100.0, i_clamp_max: 100.0 }
+    panda_joint2:
+      { p: 100.0, i: 0.0, d: 10.0, i_clamp_min: -5.0, i_clamp_max: 5.0 }
+    panda_joint3:
+      { p: 100.0, i: 0.0, d: 10.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
+    panda_joint4:
+      { p: 100.0, i: 0.0, d: 10.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
+    panda_joint5:
+      { p: 200.0, i: 0.0, d: 0.2, i_clamp_min: -1.0, i_clamp_max: 1.0 }
+    panda_joint6:
+      { p: 200.0, i: 0.0, d: 10.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
+    panda_joint7:
+      { p: 100.0, i: 0.0, d: 10.0, i_clamp_min: -0.1, i_clamp_max: 0.1 }
 
 joint_velocity_controller:
   simulation: true
@@ -90,19 +104,26 @@ joint_velocity_controller:
   max_deceleration: 0.3
   gain: 1.0
   pid_gains:
-    panda_joint1: { p: 100.0, i: 0.0, d: 10.0, i_clamp_min: -100.0, i_clamp_max: 100.0 }
-    panda_joint2: { p: 100.0, i: 0.0, d: 10.0, i_clamp_min: -5.0, i_clamp_max: 5.0 }
-    panda_joint3: { p: 100.0, i: 0.0, d: 10.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
-    panda_joint4: { p: 100.0, i: 0.0, d: 10.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
-    panda_joint5: { p: 200.0, i: 0.0, d: 0.2, i_clamp_min: -1.0, i_clamp_max: 1.0 }
-    panda_joint6: { p: 200.0, i: 0.0, d: 10.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
-    panda_joint7: { p: 100.0, i: 0.0, d: 10.0, i_clamp_min: -0.1, i_clamp_max: 0.1 }
+    panda_joint1:
+      { p: 100.0, i: 0.0, d: 10.0, i_clamp_min: -100.0, i_clamp_max: 100.0 }
+    panda_joint2:
+      { p: 100.0, i: 0.0, d: 10.0, i_clamp_min: -5.0, i_clamp_max: 5.0 }
+    panda_joint3:
+      { p: 100.0, i: 0.0, d: 10.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
+    panda_joint4:
+      { p: 100.0, i: 0.0, d: 10.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
+    panda_joint5:
+      { p: 200.0, i: 0.0, d: 0.2, i_clamp_min: -1.0, i_clamp_max: 1.0 }
+    panda_joint6:
+      { p: 200.0, i: 0.0, d: 10.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
+    panda_joint7:
+      { p: 100.0, i: 0.0, d: 10.0, i_clamp_min: -0.1, i_clamp_max: 0.1 }
 
 mpc_controller:
   type: moma_controllers/PandaMpcController
   simulation: true
   arm_id: panda
-  
+
   robot_name: "panda"
   base_link: "tracking_camera_odom"
   tool_link: "tool_frame"
@@ -121,13 +142,20 @@ mpc_controller:
   path_topic: /mpc_reference_path
 
   gains:
-    panda_joint1: { p: 500.0, i: 0.0, d: 150.0, i_clamp_min: -100.0, i_clamp_max: 100.0 }
-    panda_joint2: { p: 500.0, i: 0.0, d: 150.0, i_clamp_min: -5.0, i_clamp_max: 5.0 }
-    panda_joint3: { p: 500.0, i: 0.0, d: 150.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
-    panda_joint4: { p: 500.0, i: 0.0, d: 150.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
-    panda_joint5: { p: 500.0, i: 0.0, d: 150.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
-    panda_joint6: { p: 500.0, i: 0.0, d: 150.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
-    panda_joint7: { p: 500.0, i: 0.0, d: 150.0, i_clamp_min: -0.1, i_clamp_max: 0.1 }
+    panda_joint1:
+      { p: 500.0, i: 0.0, d: 150.0, i_clamp_min: -100.0, i_clamp_max: 100.0 }
+    panda_joint2:
+      { p: 500.0, i: 0.0, d: 150.0, i_clamp_min: -5.0, i_clamp_max: 5.0 }
+    panda_joint3:
+      { p: 500.0, i: 0.0, d: 150.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
+    panda_joint4:
+      { p: 500.0, i: 0.0, d: 150.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
+    panda_joint5:
+      { p: 500.0, i: 0.0, d: 150.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
+    panda_joint6:
+      { p: 500.0, i: 0.0, d: 150.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
+    panda_joint7:
+      { p: 500.0, i: 0.0, d: 150.0, i_clamp_min: -0.1, i_clamp_max: 0.1 }
 
 path_passthrough_controller:
   type: moma_controllers/PathPassthroughController
@@ -142,14 +170,31 @@ path_admittance_controller:
   wrench_topic: /ft_compensated
   path_in_topic: /desired_path
   path_out_topic: /mpc_reference_path
-  
+
   kp_linear_gains: [0.01, 0.01, 0.01]
   kp_angular_gains: [0.01, 0.01, 0.01]
-  ki_linear_gains: [ 0.0, 0.0, 0.0 ]
-  ki_angular_gains: [ 0.0, 0.0, 0.0 ]
+  ki_linear_gains: [0.0, 0.0, 0.0]
+  ki_angular_gains: [0.0, 0.0, 0.0]
   force_integral_max: [1.0, 1.0, 1.0]
   torque_integral_max: [1.0, 1.0, 1.0]
 
   force_threshold: [2.0, 2.0, 2.0]
   torque_threshold: [0.0, 0.0, 0.0]
-  
+
+cartesian_impedance_controller:
+  type: moma_controllers/CartesianImpedanceController
+  arm_id: panda
+  target_frame: tool_frame
+  joint_names:
+    - panda_joint1
+    - panda_joint2
+    - panda_joint3
+    - panda_joint4
+    - panda_joint5
+    - panda_joint6
+    - panda_joint7
+  filter_params: 0.1
+  safety_margin: 0.087 # ~5 degrees
+  q_nullspace: [0.0, 0.0, 0.0, -1.5, 0.0, 1.5, 0.0]
+  lower_limit: [-2.8973, -1.7628, -2.8973, -3.0718, -2.8973, -0.0175, -2.8973]
+  upper_limit: [2.8973, 1.7628, 2.8973, -0.0698, 2.8973, 3.7525, 2.8973]
