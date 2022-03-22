@@ -89,17 +89,17 @@ mpc_controller:
 
   gains:
     panda_joint1:
-      { p: 800.0, i: 0.0, d: 50.0, i_clamp_min: -100.0, i_clamp_max: 100.0 }
+      { p: 2000.0, i: 0.0, d: 100 .0, i_clamp_min: -100.0, i_clamp_max: 100.0 }
     panda_joint2:
-      { p: 500.0, i: 0.0, d: 30.0, i_clamp_min: -5.0, i_clamp_max: 5.0 }
+      { p: 2000.0, i: 0.0, d: 100.0, i_clamp_min: -5.0, i_clamp_max: 5.0 }
     panda_joint3:
-      { p: 500.0, i: 0.0, d: 30.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
+      { p: 2000.0, i: 0.0, d: 100.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
     panda_joint4:
-      { p: 500.0, i: 0.0, d: 30.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
+      { p: 2000.0, i: 0.0, d: 100.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
     panda_joint5:
-      { p: 300.0, i: 0.0, d: 10.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
+      { p: 500.0, i: 0.0, d: 50.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
     panda_joint6:
-      { p: 300.0, i: 0.0, d: 10.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
+      { p: 500.0, i: 0.0, d: 50.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
     panda_joint7:
       { p: 100.0, i: 0.0, d: 5.0, i_clamp_min: -0.1, i_clamp_max: 0.1 }
 
@@ -185,7 +185,7 @@ cartesian_impedance_controller:
     - panda_joint5
     - panda_joint6
     - panda_joint7
-  filter_params: 0.1
+  filter_params: 0.05
   safety_margin: 0.087 # ~5 degrees
   q_nullspace: [0.0, 0.0, 0.0, -1.5, 0.0, 1.5, 0.0]
   lower_limit: [-2.8973, -1.7628, -2.8973, -3.0718, -2.8973, -0.0175, -2.8973]
