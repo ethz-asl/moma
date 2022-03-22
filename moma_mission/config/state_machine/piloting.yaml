@@ -87,7 +87,7 @@ WAYPOINT_FOLLOWING:
   tolerance_deg: 50
 
 DETECTION_DECISION:
-  default_outcome: Failure
+  default_outcome: Completed
 
 OBSERVATION_POSE:
   default_outcome: None
@@ -161,6 +161,8 @@ GRASP_VALVE:
 MANIPULATE_VALVE:
   default_outcome: None
   mode: pose
+  linear_speed: 0.01
+  angular_speed: 0.1
   control_frame: panda_link0
   pose_topic: "/panda/cartesian_impedance_controller/equilibrium_pose"
   manager_namespace: panda
