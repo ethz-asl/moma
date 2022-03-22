@@ -29,11 +29,14 @@
   <group ns="ocs2_mpc">
     <param name="task_file" value="$(find moma_ocs2)/config/mpc/task_panda.info"/>
     <param name="robot_description_ocs2" command="$(find xacro)/xacro $(find moma_description)/urdf/superpanda.urdf.xacro mpc_model:=true use_nominal_extrinsics:=true tool:='none'"/>
-    <param name="base_type" value="$(arg base_type)"/>
     <param name="reference_frame" value="tracking_camera_odom"/>
   </group>
 
   <group ns="panda">
+      <group ns="mpc_controller">
+        <param name="base_type" value="$(arg base_type)"/>
+      </group>
+
       <node name="franka_control" pkg="franka_control" type="franka_control_node" output="screen" required="true">
         <rosparam command="load" file="$(find moma_robot)/config/franka_control_node.yaml" />
         <param name="robot_ip" value="$(arg robot_ip)" />

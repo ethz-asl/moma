@@ -26,6 +26,8 @@
 #include <nav_msgs/Path.h>
 #include <ros/ros.h>
 #include <ros/package.h>
+#include <dynamic_reconfigure/server.h>
+#include <moma_ocs2_ros/MpcConfig.h>
 
 #include <eigen_conversions/eigen_msg.h>
 
@@ -48,7 +50,7 @@ class MpcController {
   using base_vector_t = Eigen::Matrix<double, ocs2::mobile_manipulator::BASE_INPUT_DIM, 1>;
 
   MpcController() = delete;
-  explicit MpcController(const ros::NodeHandle& nh) : nh_(nh), tf_listener_(tf_buffer_) {}
+  explicit MpcController(const ros::NodeHandle& nh) : nh_(nh), server(nh), tf_listener_(tf_buffer_) {}
   ~MpcController() {
     ROS_INFO("[MpcController::~MpcController] destroying mpc controller.");
     unloaded_ = true;
@@ -59,6 +61,10 @@ class MpcController {
 
   bool init() {
     std::string robotName;
+
+    // Dynamic reconfigure
+    f = boost::bind(&MpcController::reconfigure, this, _1, _2);
+    server.setCallback(f);
 
     // Params
     if (!nh_.param("/ocs2_mpc/task_file", taskFile_, {})){
@@ -74,18 +80,6 @@ class MpcController {
       ROS_ERROR("Failed to retrieve /ocs2_mpc/reference_frame from param server.");
       return 0;
     }
-
-    int baseTypeInt;
-    if (!nh_.param("/ocs2_mpc/base_type", baseTypeInt, 0)){
-      ROS_ERROR("Failed to retrieve /ocs2_mpc/base_type from param server.");
-      return 0;
-    }    
-
-    if (baseTypeInt >= ocs2::mobile_manipulator::BASE_TYPE_COUNT){
-      ROS_ERROR("The value of base_type is not supported.");
-      return 0;
-    }
-    baseType_ = static_cast<ocs2::mobile_manipulator::BaseType>(baseTypeInt);
 
     mm_interface_.reset(
         new ocs2::mobile_manipulator::MobileManipulatorInterface(taskFile_, urdfXML_, ArmInputDim, baseType_));
@@ -234,6 +228,16 @@ class MpcController {
   virtual void adjustPath(nav_msgs::Path& desiredPath) {};
 
  private:
+  void reconfigure(moma_ocs2_ros::MpcConfig &config, uint32_t level) {
+    ROS_INFO("MPC reconfigure request: base_type %d", config.base_type);
+
+    if (config.base_type >= ocs2::mobile_manipulator::BASE_TYPE_COUNT){
+      ROS_ERROR("The value of base_type is not supported.");
+    } else {
+      baseType_ = static_cast<ocs2::mobile_manipulator::BaseType>(config.base_type);
+    }
+  }
+
   void advanceMpc() {
     while (!unloaded_) {
       while (stopped_) {
@@ -466,6 +470,8 @@ class MpcController {
   std::vector<std::string> jointNames_;
 
   ros::NodeHandle nh_;
+  dynamic_reconfigure::Server<moma_ocs2_ros::MpcConfig> server;
+  dynamic_reconfigure::Server<moma_ocs2_ros::MpcConfig>::CallbackType f;
   ros::Publisher observationPublisher_;
   ros::Publisher commandPublisher_;
   ros::Subscriber targetPathSubscriber_;
