@@ -17,11 +17,14 @@
         <param name="task_file" value="$(find moma_ocs2)/config/mpc/task_panda.info"/>
         <param name="robot_description_ocs2" command="$(find xacro)/xacro $(find moma_description)/urdf/superpanda.urdf.xacro 
             mpc_model:=true use_nominal_extrinsics:=true tool:='none'"/>
-        <param name="base_type" value="$(arg base_type)"/>
         <param name="reference_frame" value="tracking_camera_odom"/>
     </group>
 
     <group ns="panda">
+        <group ns="mpc_controller">
+          <param name="base_type" value="$(arg base_type)"/>
+        </group>
+
         <group if="$(eval arg('tool') == 'panda_hand')">
             <node name="gripper_controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="franka_gripper" />
         </group>
