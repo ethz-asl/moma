@@ -19,7 +19,8 @@
 
     <!-- panda hand -->
     <xacro:if value="${tool == 'panda_hand'}">
-      <xacro:include filename="$(find franka_description)/robots/hand.xacro"/>
+      <!--xacro:include filename="$(find franka_description)/robots/hand.xacro"/-->
+      <xacro:include filename="$(find moma_description)/grippers/panda_hand/panda_hand.xacro"/>
       <xacro:include filename="$(find moma_description)/grippers/panda_hand/panda_hand.gazebo.xacro"/>
       <xacro:hand ns="panda" rpy="0 0 ${-pi/4}" connected_to="panda_link8"/>
       <xacro:panda_hand_gazebo arm_id="panda"/>
