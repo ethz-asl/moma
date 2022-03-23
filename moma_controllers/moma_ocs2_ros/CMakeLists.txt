@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.10)
 project(moma_ocs2_ros)
 
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_BUILD_TYPE Debug)
+
 find_package(Eigen3 3.3 REQUIRED)
 
 set(PROJECT_DEPENDENCIES

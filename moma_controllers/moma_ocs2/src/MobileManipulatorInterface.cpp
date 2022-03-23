@@ -73,7 +73,7 @@ namespace mobile_manipulator {
 /******************************************************************************************************/
 /******************************************************************************************************/
 /******************************************************************************************************/
-MobileManipulatorInterface::MobileManipulatorInterface(const std::string& taskFile, const std::string& urdfXML, const size_t armInputDim, const BaseType& baseType) {
+MobileManipulatorInterface::MobileManipulatorInterface(const std::string& taskFile, const std::string& urdfXML, const size_t armInputDim, const BaseType baseType) {
     // check that task file exists
   boost::filesystem::path taskFilePath(taskFile);
   if (boost::filesystem::exists(taskFilePath)) {
@@ -264,14 +264,14 @@ std::unique_ptr<StateCost> MobileManipulatorInterface::getSelfCollisionConstrain
   std::cerr << "SelfCollision: Testing for " << numCollisionPairs << " collision pairs\n";
 
   std::unique_ptr<StateConstraint> constraint;
-  if (usePreComputation) {
+  //if (usePreComputation) {
     constraint = std::unique_ptr<StateConstraint>(new MobileManipulatorSelfCollisionConstraint(
         MobileManipulatorPinocchioMapping<scalar_t>(armInputDim_, baseType_), std::move(geometryInterface), minimumDistance));
-  } else {
+  /*} else {
     constraint = std::unique_ptr<StateConstraint>(
         new SelfCollisionConstraintCppAd(pinocchioInterface, MobileManipulatorPinocchioMapping<scalar_t>(armInputDim_, baseType_), std::move(geometryInterface),
                                          minimumDistance, "self_collision", libraryFolder, recompileLibraries, false));
-  }
+  }*/
 
   std::unique_ptr<PenaltyBase> penalty(new RelaxedBarrierPenalty({mu, delta}));
 

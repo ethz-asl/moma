@@ -9,7 +9,7 @@ IDLE:
   default_outcome: ExecuteManipulationPlan
 
 OPEN_GRIPPER:
-  default_outcome: None
+  default_outcome: Completed
   gripper_action_name: /panda/franka_gripper/gripper_action
   position: 0.03
   max_effort: 20
@@ -17,7 +17,7 @@ OPEN_GRIPPER:
   timeout: 5.0
 
 CLOSE_GRIPPER:
-  default_outcome: None
+  default_outcome: Completed
   gripper_action_name: /panda/franka_gripper/gripper_action
   position: 0.0
   max_effort: 20
@@ -25,7 +25,7 @@ CLOSE_GRIPPER:
   timeout: 5.0
 
 HOME_ROBOT:
-  default_outcome: None
+  default_outcome: Completed
   action_name: /joint_space_controller_server
   manager_namespace: panda
   startlist: ['joint_space_controller']
@@ -35,7 +35,7 @@ HOME_ROBOT:
 
 # hack to avoid self collision in the end
 HOME_ROBOT_FINAL:
-  default_outcome: None
+  default_outcome: Completed
   action_name: /joint_space_controller_server
   manager_namespace: panda
   startlist: ['joint_space_controller']

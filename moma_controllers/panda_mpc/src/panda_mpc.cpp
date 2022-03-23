@@ -43,7 +43,7 @@ bool PandaMpcController::init(hardware_interface::RobotHW* robot_hw,
   velocity_current_ = Eigen::VectorXd::Zero(ocs2::mobile_manipulator::STATE_DIM(armInputDim_));
   ROS_INFO("[PandaMpc::init] robot model successfully initialized");
 
-  mpc_controller_ = std::unique_ptr<moma_controllers::MpcController<armInputDim_>>(new moma_controllers::MpcController<armInputDim_>(controller_nh));
+  mpc_controller_ = std::make_unique<moma_controllers::MpcController<armInputDim_>>(controller_nh);
   if (!mpc_controller_->init()) {
     ROS_ERROR("Failed to initialize the MPC controller");
     return false;
@@ -282,7 +282,8 @@ void PandaMpcController::compute_command(const ros::Duration& period) {
   if (sim_) { 
     robot_model_->updateState(position_current_model_, velocity_current_model_);
     robot_model_->computeAllTerms();
-    arm_gravity_and_coriolis_ = robot_model_->getNonLinearTerms();
+    // Assertion error in sim in debug mode
+    //arm_gravity_and_coriolis_ = robot_model_->getNonLinearTerms();
   }
   else {
 
@@ -301,8 +302,8 @@ void PandaMpcController::compute_command(const ros::Duration& period) {
 
   for (int i = 0; i < armInputDim_; i++){
     arm_tau_(i) = arm_pid_controllers_[i].computeCommand(position_error_(i + ocs2::mobile_manipulator::BASE_INPUT_DIM),
-                                                         velocity_error_(i + ocs2::mobile_manipulator::BASE_INPUT_DIM), period)
-                                                     + arm_gravity_and_coriolis_(i);
+                                                         velocity_error_(i + ocs2::mobile_manipulator::BASE_INPUT_DIM), period);
+                                                     //+ arm_gravity_and_coriolis_(i);
   }
   // Maximum torque difference with a sampling rate of 1 kHz. The maximum
   // torque rate is 1000 * (1 / sampling_time).

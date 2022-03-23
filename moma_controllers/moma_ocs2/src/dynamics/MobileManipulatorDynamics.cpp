@@ -64,6 +64,7 @@ ad_vector_t MobileManipulatorDynamics::systemFlowMap(ad_scalar_t time, const ad_
       vx = typename ad_vector_t::Scalar(0.0);
       vy = typename ad_vector_t::Scalar(0.0);
       vtheta = typename ad_vector_t::Scalar(0.0);
+      break;
   }
   dxdt << cos(theta) * vx - sin(theta) * vy, sin(theta) * vx + cos(theta) * vy, vtheta, input.tail(armInputDim_);
   return dxdt;

@@ -1,7 +1,8 @@
 model_settings
 {
-  useCaching                    true
-  recompileLibraries            true
+  useCaching                    false
+  recompileLibraries            false
+  usePreComputation            false
 }
 
 ; DDP settings
@@ -15,8 +16,10 @@ ddp
   minRelCost                    0.1
   constraintTolerance           1e-3
 
-  displayInfo                   false
-  displayShortSummary           false
+  displayInfo                   true
+  displayShortSummary           true
+  debugPrintRollout           true
+  debugCaching           true
   checkNumericalStability       false
 
   AbsTolODE                     1e-5
@@ -67,8 +70,8 @@ mpc
   initMaxStepLength              1.0
   initMinStepLength              1e-2
 
-  debugPrint                     false
-  coldStart                      false
+  debugPrint                     true
+  coldStart                      true
 
   useParallelRiccatiSolver       true  ; use disjoint riccati solver in MP case and recedingHorizon fashion
 

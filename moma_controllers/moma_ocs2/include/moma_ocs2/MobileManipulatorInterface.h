@@ -64,7 +64,7 @@ class MobileManipulatorInterface final : public RobotInterface {
    * @param [in] libraryFolder: The absolute path to the directory to generate CppAD library into.
    * @param [in] urdfXML: The URDF description string for the robot.
    */
-  explicit MobileManipulatorInterface(const std::string& taskFile, const std::string& urdfXML, const size_t armInputDim, const BaseType& baseType);
+  explicit MobileManipulatorInterface(const std::string& taskFile, const std::string& urdfXML, const size_t armInputDim, const BaseType baseType);
 
   const vector_t& getInitialState() { return initialState_; }
 
@@ -85,7 +85,7 @@ class MobileManipulatorInterface final : public RobotInterface {
   const PinocchioInterface& getPinocchioInterface() const { return *pinocchioInterfacePtr_; }
   PinocchioInterface& getPinocchioDesiredInterface() { return *pinocchioDesiredInterfacePtr_; }
 
-  inline const std::string& getEEFrame() { return eeFrame_; }
+  inline const std::string& getEEFrame() const { return eeFrame_; }
 
   /** MobileManipulator PinocchioInterface factory */
   static PinocchioInterface buildPinocchioInterface(const std::string& urdfPath);

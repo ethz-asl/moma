@@ -81,10 +81,6 @@ class MpcController {
       return 0;
     }
 
-    mm_interface_.reset(
-        new ocs2::mobile_manipulator::MobileManipulatorInterface(taskFile_, urdfXML_, ArmInputDim, baseType_));
-    mpcPtr_ = mm_interface_->getMpc();
-
     const std::unique_ptr<rc::RobotWrapper> robot_model = std::unique_ptr<rc::RobotWrapper>(new rc::RobotWrapper());
     robot_model->initFromXml(urdfXML_);
     if (ocs2::mobile_manipulator::INPUT_DIM(ArmInputDim) != robot_model->getDof()) {
@@ -119,21 +115,6 @@ class MpcController {
     unloaded_ = false;
     stopped_ = true;
 
-    // get static transform from tool to tracked MPC frame
-    geometry_msgs::TransformStamped transform;
-    try {
-      // target_frame, source_frame ...
-      transform = tf_buffer_.lookupTransform(tool_link_, mm_interface_->getEEFrame(), ros::Time(0),
-                                             ros::Duration(3.0));
-    } catch (tf2::TransformException& ex) {
-      ROS_WARN("%s", ex.what());
-      return false;
-    }
-    tf::transformMsgToEigen(transform.transform, T_tool_ee_);
-    ROS_INFO_STREAM("Transform from " << mm_interface_->getEEFrame() << " to " << tool_link_ << " is"
-                                      << std::endl
-                                      << T_tool_ee_.matrix());
-
     ROS_INFO("[MpcController::init] Initializing threads.");
     mpcThread_ = std::thread(&MpcController::advanceMpc, this);
 
@@ -151,13 +132,28 @@ class MpcController {
     observationEverReceived_ = false;
 
     // mpc problem
-    mm_interface_.reset(
-        new ocs2::mobile_manipulator::MobileManipulatorInterface(taskFile_, urdfXML_, ArmInputDim, baseType_));
+    //std::make_unique<ocs2::mobile_manipulator::MobileManipulatorInterface>(taskFile_, urdfXML_, ArmInputDim, ocs2::mobile_manipulator::BaseType::none);
+    mm_interface_ = std::make_unique<ocs2::mobile_manipulator::MobileManipulatorInterface>(taskFile_, urdfXML_, ArmInputDim, baseType_);
     mpcPtr_ = mm_interface_->getMpc();
 
     // mpc solution update thread
-    mpc_mrt_interface_.reset(new ocs2::MPC_MRT_Interface(*mpcPtr_));
+    mpc_mrt_interface_ = std::make_unique<ocs2::MPC_MRT_Interface>(*mpcPtr_);
     mpc_mrt_interface_->reset();
+
+    // get static transform from tool to tracked MPC frame
+    geometry_msgs::TransformStamped transform;
+    try {
+      // target_frame, source_frame ...
+      transform = tf_buffer_.lookupTransform(tool_link_, mm_interface_->getEEFrame(), ros::Time(0),
+                                             ros::Duration(3.0));
+    } catch (tf2::TransformException& ex) {
+      ROS_WARN("%s", ex.what());
+      return;
+    }
+    tf::transformMsgToEigen(transform.transform, T_tool_ee_);
+    ROS_INFO_STREAM("Transform from " << mm_interface_->getEEFrame() << " to " << tool_link_ << " is"
+                                      << std::endl
+                                      << T_tool_ee_.matrix());
 
     mpcTimer_.reset();
 
@@ -340,7 +336,7 @@ class MpcController {
 
       // Desired input trajectory
       ocs2::vector_array_t& uDesiredTrajectory = targetTrajectories.inputTrajectory;
-      uDesiredTrajectory[idx].setZero(9);
+      uDesiredTrajectory[idx].setZero(ocs2::mobile_manipulator::INPUT_DIM(ArmInputDim));
       idx++;
     }
 

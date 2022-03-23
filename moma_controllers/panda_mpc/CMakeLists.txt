@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.0.2)
 project(panda_mpc)
 
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_BUILD_TYPE Debug)
+
 find_package(Eigen3 REQUIRED 3.3)
 find_package(Franka 0.7.0 REQUIRED)
 find_package(orocos_kdl)

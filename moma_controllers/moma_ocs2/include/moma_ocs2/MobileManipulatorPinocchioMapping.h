@@ -57,6 +57,7 @@ class MobileManipulatorPinocchioMapping final : public PinocchioStateInputMappin
     typename vector_t::Scalar vx;      // forward velocity in base frame
     typename vector_t::Scalar vy;      // sideways velocity in base frame
     typename vector_t::Scalar vtheta;  // angular velocity
+    std::cout << "MobileManipulatorPinocchioMapping1 base_type" << (int)baseType_ << std::endl;
     switch(baseType_) {
       case BaseType::holonomic:
         vx = input(0);
@@ -82,6 +83,7 @@ class MobileManipulatorPinocchioMapping final : public PinocchioStateInputMappin
     matrix_t dfdu(Jv.rows(), INPUT_DIM(armInputDim_));
     Eigen::Matrix<SCALAR, 3, 3> dvdu_base;
     const SCALAR theta = state(2);
+    std::cout << "MobileManipulatorPinocchioMapping2 base_type" << (int)baseType_ << std::endl;
     switch(baseType_) {
       case BaseType::holonomic:
         // clang-format off
@@ -98,7 +100,10 @@ class MobileManipulatorPinocchioMapping final : public PinocchioStateInputMappin
       case BaseType::none:
       default:
         // clang-format off
-        dvdu_base.setZero();
+        dvdu_base << theta * 0.0, 0.0, 0.0,
+                     0.0, 0.0, 0.0,
+                     0.0, 0.0, 0.0;
+        break;
     }
 
     // clang-format on

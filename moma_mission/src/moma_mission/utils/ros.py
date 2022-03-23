@@ -71,7 +71,7 @@ def switch_ros_controller(startlist=[], stoplist=[], manager_namespace=''):
     req = SwitchControllerRequest()
     req.start_controllers = controller_start_list
     req.stop_controllers = controller_stop_list
-    req.timeout = 5.0
+    req.timeout = 5000.0
     req.start_asap = True
     req.strictness = req.STRICT
 
