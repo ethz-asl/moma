@@ -6,6 +6,7 @@ import smach_ros
 from moma_mission.core.state_ros import *
 from moma_mission.missions.piloting.states import *
 from moma_mission.missions.piloting.sequences import *
+from moma_mission.states.configuration import DynamicReconfigureState
 from moma_mission.states.observation import FOVSamplerState
 from moma_mission.states.transform_visitor import TransformVisitorState
 from moma_mission.states.path_visitor import PathVisitorState
@@ -66,6 +67,12 @@ try:
         rospy.loginfo("Observation pose")
         state_machine.add('OBSERVATION_POSE',
                           FOVSamplerState,
+                          transitions={'Completed': 'WHOLE_BODY_MPC',
+                                       'Failure': 'Failure'})
+
+        rospy.loginfo("Whole-body MPC")
+        state_machine.add('WHOLE_BODY_MPC',
+                          DynamicReconfigureState,
                           transitions={'Completed': 'OBSERVATION_APPROACH',
                                        'Failure': 'Failure'})
 

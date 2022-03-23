@@ -90,6 +90,15 @@ OBSERVATION_POSE:
   image_fill_ratio: 0.5
   heading: [1, 0, 0]
 
+WHOLE_BODY_MPC:
+  default_outcome: None
+  node: panda/mpc_controller
+  params:
+    base_type: 0
+  startlist: []
+  stoplist: ['mpc_controller']
+  manager_namespace: panda
+
 OBSERVATION_APPROACH:
   default_outcome: None
   duration: 10.0
