@@ -336,7 +336,7 @@ class MpcController {
 
       // Desired input trajectory
       ocs2::vector_array_t& uDesiredTrajectory = targetTrajectories.inputTrajectory;
-      uDesiredTrajectory[idx].setZero(9);
+      uDesiredTrajectory[idx].setZero(ocs2::mobile_manipulator::INPUT_DIM(ArmInputDim));
       idx++;
     }
 

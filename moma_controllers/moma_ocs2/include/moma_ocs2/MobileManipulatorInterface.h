@@ -85,7 +85,7 @@ class MobileManipulatorInterface final : public RobotInterface {
   const PinocchioInterface& getPinocchioInterface() const { return *pinocchioInterfacePtr_; }
   PinocchioInterface& getPinocchioDesiredInterface() { return *pinocchioDesiredInterfacePtr_; }
 
-  inline const std::string& getEEFrame() { return eeFrame_; }
+  inline const std::string& getEEFrame() const { return eeFrame_; }
 
   /** MobileManipulator PinocchioInterface factory */
   static PinocchioInterface buildPinocchioInterface(const std::string& urdfPath);
