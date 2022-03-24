@@ -32,6 +32,7 @@ HOME_ROBOT:
   stoplist:
     [
       "mpc_controller",
+      "mpc_wholebody_controller",
       "cartesian_impedance_controller",
       "path_passthrough_controller",
       "effort_joint_trajectory_controller",
@@ -48,6 +49,7 @@ HOME_ROBOT_FINAL:
   stoplist:
     [
       "mpc_controller",
+      "mpc_wholebody_controller",
       "cartesian_impedance_controller",
       "path_passthrough_controller",
       "effort_joint_trajectory_controller",
@@ -65,7 +67,7 @@ REACH_DETECTION_HOTSPOT:
 
   manager_namespace: smb
   startlist: ['smb_diff_drive']
-  stoplist: ['mpc_controller']
+  stoplist: ['mpc_controller', 'mpc_wholebody_controller']
 
   timeout: 10000.0
   tolerance_m: 0.30
@@ -80,7 +82,7 @@ WAYPOINT_FOLLOWING:
 
   manager_namespace: smb
   startlist: ['smb_diff_drive']
-  stoplist: ['mpc_controller']
+  stoplist: ['mpc_controller', 'mpc_wholebody_controller']
 
   timeout: 10000.0
   tolerance_m: 0.30
