@@ -76,8 +76,8 @@ class MpcController {
     }
 
     int baseTypeInt;
-    if (!nh_.param("/ocs2_mpc/base_type", baseTypeInt, 0)){
-      ROS_ERROR("Failed to retrieve /ocs2_mpc/base_type from param server.");
+    if (!nh_.param("base_type", baseTypeInt, 0)){
+      ROS_ERROR("Failed to retrieve base_type from param server.");
       return 0;
     }    
 

@@ -7,9 +7,6 @@
   <arg name="tool" default="panda_hand"/>
   <arg name="load_gripper" default="true"  if="$(eval arg('tool') == 'panda_hand')"/>
   <arg name="load_gripper" default="false" unless="$(eval arg('tool') == 'panda_hand')"/>
-
-  <!-- 0 = none, 1 = skidsteer, 2 = holonomic -->
-  <arg name="base_type" default="0"/>
    
   <!-- send the robot XML to param server -->
   <param name="arm_description" command="$(find xacro)/xacro $(find moma_description)/urdf/panda.urdf.xacro 
@@ -29,7 +26,6 @@
   <group ns="ocs2_mpc">
     <param name="task_file" value="$(find moma_ocs2)/config/mpc/task_panda.info"/>
     <param name="robot_description_ocs2" command="$(find xacro)/xacro $(find moma_description)/urdf/superpanda.urdf.xacro mpc_model:=true use_nominal_extrinsics:=true tool:='none'"/>
-    <param name="base_type" value="$(arg base_type)"/>
     <param name="reference_frame" value="tracking_camera_odom"/>
   </group>
 
@@ -55,6 +51,7 @@
            value="joint_space_controller
                   joint_velocity_controller
                   mpc_controller
+                  mpc_wholebody_controller
                   cartesian_impedance_controller
                   path_admittance_controller"/>
       <node name="controller_loader" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="--stopped $(arg controllers_load_list)" />
@@ -63,11 +60,5 @@
       <arg name="controllers_start_list" value="path_passthrough_controller"/>
       <node name="controller_starter" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="$(arg controllers_start_list)" />
   </group>
-
-  <node pkg="tf2_ros"
-        if="$(eval arg('base_type') == 0)"
-        type="static_transform_publisher"
-        name="world_base_tf"
-        args="0 0 0 0 0 0 1 world base_link" />
 
 </launch>
