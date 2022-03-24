@@ -282,7 +282,7 @@ void PandaMpcController::compute_command(const ros::Duration& period) {
   if (sim_) { 
     robot_model_->updateState(position_current_model_, velocity_current_model_);
     robot_model_->computeAllTerms();
-    arm_gravity_and_coriolis_ = robot_model_->getNonLinearTerms();
+    arm_gravity_and_coriolis_ = robot_model_->getNonLinearTerms().head<armInputDim_>();
   }
   else {
 
