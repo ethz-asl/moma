@@ -80,12 +80,15 @@ MobileManipulatorInterface::MobileManipulatorInterface(const std::string& taskFi
     std::cerr << "[MobileManipulatorInterface] Loading task file: " << taskFilePath << std::endl;
   } else {
     throw std::invalid_argument("[MobileManipulatorInterface] Task file not found: " + taskFilePath.string());
-  } 
+  }
   taskFile_ = taskFile;
   std::cerr << "Loading task file: " << taskFile_ << std::endl;
 
   // create library folder if it does not exist
-  libraryFolder_ = ros::package::getPath("moma_ocs2") + "/auto_generated";
+  // also ensure that it does not collide to the same path for different configurations
+  // (put all relevant parameters in the path to disambiguate)
+  // otherwise multi-instantiation does not work correctly
+  libraryFolder_ = ros::package::getPath("moma_ocs2") + "/auto_generated/" + std::to_string(armInputDim) + "_" + std::to_string(static_cast<int>(baseType));
   boost::filesystem::path libraryFolderPath(libraryFolder_);
   boost::filesystem::create_directories(libraryFolderPath);
   std::cerr << "[MobileManipulatorInterface] Generated library path: " << libraryFolderPath << std::endl;
