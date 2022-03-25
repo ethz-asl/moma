@@ -40,7 +40,7 @@
         <node name="arm_stop_controller_spawner" 
               pkg="controller_manager" 
               type="spawner"
-              output="screen" args="--stopped mpc_controller mpc_wholebody_controller joint_space_controller path_passthrough_controller"
+              output="screen" args="--stopped mpc_controller mpc_wholebody_controller joint_space_controller path_passthrough_controller path_admittance_controller"
               launch-prefix="bash -c 'sleep 12; $0 $@' " />
     </group>
 
