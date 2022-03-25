@@ -193,8 +193,9 @@ cartesian_impedance_controller:
     - panda_joint5
     - panda_joint6
     - panda_joint7
-  filter_params: 0.1
+  filter_params: 0.05
   safety_margin: 0.087 # ~5 degrees
   q_nullspace: [0.0, 0.0, 0.0, -1.5, 0.0, 1.5, 0.0]
   lower_limit: [-2.8973, -1.7628, -2.8973, -3.0718, -2.8973, -0.0175, -2.8973]
   upper_limit: [2.8973, 1.7628, 2.8973, -0.0698, 2.8973, 3.7525, 2.8973]
+  limits_gains: [500.0, 500.0, 500.0, 300.0, 100.0, 50.0, 50.0]
