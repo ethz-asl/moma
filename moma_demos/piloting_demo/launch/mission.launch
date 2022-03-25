@@ -26,7 +26,7 @@
   <node pkg="tf2_ros"
           type="static_transform_publisher"
           name="hotspot_close_broadcaster"
-          args="0.3 0 0.4 0 0 3.14 valve_gt hotspot_close" />
+          args="0.0 0 0.4 0 0 3.14 valve_gt hotspot_close" />
   
 
   <!-- mission state machine -->

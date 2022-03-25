@@ -61,8 +61,8 @@ class MpcController {
     std::string robotName;
 
     // Params
-    if (!nh_.param("/ocs2_mpc/task_file", taskFile_, {})){
-      ROS_ERROR("Failed to retrieve /ocs2_mpc/task_file from param server.");
+    if (!nh_.param("task_file", taskFile_, {})){
+      ROS_ERROR("Failed to retrieve task_file from param server.");
       return 0;
     }
     if (!nh_.param("/ocs2_mpc/robot_description_ocs2", urdfXML_, {})){
