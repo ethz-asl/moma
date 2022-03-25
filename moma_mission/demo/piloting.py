@@ -108,7 +108,7 @@ try:
 
         rospy.loginfo("Close gripper")
         state_machine.add('CLOSE_GRIPPER',
-                          GripperControl,
+                          GripperGrasp,
                           transitions={'Completed': 'MANIPULATE_VALVE',
                                        'Failure': 'MANIPULATE_VALVE'})
 

@@ -18,7 +18,7 @@ OPEN_GRIPPER:
 
 CLOSE_GRIPPER:
   default_outcome: None
-  gripper_action_name: /panda/franka_gripper/gripper_action
+  gripper_action_name: /panda/franka_gripper/grasp
   position: 0.0
   max_effort: 20
   tolerance: 0.1
@@ -87,7 +87,7 @@ WAYPOINT_FOLLOWING:
   tolerance_deg: 50
 
 DETECTION_DECISION:
-  default_outcome: Completed
+  default_outcome: Failure
 
 OBSERVATION_POSE:
   default_outcome: None

@@ -5,7 +5,7 @@ import smach_ros
 
 from moma_mission.core import StateMachineRos, StateRos
 from moma_mission.missions.piloting.states import *
-from moma_mission.states.gripper import GripperControl
+from moma_mission.states.gripper import GripperControl, GripperGrasp
 from moma_mission.states.manipulation import JointsConfigurationAction
 
 
