@@ -11,7 +11,7 @@ IDLE:
 OPEN_GRIPPER:
   default_outcome: None
   gripper_action_name: /panda/franka_gripper/gripper_action
-  position: 0.03
+  position: 0.08
   max_effort: 20
   tolerance: 0.1
   timeout: 5.0
@@ -20,7 +20,7 @@ CLOSE_GRIPPER:
   default_outcome: None
   gripper_action_name: /panda/franka_gripper/grasp
   position: 0.0
-  max_effort: 20
+  max_effort: 1.0
   tolerance: 0.1
   timeout: 5.0
 

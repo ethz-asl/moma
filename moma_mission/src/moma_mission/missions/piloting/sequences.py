@@ -12,7 +12,7 @@ from moma_mission.states.manipulation import JointsConfigurationAction
 def homing_sequence_factory():
     homing_sequence = StateMachineRos(outcomes=['Success', 'Failure'])
     with homing_sequence:
-        homing_sequence.add('OPEN_GRIPPER', GripperControl, transitions={'Completed': 'HOME_ROBOT',
+        homing_sequence.add('OPEN_GRIPPER', GripperGrasp, transitions={'Completed': 'HOME_ROBOT',
                                                                          'Failure': 'Failure'})
 
         homing_sequence.add('HOME_ROBOT', JointsConfigurationAction, transitions={'Completed': 'Success',

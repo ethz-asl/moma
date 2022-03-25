@@ -120,7 +120,7 @@ try:
 
         rospy.loginfo("Open gripper")
         state_machine.add('OPEN_GRIPPER',
-                          GripperControl,
+                          GripperGrasp,
                           transitions={'Completed': 'BACKOFF_VALVE',
                                        'Failure': 'Failure'})
 
