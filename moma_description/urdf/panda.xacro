@@ -58,6 +58,14 @@
       <origin rpy="0.0 0.0 -0.785" xyz="0.0 0.0 0.103"/>
     </joint>
 
+    <!-- end effector as for the real hardware -->
+    <link name="panda_EE"/>
+    <joint name="joint_link8_panda_EE" type="fixed">
+      <parent link="panda_link8"/>
+      <child link="panda_EE"/>
+      <origin rpy="0.0 0.0 -0.785" xyz="0.0 0.0 0.103"/>
+    </joint>
+
     <!-- wrist realsense -->
     <xacro:include filename="$(find realsense2_description)/urdf/_d435.urdf.xacro" />
     <xacro:include filename="$(find moma_description)/urdf/realsense.gazebo.xacro" />
