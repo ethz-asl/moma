@@ -57,10 +57,10 @@ HOME_ROBOT_FINAL:
   joints_configurations:
     - [-0.65, -0.885, 0, -2.1, 0, 1.571, 0]
 
-REACH_DETECTION_HOTSPOT:
+REACH_DETECTION_HOTSPOT_FAR:
   default_outcome: None
   goal_action_topic: /move_base
-  target_frame: hotspot
+  target_frame: hotspot_far
   goal_pose_topic: /move_base_simple/goal
   base_pose_topic: /base_pose_measured
   base_odometry_topic: /base_odom
@@ -72,6 +72,15 @@ REACH_DETECTION_HOTSPOT:
   timeout: 10000.0
   tolerance_m: 0.30
   tolerance_deg: 50
+
+REACH_DETECTION_HOTSPOT_CLOSE:
+  default_outcome: None
+  duration: 10.0
+  control_frame: tracking_camera_odom
+  target_frame: hotspot_close
+  startlist: [ 'mpc_wholebody_controller', 'path_passthrough_controller' ]
+  stoplist: [ 'mpc_controller', 'joint_space_controller' ]
+  manager_namespace: panda
 
 WAYPOINT_FOLLOWING:
   default_outcome: None
@@ -109,8 +118,8 @@ OBSERVATION_APPROACH:
   duration: 10.0
   control_frame: tracking_camera_odom
   target_frame: observation
-  startlist: ["mpc_wholebody_controller", "path_passthrough_controller"] #, 'path_admittance_controller' ]
-  stoplist: ["mpc_controller", "joint_space_controller"]
+  startlist: ["mpc_controller", "path_passthrough_controller"] #, 'path_admittance_controller' ]
+  stoplist: ["mpc_wholebody_controller", "joint_space_controller"]
   manager_namespace: panda
 
 MODEL_FIT_VALVE:

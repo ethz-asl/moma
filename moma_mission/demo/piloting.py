@@ -40,12 +40,18 @@ try:
         state_machine.add('IDLE',
                           Idle,
                           transitions={'ExecuteInspectionPlan': 'WAYPOINT_FOLLOWING',
-                                       'ExecuteManipulationPlan': 'REACH_DETECTION_HOTSPOT',
+                                       'ExecuteManipulationPlan': 'REACH_DETECTION_HOTSPOT_FAR',
                                        'Failure': 'Failure'})
 
-        rospy.loginfo("Reach detection hotspot")
-        state_machine.add('REACH_DETECTION_HOTSPOT',
+        rospy.loginfo("Reach detection hotspot far")
+        state_machine.add('REACH_DETECTION_HOTSPOT_FAR',
                           NavigationState,
+                          transitions={'Completed': 'REACH_DETECTION_HOTSPOT_CLOSE',
+                                       'Failure': 'Failure'})
+
+        rospy.loginfo("Reach detection hotspot close")
+        state_machine.add('REACH_DETECTION_HOTSPOT_CLOSE',
+                          TransformVisitorState,
                           transitions={'Completed': 'DETECTION_DECISION',
                                        'Failure': 'Failure'})
 

@@ -20,8 +20,13 @@
   <!-- detection hotspot relative to estimated valve pose -->
   <node pkg="tf2_ros"
         type="static_transform_publisher"
-        name="hotspot_broadcaster"
-        args="-2 0 0 0 0 0 valve_gt hotspot" />
+        name="hotspot_far_broadcaster"
+        args="-2 0 0 0 0 0 valve_gt hotspot_far" />
+
+  <node pkg="tf2_ros"
+          type="static_transform_publisher"
+          name="hotspot_close_broadcaster"
+          args="0.3 0 0.4 0 0 3.14 valve_gt hotspot_close" />
   
 
   <!-- mission state machine -->
