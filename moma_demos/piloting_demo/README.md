@@ -196,7 +196,7 @@ mon launch moma_robot robot_pc_smb.launch
 ```
 In Terminal 3 (__smb_pc__)
 ```
-mon luanch piloting_demo navigation.launch sim:=false use_global_map:=[true/false]
+mon launch piloting_demo navigation.launch sim:=false use_global_map:=[true/false]
 ```
 In Terminal 4 (__operator_pc__)
 ```
