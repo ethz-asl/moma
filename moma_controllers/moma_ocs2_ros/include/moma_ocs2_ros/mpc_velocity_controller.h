@@ -320,7 +320,7 @@ class MpcController {
     {
       std::lock_guard<std::mutex> lock(policyMutex_);
       try {
-        try {mpc_mrt_interface_->updatePolicy();
+        mpc_mrt_interface_->updatePolicy();
         mpc_mrt_interface_->evaluatePolicy(observation_offset_.time, observation_offset_.state, mpcState, mpcInput,
                                            mode);
       } catch (const std::runtime_error& error) {
@@ -541,5 +541,5 @@ class MpcController {
   realtime_tools::RealtimePublisher<nav_msgs::Path> command_path_publisher_;
   realtime_tools::RealtimePublisher<nav_msgs::Path> rollout_publisher_;
 
-};  
+};
 }  // namespace mobile_manipulator
