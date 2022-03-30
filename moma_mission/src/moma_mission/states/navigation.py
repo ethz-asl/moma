@@ -6,6 +6,7 @@ import yaml
 import math
 import rospy
 import actionlib
+from actionlib_msgs.msg import GoalStatus
 from move_base_msgs.msg import MoveBaseAction, MoveBaseActionGoal
 from geometry_msgs.msg import PoseStamped
 
@@ -200,9 +201,9 @@ class SingleNavGoalState(StateRosControl):
         goal_msg.header = goal.header
 
         # Sends the goal to the action server.
-        goal_client.send_goal(goal_msg.goal)
-        success = goal_client.wait_for_result(timeout=rospy.Duration(10*60))
-        return success
+        goal_state = goal_client.send_goal_and_wait(goal_msg.goal, execute_timeout=rospy.Duration(10*60))
+        rospy.loginfo(f"Move base returned {goal_state}")
+        return goal_state == GoalStatus.SUCCEEDED
 
     def _reach_via_topic(self, goal):
         while not self.goal_publisher.get_num_connections():
