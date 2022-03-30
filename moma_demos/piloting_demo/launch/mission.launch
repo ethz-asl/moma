@@ -1,27 +1,17 @@
 <?xml version="1.0"?>
 <launch>
-  <!-- interactive marker -->
-  <node pkg="moma_cartesian_impedance_controller" type="interactive_marker.py" name="interactive_marker" output="screen">
-    <param name="base_frame" value="panda_link0"/>
-    <param name="target_frame" value="panda_hand"/>
-    <param name="topic_name" value="/panda/cartesian_impedance_controller/equilibrium_pose"/>
-  </node>
-  
-  <!-- set the correct internal ee frame -->
-  <node pkg="moma_cartesian_impedance_controller" type="set_EE_frame.py" name="set_EE_frame_node" output="screen" respawn="true"/>
-  
   <!-- valve model -->
   <include file="$(find piloting_demo)/launch/valve.launch">
-    <!-- param name="x" value="0"/-->
-    <!-- param name="y" value="0"/-->
-    <!-- param name="z" value="0"/-->
+    <arg name="x" value="3.5"/>
+    <arg name="y" value="1.5"/>
+    <!-- arg name="z" value="0"/-->
   </include>
 
   <!-- detection hotspot relative to estimated valve pose -->
   <node pkg="tf2_ros"
         type="static_transform_publisher"
         name="hotspot_far_broadcaster"
-        args="-2 0 0 0 0 0 valve_gt hotspot_far" />
+        args="-1 -1 0 0.79 0 0 valve_gt hotspot_far" />
 
   <node pkg="tf2_ros"
           type="static_transform_publisher"

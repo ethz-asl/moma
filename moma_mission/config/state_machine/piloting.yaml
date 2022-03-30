@@ -10,11 +10,11 @@ IDLE:
 
 OPEN_GRIPPER:
   default_outcome: None
-  gripper_action_name: /panda/franka_gripper/gripper_action
-  position: 0.03
+  gripper_action_name: /panda/franka_gripper/grasp
+  position: 0.08
   max_effort: 20
   tolerance: 0.1
-  timeout: 5.0
+  timeout: 10.0
 
 CLOSE_GRIPPER:
   default_outcome: None
@@ -22,7 +22,7 @@ CLOSE_GRIPPER:
   position: 0.0
   max_effort: 20
   tolerance: 0.1
-  timeout: 5.0
+  timeout: 10.0
 
 HOME_ROBOT:
   default_outcome: None
@@ -109,7 +109,7 @@ OBSERVATION_POSE:
   controlled_frame: tool_frame
   object_size: 0.20
   camera_info_topic: "/camera_info"
-  lateral_view_angle_deg: 30
+  lateral_view_angle_deg: 10
   image_fill_ratio: 0.5
   heading: [1, 0, 0]
 
@@ -132,7 +132,7 @@ MODEL_FIT_VALVE:
   feature_matcher_acceptance_ratio: 1000.0
   ransac_min_consensus: 1 #2   # must be > min_successful detections
 
-PLAN_MODEL_VALVE:
+a:
   default_outcome: None
 
   poses_topic: /valve_poses
@@ -151,6 +151,8 @@ APPROACH_VALVE:
   manager_namespace: panda
   startlist: ["mpc_controller", "path_passthrough_controller"]
   stoplist: ["mpc_wholebody_controller", "joint_space_controller"]
+  linear_tolerance: 0.05
+  angular_tolerance: 0.1
 
   poses_topic: /valve_poses
   offset: [0, 0, -0.1]

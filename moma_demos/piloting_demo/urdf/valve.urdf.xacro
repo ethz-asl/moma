@@ -7,12 +7,12 @@
    <xacro:arg name="pitch"  default="0.0"/>
    <xacro:arg name="yaw"    default="0.0"/>
    
-   <link name="world">
+   <link name="map">
    </link>
 
     <joint name="valve_base_joint" type="fixed">
       <origin xyz="$(arg x) $(arg y) $(arg z)" rpy="0 $(arg pitch) $(arg yaw)"/>
-      <parent link="world"/>
+      <parent link="map"/>
       <child link="valve_gt"/>
     </joint>
    
