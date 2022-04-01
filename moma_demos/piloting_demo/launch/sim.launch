@@ -5,8 +5,8 @@
     <arg name="use_fixed_realsense" default="false"/>
     <arg name="tool" default="panda_hand"/>
     <arg name="launch_navigation" default="true"/>
-    <arg name="base_type" default="0"/>
     <arg name="world_name" default="$(find piloting_demo)/worlds/schutz.world"/>
+    <arg name="use_global_map" default="true"/>
 
     <!-- Control-->
     <!-- load a arm only description for the arm controllers -->
@@ -14,14 +14,19 @@
       use_nominal_extrinsics:=true use_fixed_realsense:=false tool:=$(arg tool) control_mode:='Effort' include_gazebo_control:=false"/>
 
     <group ns="ocs2_mpc">
-        <param name="task_file" value="$(find moma_ocs2)/config/mpc/task_panda.info"/>
         <param name="robot_description_ocs2" command="$(find xacro)/xacro $(find moma_description)/urdf/superpanda.urdf.xacro
             mpc_model:=true use_nominal_extrinsics:=true tool:='none'"/>
-        <param name="base_type" value="$(arg base_type)"/>
         <param name="reference_frame" value="tracking_camera_odom"/>
     </group>
 
     <group ns="panda">
+        <group ns="mpc_controller">
+          <param name="task_file" value="$(find moma_ocs2)/config/mpc/task_panda.info"/>
+        </group>
+        <group ns="mpc_wholebody_controller">
+          <param name="task_file" value="$(find moma_ocs2)/config/mpc/task_panda_wholebody.info"/>
+        </group>
+
         <group if="$(eval arg('tool') == 'panda_hand')">
             <node name="gripper_controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="franka_gripper" />
         </group>
@@ -41,7 +46,7 @@
         <node name="arm_stop_controller_spawner"
               pkg="controller_manager"
               type="spawner"
-              output="screen" args="--stopped mpc_controller joint_space_controller path_passthrough_controller"
+              output="screen" args="--stopped mpc_controller mpc_wholebody_controller joint_space_controller path_passthrough_controller path_admittance_controller"
               launch-prefix="bash -c 'sleep 12; $0 $@' " />
     </group>
 
@@ -70,7 +75,7 @@
     <!-- Localization and Navigation -->
     <include file="$(find piloting_demo)/launch/navigation.launch" if="$(arg launch_navigation)">
         <arg name="sim"               value="true"/>
-        <arg name="use_global_map"    value="true"/>
+        <arg name="use_global_map"    value="$(arg use_global_map)"/>
         <arg name="global_frame"      value="map"/>
     </include>
 

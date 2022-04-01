@@ -1,20 +1,18 @@
 #!/usr/bin/env python3
-
+import sys
 import rospy
 import tf2_ros
 
-from interactive_markers.interactive_marker_server import (
-    InteractiveMarkerServer,
-    InteractiveMarkerFeedback,
-)
+from interactive_markers.interactive_marker_server import InteractiveMarkerServer
 from interactive_markers.menu_handler import MenuHandler
 from visualization_msgs.msg import InteractiveMarker, InteractiveMarkerControl, Marker
 from geometry_msgs.msg import PoseStamped
+from nav_msgs.msg import Path
 
 int_marker = InteractiveMarker()
-marker_pose = PoseStamped()
 menu_handler = MenuHandler()
-pose_pub = None
+target_pub = None
+poses = []
 
 
 def make_sphere(radius):
@@ -30,17 +28,58 @@ def make_sphere(radius):
     return marker
 
 
-def publisher_callback(feedback):
-    marker_pose.header.stamp = rospy.get_rostime()
-    pose_pub.publish(marker_pose)
+def add_target_callback(mode, feedback):
+    global poses
+    target_pose = PoseStamped()
+    target_pose.header.stamp = rospy.get_rostime()
+    target_pose.header.frame_id = int_marker.header.frame_id
+    target_pose.pose = feedback.pose
+    if mode == "pose":
+        poses = [target_pose]
+    else:
+        poses.append(target_pose)
+
+    interactive_path = Path()
+    interactive_path.header = target_pose.header
+    interactive_path.poses = poses
+    interactive_path_pub.publish(interactive_path)
+
+
+def publisher_callback(mode, feedback):
+    global poses
+    if len(poses) == 0:
+        rospy.logwarn("Path is empty! Cannot send target.")
+        return
+
+    target = PoseStamped() if mode == "pose" else Path()
+    target_pose = PoseStamped()
+    target_pose.header.stamp = rospy.get_rostime()
+    target_pose.header.frame_id = int_marker.header.frame_id
+    target_pose.pose = feedback.pose
+
+    if mode == "pose":
+        target = poses[0]
+    else:
+        target.header = target_pose.header
+        start_time = rospy.get_rostime()
+        delta_time = 5.0
+        for i, pose in enumerate(poses):
+            pose.header.stamp = start_time + rospy.Duration.from_sec(i * delta_time)
+        target.poses = poses
+
+    target_pub.publish(target)
+    reset_path(target)
+
+
+def reset_path(target):
+    global poses
+    poses = []
+    path = Path()
+    path.header = target.header
+    interactive_path_pub.publish(path)
 
 
 def process_feedback(feedback):
-    if feedback.event_type == InteractiveMarkerFeedback.POSE_UPDATE:
-        marker_pose.pose.position.x = feedback.pose.position.x
-        marker_pose.pose.position.y = feedback.pose.position.y
-        marker_pose.pose.position.z = feedback.pose.position.z
-        marker_pose.pose.orientation = feedback.pose.orientation
     server.applyChanges()
 
 
@@ -50,13 +89,11 @@ def wait_for_initial_pose(feedback, base_frame, target_frame):
 
     try:
         trans = buffer.lookup_transform(
-            base_frame, target_frame, rospy.Time(), rospy.Duration(10.0)
+            base_frame, target_frame, rospy.Time(0), rospy.Duration(10.0)
         )
-        marker_pose.header.frame_id = base_frame
-        marker_pose.header.stamp = rospy.get_rostime()
-        marker_pose.pose.orientation = trans.transform.rotation
-        marker_pose.pose.position = trans.transform.translation
-        int_marker.pose = marker_pose.pose
+        int_marker.header.frame_id = base_frame
+        int_marker.pose.position = trans.transform.translation
+        int_marker.pose.orientation = trans.transform.rotation
         if feedback is not None:
             server.insert(int_marker, process_feedback)
             server.applyChanges()
@@ -73,29 +110,47 @@ def wait_for_initial_pose(feedback, base_frame, target_frame):
 if __name__ == "__main__":
     rospy.init_node("equilibrium_pose_node")
 
+    server_name = rospy.get_param("~server_name")
     base_frame_id = rospy.get_param("~base_frame")
     target_frame_id = rospy.get_param("~target_frame")
     topic_name = rospy.get_param("~topic_name")
+    mode = rospy.get_param("~mode")  # can be 'path' or 'pose'
+
+    if mode not in {"path", "pose"}:
+        rospy.logerr(f"Wrong interactive marker mode: {mode}")
+        sys.exit(-1)
 
     if not wait_for_initial_pose(None, base_frame_id, target_frame_id):
         rospy.logerr("Failed to initialize the marker pose.")
 
-    pose_pub = rospy.Publisher(topic_name, PoseStamped, queue_size=10)
-    server = InteractiveMarkerServer("interactive_pose_marker")
+    msg_type = PoseStamped if mode == "pose" else Path
+    target_pub = rospy.Publisher(topic_name, msg_type, queue_size=10)
+    interactive_path_pub = rospy.Publisher(
+        "/interactive_path", Path, queue_size=1, latch=True
+    )
+
+    server = InteractiveMarkerServer(server_name)
     int_marker.header.frame_id = base_frame_id
     int_marker.scale = 0.3
-    int_marker.name = "equilibrium_pose"
+    int_marker.name = server_name + "_marker"
     int_marker.description = "Target Cartesian Pose"
-    int_marker.pose = marker_pose.pose
 
     # insert a box
+    control = InteractiveMarkerControl()
+    control.orientation.w = 1
+    control.orientation.x = 0
+    control.orientation.y = 0
+    control.orientation.z = 0
+    control.markers.append(make_sphere(0.05))
+    control.name = "sphere_rotate_x"
+    int_marker.controls.append(control)
+
     control = InteractiveMarkerControl()
     control.orientation.w = 1
     control.orientation.x = 1
     control.orientation.y = 0
     control.orientation.z = 0
     control.name = "rotate_x"
-    control.markers.append(make_sphere(0.1))
     control.interaction_mode = InteractiveMarkerControl.ROTATE_AXIS
     int_marker.controls.append(control)
 
@@ -146,7 +201,13 @@ if __name__ == "__main__":
         "Reset Pose",
         callback=lambda fb: wait_for_initial_pose(fb, base_frame_id, target_frame_id),
     )
-    menu_handler.insert("Send Target Pose", callback=publisher_callback)
+    menu_handler.insert(
+        "Add Target Pose",
+        callback=lambda fb: add_target_callback(mode=mode, feedback=fb),
+    )
+    menu_handler.insert(
+        "Send Target", callback=lambda fb: publisher_callback(mode=mode, feedback=fb)
+    )
     menu_handler.apply(server, int_marker.name)
 
     # apply changes and spin

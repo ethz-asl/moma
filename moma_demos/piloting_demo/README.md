@@ -187,7 +187,7 @@ You can use the `2D Pose Estimate` button in RViz to provide ICP with a pose gue
 ![alt text](docs/images/icp_pose_estimate.png)
 
 ```
-roslaunch piloting_demo navigation.launch sim:=[true/false]
+roslaunch piloting_demo navigation.launch sim:=[true/false] use_global_map:=[true/false]
 ```
 
 The static map is loaded and should also be visualized in RViz (purple costamp in the previous image). The costmap is retrieved from the `map_server`. This is loading the map from a `*.yaml` and `*.pgm` files stored at the output directory of step 3 in the [mapping section](#mapping). As long as the static costmap is generated from the same point cloud used for localization, these will align and allow to set a global goal for the path planner.
@@ -232,7 +232,7 @@ mon launch moma_robot robot_pc_smb.launch
 In Terminal 3 (**smb_pc**)
 
 ```
-mon luanch piloting_demo navigation.launch sim:=false
+mon launch piloting_demo navigation.launch sim:=false use_global_map:=[true/false]
 ```
 
 In Terminal 4 (**operator_pc**)

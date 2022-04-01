@@ -202,7 +202,7 @@ class NavigationState(SingleNavGoalState):
         rospy.loginfo(
             "Reaching goal at {}, {}".format(goal.pose.position.x, goal.pose.position.y)
         )
-        success = self.reach_goal(goal)
+        success = self.reach_goal(goal, action=True)
         if not success:
             rospy.logerr("Failed to reach base goal.")
             return "Failure"
@@ -492,7 +492,12 @@ class ModelFitValveState(StateRos):
             # trying to match keypoints and filtering based on best epipolar match
             # keyoints3d is a list [ (num_kpts x 3), (num_kpts x 3), None, ... ] num_observations long
             # and None if the observation was rejected
-            success, keypoints2d, keypoints3d = self.ransac_matcher.filter()
+            try:
+                success, keypoints2d, keypoints3d = self.ransac_matcher.filter()
+            except:
+                rospy.logerr("Exception while matching and filtering detections.")
+                return "Failure"
+
             if not success:
                 rospy.logerr("Failed to match and filter detections.")
                 return "Failure"

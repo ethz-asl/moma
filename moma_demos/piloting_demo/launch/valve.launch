@@ -1,8 +1,11 @@
 <?xml version="1.0"?>
 <launch>
   <arg name="sim" default="false"/>
+  <arg name="x"   default="0.71"/>
+  <arg name="y"   default="0.017"/>
+  <arg name="z"   default="0.426"/>
 
-  <param name="valve_description" command="$(find xacro)/xacro --inorder $(find piloting_demo)/urdf/valve.urdf.xacro pitch:=0 yaw:=0.0 x:=0.71 y:=0.017 z:=0.426"/>
+  <param name="valve_description" command="$(find xacro)/xacro $(find piloting_demo)/urdf/valve.urdf.xacro pitch:=0 yaw:=0.0 x:=$(arg x) y:=$(arg y) z:=$(arg z)"/>
 
   <node name="spawn_valve" pkg="gazebo_ros" type="spawn_model" args="-param valve_description -urdf -model valve" output="screen" if="$(arg sim)"/>
 

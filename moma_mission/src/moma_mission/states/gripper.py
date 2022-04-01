@@ -142,3 +142,53 @@ class GripperControl(StateRos):
             return "Completed"
         else:
             return "Failure"
+
+
+class GripperControl(GripperAction):
+    """
+    This state controls the gripper through the GripperCommandAction
+    """
+
+    def __init__(self, ns=""):
+        GripperAction.__init__(self, ns=ns, action_type=GripperCommandAction)
+
+    def _set_goal(self):
+        self.gripper_goal = GripperCommandGoal()
+        self.gripper_goal.command.position = self.position
+        self.gripper_goal.command.max_effort = self.max_effort
+
+    def _process_result(self, result: GripperCommandResult):
+        if result.stalled:
+            rospy.loginfo("Gripper stalled")
+            self.success = False
+        elif result.reached_goal:
+            rospy.loginfo("Gripper reached goal")
+            self.success = True
+        elif abs(result.position - self.position) > self.tolerance:
+            rospy.logwarn("Gripper did not meet tolerance")
+            self.success = False
+
+
+class GripperGrasp(GripperAction):
+    """
+    This state controls the gripper through the GripperCommandAction
+    """
+
+    def __init__(self, ns=""):
+        GripperAction.__init__(self, ns=ns, action_type=GraspAction)
+
+    def _set_goal(self):
+        self.gripper_goal = GraspGoal()
+        self.gripper_goal.epsilon.inner = (
+            1.0  # how much fingers can close more than specified
+        )
+        self.gripper_goal.epsilon.outer = (
+            1.0  # how much fingers can open more than specified
+        )
+        self.gripper_goal.speed = 0.01
+        self.gripper_goal.width = self.position
+        self.gripper_goal.force = self.max_effort
+
+    def _process_result(self, result: GraspResult):
+        if not result.success:
+            rospy.logwarn(f"Grasp failed with error msg [{result.error}]")

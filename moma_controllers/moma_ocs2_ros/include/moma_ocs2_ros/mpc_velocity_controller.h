@@ -52,8 +52,8 @@ class MpcController {
     std::string robotName;
 
     // Params
-    if (!nh_.param("/ocs2_mpc/task_file", taskFile_, {})) {
-      ROS_ERROR("Failed to retrieve /ocs2_mpc/task_file from param server.");
+    if (!nh_.param("task_file", taskFile_, {})) {
+      ROS_ERROR("Failed to retrieve task_file from param server.");
       return 0;
     }
     if (!nh_.param("/ocs2_mpc/robot_description_ocs2", urdfXML_, {})) {
@@ -67,8 +67,8 @@ class MpcController {
     }
 
     int baseTypeInt;
-    if (!nh_.param("/ocs2_mpc/base_type", baseTypeInt, 0)) {
-      ROS_ERROR("Failed to retrieve /ocs2_mpc/base_type from param server.");
+    if (!nh_.param("base_type", baseTypeInt, 0)) {
+      ROS_ERROR("Failed to retrieve base_type from param server.");
       return 0;
     }
 
@@ -354,7 +354,7 @@ class MpcController {
 
       // Desired input trajectory
       ocs2::vector_array_t& uDesiredTrajectory = targetTrajectories.inputTrajectory;
-      uDesiredTrajectory[idx].setZero(9);
+      uDesiredTrajectory[idx].setZero(ocs2::mobile_manipulator::INPUT_DIM(ArmInputDim));
       idx++;
     }
 

@@ -9,7 +9,7 @@
     <arg name="odom_topic"        default="/base_odom"/>
 
     <!-- localize agains prebuilt map -->
-    <include file="$(find smb_slam)/launch/localization.launch">
+    <include file="$(find smb_slam)/launch/localization.launch" if="$(arg use_global_map)">
         <arg name="launch_rviz"             value="false"/>
         <arg name="launch_sensors"          value="false"/>
         <arg name="use_lidar_odometry"      value="false"/>
@@ -17,6 +17,8 @@
         <arg name="map_file_name"           value="$(arg map_file_name)"/>
         <arg name="parameter_filepath"      value="$(find piloting_demo)/config/localization/icp_params.yaml"/>
     </include>
+
+    <node pkg="tf2_ros" type="static_transform_publisher" name="map_broadcaster" args="0 0 0 0 0 0 tracking_camera_odom map" unless="$(arg use_global_map)"/>
 
     <!-- Base planner can use a global map and locally replans for obstacle avoidance -->
     <include file="$(find smb_navigation)/launch/navigate2d_ompl.launch">

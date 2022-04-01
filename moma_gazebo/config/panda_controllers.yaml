@@ -125,6 +125,46 @@ mpc_controller:
   arm_id: panda
 
   robot_name: "panda"
+  base_type: 0
+  base_link: "tracking_camera_odom"
+  tool_link: "tool_frame"
+  odom_topic: "/base_odom"
+  command_base_topic: "/smb_mpc/command_twist"
+  joint_names:
+    - panda_joint1
+    - panda_joint2
+    - panda_joint3
+    - panda_joint4
+    - panda_joint5
+    - panda_joint6
+    - panda_joint7
+  mpc_frequency: 20
+  command_topic: /joints_position_controller/command
+  path_topic: /mpc_reference_path
+
+  gains:
+    panda_joint1:
+      { p: 500.0, i: 0.0, d: 150.0, i_clamp_min: -100.0, i_clamp_max: 100.0 }
+    panda_joint2:
+      { p: 500.0, i: 0.0, d: 150.0, i_clamp_min: -5.0, i_clamp_max: 5.0 }
+    panda_joint3:
+      { p: 500.0, i: 0.0, d: 150.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
+    panda_joint4:
+      { p: 500.0, i: 0.0, d: 150.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
+    panda_joint5:
+      { p: 500.0, i: 0.0, d: 150.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
+    panda_joint6:
+      { p: 500.0, i: 0.0, d: 150.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
+    panda_joint7:
+      { p: 500.0, i: 0.0, d: 150.0, i_clamp_min: -0.1, i_clamp_max: 0.1 }
+
+mpc_wholebody_controller:
+  type: moma_controllers/PandaMpcController
+  simulation: true
+  arm_id: panda
+
+  robot_name: "panda"
+  base_type: 1
   base_link: "tracking_camera_odom"
   tool_link: "tool_frame"
   odom_topic: "/base_odom"
@@ -168,15 +208,14 @@ path_admittance_controller:
 
   verbose: false
   wrench_topic: /ft_compensated
+  wrench_opposite: false
   path_in_topic: /desired_path
   path_out_topic: /mpc_reference_path
 
-  kp_linear_gains: [0.01, 0.01, 0.01]
-  kp_angular_gains: [0.01, 0.01, 0.01]
-  ki_linear_gains: [0.0, 0.0, 0.0]
-  ki_angular_gains: [0.0, 0.0, 0.0]
-  force_integral_max: [1.0, 1.0, 1.0]
-  torque_integral_max: [1.0, 1.0, 1.0]
+  kp_linear_gains: [50.0, 50.0, 50.0]
+  kp_angular_gains: [5.0, 5.0, 5.0]
+  kd_linear_gains: [30, 30, 30]
+  kd_angular_gains: [25.0, 25.0, 25.0]
 
   force_threshold: [2.0, 2.0, 2.0]
   torque_threshold: [0.0, 0.0, 0.0]

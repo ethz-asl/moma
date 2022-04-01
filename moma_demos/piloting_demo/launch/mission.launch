@@ -13,9 +13,23 @@
   <node pkg="moma_cartesian_impedance_controller" type="set_EE_frame.py" name="set_EE_frame_node" output="screen" respawn="true"/>
 
   <!-- valve model -->
-    <include file="$(find piloting_demo)/launch/valve.launch">
+  <include file="$(find piloting_demo)/launch/valve.launch">
     <arg name="sim" value="true"/>
+    <arg name="x" value="2.5"/>
+    <arg name="y" value="2.5"/>
+    <!-- arg name="z" value="0"/-->
   </include>
+
+  <!-- detection hotspot relative to estimated valve pose -->
+  <node pkg="tf2_ros"
+        type="static_transform_publisher"
+        name="hotspot_far_broadcaster"
+        args="-1 -1 0 0.79 0 0 valve_gt hotspot_far" />
+
+  <node pkg="tf2_ros"
+          type="static_transform_publisher"
+          name="hotspot_close_broadcaster"
+          args="0.0 0 0.4 0 0 3.14 valve_gt hotspot_close" />
 
   <!-- mission state machine -->
   <rosparam command="load" file="$(find moma_mission)/config/state_machine/piloting.yaml" subst_value="true"/>

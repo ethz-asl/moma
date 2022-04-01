@@ -102,7 +102,7 @@ inputCost
 
     (0,0)  10.0  ; forward velocity
     (1,1)  10.0  ; sideways velocity
-    (2,2)  10.0  ; turning velocity
+    (2,2)  2.0  ; turning velocity
     (3,3)  1.0  ; SH_ROT velocity
     (4,4)  1.0  ; SH_FLE velocity
     (5,5)  1.0  ; EL_FLE velocity
@@ -154,9 +154,9 @@ jointVelocityLimits
   lowerBound
   {
     scaling 1e-1
-    (0,0) 0.0  ; forward velocity
-    (1,0) 0.0  ; sideways velocity
-    (2,0) 0.0  ; turning velocity
+    (0,0) -1.0  ; forward velocity
+    (1,0) -1.0  ; sideways velocity
+    (2,0) -1.0  ; turning velocity
     (3,0) -3.0  ; SH_ROT
     (4,0) -3.0  ; SH_FLE
     (5,0) -3.0  ; EL_FLE
@@ -169,9 +169,9 @@ jointVelocityLimits
   upperBound
   {
     scaling 1e-1
-    (0,0) 0.0  ; forward velocity
-    (1,0) 0.0  ; sideways velocity
-    (2,0) 0.0  ; turning velocity
+    (0,0) 1.0  ; forward velocity
+    (1,0) 1.0  ; sideways velocity
+    (2,0) 1.0  ; turning velocity
     (3,0) 3.0  ; SH_ROT
     (4,0) 3.0  ; SH_FLE
     (5,0) 3.0  ; EL_FLE
@@ -185,7 +185,7 @@ jointVelocityLimits
   mu  0.01
 
   ; relaxed log barrier delta
-  delta  1e-3
+  delta  1e-2
 }
 
 jointPositionLimits
@@ -196,10 +196,10 @@ jointPositionLimits
     scaling 1e-0
     (0,0) -200.0  ; world x
     (1,0) -200.0  ; world y
-    (2,0) -6.0  ; theta
-    (3,0) -2.8973  ; joint1
-    (4,0) -1.7628  ; joint2
-    (5,0) -2.8973  ; joint3
+    (2,0) -6.0    ; theta
+    (3,0) -0.5     ; joint1
+    (4,0) -0.3     ; joint2
+    (5,0) -0.5     ; joint3
     (6,0) -3.0718  ; joint4
     (7,0) -2.8973  ; joint5
     (8,0) -0.0175  ; joint6
@@ -211,11 +211,11 @@ jointPositionLimits
     scaling 1e-0
     (0,0) 200.0  ; world x
     (1,0) 200.0  ; world y
-    (2,0) 6.0  ; theta
-    (3,0) 2.8973  ; joint1
-    (4,0) 1.7628  ; joint2
-    (5,0) 2.8973  ; joint3
-    (6,0) -0.0698 ; joint4
+    (2,0) 6.0    ; theta
+    (3,0) 0.5     ; joint1
+    (4,0) 0.3     ; joint2
+    (5,0) 0.5     ; joint3
+    (6,0) -1.5    ; joint4 (lower than actual to avoid stretched-out configs)
     (7,0) 2.8973  ; joint5
     (8,0) 3.7525  ; joint6
     (9,0) 2.8973  ; joint7
