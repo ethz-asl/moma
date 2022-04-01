@@ -2,7 +2,7 @@ name: CI
 
 on:
   pull_request:
-    branches: [projects/piloting_feature/ci]
+    branches: [push, projects/piloting_feature/ci]
 
 jobs:
   linting:
@@ -20,3 +20,29 @@ jobs:
         run: |
           pip install pre-commit
           pre-commit run --all-files
+
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install ROS Noetic
+        id: ros-setup
+        uses: ros-tooling/setup-ros@v0.2
+        with:
+          required-ros-distributions: noetic
+
+      - name: Checkout repo
+        uses: actions/checkout@v2
+        submodules: "recursive"
+        path: ${{steps.res-setup.outputs.ros-workspace-directory-name}}
+
+      - name: Install dependencies
+      - run: export CATKIN_WS=${{steps.res-setup.outputs.ros-workspace-directory-name}}
+      - run: sudo apt install python3-vcstool
+      - run: cd $CATKIN_WS/src
+      - run: vcs import --recursive --input moma/moma_core.repos
+      - run: vcs import --recursive --input moma/moma_piloting.repos
+      - run: ./moma/install_dependencies.sh --control
+      - run: source ../devel/setup.bash
+      - run: catkin build --cmake-args -DCMAKE_BUILD_TYPE=RelWithDebInfo
+      - shell: bash
