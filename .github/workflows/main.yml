@@ -27,7 +27,7 @@ jobs:
 
     steps:
       - name: Install ROS Noetic
-        id: ros-setup
+        id: ros_setup
         uses: ros-tooling/setup-ros@v0.2
         with:
           required-ros-distributions: noetic
@@ -38,9 +38,13 @@ jobs:
           submodules: "recursive"
           path: ${{steps.ros-setup.outputs.ros-workspace-directory-name}}
 
-      - run: export CATKIN_WS=${{steps.ros-setup.outputs.ros-workspace-directory-name}}
+      - run: |
+          export CATKIN_WS=${{steps.ros_setup.outputs.ros-workspace-directory-name}}
+          echo "::set-env name=CATKIN_WS::$CATKIN_WS"
       - run: sudo apt install python3-vcstool
-      - run: cd $CATKIN_WS/src
+      - run: |
+          echo "cd $CATKIN_WS/src"
+          cd $CATKIN_WS/src
       - run: vcs import --recursive --input moma/moma_core.repos
       - run: vcs import --recursive --input moma/moma_piloting.repos
       - run: ./moma/install_dependencies.sh --control
