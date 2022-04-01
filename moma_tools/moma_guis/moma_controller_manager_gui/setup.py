@@ -5,4 +5,4 @@ d = generate_distutils_setup(
     packages=["moma_controller_manager_gui"], package_dir={"": "src"}
 )
 
-setup(**d)
+  setup(**d)
