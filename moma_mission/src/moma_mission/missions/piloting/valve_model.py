@@ -18,7 +18,17 @@ class ValveModel:
     - spoke: The inner connection between torus and center
     """
 
-    def __init__(self, frame=Frames.map_frame, center=np.array([0.0, 0.0, 0.0]), radius=0.12, spoke_radius=0.01, axis_1=np.array([1.0, 0.0, 0.0]), axis_2=np.array([0.0, 1.0, 0.0]), num_spokes=3, depth=0.0):
+    def __init__(
+        self,
+        frame=Frames.map_frame,
+        center=np.array([0.0, 0.0, 0.0]),
+        radius=0.12,
+        spoke_radius=0.01,
+        axis_1=np.array([1.0, 0.0, 0.0]),
+        axis_2=np.array([0.0, 1.0, 0.0]),
+        num_spokes=3,
+        depth=0.0,
+    ):
         """
         @param frame: frame in which valve is defined
         @param center: valve center point
@@ -41,16 +51,22 @@ class ValveModel:
         self.__v2 = axis_2 / np.linalg.norm(axis_2)
         self.__d = depth
 
-        self.marker_pub = rospy.Publisher("/valve_marker", MarkerArray, queue_size=1, latch=True)
+        self.marker_pub = rospy.Publisher(
+            "/valve_marker", MarkerArray, queue_size=1, latch=True
+        )
         try:
             self.publish_markers()
         except:
             pass
 
-    def transform(self, dx=0.0, dy=0.0, dz=0.0, roll_deg=0.0, pitch_deg=0.0, yaw_deg=0.0):
-        r = R.from_euler('xyz', [roll_deg, pitch_deg, yaw_deg], degrees=True).as_matrix()
+    def transform(
+        self, dx=0.0, dy=0.0, dz=0.0, roll_deg=0.0, pitch_deg=0.0, yaw_deg=0.0
+    ):
+        r = R.from_euler(
+            "xyz", [roll_deg, pitch_deg, yaw_deg], degrees=True
+        ).as_matrix()
         t = np.array([dx, dy, dz])
-        
+
         self.__c = self.__c + t
         self.__v1 = r @ self.__v1
         self.__v2 = r @ self.__v2
@@ -144,14 +160,16 @@ class ValveModel:
         """
         Positions of all spokes
         """
-        return np.array([self.get_point_on_wheel(angle) for angle in self.spokes_angles])
+        return np.array(
+            [self.get_point_on_wheel(angle) for angle in self.spokes_angles]
+        )
 
     @property
     def keypoints(self):
         """
         All keypoints (including center one)
         """
-        keypoints = np.zeros((3, self.__k + 1)) # k keypoints and the center
+        keypoints = np.zeros((3, self.__k + 1))  # k keypoints and the center
         keypoints[:, 0] = self.__c
         keypoints[:, 1:] = self.spokes_positions.T
         return keypoints
@@ -160,14 +178,18 @@ class ValveModel:
         """
         Get a centered point on the wheel at a given angle
         """
-        return self.__c + self.__r * (np.cos(angle) * self.__v1 + np.sin(angle) * self.__v2) + self.__d * self.normal
+        return (
+            self.__c
+            + self.__r * (np.cos(angle) * self.__v1 + np.sin(angle) * self.__v2)
+            + self.__d * self.normal
+        )
 
     def get_points_on_wheel(self, n=100):
         points = np.zeros((3, n))
         for i in range(n):
             points[:, i] = self.get_point_on_wheel(2 * i * np.pi / n)
         return points
-    
+
     def get_tangent_on_wheel(self, angle):
         """
         Get the tangent on the wheel at a given angle
@@ -184,7 +206,7 @@ class ValveModel:
         wheel_marker.scale.x = 2 * self.__r
         wheel_marker.scale.y = 2 * self.__r
         wheel_marker.scale.z = 2 * self.__s
-        
+
         rot = np.array([self.__v1, self.__v2, self.normal]).T
         q = R.from_matrix(rot).as_quat()
         wheel_marker.pose.orientation.x = q[0]
@@ -198,9 +220,9 @@ class ValveModel:
         wheel_marker.color.g = 0.0
         wheel_marker.color.b = 1.0
         wheel_marker.color.a = 0.2
-        
+
         markers.markers.append(wheel_marker)
-        
+
         for i in range(self.__k):
             angle = 2 * i * np.pi / self.__k
             spoke_position = self.get_point_on_wheel(angle)
@@ -216,7 +238,7 @@ class ValveModel:
             spoke_marker.color.g = 0.0
             spoke_marker.color.b = 1.0
             spoke_marker.color.a = 0.4
-            
+
             # z axis of the spoke cylinder points as P - c
             z = spoke_position - self.__c
             z = z / np.linalg.norm(z)
