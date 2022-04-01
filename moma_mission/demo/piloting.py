@@ -148,11 +148,6 @@ except Exception as exc:
     rospy.logerr(exc)
     sys.exit(0)
 
-# Create and start the introspection server
-# introspection_server = smach_ros.IntrospectionServer(
-#     'piloting_mission_server', state_machine, '/mission_planner')
-# introspection_server.start()
-
 # Execute state machine
 rospy.loginfo("\n\nRunning the mission state machine!\n\n")
 outcome = state_machine.execute()
