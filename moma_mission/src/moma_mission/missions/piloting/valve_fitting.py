@@ -355,17 +355,17 @@ class ValveFitter:
         n = np.cross((P2 - P1), (P3 - P1))
         n = n / np.linalg.norm(n)
 
+        # get geometric center as the mean
+        k = points_3d.shape[1] - 1
+        Cg = np.mean(points_3d[:, 1:], axis=1)
+
         camera_position = np.array(
             [camera_pose.position.x, camera_pose.position.y, camera_pose.position.z]
         )
         # Valve should always face towards camera,
         # such that the turning direction is consistent
-        if np.dot(camera_position - C, n) < 0:
+        if np.dot(camera_position - Cg, n) < 0:
             n = -n
-
-        # get geometric center as the mean
-        k = points_3d.shape[1] - 1
-        Cg = np.mean(points_3d[:, 1:], axis=1)
 
         # get v1 and v2 from Cg and P1, v2 from n and v1
         v1 = P1 - Cg
