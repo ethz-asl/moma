@@ -6,12 +6,13 @@
 
 #include <pluginlib/class_list_macros.h>
 
+namespace moma_controllers {
 
 bool PathPassthroughController::init(hardware_interface::JointStateInterface* hw,
                                      ros::NodeHandle& root_nh, ros::NodeHandle& controller_nh) {
-std::string path_in_topic;
-if (!controller_nh.param<std::string>("path_in_topic", path_in_topic, "/demo_path")) {
-             ROS_WARN_STREAM("[PathPassthroughController] Failed to parse path_in_topic topic");
+  std::string path_in_topic;
+  if (!controller_nh.param<std::string>("path_in_topic", path_in_topic, "/demo_path")) {
+    ROS_WARN_STREAM("[PathPassthroughController] Failed to parse path_in_topic topic");
     return false;
   }
   path_subscriber_ =
