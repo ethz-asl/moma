@@ -6,26 +6,24 @@
 
 #include <geometry_msgs/TransformStamped.h>
 #include <geometry_msgs/WrenchStamped.h>
+#include <pluginlib/class_list_macros.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
-#include <pluginlib/class_list_macros.h>
+namespace moma_controllers {
 
-namespace moma_controllers{
-
-PathAdmittanceController::PathAdmittanceController(){
+PathAdmittanceController::PathAdmittanceController() {
   tf_listener_ = std::make_unique<tf2_ros::TransformListener>(tf_buffer_);
 }
 
-
 bool PathAdmittanceController::init(hardware_interface::JointStateInterface* hw,
-                                    ros::NodeHandle& root_nh,
-                                    ros::NodeHandle& controller_nh){
+                                    ros::NodeHandle& root_nh, ros::NodeHandle& controller_nh) {
   std::string wrench_topic;
   if (!controller_nh.param<std::string>("wrench_topic", wrench_topic, "/wrench")) {
     ROS_WARN_STREAM("[PathAdmittanceController] Failed to parse wrench topic");
     return false;
   }
-  ROS_INFO_STREAM("[PathAdmittanceController] Subscribing to wrench topic [" << wrench_topic << "]");
+  ROS_INFO_STREAM("[PathAdmittanceController] Subscribing to wrench topic [" << wrench_topic
+                                                                             << "]");
 
   if (!controller_nh.param<bool>("wrench_opposite", wrench_opposite_, false)) {
     ROS_WARN_STREAM("[PathAdmittanceController] Failed to parse wrench_opposite setting");
@@ -42,9 +40,10 @@ bool PathAdmittanceController::init(hardware_interface::JointStateInterface* hw,
     ROS_WARN_STREAM("[PathAdmittanceController] Failed to parse path_in_topic topic");
     return false;
   }
-  path_subscriber_ = controller_nh.subscribe(path_in_topic, 1, &PathAdmittanceController::path_callback, this);
+  path_subscriber_ =
+      controller_nh.subscribe(path_in_topic, 1, &PathAdmittanceController::path_callback, this);
   ROS_INFO_STREAM("[PathAdmittanceController] Subscribing to path topic [" << path_in_topic << "]");
-  
+
   std::string path_out_topic;
   if (!controller_nh.param<std::string>("path_out_topic", path_out_topic, "/demo_path")) {
     ROS_WARN_STREAM("[PathAdmittanceController] Failed to parse path_out_topic topic");
@@ -52,7 +51,7 @@ bool PathAdmittanceController::init(hardware_interface::JointStateInterface* hw,
   }
   desiredPathPublisher_ = controller_nh.advertise<nav_msgs::Path>(path_out_topic, 1);
   ROS_INFO_STREAM("[PathAdmittanceController] Publishing to path topic [" << path_out_topic << "]");
-  
+
   bool ok = true;
   ok &= parse_vector<3>(controller_nh, "kp_linear_gains", Kp_linear_);
   ok &= parse_vector<3>(controller_nh, "kp_angular_gains", Kp_angular_);
@@ -61,7 +60,7 @@ bool PathAdmittanceController::init(hardware_interface::JointStateInterface* hw,
   ok &= parse_vector<3>(controller_nh, "force_threshold", force_threshold_);
   ok &= parse_vector<3>(controller_nh, "torque_threshold", torque_threshold_);
 
-  if(!ok){
+  if (!ok) {
     ROS_ERROR("[PathAdmittanceController] Failed to parse params.");
     return false;
   }
@@ -77,12 +76,12 @@ bool PathAdmittanceController::init(hardware_interface::JointStateInterface* hw,
   last_time_ = -1;
   wrench_received_ = false;
 
-  for (size_t i=0; i<3; i++){
-    if (force_threshold_(i) < 0){
+  for (size_t i = 0; i < 3; i++) {
+    if (force_threshold_(i) < 0) {
       ROS_WARN("Negative force threshold: setting to 0");
       force_threshold_(i) = 0.0;
     }
-    if (torque_threshold_(i) < 0){
+    if (torque_threshold_(i) < 0) {
       ROS_WARN("Negative torque threshold: setting to 0");
       force_threshold_(i) = 0.0;
     }
@@ -104,8 +103,7 @@ void PathAdmittanceController::update(const ros::Time& time, const ros::Duration
 
   wrench_callback_queue_->callAvailable();
   if (!wrench_received_) {
-    if (verbose_)
-      ROS_WARN_STREAM_THROTTLE(2.0, "No wrench received. Not modifying the path.");
+    if (verbose_) ROS_WARN_STREAM_THROTTLE(2.0, "No wrench received. Not modifying the path.");
     desiredPathPublisher_.publish(desiredPath_);
     return;
   }
@@ -124,8 +122,8 @@ void PathAdmittanceController::update(const ros::Time& time, const ros::Duration
   geometry_msgs::TransformStamped transform;
   try {
     // target_frame, source_frame ...
-    transform =
-        tf_buffer_.lookupTransform(desiredPath_.header.frame_id, wrench_.header.frame_id, ros::Time(0));
+    transform = tf_buffer_.lookupTransform(desiredPath_.header.frame_id, wrench_.header.frame_id,
+                                           ros::Time(0));
   } catch (tf2::TransformException& ex) {
     ROS_WARN_STREAM_THROTTLE(2.0, std::string{ex.what()} + ", publishing current path");
     desiredPathPublisher_.publish(desiredPath_);
@@ -136,24 +134,24 @@ void PathAdmittanceController::update(const ros::Time& time, const ros::Duration
   Eigen::Matrix3d R(q);
 
   // Update measured wrench and tracking errors
-  force_ext_ = Eigen::Vector3d(wrench_.wrench.force.x,
-                               wrench_.wrench.force.y,
-                               wrench_.wrench.force.z);
+  force_ext_ =
+      Eigen::Vector3d(wrench_.wrench.force.x, wrench_.wrench.force.y, wrench_.wrench.force.z);
   if (wrench_opposite_) force_ext_ = -force_ext_;
   threshold(force_ext_, force_threshold_);
 
-  dpos_ddot_ = M_inv_ * (force_ext_ - Kd_linear_.cwiseProduct(dpos_dot_) - Kp_linear_.cwiseProduct(dpos_));
+  dpos_ddot_ =
+      M_inv_ * (force_ext_ - Kd_linear_.cwiseProduct(dpos_dot_) - Kp_linear_.cwiseProduct(dpos_));
   dpos_dot_ = dpos_dot_ + dt * dpos_ddot_;
   dpos_ = dpos_ + dt * dpos_dot_;
 
   Eigen::Vector3d delta_position_transformed = R * dpos_;
-  torque_error_ = Eigen::Vector3d(wrench_.wrench.torque.x,
-                                  wrench_.wrench.torque.y,
-                                  wrench_.wrench.torque.z);
+  torque_error_ =
+      Eigen::Vector3d(wrench_.wrench.torque.x, wrench_.wrench.torque.y, wrench_.wrench.torque.z);
   if (wrench_opposite_) torque_error_ = -torque_error_;
   threshold(torque_error_, torque_threshold_);
 
-  drot_ddot_ = M_inv_ * (torque_error_ - Kd_angular_.cwiseProduct(drot_dot_) - Kp_angular_.cwiseProduct(drot_));
+  drot_ddot_ = M_inv_ * (torque_error_ - Kd_angular_.cwiseProduct(drot_dot_) -
+                         Kp_angular_.cwiseProduct(drot_));
   drot_dot_ = drot_dot_ + dt * drot_ddot_;
   drot_ = drot_ + dt * drot_dot_;
 
@@ -180,7 +178,7 @@ void PathAdmittanceController::update(const ros::Time& time, const ros::Duration
     pose.pose.position.z += delta_position_transformed.z();
     Eigen::Quaterniond new_orientation(pose.pose.orientation.w, pose.pose.orientation.x,
                                        pose.pose.orientation.y, pose.pose.orientation.z);
-    new_orientation =  delta_rotation * new_orientation;
+    new_orientation = delta_rotation * new_orientation;
     pose.pose.orientation.x = new_orientation.x();
     pose.pose.orientation.y = new_orientation.y();
     pose.pose.orientation.z = new_orientation.z();
@@ -195,7 +193,7 @@ void PathAdmittanceController::wrench_callback(const geometry_msgs::WrenchStampe
   wrench_received_ = true;
 }
 
-void PathAdmittanceController::path_callback(const nav_msgs::PathConstPtr& msg){
+void PathAdmittanceController::path_callback(const nav_msgs::PathConstPtr& msg) {
   std::cout << "Path received!" << std::endl;
   std::unique_lock<std::mutex> lock(pathMutex_);
   receivedPath_ = *msg;
@@ -220,10 +218,10 @@ bool PathAdmittanceController::parse_vector(ros::NodeHandle& nh, const std::stri
   return true;
 }
 
-void PathAdmittanceController::threshold(Eigen::Vector3d& v, const Eigen::Vector3d& tau){
-  for (int i=0; i<v.size(); i++){
+void PathAdmittanceController::threshold(Eigen::Vector3d& v, const Eigen::Vector3d& tau) {
+  for (int i = 0; i < v.size(); i++) {
     if (v(i) == 0) continue;
-    v(i) = (std::abs(v(i)) - tau(i)) > 0 ? v(i) - v(i)/std::abs(v(i)) * tau(i) : 0.0;
+    v(i) = (std::abs(v(i)) - tau(i)) > 0 ? v(i) - v(i) / std::abs(v(i)) * tau(i) : 0.0;
   }
 }
 

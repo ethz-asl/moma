@@ -29,23 +29,26 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
-#include <memory>
-
 #include <moma_ocs2/definitions.h>
 #include <ocs2_core/constraint/StateInputConstraint.h>
+
+#include <memory>
 
 namespace ocs2 {
 namespace mobile_manipulator {
 
 class JointVelocityLimits final : public StateInputConstraint {
  public:
-  JointVelocityLimits(const size_t armInputDim) : StateInputConstraint(ConstraintOrder::Linear), armInputDim_(armInputDim) {}
+  JointVelocityLimits(const size_t armInputDim)
+      : StateInputConstraint(ConstraintOrder::Linear), armInputDim_(armInputDim) {}
   ~JointVelocityLimits() override = default;
   JointVelocityLimits* clone() const override { return new JointVelocityLimits(*this); }
 
   size_t getNumConstraints(scalar_t time) const override { return INPUT_DIM(armInputDim_); }
-  vector_t getValue(scalar_t time, const vector_t& state, const vector_t& input, const PreComputation&) const override;
-  VectorFunctionLinearApproximation getLinearApproximation(scalar_t time, const vector_t& state, const vector_t& input,
+  vector_t getValue(scalar_t time, const vector_t& state, const vector_t& input,
+                    const PreComputation&) const override;
+  VectorFunctionLinearApproximation getLinearApproximation(scalar_t time, const vector_t& state,
+                                                           const vector_t& input,
                                                            const PreComputation&) const override;
 
  private:

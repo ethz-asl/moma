@@ -29,9 +29,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
-#include <ocs2_core/dynamics/SystemDynamicsBaseAD.h>
-
 #include <moma_ocs2/definitions.h>
+#include <ocs2_core/dynamics/SystemDynamicsBaseAD.h>
 #include <ocs2_pinocchio_interface/PinocchioInterface.h>
 
 namespace ocs2 {
@@ -41,9 +40,10 @@ class MobileManipulatorDynamics final : public SystemDynamicsBaseAD {
  public:
   using Base = SystemDynamicsBaseAD;
 
-  explicit MobileManipulatorDynamics(const std::string& modelName, const size_t armInputDim, const std::string& modelFolder = "/tmp/ocs2",
-                                     bool recompileLibraries = true, const BaseType baseType = BaseType::none,
-                                     bool verbose = true);
+  explicit MobileManipulatorDynamics(const std::string& modelName, const size_t armInputDim,
+                                     const std::string& modelFolder = "/tmp/ocs2",
+                                     bool recompileLibraries = true,
+                                     const BaseType baseType = BaseType::none, bool verbose = true);
   ~MobileManipulatorDynamics() override = default;
   MobileManipulatorDynamics* clone() const override { return new MobileManipulatorDynamics(*this); }
 

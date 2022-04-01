@@ -40,12 +40,11 @@ class FTCalibration {
   // measurement matrix based on "On-line Rigid Object Recognition and Pose
   // Estimation
   //  Based on Inertial Parameters", D. Kubus, T. Kroger, F. Wahl, IROS 2008
-  Eigen::MatrixXd getMeasurementMatrix(
-      const Eigen::Vector3d &gravity);
+  Eigen::MatrixXd getMeasurementMatrix(const Eigen::Vector3d &gravity);
 
  protected:
-  Eigen::MatrixXd H_;     // stacked measurement matrices
-  Eigen::VectorXd Z_;     // stacked F/T measurements
+  Eigen::MatrixXd H_;    // stacked measurement matrices
+  Eigen::VectorXd Z_;    // stacked F/T measurements
   unsigned int n_meas_;  // number of stacked measurements;
 };
 }  // namespace moma_sensor_tools

@@ -8,7 +8,15 @@ import yaml
 
 from qt_gui.plugin import Plugin
 from python_qt_binding import loadUi
-from python_qt_binding.QtWidgets import QWidget, QMenu, QInputDialog, QHBoxLayout, QPushButton, QSlider, QLabel
+from python_qt_binding.QtWidgets import (
+    QWidget,
+    QMenu,
+    QInputDialog,
+    QHBoxLayout,
+    QPushButton,
+    QSlider,
+    QLabel,
+)
 from python_qt_binding.QtCore import Qt, QObject, Signal, QTimer, QSize
 from python_qt_binding.QtGui import QStandardItemModel, QStandardItem
 
@@ -20,7 +28,7 @@ from sensor_msgs.msg import JointState
 class PresetWidget(QWidget):
     def __init__(self, parent=None):
         super(PresetWidget, self).__init__(parent)
-        self.button = QPushButton('  Go to Position  ')
+        self.button = QPushButton("  Go to Position  ")
         self.button.setFixedHeight(30)
         lay = QHBoxLayout(self)
         lay.addWidget(self.button, alignment=Qt.AlignRight)
@@ -50,16 +58,16 @@ class PositionControl(Plugin):
 
     def __init__(self, context):
         super(PositionControl, self).__init__(context)
-        self.setObjectName('PositionControl')
+        self.setObjectName("PositionControl")
 
         self._widget = QWidget()
         # Get path to UI file which should be in the "resource" folder of this package
-        self.pkg_dir = rospkg.RosPack().get_path('moma_joint_position_control_gui')
-        self.presets_file = os.path.join(self.pkg_dir, 'config', 'presets.yaml')
-        ui_file = os.path.join(self.pkg_dir, 'resource', 'position_control.ui')
+        self.pkg_dir = rospkg.RosPack().get_path("moma_joint_position_control_gui")
+        self.presets_file = os.path.join(self.pkg_dir, "config", "presets.yaml")
+        ui_file = os.path.join(self.pkg_dir, "resource", "position_control.ui")
         # Extend the widget with all attributes and children from UI file
         loadUi(ui_file, self._widget)
-        self._widget.setObjectName('PositionControlUi')
+        self._widget.setObjectName("PositionControlUi")
 
         # Show _widget.windowTitle on left-top of each plugin (when
         # it's set in _widget). This is useful when you open multiple
@@ -67,28 +75,41 @@ class PositionControl(Plugin):
         # plugin at once, these lines add number to make it easy to
         # tell from pane to pane.
         if context.serial_number() > 1:
-            self._widget.setWindowTitle(self._widget.windowTitle() + (' (%d)' % context.serial_number()))
+            self._widget.setWindowTitle(
+                self._widget.windowTitle() + (" (%d)" % context.serial_number())
+            )
         # Add widget to the user interface
         context.add_widget(self._widget)
 
-        self.controller_name = rospy.get_param('/moma_joint_position_control_gui/controller_name')
-        self.controller_ns = rospy.get_param('/moma_joint_position_control_gui/controller_namespace', '')
-        self.controller_manager_name = os.path.join(self.controller_ns, "controller_manager")
-        
-        self.goal_topic = rospy.get_param('/moma_joint_position_control_gui/goal_topic',
-                                          '/{}/{}/goal'.format(self.controller_ns, self.controller_name))
-        self.states_topic = rospy.get_param('/moma_joint_position_control_gui/states_topic',
-                                            '/joint_states')
+        self.controller_name = rospy.get_param(
+            "/moma_joint_position_control_gui/controller_name"
+        )
+        self.controller_ns = rospy.get_param(
+            "/moma_joint_position_control_gui/controller_namespace", ""
+        )
+        self.controller_manager_name = os.path.join(
+            self.controller_ns, "controller_manager"
+        )
+
+        self.goal_topic = rospy.get_param(
+            "/moma_joint_position_control_gui/goal_topic",
+            "/{}/{}/goal".format(self.controller_ns, self.controller_name),
+        )
+        self.states_topic = rospy.get_param(
+            "/moma_joint_position_control_gui/states_topic", "/joint_states"
+        )
 
         # To avoid redundancy, fetch all parameters that the controllers already have directly from them
         prefix = os.path.join(self.controller_ns, self.controller_name)
-        self.joint_names = rospy.get_param('/{}/joint_names'.format(prefix))
-        self.lower_limits = rospy.get_param('/{}/lower_limit'.format(prefix))
-        self.upper_limits = rospy.get_param('/{}/upper_limit'.format(prefix))
+        self.joint_names = rospy.get_param("/{}/joint_names".format(prefix))
+        self.lower_limits = rospy.get_param("/{}/lower_limit".format(prefix))
+        self.upper_limits = rospy.get_param("/{}/upper_limit".format(prefix))
 
         self.presets = {}
         self._widget.preset_view.setContextMenuPolicy(Qt.CustomContextMenu)
-        self._widget.preset_view.customContextMenuRequested.connect(self._on_preset_menu)
+        self._widget.preset_view.customContextMenuRequested.connect(
+            self._on_preset_menu
+        )
         self._load_presets()
         self._widget.reload.clicked.connect(self._load_presets)
 
@@ -97,8 +118,10 @@ class PositionControl(Plugin):
         control_view = self._widget.control_view
         control_model = QStandardItemModel(control_view)
         control_view.setModel(control_model)
-        for idx, (name, lower_limit, upper_limit) in enumerate(zip(self.joint_names, self.lower_limits, self.upper_limits)):
-            item = QStandardItem('J{}'.format(idx + 1))
+        for idx, (name, lower_limit, upper_limit) in enumerate(
+            zip(self.joint_names, self.lower_limits, self.upper_limits)
+        ):
+            item = QStandardItem("J{}".format(idx + 1))
             item.setSizeHint(QSize(0, 30))
             control_model.appendRow(item)
             widget = ControlWidget(parent=self._widget)
@@ -115,7 +138,12 @@ class PositionControl(Plugin):
 
         self.signals = PositionControl.Signals()
         self.signals.pos.connect(self._on_joint_state)
-        self.sub_pos = rospy.Subscriber(self.states_topic, JointState, lambda msg: self.signals.pos.emit(msg), queue_size=1)
+        self.sub_pos = rospy.Subscriber(
+            self.states_topic,
+            JointState,
+            lambda msg: self.signals.pos.emit(msg),
+            queue_size=1,
+        )
         self.pub_goal = rospy.Publisher(self.goal_topic, JointState, queue_size=1)
 
         self._controller_lister = ControllerLister(self.controller_manager_name)
@@ -140,11 +168,13 @@ class PositionControl(Plugin):
             item.setSizeHint(QSize(0, 30))
             preset_model.appendRow(item)
             widget = PresetWidget(parent=self._widget)
-            widget.button.clicked.connect((lambda pr: lambda: self._on_preset(pr))(preset))
+            widget.button.clicked.connect(
+                (lambda pr: lambda: self._on_preset(pr))(preset)
+            )
             preset_view.setIndexWidget(item.index(), widget)
 
     def _store_presets(self):
-        with open(self.presets_file, 'w') as outfile:
+        with open(self.presets_file, "w") as outfile:
             yaml.dump(self.presets, outfile, default_flow_style=False)
         self._load_presets()
 
@@ -162,13 +192,15 @@ class PositionControl(Plugin):
         return state
 
     def _get_joint_states_from_sliders(self):
-        iterable = [(name, widget.slider.value() / float(self._slider_scale))
-                    for (name, widget) in self._control_widgets.items()]
+        iterable = [
+            (name, widget.slider.value() / float(self._slider_scale))
+            for (name, widget) in self._control_widgets.items()
+        ]
         return self._get_joint_states(iterable)
 
     def _on_preset(self, preset):
-        if 'joint_positions' in preset:
-            goal = self._get_joint_states(preset['joint_positions'].items())
+        if "joint_positions" in preset:
+            goal = self._get_joint_states(preset["joint_positions"].items())
             self.pub_goal.publish(goal)
             self._set_dragging(False)
 
@@ -178,7 +210,7 @@ class PositionControl(Plugin):
         menu = QMenu(self._widget.preset_view)
 
         if len(rows) > 0:
-            action_delete = menu.addAction('Delete')
+            action_delete = menu.addAction("Delete")
             action = menu.exec_(self._widget.preset_view.mapToGlobal(pos))
 
             if action == action_delete:
@@ -187,11 +219,18 @@ class PositionControl(Plugin):
                 self._store_presets()
 
     def _on_add_preset(self):
-        text, ok = QInputDialog.getText(self._widget, 'Add Preset', 'Enter Preset Name:')
+        text, ok = QInputDialog.getText(
+            self._widget, "Add Preset", "Enter Preset Name:"
+        )
         if ok:
             joint_states = self._get_joint_states_from_sliders()
             self.presets[str(text)] = {
-                'joint_positions': {name: position for (name, position) in zip(joint_states.name, joint_states.position)}
+                "joint_positions": {
+                    name: position
+                    for (name, position) in zip(
+                        joint_states.name, joint_states.position
+                    )
+                }
             }
             self._store_presets()
 
@@ -210,11 +249,16 @@ class PositionControl(Plugin):
         if not self._dragging:
             for name, position in zip(msg.name, msg.position):
                 if name in self._control_widgets:
-                    self._control_widgets[name].slider.setValue(position * self._slider_scale)
+                    self._control_widgets[name].slider.setValue(
+                        position * self._slider_scale
+                    )
 
     def _update_controllers(self):
-        controllers = [controller for controller in self._controller_lister()
-                       if controller.name == self.controller_name and controller.state == 'running']
+        controllers = [
+            controller
+            for controller in self._controller_lister()
+            if controller.name == self.controller_name and controller.state == "running"
+        ]
         running = len(controllers) > 0
         self._widget.setEnabled(running)
         self._widget.controller_missing.setVisible(not running)

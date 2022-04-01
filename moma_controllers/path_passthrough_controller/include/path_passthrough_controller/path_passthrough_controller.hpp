@@ -5,6 +5,7 @@
 #pragma once
 
 #include <nav_msgs/Path.h>
+
 #include <mutex>
 
 // ROS control
@@ -13,19 +14,19 @@
 
 namespace moma_controllers {
 
-class PathPassthroughController : public controller_interface::Controller<hardware_interface::JointStateInterface> {
+class PathPassthroughController
+    : public controller_interface::Controller<hardware_interface::JointStateInterface> {
  public:
   PathPassthroughController() = default;
   ~PathPassthroughController() = default;
 
-  bool init(hardware_interface::JointStateInterface* hw,
-            ros::NodeHandle& root_nh,
+  bool init(hardware_interface::JointStateInterface* hw, ros::NodeHandle& root_nh,
             ros::NodeHandle& controller_nh) override;
   void update(const ros::Time& time, const ros::Duration&) override;
-  
+
   void starting(const ros::Time& time) override {
-      path_received_ = false;
-      ROS_INFO("[PathPassthroughController] Starting.");
+    path_received_ = false;
+    ROS_INFO("[PathPassthroughController] Starting.");
   };
   void stopping(const ros::Time& /*time*/) override {
     ROS_INFO("[PathPassthroughController] Stopping.");

@@ -2,9 +2,10 @@
 // Created by giuseppe on 25.01.21.
 //
 #include "moma_sensor_tools/ft_sensor_utils.h"
-#include "moma_sensor_tools/parser_utilts.h"
 
 #include <iostream>
+
+#include "moma_sensor_tools/parser_utilts.h"
 
 namespace moma_sensor_tools {
 
@@ -41,7 +42,7 @@ bool get_ft_calibration_from_file(const std::string& file_path, FTSensorCalibrat
   ok &= moma_sensor_tools::parse_vector(calibration_data, "bias", data.bias);
   return ok;
 }
-}  // namespace sensor_tools::ft
+}  // namespace moma_sensor_tools
 
 std::ostream& operator<<(std::ostream& os, const moma_sensor_tools::Wrench& wrench) {
   os << "Force: " << wrench.get_force().transpose()

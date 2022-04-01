@@ -25,6 +25,7 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+
 def update_combo(combo, new_vals):
     """
     Update the contents of a combo box with a set of new values.
@@ -55,6 +56,7 @@ def update_combo(combo, new_vals):
         combo.insertItems(0, new_vals)
         combo.setCurrentIndex(selected_id)  # Restore selection
         combo.blockSignals(False)
+
 
 def _is_permutation(a, b):
     """

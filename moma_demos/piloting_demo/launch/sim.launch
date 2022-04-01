@@ -10,12 +10,12 @@
 
     <!-- Control-->
     <!-- load a arm only description for the arm controllers -->
-    <param name="arm_description" command="$(find xacro)/xacro $(find moma_description)/urdf/panda.urdf.xacro 
+    <param name="arm_description" command="$(find xacro)/xacro $(find moma_description)/urdf/panda.urdf.xacro
       use_nominal_extrinsics:=true use_fixed_realsense:=false tool:=$(arg tool) control_mode:='Effort' include_gazebo_control:=false"/>
 
     <group ns="ocs2_mpc">
         <param name="task_file" value="$(find moma_ocs2)/config/mpc/task_panda.info"/>
-        <param name="robot_description_ocs2" command="$(find xacro)/xacro $(find moma_description)/urdf/superpanda.urdf.xacro 
+        <param name="robot_description_ocs2" command="$(find xacro)/xacro $(find moma_description)/urdf/superpanda.urdf.xacro
             mpc_model:=true use_nominal_extrinsics:=true tool:='none'"/>
         <param name="base_type" value="$(arg base_type)"/>
         <param name="reference_frame" value="tracking_camera_odom"/>
@@ -34,12 +34,12 @@
         <rosparam file="$(find moma_gazebo)/config/panda_controllers.yaml" command="load" />
         <rosparam file="$(find moma_gazebo)/config/gripper_controllers.yaml" command="load" />
 
-        <node name="arm_start_controller_spawner" 
-              pkg="controller_manager" 
-              type="spawner" 
+        <node name="arm_start_controller_spawner"
+              pkg="controller_manager"
+              type="spawner"
               output="screen" args="joint_state_controller effort_joint_trajectory_controller" />
-        <node name="arm_stop_controller_spawner" 
-              pkg="controller_manager" 
+        <node name="arm_stop_controller_spawner"
+              pkg="controller_manager"
               type="spawner"
               output="screen" args="--stopped mpc_controller joint_space_controller path_passthrough_controller"
               launch-prefix="bash -c 'sleep 12; $0 $@' " />
@@ -71,7 +71,7 @@
     <include file="$(find piloting_demo)/launch/navigation.launch" if="$(arg launch_navigation)">
         <arg name="sim"               value="true"/>
         <arg name="use_global_map"    value="true"/>
-        <arg name="global_frame"      value="map"/> 
+        <arg name="global_frame"      value="map"/>
     </include>
 
     <!-- Publish base odometry from tracking cam odometry measurements -->

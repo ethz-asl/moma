@@ -1,7 +1,9 @@
 #pragma once
+//clang-format off
 #include <robot_control/modeling/robot_wrapper.h>
-#include <control_toolbox/pid.h>
+//clang-format on
 
+#include <control_toolbox/pid.h>
 #include <controller_interface/multi_interface_controller.h>
 #include <hardware_interface/joint_command_interface.h>
 #include <sensor_msgs/JointState.h>
@@ -9,17 +11,15 @@
 #include <mutex>
 
 namespace moma_controllers {
-
 class JointVelocityController
     : public controller_interface::MultiInterfaceController<
-          hardware_interface::JointStateInterface,
-          hardware_interface::VelocityJointInterface,
+          hardware_interface::JointStateInterface, hardware_interface::VelocityJointInterface,
           hardware_interface::EffortJointInterface> {
  public:
   using BASE =
       controller_interface::MultiInterfaceController<hardware_interface::JointStateInterface,
-                                           hardware_interface::VelocityJointInterface,
-                                           hardware_interface::EffortJointInterface>;
+                                                     hardware_interface::VelocityJointInterface,
+                                                     hardware_interface::EffortJointInterface>;
 
   // not all interfaces are mandatory
   JointVelocityController() : BASE(true){};
@@ -65,9 +65,8 @@ class JointVelocityController
   std::vector<double> upper_limit_;
 
   std::vector<hardware_interface::JointHandle> joint_handles_;
-  
+
   std::unique_ptr<rc::RobotWrapper> model_;
   std::vector<control_toolbox::Pid> pid_controllers_;
-
 };
 }  // namespace moma_controllers

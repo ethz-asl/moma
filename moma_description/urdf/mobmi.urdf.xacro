@@ -14,7 +14,7 @@
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://moma_description/meshes/ridgeback_yumi_mount.dae"/> 
+        <mesh filename="package://moma_description/meshes/ridgeback_yumi_mount.dae"/>
       </geometry>
     </collision>
   </link>

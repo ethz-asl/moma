@@ -10,13 +10,13 @@
 
   <!-- 0 = none, 1 = skidsteer, 2 = holonomic -->
   <arg name="base_type" default="0"/>
-   
+
   <!-- send the robot XML to param server -->
-  <param name="arm_description" command="$(find xacro)/xacro $(find moma_description)/urdf/panda.urdf.xacro 
+  <param name="arm_description" command="$(find xacro)/xacro $(find moma_description)/urdf/panda.urdf.xacro
       use_nominal_extrinsics:=true use_fixed_realsense:=false tool:=$(arg tool) control_mode:='Effort' include_gazebo_control:=false"/>
   <param name="robot_description" command="$(find xacro)/xacro $(find moma_description)/urdf/superpanda.urdf.xacro
     use_nominal_extrinsics:=true use_fixed_realsense:=false tool:=$(arg tool) wrist_camera_name:=dummy"/>
-  
+
   <node name="joint_state_publisher" type="joint_state_publisher" pkg="joint_state_publisher" output="screen">
     <rosparam if="$(arg load_gripper)" param="source_list">[panda/franka_state_controller/joint_states, panda/franka_gripper/joint_states] </rosparam>
     <rosparam unless="$(arg load_gripper)" param="source_list">[panda/franka_state_controller/joint_states] </rosparam>

@@ -1,31 +1,30 @@
 #pragma once
+//clang-format on
 #include <robot_control/modeling/robot_wrapper.h>
-#include <control_toolbox/pid.h>
+//clang-format off
 
 #include <actionlib/server/simple_action_server.h>
+#include <control_toolbox/pid.h>
 #include <controller_interface/multi_interface_controller.h>
 #include <hardware_interface/joint_command_interface.h>
-#include <sensor_msgs/JointState.h>
-
 #include <moma_msgs/JointAction.h>
-#include "moma_joint_space_controller/trajectory_generator.h"
+#include <sensor_msgs/JointState.h>
 
 #include <mutex>
 
-namespace moma_controllers {
+#include "moma_joint_space_controller/trajectory_generator.h"
 
+namespace moma_controllers {
 class JointSpaceController
     : public controller_interface::MultiInterfaceController<
-          hardware_interface::JointStateInterface,
-          hardware_interface::VelocityJointInterface,
+          hardware_interface::JointStateInterface, hardware_interface::VelocityJointInterface,
           hardware_interface::EffortJointInterface> {
  public:
   using BASE =
       controller_interface::MultiInterfaceController<hardware_interface::JointStateInterface,
-                                           hardware_interface::VelocityJointInterface,
-                                           hardware_interface::EffortJointInterface>;
-  using ActionServer =
-      actionlib::SimpleActionServer<moma_msgs::JointAction>;
+                                                     hardware_interface::VelocityJointInterface,
+                                                     hardware_interface::EffortJointInterface>;
+  using ActionServer = actionlib::SimpleActionServer<moma_msgs::JointAction>;
 
   // not all interfaces are mandatory
   JointSpaceController() : BASE(true){};
@@ -78,9 +77,8 @@ class JointSpaceController
   std::unique_ptr<ActionServer> action_server_;
 
   std::vector<hardware_interface::JointHandle> joint_handles_;
-  
+
   std::unique_ptr<rc::RobotWrapper> model_;
   std::vector<control_toolbox::Pid> pid_controllers_;
-
 };
 }  // namespace moma_controllers

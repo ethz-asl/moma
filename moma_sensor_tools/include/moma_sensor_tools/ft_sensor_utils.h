@@ -5,6 +5,7 @@
 #pragma once
 
 #include <yaml-cpp/yaml.h>
+
 #include <Eigen/Core>
 
 namespace moma_sensor_tools {
@@ -19,7 +20,7 @@ struct Wrench {
     force = rhs.force;
     torque = rhs.torque;
   }
-  Wrench(const Eigen::Matrix<double, 6, 1>& rhs){
+  Wrench(const Eigen::Matrix<double, 6, 1>& rhs) {
     force = rhs.head<3>();
     torque = rhs.tail<3>();
   }
@@ -27,7 +28,10 @@ struct Wrench {
   Eigen::Vector3d force;
   Eigen::Vector3d torque;
 
-  Eigen::Matrix<double, 6, 1>& to_vector() { vec << force, torque; return vec; }
+  Eigen::Matrix<double, 6, 1>& to_vector() {
+    vec << force, torque;
+    return vec;
+  }
   [[nodiscard]] inline const Eigen::Vector3d& get_force() const { return force; }
   [[nodiscard]] inline const Eigen::Vector3d& get_torque() const { return torque; }
   inline Eigen::Vector3d& get_force() { return force; }
@@ -58,7 +62,7 @@ struct FTSensorCalibrationData {
 
 bool get_ft_calibration_from_file(const std::string& file_path, FTSensorCalibrationData&);
 
-}  // namespace sensor_tools::ft
+}  // namespace moma_sensor_tools
 
 std::ostream& operator<<(std::ostream& os, const moma_sensor_tools::Wrench&);
 

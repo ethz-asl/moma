@@ -171,5 +171,5 @@ echo "source ${CATKIN_WS}/devel/setup.bash" >> ~/.moma_bashrc
 source ~/.moma_bashrc
 
 catkin config --cmake-args -DCMAKE_BUILD_TYPE=RelWithDebInfo || fail
-info "Installation complete" 
+info "Installation complete"
 info "Now you can build moma packages"

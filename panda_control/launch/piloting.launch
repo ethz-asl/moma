@@ -8,7 +8,7 @@
 
   <!-- 0 = none, 1 = skidsteer, 2 = holonomic -->
   <arg name="base_type" default="0"/>
-   
+
   <!-- send the robot XML to param server -->
   <param name="robot_description" command="$(find xacro)/xacro $(find moma_description)/urdf/panda.urdf.xacro use_nominal_extrinsics:=true use_fixed_realsense:=false tool:=$(arg tool)"/>
 
@@ -16,7 +16,7 @@
   <include file="$(find franka_gripper)/launch/franka_gripper.launch" if="$(arg load_gripper)">
 	    <arg name="robot_ip" value="$(arg robot_ip)" />
   </include>
-  
+
   <node name="franka_control" pkg="franka_control" type="franka_control_node" output="screen" required="true">
     <rosparam command="load" file="$(find moma_robot)/config/franka_control_node.yaml" />
     <param name="robot_ip" value="$(arg robot_ip)" />
@@ -24,9 +24,9 @@
 
   <rosparam command="load" file="$(find franka_control)/config/default_controllers.yaml" />
   <node name="state_controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="franka_state_controller"/>
-  
+
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" output="screen"/>
-  
+
   <node name="joint_state_publisher" type="joint_state_publisher" pkg="joint_state_publisher" output="screen">
     <rosparam if="$(arg load_gripper)" param="source_list">[franka_state_controller/joint_states, franka_gripper/joint_states] </rosparam>
     <rosparam unless="$(arg load_gripper)" param="source_list">[franka_state_controller/joint_states] </rosparam>
@@ -46,14 +46,14 @@
 
   <!--    Force sensor and filtering/compensation relay node-->
   <include file="$(find moma_sensor_tools)/launch/ft_sensor_standalone.launch"/>
-    
+
   <!--  Gripper driver -->
   <node name="robotiq_2f_gripper_driver" pkg="robotiq_2f_gripper_control" type="Robotiq2FGripperRtuNode.py" args="/dev/r2Fg" output="screen"/>
-  
+
   <!-- Gripper control -->
   <node name="robotiq_2f_gripper_commander" pkg="moma_mission" type="gripper_commander.py" output="screen" respawn="true"/>
 
   <node name="valve_tf_publisher" type="static_transform_publisher" pkg="tf2_ros" args="0.488 -0.040 0.298 0.707 0 -0.707 0 base_link valve_base"/>
 
-    
+
 </launch>

@@ -32,23 +32,26 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace ocs2 {
 namespace mobile_manipulator {
 
-MobileManipulatorDynamics::MobileManipulatorDynamics(const std::string& modelName, const size_t armInputDim, const std::string& modelFolder /*= "/tmp/ocs2"*/,
-                                                     bool recompileLibraries /*= true*/, const BaseType baseType /*= BaseType::none */,
-                                                     bool verbose /*= true*/)
+MobileManipulatorDynamics::MobileManipulatorDynamics(
+    const std::string& modelName, const size_t armInputDim,
+    const std::string& modelFolder /*= "/tmp/ocs2"*/, bool recompileLibraries /*= true*/,
+    const BaseType baseType /*= BaseType::none */, bool verbose /*= true*/)
     : SystemDynamicsBaseAD() {
   armInputDim_ = armInputDim;
   baseType_ = baseType;
-  Base::initialize(STATE_DIM(armInputDim), INPUT_DIM(armInputDim), modelName, modelFolder, recompileLibraries, verbose);
+  Base::initialize(STATE_DIM(armInputDim), INPUT_DIM(armInputDim), modelName, modelFolder,
+                   recompileLibraries, verbose);
 }
 
-ad_vector_t MobileManipulatorDynamics::systemFlowMap(ad_scalar_t time, const ad_vector_t& state, const ad_vector_t& input,
+ad_vector_t MobileManipulatorDynamics::systemFlowMap(ad_scalar_t time, const ad_vector_t& state,
+                                                     const ad_vector_t& input,
                                                      const ad_vector_t& parameters) const {
   ad_vector_t dxdt(STATE_DIM(armInputDim_));
   const auto theta = state(2);
   typename ad_vector_t::Scalar vx;      // forward velocity in base frame
   typename ad_vector_t::Scalar vy;      // sideways velocity in base frame
   typename ad_vector_t::Scalar vtheta;  // angular velocity
-  switch(baseType_) {
+  switch (baseType_) {
     case BaseType::holonomic:
       vx = input(0);
       vy = input(1);
@@ -65,7 +68,8 @@ ad_vector_t MobileManipulatorDynamics::systemFlowMap(ad_scalar_t time, const ad_
       vy = typename ad_vector_t::Scalar(0.0);
       vtheta = typename ad_vector_t::Scalar(0.0);
   }
-  dxdt << cos(theta) * vx - sin(theta) * vy, sin(theta) * vx + cos(theta) * vy, vtheta, input.tail(armInputDim_);
+  dxdt << cos(theta) * vx - sin(theta) * vy, sin(theta) * vx + cos(theta) * vy, vtheta,
+      input.tail(armInputDim_);
   return dxdt;
 }
 

@@ -162,7 +162,7 @@ MANIPULATE_VALVE:
   default_outcome: None
   mode: pose
   linear_speed: 0.01
-  angular_speed: 0.1
+  angular_speed: 0.5
   control_frame: panda_link0
   pose_topic: "/panda/cartesian_impedance_controller/equilibrium_pose"
   manager_namespace: panda
@@ -171,7 +171,6 @@ MANIPULATE_VALVE:
     ["mpc_controller", "joint_space_controller", "path_passthrough_controller"]
 
   poses_topic: /valve_poses
-  angular_speed: 0.5
 
 BACKOFF_VALVE:
   default_outcome: None

@@ -10,10 +10,10 @@
 
     <!--    Force torque sensor ROS bridge-->
     <include file="$(find moma_sensor_tools)/launch/rokubimini.launch" if="$(eval arg('sensor') == 'rokubimini')"/>
-  
+
     <!--    Gravity compensation and filtering params -->
     <arg name="calibration_file" value="$(find moma_sensor_tools)/config/ft_sensor_params.yaml"/>
-    
+
     <!--  Gravity compensation and filtering node -->
     <node pkg="moma_sensor_tools" name="ft_sensor_node" type="ft_sensor_node" output="screen"
           launch-prefix="$(arg launch_prefix)">

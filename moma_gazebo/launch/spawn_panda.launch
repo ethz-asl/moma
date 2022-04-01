@@ -6,7 +6,7 @@
   <arg name="use_fixed_realsense" default="false"/>
   <arg name="control_mode" default='Position'/>
   <arg name="tool" default="panda_hand"/>
-   
+
   <!-- send the robot XML to param server -->
   <param name="robot_description" command="$(find xacro)/xacro $(find moma_description)/urdf/panda.urdf.xacro use_nominal_extrinsics:=true use_fixed_realsense:=$(arg use_fixed_realsense)
     control_mode:=$(arg control_mode) tool:=$(arg tool)"/>
@@ -15,7 +15,7 @@
   <node name="spawn_panda" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen" args="-urdf -param robot_description -model panda
       -x $(arg x)
       -y $(arg y)
-      -z $(arg z) 
+      -z $(arg z)
       -J panda_joint1 0
       -J panda_joint2 -0.785
       -J panda_joint3 0

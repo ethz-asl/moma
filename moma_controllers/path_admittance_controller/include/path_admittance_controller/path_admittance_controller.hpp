@@ -4,38 +4,37 @@
 
 #pragma once
 
-#include <Eigen/Core>
-#include <Eigen/Geometry>
-
-#include <nav_msgs/Path.h>
 #include <geometry_msgs/WrenchStamped.h>
+#include <nav_msgs/Path.h>
+#include <realtime_tools/realtime_publisher.h>
 #include <ros/callback_queue.h>
 #include <ros/subscribe_options.h>
 #include <std_srvs/Empty.h>
 #include <tf2_ros/transform_listener.h>
-#include <realtime_tools/realtime_publisher.h>
+
+#include <Eigen/Core>
+#include <Eigen/Geometry>
 
 // ROS control
 #include <controller_interface/controller.h>
 #include <hardware_interface/joint_state_interface.h>
 
-
 namespace moma_controllers {
 
-class PathAdmittanceController : public controller_interface::Controller<hardware_interface::JointStateInterface> {
+class PathAdmittanceController
+    : public controller_interface::Controller<hardware_interface::JointStateInterface> {
  public:
   PathAdmittanceController();
   ~PathAdmittanceController() = default;
 
-  bool init(hardware_interface::JointStateInterface* hw,
-            ros::NodeHandle& root_nh,
+  bool init(hardware_interface::JointStateInterface* hw, ros::NodeHandle& root_nh,
             ros::NodeHandle& controller_nh) override;
   void update(const ros::Time& time, const ros::Duration& /*period*/) override;
-  
+
   void starting(const ros::Time& time) override {
-      path_received_ = false;
-      wrench_received_ = false;
-      ROS_INFO("[PathAdmittanceController] Starting.");
+    path_received_ = false;
+    wrench_received_ = false;
+    ROS_INFO("[PathAdmittanceController] Starting.");
   };
   void stopping(const ros::Time& /*time*/) override {
     ROS_INFO("[PathAdmittanceController] Stopping.");

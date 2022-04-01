@@ -31,11 +31,13 @@ def set_axes_equal(ax: plt.Axes):
     spheres and cubes as cubes.  Required since `ax.axis('equal')`
     and `ax.set_aspect('equal')` don't work on 3D.
     """
-    limits = np.array([
-        ax.get_xlim3d(),
-        ax.get_ylim3d(),
-        ax.get_zlim3d(),
-    ])
+    limits = np.array(
+        [
+            ax.get_xlim3d(),
+            ax.get_ylim3d(),
+            ax.get_zlim3d(),
+        ]
+    )
     origin = np.mean(limits, axis=1)
     radius = 0.5 * np.max(np.abs(limits[:, 1] - limits[:, 0]))
     _set_axes_radius(ax, origin, radius)
@@ -49,9 +51,7 @@ def _set_axes_radius(ax, origin, radius):
 
 
 def skew(v):
-    return np.array([[0, -v[2], v[1]],
-                     [v[2], 0, -v[0]],
-                     [-v[1], v[0], 0]])
+    return np.array([[0, -v[2], v[1]], [v[2], 0, -v[0]], [-v[1], v[0], 0]])
 
 
 def to_homogeneous(v):
@@ -65,7 +65,7 @@ def add_noise(v, low, high):
 
 
 def point_line_distance(p, l):
-    return np.abs(np.dot(to_homogeneous(p), l))/np.sqrt(l[0]**2 + l[1]**2)
+    return np.abs(np.dot(to_homogeneous(p), l)) / np.sqrt(l[0] ** 2 + l[1] ** 2)
 
 
 class Camera:
@@ -77,38 +77,88 @@ class Camera:
         self.T = np.eye(4)
         self.M = self.K @ self.T[:3, :]
 
-    def extrinsic2pyramid(self, ax, color='r', focal_len_scaled=5, aspect_ratio=0.3):
-        vertex_std = np.array([[0, 0, 0, 1],
-                               [focal_len_scaled * aspect_ratio, -focal_len_scaled *
-                                   aspect_ratio, focal_len_scaled, 1],
-                               [focal_len_scaled * aspect_ratio, focal_len_scaled *
-                                   aspect_ratio, focal_len_scaled, 1],
-                               [-focal_len_scaled * aspect_ratio, focal_len_scaled *
-                                   aspect_ratio, focal_len_scaled, 1],
-                               [-focal_len_scaled * aspect_ratio, -focal_len_scaled * aspect_ratio, focal_len_scaled, 1]])
+    def extrinsic2pyramid(self, ax, color="r", focal_len_scaled=5, aspect_ratio=0.3):
+        vertex_std = np.array(
+            [
+                [0, 0, 0, 1],
+                [
+                    focal_len_scaled * aspect_ratio,
+                    -focal_len_scaled * aspect_ratio,
+                    focal_len_scaled,
+                    1,
+                ],
+                [
+                    focal_len_scaled * aspect_ratio,
+                    focal_len_scaled * aspect_ratio,
+                    focal_len_scaled,
+                    1,
+                ],
+                [
+                    -focal_len_scaled * aspect_ratio,
+                    focal_len_scaled * aspect_ratio,
+                    focal_len_scaled,
+                    1,
+                ],
+                [
+                    -focal_len_scaled * aspect_ratio,
+                    -focal_len_scaled * aspect_ratio,
+                    focal_len_scaled,
+                    1,
+                ],
+            ]
+        )
         vertex_transformed = vertex_std @ self.T.T
-        meshes = [[vertex_transformed[0, :-1], vertex_transformed[1][:-1], vertex_transformed[2, :-1]],
-                  [vertex_transformed[0, :-1], vertex_transformed[2, :-1],
-                      vertex_transformed[3, :-1]],
-                  [vertex_transformed[0, :-1], vertex_transformed[3, :-1],
-                      vertex_transformed[4, :-1]],
-                  [vertex_transformed[0, :-1], vertex_transformed[4, :-1],
-                      vertex_transformed[1, :-1]],
-                  [vertex_transformed[1, :-1], vertex_transformed[2, :-1], vertex_transformed[3, :-1], vertex_transformed[4, :-1]]]
+        meshes = [
+            [
+                vertex_transformed[0, :-1],
+                vertex_transformed[1][:-1],
+                vertex_transformed[2, :-1],
+            ],
+            [
+                vertex_transformed[0, :-1],
+                vertex_transformed[2, :-1],
+                vertex_transformed[3, :-1],
+            ],
+            [
+                vertex_transformed[0, :-1],
+                vertex_transformed[3, :-1],
+                vertex_transformed[4, :-1],
+            ],
+            [
+                vertex_transformed[0, :-1],
+                vertex_transformed[4, :-1],
+                vertex_transformed[1, :-1],
+            ],
+            [
+                vertex_transformed[1, :-1],
+                vertex_transformed[2, :-1],
+                vertex_transformed[3, :-1],
+                vertex_transformed[4, :-1],
+            ],
+        ]
         ax.add_collection3d(
-            Poly3DCollection(meshes, facecolors=color, linewidths=0.3, edgecolors=color, alpha=0.35))
+            Poly3DCollection(
+                meshes, facecolors=color, linewidths=0.3, edgecolors=color, alpha=0.35
+            )
+        )
 
     def project(self, points):
-        proj_points, _ = cv2.projectPoints(points,
-                                           rvec=self.T[:3, :3],
-                                           tvec=self.T[:3, 3],
-                                           cameraMatrix=self.K,
-                                           distCoeffs=self.D)
+        proj_points, _ = cv2.projectPoints(
+            points,
+            rvec=self.T[:3, :3],
+            tvec=self.T[:3, 3],
+            cameraMatrix=self.K,
+            distCoeffs=self.D,
+        )
         proj_points = proj_points.reshape((-1, 2))
 
         # remove points outside of the camera view
-        mask = (proj_points[:, 0] >= 0) & (proj_points[:, 1] >= 0) & (
-            proj_points[:, 0] < self.resolution[0]) & (proj_points[:, 1] < self.resolution[1])
+        mask = (
+            (proj_points[:, 0] >= 0)
+            & (proj_points[:, 1] >= 0)
+            & (proj_points[:, 0] < self.resolution[0])
+            & (proj_points[:, 1] < self.resolution[1])
+        )
         proj_points = proj_points[mask, :]
 
         # the returned variable is a list of N 2d points -> shape is (N, 1, 2) -> squeeze to (N, 2)
@@ -120,11 +170,14 @@ class Camera:
             color = plt.cm.rainbow(idx / len(list_label))
             patch = Patch(color=color, label=label)
             list_handle.append(patch)
-        plt.legend(loc='right', bbox_to_anchor=(1.8, 0.5), handles=list_handle)
+        plt.legend(loc="right", bbox_to_anchor=(1.8, 0.5), handles=list_handle)
 
-    def transform(self, dx=0.0, dy=0.0, dz=0.0, roll_deg=0.0, pitch_deg=0.0, yaw_deg=0.0):
-        r = R.from_euler('xyz', [roll_deg, pitch_deg,
-                         yaw_deg], degrees=True).as_matrix()
+    def transform(
+        self, dx=0.0, dy=0.0, dz=0.0, roll_deg=0.0, pitch_deg=0.0, yaw_deg=0.0
+    ):
+        r = R.from_euler(
+            "xyz", [roll_deg, pitch_deg, yaw_deg], degrees=True
+        ).as_matrix()
         t = np.array([dx, dy, dz])
         self.T[:3, :3] = r
         self.T[:3, 3] = t
@@ -142,8 +195,9 @@ class Camera:
         self.M = self.K @ self.T[:3, :]
 
     def set_extrinsics_from_pose(self, msg: Pose):
-        r = R.from_quat([msg.orientation.x, msg.orientation.y,
-                        msg.orientation.z, msg.orientation.w]).as_matrix()
+        r = R.from_quat(
+            [msg.orientation.x, msg.orientation.y, msg.orientation.z, msg.orientation.w]
+        ).as_matrix()
         t = np.array([msg.position.x, msg.position.y, msg.position.z])
         self.T[:3, :3] = r
         self.T[:3, 3] = t
@@ -207,28 +261,33 @@ class ValveFitter:
         p2 = self.observations[1][1].T
 
         p_3d = cv2.triangulatePoints(
-            projMatr1=M1, projMatr2=M2, projPoints1=p1, projPoints2=p2, )
+            projMatr1=M1,
+            projMatr2=M2,
+            projPoints1=p1,
+            projPoints2=p2,
+        )
         return p_3d[:3, :]
 
     def _pnp(self, radius_hypotesis):
-        points_3d = np.zeros((self.k+1, 3))
+        points_3d = np.zeros((self.k + 1, 3))
         for i in range(self.k):
             theta = 2 * i * np.pi / self.k
-            points_3d[i+1, :] = radius_hypotesis * np.array([1.0, 0.0, 0.0]) * np.cos(
-                theta) + radius_hypotesis * np.array([0.0, 1.0, 0.0]) * np.sin(theta)
+            points_3d[i + 1, :] = radius_hypotesis * np.array([1.0, 0.0, 0.0]) * np.cos(
+                theta
+            ) + radius_hypotesis * np.array([0.0, 1.0, 0.0]) * np.sin(theta)
 
         camera_matrix = self.observations[0][0].K
         points_2d = self.observations[0][1]
         success, rotation_vector, translation_vector = cv2.solvePnP(
-            points_3d, points_2d, camera_matrix, np.zeros((4, 1)))
+            points_3d, points_2d, camera_matrix, np.zeros((4, 1))
+        )
 
         # print(success)
         # print(rotation_vector)
         # print(translation_vector)
 
         T_valve_cam = np.eye(4)
-        T_valve_cam[:3, :3] = R.from_rotvec(
-            rotation_vector.reshape(-1)).as_matrix()
+        T_valve_cam[:3, :3] = R.from_rotvec(rotation_vector.reshape(-1)).as_matrix()
         T_valve_cam[:3, 3] = translation_vector.reshape(-1)
 
         T_cam_valve = np.linalg.inv(T_valve_cam)
@@ -251,43 +310,49 @@ class ValveFitter:
         P = []
         for i in range(self.k):
             theta = 2 * i * np.pi / self.k
-            P.append(C[:3] + delta * n + r * v1 *
-                     np.cos(theta) + r * v2 * np.sin(theta))
+            P.append(
+                C[:3] + delta * n + r * v1 * np.cos(theta) + r * v2 * np.sin(theta)
+            )
             P[i] = to_homogeneous(P[i])
 
         residual = 0.0
         for cam, kpts, w in self.observations:
-            proj_c_hom = cam.K @ cam.T[:3, :] @  C
-            proj_p_hom = [cam.K @ cam.T[:3, :] @  P[i] for i in range(self.k)]
+            proj_c_hom = cam.K @ cam.T[:3, :] @ C
+            proj_p_hom = [cam.K @ cam.T[:3, :] @ P[i] for i in range(self.k)]
 
             proj_c = proj_c_hom[:2] / proj_c_hom[2]
-            proj_p = [proj_p_hom[i][:2] / proj_p_hom[i][2]
-                      for i in range(self.k)]
+            proj_p = [proj_p_hom[i][:2] / proj_p_hom[i][2] for i in range(self.k)]
 
             residual += w[0] * np.linalg.norm(proj_c - kpts[0, :])
-            residual += sum([w[i+1] * np.linalg.norm(proj_p[i] -
-                            kpts[i+1, :]) for i in range(self.k)])
+            residual += sum(
+                [
+                    w[i + 1] * np.linalg.norm(proj_p[i] - kpts[i + 1, :])
+                    for i in range(self.k)
+                ]
+            )
         return residual
 
-    def optimize(self, method='non_linear', *args, **kwargs):
-        if method == 'non_linear':
+    def optimize(self, method="non_linear", *args, **kwargs):
+        if method == "non_linear":
             return self._non_linear_optimization()
-        elif method == 'triangulation':
+        elif method == "triangulation":
             points_3d = self.triangulate()
             return self.estimate_from_3d_points(points_3d)[1]
-        elif method == 'pnp':
-            return self._pnp(kwargs['radius_hypothesis'])
+        elif method == "pnp":
+            return self._pnp(kwargs["radius_hypothesis"])
         else:
             raise NameError(f"Unknown method {method}")
 
-    def estimate_from_3d_points(self, points_3d, frame, handle_radius=0.0, error_threshold=0.003):
+    def estimate_from_3d_points(
+        self, points_3d, frame, handle_radius=0.0, error_threshold=0.003
+    ):
         C = points_3d[:, 0]
 
         # get normal from 3 keypoints
         P1 = points_3d[:, 1]
         P2 = points_3d[:, 2]
         P3 = points_3d[:, 3]
-        n = np.cross((P2-P1), (P3-P1))
+        n = np.cross((P2 - P1), (P3 - P1))
         n = n / np.linalg.norm(n)
 
         # get geometric center as the mean
@@ -303,22 +368,31 @@ class ValveFitter:
         delta = np.sum(n * (Cg - C))  # dot product
 
         # get radius
-        radii = [np.linalg.norm(points_3d[:, i+1] - Cg) for i in range(k)]
+        radii = [np.linalg.norm(points_3d[:, i + 1] - Cg) for i in range(k)]
         r = np.mean(radii)
         r_with_handle = r + handle_radius
 
         # TODO validity check if n * (Cg - C) is roughly equal to (Cg - C)
 
-        #residual_error = max([abs(r - radius) for radius in radii])
+        # residual_error = max([abs(r - radius) for radius in radii])
         # we care about a keypoint being very off
-        residual_error = max([abs(np.linalg.norm(points_3d[:, i+1] - Cg)-r) for i in range(k)])
+        residual_error = max(
+            [abs(np.linalg.norm(points_3d[:, i + 1] - Cg) - r) for i in range(k)]
+        )
         rospy.loginfo(f"Valve fitting residual error is {residual_error}")
 
         if residual_error <= error_threshold:
-            return residual_error, ValveModel(frame=frame, center=C, radius=r_with_handle, axis_1=v1, axis_2=v2, num_spokes=k, depth=delta)
+            return residual_error, ValveModel(
+                frame=frame,
+                center=C,
+                radius=r_with_handle,
+                axis_1=v1,
+                axis_2=v2,
+                num_spokes=k,
+                depth=delta,
+            )
         else:
-            rospy.logerr(
-                "Could not fit the 3d points to a circular valve wheel")
+            rospy.logerr("Could not fit the 3d points to a circular valve wheel")
             return np.inf, None
 
     def _non_linear_optimization(self):
@@ -333,7 +407,7 @@ class ValveFitter:
             v1 = x[3:6]
             v2 = x[6:9]
 
-            con = np.zeros((3, ))
+            con = np.zeros((3,))
             con[0] = np.linalg.norm(v1)
             con[1] = np.linalg.norm(v2)
             con[2] = np.sum(v1 * v2)
@@ -341,14 +415,16 @@ class ValveFitter:
 
         # Make sure vectors are normal and orthogonal
         vector_constraint = NonlinearConstraint(
-            constraint_fun, np.array([1.0, 1.0, 0.0]), np.array([1.0, 1.0, 0.0]))
+            constraint_fun, np.array([1.0, 1.0, 0.0]), np.array([1.0, 1.0, 0.0])
+        )
 
         # Make sure radius and delta are positive and withing prior bounds
         A = np.zeros((2, 11))
         A[0, 9] = 1
         A[1, 10] = 1
         geometry_constraint = LinearConstraint(
-            A, np.array([0.0, 0.05]), np.array([0.03, 0.2]))
+            A, np.array([0.0, 0.05]), np.array([0.03, 0.2])
+        )
 
         initial_guess = np.zeros((11,))
         initial_guess[:3] = np.array([0.0, 0.0, 0.5])
@@ -357,21 +433,27 @@ class ValveFitter:
         initial_guess[9] = 0.0
         initial_guess[10] = 0.1
 
-        res = minimize(self.residual_fun, x0=initial_guess, constraints=[
-                       vector_constraint, geometry_constraint], options={'maxiter': 10e4})
+        res = minimize(
+            self.residual_fun,
+            x0=initial_guess,
+            constraints=[vector_constraint, geometry_constraint],
+            options={"maxiter": 10e4},
+        )
         print(res)
         print(self.res_to_string(res.x))
         return self.valve_from_x(res.x)
 
     @staticmethod
     def res_to_string(x):
-        print(f"""
+        print(
+            f"""
 center = {x[:3]}
 axis 1 = {x[3:6]}
 axis 2 = {x[6:9]}
 delta = {x[9]}
 radius = {x[10]}
-""")
+"""
+        )
 
     def valve_from_x(self, x):
         c = x[:3]
@@ -379,7 +461,9 @@ radius = {x[10]}
         v2 = x[6:9]
         delta = x[9]
         r = x[10]
-        return ValveModel(center=c, radius=r, axis_1=v1, axis_2=v2, num_spokes=self.k, depth=delta)
+        return ValveModel(
+            center=c, radius=r, axis_1=v1, axis_2=v2, num_spokes=self.k, depth=delta
+        )
 
 
 class FeatureMatcher:
@@ -407,8 +491,7 @@ class FeatureMatcher:
 
         distances = []
         for l in lines:
-            distances.append([point_line_distance(points2[i, :], l)
-                             for i in range(N)])
+            distances.append([point_line_distance(points2[i, :], l) for i in range(N)])
 
         distances = np.asarray(distances)
         print(f"distances from epipolar lines are:\n{distances}")
@@ -420,20 +503,22 @@ class FeatureMatcher:
             if mask is not None and i in mask:
                 matches[i] = i
                 distances[i, :] = np.max(distances)
-            else:  
-              idx_first_min = np.argmin(distances[:, i])
-              first_min = distances[idx_first_min, i]
+            else:
+                idx_first_min = np.argmin(distances[:, i])
+                first_min = distances[idx_first_min, i]
 
-              distances[idx_first_min, :] = np.max(distances)  # avoid this line to be found again
-              idx_second_min = np.argmin(distances[:, i])
-              second_min = distances[idx_second_min, i]
+                distances[idx_first_min, :] = np.max(
+                    distances
+                )  # avoid this line to be found again
+                idx_second_min = np.argmin(distances[:, i])
+                second_min = distances[idx_second_min, i]
 
-              if (first_min / second_min) < self.acceptance_ratio:
-                  point2_idx = i
-                  point1_idx = idx_first_min
+                if (first_min / second_min) < self.acceptance_ratio:
+                    point2_idx = i
+                    point1_idx = idx_first_min
 
-                  # point in image 2 at point2_idx matches point in image 1 at point1_idx
-                  matches[point1_idx] = point2_idx
+                    # point in image 2 at point2_idx matches point in image 1 at point1_idx
+                    matches[point1_idx] = point2_idx
 
         print(f"Matches are: {matches}")
         if len(np.unique(matches[matches > -1])) != len(matches):
@@ -446,19 +531,18 @@ class FeatureMatcher:
         fig, ax = plt.subplots(2, 1)
 
         import matplotlib.colors as mcolors
+
         colors = list(mcolors.BASE_COLORS.keys())
 
         for i in range(points1.shape[0]):
-            ax[0].scatter(points1[i, 0], points1[i, 1],
-                          label=f'point {i}', c=colors[i])
-            ax[1].scatter(points2[i, 0], points2[i, 1],
-                          label=f'point {i}', c=colors[i])
+            ax[0].scatter(points1[i, 0], points1[i, 1], label=f"point {i}", c=colors[i])
+            ax[1].scatter(points2[i, 0], points2[i, 1], label=f"point {i}", c=colors[i])
 
         c, _ = camera2.resolution
         for i, r in enumerate(lines):
             color = colors[i]
-            x0, y0 = map(int, [0, -r[2]/r[1]])
-            x1, y1 = map(int, [c, -(r[2]+r[0]*c)/r[1]])
+            x0, y0 = map(int, [0, -r[2] / r[1]])
+            x1, y1 = map(int, [c, -(r[2] + r[0] * c) / r[1]])
             ax[1].plot([x0, x1], [y0, y1], color=color, label=f"epiline {i}")
 
         ax[0].set_xlim([0, camera1.resolution[0]])
@@ -479,27 +563,30 @@ class RansacMatcher:
     Takes one set as a reference observation to match agains others using the epipolar
     line constraint. The mathc also reorder observations such that they are paired consistently
     The observation with most matches and corresponindg matches is returned with the filter method
-     
+
     """
+
     def __init__(self, acceptance_ratio=0.6, min_consensus=2, mask=None):
-        self.feature_matcher = FeatureMatcher(
-            acceptance_ratio=acceptance_ratio)
+        self.feature_matcher = FeatureMatcher(acceptance_ratio=acceptance_ratio)
         self.mask = mask
         self.min_consensus = min_consensus
         self.cameras = []
         self.observations = []
         self.observations3d = []
 
-    def add_observation(self, camera: Camera, observation: np.ndarray, observation3d: np.array):
+    def add_observation(
+        self, camera: Camera, observation: np.ndarray, observation3d: np.array
+    ):
         self.cameras.append(camera)
         self.observations.append(observation)
         self.observations3d.append(observation3d)
 
     def filter(self):
-        """ Return the filtered and matched 2d and 3d features """
+        """Return the filtered and matched 2d and 3d features"""
         if len(self.observations) < self.min_consensus:
             raise NameError(
-                "Cannot filter with less observations than minimum required consensus")
+                "Cannot filter with less observations than minimum required consensus"
+            )
 
         success = True
         max_matches = -1
@@ -511,11 +598,14 @@ class RansacMatcher:
             matched_total = 0
             matched_observations = deepcopy(self.observations)
             matched_observations3d = deepcopy(self.observations3d)
-            for j, (cam, obs, obs3d) in enumerate(zip(self.cameras, self.observations, self.observations3d)):
+            for j, (cam, obs, obs3d) in enumerate(
+                zip(self.cameras, self.observations, self.observations3d)
+            ):
                 if j != i:
                     # first reorder features according the epipolar constraint
                     matches = self.feature_matcher.match(
-                        cam_ref, cam, obs_ref, obs, mask=self.mask)
+                        cam_ref, cam, obs_ref, obs, mask=self.mask
+                    )
                     # if some feature was not matched because of the acceptance ration the index is set to -1
                     if np.all(matches >= 0):
                         matched_observations[j] = obs[matches, :]
@@ -534,14 +624,15 @@ class RansacMatcher:
         if max_matches < self.min_consensus:
             success = False
         print(
-            f"Max #matches: {max_matches}, with ref#{max_reference} (min consensus={self.min_consensus})")
+            f"Max #matches: {max_matches}, with ref#{max_reference} (min consensus={self.min_consensus})"
+        )
         return success, best_matched_observations, best_matched_observations3d
 
 
 class ValveVisualizer:
     def __init__(self):
         self.fig_3d = plt.figure()
-        self.ax_3d = plt.axes(projection='3d', proj_type='ortho')
+        self.ax_3d = plt.axes(projection="3d", proj_type="ortho")
 
         self.fig_cam, self.ax_cam = plt.subplots()
         self.cameras = {}
@@ -560,34 +651,42 @@ class ValveVisualizer:
     def draw(self):
         for label, camera in self.cameras.items():
             if label in self.valves:
-                sc = self.ax_3d.scatter3D(self.valves[label].keypoints[0, :],
-                                          self.valves[label].keypoints[1, :],
-                                          self.valves[label].keypoints[2, :])
+                sc = self.ax_3d.scatter3D(
+                    self.valves[label].keypoints[0, :],
+                    self.valves[label].keypoints[1, :],
+                    self.valves[label].keypoints[2, :],
+                )
 
                 points_on_wheel = self.valves[label].get_points_on_wheel()
-                self.ax_3d.plot3D(points_on_wheel[0, :],
-                                  points_on_wheel[1, :],
-                                  points_on_wheel[2, :], label=label)
+                self.ax_3d.plot3D(
+                    points_on_wheel[0, :],
+                    points_on_wheel[1, :],
+                    points_on_wheel[2, :],
+                    label=label,
+                )
 
                 camera.extrinsic2pyramid(
-                    self.ax_3d, focal_len_scaled=0.3, color=sc.get_facecolor())
+                    self.ax_3d, focal_len_scaled=0.3, color=sc.get_facecolor()
+                )
 
                 proj_circle = camera.project(points_on_wheel)
                 self.ax_cam.plot(proj_circle[:, 0], proj_circle[:, 1])
 
                 proj_keypoints = camera.project(self.valves[label].keypoints)
                 self.ax_cam.scatter(
-                    proj_keypoints[:, 0], proj_keypoints[:, 1], label=label)
+                    proj_keypoints[:, 0], proj_keypoints[:, 1], label=label
+                )
 
                 self.ax_cam.set_xlim([0, camera.resolution[0]])
                 self.ax_cam.set_ylim([0, camera.resolution[1]])
-                self.ax_cam.set_aspect('equal')
+                self.ax_cam.set_aspect("equal")
 
-                markers = ['x', 'o', '+', 's', '<', '>', '*']
+                markers = ["x", "o", "+", "s", "<", ">", "*"]
                 if label in self.points2d.keys():
                     for i, p in enumerate(self.points2d[label]):
-                        self.ax_cam.scatter(p[0], p[1],
-                                            marker=markers[i], color=sc.get_facecolor())
+                        self.ax_cam.scatter(
+                            p[0], p[1], marker=markers[i], color=sc.get_facecolor()
+                        )
 
         self.ax_cam.grid(True)
         self.ax_cam.legend()
@@ -600,9 +699,9 @@ if __name__ == "__main__":
     rospy.init_node("valve_fitting_node")
 
     # Define dummy camera intrinsics
-    camera_intrinsics = np.array([[695.49, 0.0, 646.83],
-                                  [0.0, 694.75, 367.62],
-                                  [0.0, 0.0, 1.0]])
+    camera_intrinsics = np.array(
+        [[695.49, 0.0, 646.83], [0.0, 694.75, 367.62], [0.0, 0.0, 1.0]]
+    )
     camera_resolution = np.array([1280, 720])
     camera_distortion = np.array([])
 
@@ -634,7 +733,7 @@ if __name__ == "__main__":
     # Simulate inaccurrate perception
 
     def shuffle_keypoints(kpts: np.ndarray):
-        """ Shuffle the keypoints from 1 to N-1 as center is always the first """
+        """Shuffle the keypoints from 1 to N-1 as center is always the first"""
         shuffled_kpts = deepcopy(kpts)
         np.random.shuffle(shuffled_kpts[:, 1:].T)
         return shuffled_kpts

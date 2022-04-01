@@ -14,19 +14,19 @@ class RosControlPoseReaching(StateRos):
     Switch and send target poses to the controller manager
     """
 
-    def __init__(self, ns, outcomes=['Completed', 'Failure']):
-        StateRos.__init__(self,
-                          outcomes=outcomes,
-                          ns=ns)
+    def __init__(self, ns, outcomes=["Completed", "Failure"]):
+        StateRos.__init__(self, outcomes=outcomes, ns=ns)
 
         self.controller_name = self.get_scoped_param("controller_name")
         self.manager_namespace = self.get_scoped_param("manager_namespace")
         self.whitelist = self.get_scoped_param("whitelist")
 
     def do_switch(self):
-        return switch_ros_controller(controller_name=self.controller_name,
-                                     manager_namespace=self.manager_namespace,
-                                     whitelist=self.whitelist)
+        return switch_ros_controller(
+            controller_name=self.controller_name,
+            manager_namespace=self.manager_namespace,
+            whitelist=self.whitelist,
+        )
 
 
 class JointsConfigurationVisitor(StateRos):
@@ -38,14 +38,17 @@ class JointsConfigurationVisitor(StateRos):
     """
 
     def __init__(self, ns=""):
-        StateRos.__init__(self,
-                          outcomes=['Completed', 'Failure'],
-                          input_keys=['reset'],
-                          ns=ns)
+        StateRos.__init__(
+            self, outcomes=["Completed", "Failure"], input_keys=["reset"], ns=ns
+        )
 
         self.joints_configurations = self.get_scoped_param("joints_configurations")
         self.n_configurations = len(self.joints_configurations)
-        rospy.loginfo("Parsed {} joints configurations: {}".format(self.n_configurations, self.joints_configurations))
+        rospy.loginfo(
+            "Parsed {} joints configurations: {}".format(
+                self.n_configurations, self.joints_configurations
+            )
+        )
 
         self.planner = MoveItPlanner()
         self.idx = 0
@@ -56,13 +59,19 @@ class JointsConfigurationVisitor(StateRos):
             rospy.logwarn("No more configurations to visit! Looping")
             self.idx = 0
 
-        rospy.loginfo("Visiting configuration {}: {}".format(self.idx, self.joints_configurations[self.idx]))
-        success = self.planner.reach_joint_angles(self.joints_configurations[self.idx], tolerance=0.01)
+        rospy.loginfo(
+            "Visiting configuration {}: {}".format(
+                self.idx, self.joints_configurations[self.idx]
+            )
+        )
+        success = self.planner.reach_joint_angles(
+            self.joints_configurations[self.idx], tolerance=0.01
+        )
         self.idx += 1
         if success:
-            return 'Completed'
+            return "Completed"
         else:
-            return 'Failure'
+            return "Failure"
 
 
 class MoveItNamedPositionReaching(StateRos):
@@ -72,7 +81,7 @@ class MoveItNamedPositionReaching(StateRos):
     """
 
     def __init__(self, target, ns=""):
-        StateRos.__init__(self, outcomes=['Completed', 'Failure'], ns=ns)
+        StateRos.__init__(self, outcomes=["Completed", "Failure"], ns=ns)
         self.planner = MoveItPlanner()
         self.target = target
 
@@ -80,20 +89,20 @@ class MoveItNamedPositionReaching(StateRos):
         rospy.loginfo("Reaching named position: {}".format(self.target))
         success = self.planner.reach_named_position(self.target)
         if success:
-            return 'Completed'
+            return "Completed"
         else:
-            return 'Failure'
+            return "Failure"
 
 
 class MoveItHome(MoveItNamedPositionReaching):
-    """ Assumes there exist an home configuration """
+    """Assumes there exist an home configuration"""
 
     def __init__(self, ns=""):
         MoveItNamedPositionReaching.__init__(self, "home", ns=ns)
 
 
 class MoveItVertical(MoveItNamedPositionReaching):
-    """ Assumes there exist a retract configuration """
+    """Assumes there exist a retract configuration"""
 
     def __init__(self, ns=""):
         MoveItNamedPositionReaching.__init__(self, "vertical", ns=ns)
@@ -108,7 +117,11 @@ class JointsConfigurationAction(StateRosControl):
         StateRosControl.__init__(self, ns=ns)
         self.joints_configurations = self.get_scoped_param("joints_configurations")
         self.n_configurations = len(self.joints_configurations)
-        rospy.loginfo("Parsed {} joints configurations: {}".format(self.n_configurations, self.joints_configurations))
+        rospy.loginfo(
+            "Parsed {} joints configurations: {}".format(
+                self.n_configurations, self.joints_configurations
+            )
+        )
 
         self.action_name = self.get_scoped_param("action_name")
         self.client = actionlib.SimpleActionClient(self.action_name, JointAction)
@@ -116,14 +129,14 @@ class JointsConfigurationAction(StateRosControl):
     def run(self):
         controller_switched = self.do_switch()
         if not controller_switched:
-            return 'Failure'
+            return "Failure"
 
         # Wait some time to let the controller setup (this should not be necessary)
         rospy.sleep(1.0)
 
         if not self.client.wait_for_server(rospy.Duration(10)):
             rospy.logerr("Failed to connect to server {}".format(self.action_name))
-            return 'Failure'
+            return "Failure"
 
         goal = JointGoal()
         for goal_position in self.joints_configurations:
@@ -133,15 +146,18 @@ class JointsConfigurationAction(StateRosControl):
             result = self.client.get_result()
             if not result.success:
                 rospy.logerr("Failed to reach the goal configuration")
-                return 'Failure'
+                return "Failure"
 
-        return 'Completed'
+        return "Completed"
 
 
 if __name__ == "__main__":
     from moma_mission.core import StateMachineRos
-    state_machine = StateMachineRos(outcomes=['Success', 'Failure'])
+
+    state_machine = StateMachineRos(outcomes=["Success", "Failure"])
     with state_machine:
-        state_machine.add('STATE_A',
-                          JointsConfigurationAction,
-                          transitions={'Completed': 'Success', 'Failure': 'Failure'})
+        state_machine.add(
+            "STATE_A",
+            JointsConfigurationAction,
+            transitions={"Completed": "Success", "Failure": "Failure"},
+        )
