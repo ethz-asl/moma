@@ -44,10 +44,6 @@
       -J panda_joint6 1.571
       -J panda_joint7 0.785" />
 
-  <include file="$(find piloting_demo)/launch/valve.launch">
-    <arg name="sim" value="true"/>
-  </include>
-
   <!-- Load joint controller to publish the joint state under object namespace -->
   <group ns="valve">
     <rosparam command="load" file="$(find piloting_demo)/config/sim/controllers.yaml"/>

@@ -18,10 +18,6 @@
 
 #include <moma_cartesian_impedance_controller/pseudo_inversion.hpp>
 
-// TODO become stiffer next to joint limits
-// TODO when force is above a certain threshold do not accept poses and keep the current one
-// TODO (optional) get the desired pose for nullspace prjection (could come from MPC for example)
-
 namespace moma_controllers
 {
 bool CartesianImpedanceController::init_params(ros::NodeHandle& node_handle)
@@ -86,8 +82,8 @@ bool CartesianImpedanceController::init_params(ros::NodeHandle& node_handle)
 
   for (size_t i{}; i < 7; i++)
   {
-    q_min_(i) = lower_limit[i] + 2*safety_margin_;
-    q_max_(i) = upper_limit[i] - 2*safety_margin_;
+    q_min_(i) = lower_limit[i] + 2 * safety_margin_;
+    q_max_(i) = upper_limit[i] - 2 * safety_margin_;
     limits_gains_(i) = limits_gains[i];
   }
 
@@ -196,7 +192,8 @@ void CartesianImpedanceController::init_ros_sub_pub(ros::NodeHandle& node_handle
   trackingErrorPub_ = node_handle.advertise<std_msgs::Float64MultiArray>("tracking_error", 1, false);
   integratorWrenchPub_ = node_handle.advertise<geometry_msgs::WrenchStamped>("integrator_wrench", 1, false);
   publishingTimer_ = node_handle.createTimer(ros::Duration(0.02), [this](const ros::TimerEvent& timerEvent) {
-    if (!initialized_) return;
+    if (!initialized_)
+      return;
 
     auto time = timerEvent.current_real;
     const auto frameId = base_frame_id_;
@@ -241,10 +238,12 @@ void CartesianImpedanceController::init_ros_sub_pub(ros::NodeHandle& node_handle
       T_base_tool_desired_filtered.linear() = Eigen::Matrix3d(orientation_d_target_);
       T_base_tool_desired_filtered = T_base_tool_desired_filtered * T_tool_ee_.inverse();
       tf::pointEigenToMsg(T_base_tool_desired_filtered.translation(), desiredPoseFiltered.pose.position);
-      tf::quaternionEigenToMsg(Eigen::Quaterniond(T_base_tool_desired_filtered.linear()), desiredPoseFiltered.pose.orientation);
+      tf::quaternionEigenToMsg(Eigen::Quaterniond(T_base_tool_desired_filtered.linear()),
+                               desiredPoseFiltered.pose.orientation);
 
       error.data.push_back((T_base_tool_desired_filtered.translation() - T_base_tool_.translation()).norm());
-      error.data.push_back(Eigen::Quaterniond(T_base_tool_desired_filtered.linear()).angularDistance(Eigen::Quaterniond(T_base_tool_.linear())));
+      error.data.push_back(Eigen::Quaterniond(T_base_tool_desired_filtered.linear())
+                               .angularDistance(Eigen::Quaterniond(T_base_tool_.linear())));
 
       Eigen::Vector3d force = error_integrator_.head(3);
       Eigen::Vector3d torque = error_integrator_.tail(3);
@@ -385,7 +384,7 @@ void CartesianImpedanceController::update(const ros::Time& /*time*/, const ros::
 
     // filter qd on hardware
     const double alpha = 0.9;
-    qd_ = alpha * Eigen::Map<Vector7d>(robot_state.dq.data()) + (1-alpha) * qd_;  
+    qd_ = alpha * Eigen::Map<Vector7d>(robot_state.dq.data()) + (1 - alpha) * qd_;
 
     tau_ = Eigen::Map<Vector7d>(robot_state.tau_J_d.data());
     transform = Eigen::Affine3d(Eigen::Matrix4d::Map(robot_state.O_T_EE.data()));
@@ -408,7 +407,7 @@ void CartesianImpedanceController::update(const ros::Time& /*time*/, const ros::
   error.tail(3) << error_quaternion.x(), error_quaternion.y(), error_quaternion.z();
   // Transform to base frame
   error.tail(3) << -transform.linear() * error.tail(3);
-  //ROS_INFO_STREAM_THROTTLE(1.0, "error=" << error.transpose());
+  // ROS_INFO_STREAM_THROTTLE(1.0, "error=" << error.transpose());
 
   error_integrator_ += params_.cartesian_stiffness_i_ * error;
   error_integrator_ = error_integrator_.cwiseMin(params_.windup_limit_);
@@ -442,40 +441,42 @@ void CartesianImpedanceController::update(const ros::Time& /*time*/, const ros::
   tau_task << jacobian.transpose() * targetWrench;
 
   // nullspace PD control with damping ratio = 1
-  tau_nullspace << (Eigen::MatrixXd::Identity(7, 7) -
-                    jacobian.transpose() * jacobian_transpose_pinv) *
+  tau_nullspace << (Eigen::MatrixXd::Identity(7, 7) - jacobian.transpose() * jacobian_transpose_pinv) *
                        (params_.nullspace_stiffness_ * (q_d_nullspace_ - q_.head<7>()) -
                         (2.0 * sqrt(params_.nullspace_stiffness_)) * qd_.head<7>());
 
-  /* 
+  /*
    * we apply limits 2 * safety_margin_ far from the actual limits
    * split the calucation in two parts:
-   *  
+   *
    * a) 0 < abs(delta) < safety_margin_
    *    linearly interpolate towards 0 tau_task and tau_nullspace
-   *  
+   *
    * b) safety_margin_ < abs(delta) < 2*safety_margin_
    *    set all other tau to zero and only apply tau limits
    *
    * tau limits is computed as a PD term, where D is to add virtual damping
    */
-  Vector7d dq_limits_ =
-      (q_max_ - q_.head<7>()).cwiseMin(0.0) + (q_min_ - q_.head<7>()).cwiseMax(0.0);
+  Vector7d dq_limits_ = (q_max_ - q_.head<7>()).cwiseMin(0.0) + (q_min_ - q_.head<7>()).cwiseMax(0.0);
 
   tau_limits.setZero();
-  for (size_t i{}; i < 7; i++) {
+  for (size_t i{}; i < 7; i++)
+  {
     const static double tol = 1e-4;
     const double delta = dq_limits_[i];
     const double delta_abs = std::abs(delta);
     const double alpha = (1 - delta_abs / safety_margin_);
 
-    if (delta_abs > tol && (tau_task[i] * delta) < 0) {  // change tau only if acts against the limit
+    if (delta_abs > tol && (tau_task[i] * delta) < 0)
+    {  // change tau only if acts against the limit
       tau_limits[i] = delta * limits_gains_[i] - qd_[i] * 2.0 * std::sqrt(limits_gains_[i]);
-      if (delta_abs < safety_margin_){
+      if (delta_abs < safety_margin_)
+      {
         tau_task[i] *= alpha;
         tau_nullspace[i] *= alpha;
       }
-      else{
+      else
+      {
         tau_task[i] = 0.0;
         tau_nullspace[i] = 0.0;
       }
@@ -485,7 +486,6 @@ void CartesianImpedanceController::update(const ros::Time& /*time*/, const ros::
   // Desired torque
   tau_d << tau_task + tau_nullspace + tau_limits + non_linear_terms;
 
-  
   // Saturate torque rate to avoid discontinuities
   if (!sim_)
   {
