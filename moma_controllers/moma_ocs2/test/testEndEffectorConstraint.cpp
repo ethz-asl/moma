@@ -27,19 +27,16 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ******************************************************************************/
 
-#include <pinocchio/fwd.hpp>
-
-#include <pinocchio/algorithm/frames.hpp>
-#include <pinocchio/algorithm/kinematics.hpp>
-
 #include <gtest/gtest.h>
-#include <ros/package.h>
-
 #include <moma_ocs2_example/MobileManipulatorInterface.h>
 #include <moma_ocs2_example/MobileManipulatorPinocchioMapping.h>
 #include <moma_ocs2_example/constraint/EndEffectorConstraint.h>
-
 #include <ocs2_pinocchio_interface/PinocchioEndEffectorKinematics.h>
+#include <ros/package.h>
+
+#include <pinocchio/algorithm/frames.hpp>
+#include <pinocchio/algorithm/kinematics.hpp>
+#include <pinocchio/fwd.hpp>
 
 using namespace ocs2;
 using namespace mobile_manipulator;
@@ -47,11 +44,14 @@ using namespace mobile_manipulator;
 class testEndEffectorConstraint : public ::testing::Test {
  public:
   testEndEffectorConstraint() {
-    const std::string urdfPath = ros::package::getPath("moma_ocs2") + "/urdf/mobile_manipulator.urdf";
+    const std::string urdfPath =
+        ros::package::getPath("moma_ocs2") + "/urdf/mobile_manipulator.urdf";
 
-    pinocchioInterfacePtr.reset(new PinocchioInterface(MobileManipulatorInterface::buildPinocchioInterface(urdfPath)));
+    pinocchioInterfacePtr.reset(
+        new PinocchioInterface(MobileManipulatorInterface::buildPinocchioInterface(urdfPath)));
 
-    eeKinematicsPtr.reset(new PinocchioEndEffectorKinematics(*pinocchioInterfacePtr, pinocchioMapping, {"WRIST_2"}));
+    eeKinematicsPtr.reset(
+        new PinocchioEndEffectorKinematics(*pinocchioInterfacePtr, pinocchioMapping, {"WRIST_2"}));
 
     x << 1.0, 1.0, 0.5, 2.5, -1.0, 1.5, 0.0, 1.0, 0.0;
   }
@@ -74,7 +74,8 @@ TEST_F(testEndEffectorConstraint, testEndEffectorConstraint) {
   pinocchio::computeJointJacobians(model, data);
 
   auto eeConstraintPtr = std::make_shared<EndEffectorConstraint>(*eeKinematicsPtr);
-  dynamic_cast<PinocchioEndEffectorKinematics&>(eeConstraintPtr->getEndEffectorKinematics()).setPinocchioInterface(*pinocchioInterfacePtr);
+  dynamic_cast<PinocchioEndEffectorKinematics&>(eeConstraintPtr->getEndEffectorKinematics())
+      .setPinocchioInterface(*pinocchioInterfacePtr);
   eeConstraintPtr->setDesiredPose(vector3_t::Zero(), quaternion_t(1, 0, 0, 0));
 
   std::cerr << "constraint:\n" << eeConstraintPtr->getValue(0.0, x) << '\n';

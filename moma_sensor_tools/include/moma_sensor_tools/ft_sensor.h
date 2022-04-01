@@ -3,19 +3,18 @@
 //
 
 #pragma once
+#include <eigen_conversions/eigen_msg.h>
+#include <geometry_msgs/TransformStamped.h>
 #include <geometry_msgs/WrenchStamped.h>
+#include <moma_sensor_tools/ft_sensor_utils.h>
 #include <realtime_tools/realtime_publisher.h>
 #include <ros/callback_queue.h>
 #include <ros/ros.h>
-#include <std_srvs/Empty.h>
-#include <moma_sensor_tools/ft_sensor_utils.h>
-
 #include <sensor_msgs/Imu.h>
-#include <geometry_msgs/TransformStamped.h>
+#include <std_srvs/Empty.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <tf2_ros/buffer.h>
 #include <tf2_ros/transform_listener.h>
-#include <eigen_conversions/eigen_msg.h>
 
 #include <Eigen/Geometry>
 
@@ -35,10 +34,10 @@ class ForceTorqueSensor {
   void update();
 
  private:
-  bool estimate_bias_callback(std_srvs::EmptyRequest&, std_srvs::EmptyResponse& );
+  bool estimate_bias_callback(std_srvs::EmptyRequest&, std_srvs::EmptyResponse&);
 
  private:
-  //void imu_callback(const sensor_msgs::ImuConstPtr& msg);
+  // void imu_callback(const sensor_msgs::ImuConstPtr& msg);
   void raw_wrench_callback(const geometry_msgs::WrenchStampedConstPtr& msg);
 
  private:
@@ -59,7 +58,7 @@ class ForceTorqueSensor {
 
   ros::NodeHandle nh_;
   std::unique_ptr<ros::CallbackQueue> wrench_callback_queue_;
-  
+
   ros::Publisher wrench_publisher_;
   ros::Publisher tool_wrench_publisher_;
   ros::Subscriber raw_wrench_subscriber_;
@@ -72,13 +71,12 @@ class ForceTorqueSensor {
   // TF
   tf2_ros::TransformListener tf2_listener_;
   tf2_ros::Buffer tf2_buffer_;
-  
+
   Wrench tool_wrench_;
   Eigen::Matrix<double, 6, 1> bias_;
   Eigen::Matrix<double, 6, 1> raw_wrench_;
   Eigen::Matrix<double, 6, 1> compensated_wrench_;
   Eigen::Matrix<double, 6, 1> compensated_wrench_filtered_;
-
 };
 
-}  // namespace sensor_tools::ft
+}  // namespace moma_sensor_tools

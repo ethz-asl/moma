@@ -28,9 +28,11 @@ IMAGE_TOPIC = "/versavis/cam0/image_raw_throttle"
 BASE_LINK = "base_link"
 ODOM_TOPIC = "/camera/odom/sample"
 CAMERA_UUID = str(uuid.uuid4())
-SENSORS_LIST = {"rslidar": ["16 Beans Lidar Sensor", str(uuid.uuid4())],
-                "realsense_t265": ["Realsense Tracking Camera", str(uuid.uuid4())],
-                "imu": ["XSense Imu", str(uuid.uuid4())]}
+SENSORS_LIST = {
+    "rslidar": ["16 Beans Lidar Sensor", str(uuid.uuid4())],
+    "realsense_t265": ["Realsense Tracking Camera", str(uuid.uuid4())],
+    "imu": ["XSense Imu", str(uuid.uuid4())],
+}
 
 
 startDate = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
@@ -50,24 +52,25 @@ def get_files():
         "pictures_metadata": "pictures_metadata.csv",
         "pictures_folder": "pictures",
         "telemetry_data": "localization_telemetry.csv",
-        "haptic_data": "haptic_sensing.csv"
+        "haptic_data": "haptic_sensing.csv",
     }
 
 
 def get_tf_tree(bag: rosbag.Bag):
-    """ Fills up a tf tree from a rosbag """
+    """Fills up a tf tree from a rosbag"""
     tf_tree = tf2.BufferCore(rospy.Duration(360000.0))
     tf_topics = ["/tf", "/tf_static"]
     tf_msgs_count = bag.get_message_count(tf_topics)
-    print("[Report Generation]:  Reading {} transforms from the bag".format(
-        tf_msgs_count))
+    print(
+        "[Report Generation]:  Reading {} transforms from the bag".format(tf_msgs_count)
+    )
 
     times = []
     with tqdm(total=tf_msgs_count) as progress_bar:
         for topic, message, t in bag.read_messages(topics=tf_topics):
             times.append(t)
             for tf_message in message.transforms:
-                if topic == '/tf_static':
+                if topic == "/tf_static":
                     tf_tree.set_transform_static(tf_message, topic)
                 else:
                     tf_tree.set_transform(tf_message, topic)
@@ -82,41 +85,58 @@ def get_sensors():
         sensor_entry["name"] = sensor_frame
         sensor_entry["uuid"] = sensor_info[1]
         sensor_entry["description"] = sensor_info[0]
-        sensor_entry["tf"] = {"translation": {"x": 0.0, "y": 0.0, "z": 0.0},
-                              "rotation": {"x": 0.0, "y": 0.0, "z": 0.0, "w": 0.0}}
+        sensor_entry["tf"] = {
+            "translation": {"x": 0.0, "y": 0.0, "z": 0.0},
+            "rotation": {"x": 0.0, "y": 0.0, "z": 0.0, "w": 0.0},
+        }
         try:
             tf_transform = tf_tree.lookup_transform_core(
-                target_frame=BASE_LINK, source_frame=sensor_frame, time=rospy.Time(0))
-            sensor_entry["tf"]["translation"]["x"] = tf_transform.transform.translation.x
-            sensor_entry["tf"]["translation"]["y"] = tf_transform.transform.translation.y
-            sensor_entry["tf"]["translation"]["z"] = tf_transform.transform.translation.z
+                target_frame=BASE_LINK, source_frame=sensor_frame, time=rospy.Time(0)
+            )
+            sensor_entry["tf"]["translation"][
+                "x"
+            ] = tf_transform.transform.translation.x
+            sensor_entry["tf"]["translation"][
+                "y"
+            ] = tf_transform.transform.translation.y
+            sensor_entry["tf"]["translation"][
+                "z"
+            ] = tf_transform.transform.translation.z
             sensor_entry["tf"]["rotation"]["x"] = tf_transform.transform.rotation.x
             sensor_entry["tf"]["rotation"]["y"] = tf_transform.transform.rotation.y
             sensor_entry["tf"]["rotation"]["z"] = tf_transform.transform.rotation.z
             sensor_entry["tf"]["rotation"]["w"] = tf_transform.transform.rotation.w
         except Exception as exc:
             print(exc)
-            print("[Report Generation]: Failed to get transform from {} to {}".format(
-                sensor_frame, BASE_LINK))
+            print(
+                "[Report Generation]: Failed to get transform from {} to {}".format(
+                    sensor_frame, BASE_LINK
+                )
+            )
         sensors.append(sensor_entry)
     return sensors
 
 
 def extract_telemetry(bag: rosbag.Bag, root_dir):
     telemetry_csv_file = os.path.join(root_dir, "localization_telemetry.csv")
-    with open(telemetry_csv_file, 'w') as f:
+    with open(telemetry_csv_file, "w") as f:
         writer = csv.writer(f)
         for t in times:
             try:
                 tf_transform = tf_tree.lookup_transform_core(
-                    target_frame=MAP_FRAME, source_frame=BASE_LINK, time=t)
-                translation = [tf_transform.transform.translation.x,
-                               tf_transform.transform.translation.y,
-                               tf_transform.transform.translation.z]
-                rotation = [tf_transform.transform.rotation.x,
-                            tf_transform.transform.rotation.y,
-                            tf_transform.transform.rotation.z,
-                            tf_transform.transform.rotation.w]
+                    target_frame=MAP_FRAME, source_frame=BASE_LINK, time=t
+                )
+                translation = [
+                    tf_transform.transform.translation.x,
+                    tf_transform.transform.translation.y,
+                    tf_transform.transform.translation.z,
+                ]
+                rotation = [
+                    tf_transform.transform.rotation.x,
+                    tf_transform.transform.rotation.y,
+                    tf_transform.transform.rotation.z,
+                    tf_transform.transform.rotation.w,
+                ]
                 entry = [t.to_sec(), task_uuid] + translation + rotation
                 writer.writerow(entry)
             except Exception as exc:
@@ -126,21 +146,26 @@ def extract_telemetry(bag: rosbag.Bag, root_dir):
 def extract_odometry(bag: rosbag.Bag, root_dir):
     telemetry_csv_file = os.path.join(root_dir, "localization_telemetry.csv")
     odom_msgs_count = bag.get_message_count(ODOM_TOPIC)
-  
+
     with tqdm(total=odom_msgs_count) as progress_bar:
-        with open(telemetry_csv_file, 'w') as f:
+        with open(telemetry_csv_file, "w") as f:
             writer = csv.writer(f)
             for topic, message, t in bag.read_messages(topics=ODOM_TOPIC):
-                translation = [message.pose.pose.position.x,
-                            message.pose.pose.position.y,
-                            message.pose.pose.position.z]
-                rotation = [message.pose.pose.orientation.x,
-                            message.pose.pose.orientation.y,
-                            message.pose.pose.orientation.z,
-                            message.pose.pose.orientation.w]
+                translation = [
+                    message.pose.pose.position.x,
+                    message.pose.pose.position.y,
+                    message.pose.pose.position.z,
+                ]
+                rotation = [
+                    message.pose.pose.orientation.x,
+                    message.pose.pose.orientation.y,
+                    message.pose.pose.orientation.z,
+                    message.pose.pose.orientation.w,
+                ]
                 entry = [t.to_sec(), task_uuid] + translation + rotation
                 writer.writerow(entry)
                 progress_bar.update(1)
+
 
 def extract_pictures(bag: rosbag.Bag, root_dir):
     bridge = CvBridge()
@@ -148,7 +173,7 @@ def extract_pictures(bag: rosbag.Bag, root_dir):
     t_prev = -inf
     img_idx = 0
     pictures_csv_file = os.path.join(root_dir, "pictures_metadata.csv")
-    with open(pictures_csv_file, 'w') as f:
+    with open(pictures_csv_file, "w") as f:
         writer = csv.writer(f)
         for topic, message, t in bag.read_messages(topics=IMAGE_TOPIC):
             if (t.to_sec() - t_prev) > images_delta_time:
@@ -159,14 +184,21 @@ def extract_pictures(bag: rosbag.Bag, root_dir):
 
                 try:
                     tf_transform = tf_tree.lookup_transform_core(
-                        target_frame="odom", source_frame=message.header.frame_id, time=rospy.Time(0))
-                    cam_translation = [tf_transform.transform.translation.x,
-                                       tf_transform.transform.translation.y,
-                                       tf_transform.transform.translation.z]
-                    cam_rotation = [tf_transform.transform.rotation.x,
-                                    tf_transform.transform.rotation.y,
-                                    tf_transform.transform.rotation.z,
-                                    tf_transform.transform.rotation.w]
+                        target_frame="odom",
+                        source_frame=message.header.frame_id,
+                        time=rospy.Time(0),
+                    )
+                    cam_translation = [
+                        tf_transform.transform.translation.x,
+                        tf_transform.transform.translation.y,
+                        tf_transform.transform.translation.z,
+                    ]
+                    cam_rotation = [
+                        tf_transform.transform.rotation.x,
+                        tf_transform.transform.rotation.y,
+                        tf_transform.transform.rotation.z,
+                        tf_transform.transform.rotation.w,
+                    ]
                 except Exception as exc:
                     pass
 
@@ -175,21 +207,26 @@ def extract_pictures(bag: rosbag.Bag, root_dir):
                 obj_position = [0.0, 0.0, 0.0]
                 obj_rotation = [0.0, 0.0, 0.0, 1.0]
                 obj_info = [0.0, 0.0, 0.0]
-                meta = ["DSC{:06d}.jpg".format(
-                    img_idx), t_prev, task_uuid] + cam_translation + cam_rotation \
-                        + obj_type + obj_position + obj_rotation + obj_info
+                meta = (
+                    ["DSC{:06d}.jpg".format(img_idx), t_prev, task_uuid]
+                    + cam_translation
+                    + cam_rotation
+                    + obj_type
+                    + obj_position
+                    + obj_rotation
+                    + obj_info
+                )
                 writer.writerow(meta)
                 img_idx += 1
 
                 # Save the image as well
                 cv2_img = bridge.imgmsg_to_cv2(message, "rgb8")
-                cv2.imwrite(os.path.join(
-                    root_dir, "pictures", meta[0]), cv2_img)
+                cv2.imwrite(os.path.join(root_dir, "pictures", meta[0]), cv2_img)
 
 
 def extract_wrench(bag: rosbag.Bag, root_dir):
     haptic_csv_file = os.path.join(root_dir, "haptic_sensing.csv")
-    with open(haptic_csv_file, 'w') as f:
+    with open(haptic_csv_file, "w") as f:
         writer = csv.writer(f)
         # just placeholder implementation to have a sequence of rows with reasonable timestamps
         # and create a stuf file structure
@@ -200,18 +237,25 @@ def extract_wrench(bag: rosbag.Bag, root_dir):
                 rotation_axis = [0.0, 0.0, 1.0]
                 angle = [0.0]
                 torque = [0.0]
-                entry = [t.to_sec(), task_uuid] + obj_position + rotation_axis + angle + torque
+                entry = (
+                    [t.to_sec(), task_uuid]
+                    + obj_position
+                    + rotation_axis
+                    + angle
+                    + torque
+                )
                 writer.writerow(entry)
                 idx += 1
             else:
                 break
-        
+
+
 # open the bag
 print("[Report Generation]: Opening rosbag at {}".format(BAG))
 if not os.path.isfile(BAG):
     print("No file {} was found".format(BAG))
     sys.exit(0)
-bag = rosbag.Bag(BAG, mode='r')
+bag = rosbag.Bag(BAG, mode="r")
 
 # fill the tf tree to retrieve transforms
 print("[Report Generation]: Reading tf info...")
@@ -232,15 +276,12 @@ report_config = {
         "folder": "pictures",
         "sensor_uuid": CAMERA_UUID,
         "format": "jpg",
-        "size": {
-            "width": 1280,
-            "height": 720
-        },
+        "size": {"width": 1280, "height": 720},
         "fov": {  # https://www.intelrealsense.com/depth-camera-d435i/
             "height": 69.0,
-            "vertical": 42.0
-        }
-    }
+            "vertical": 42.0,
+        },
+    },
 }
 
 print("[Report Generation]: Creating folder structure.")

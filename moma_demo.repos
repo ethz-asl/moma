@@ -3,17 +3,17 @@ repositories:
     type: git
     url: git@github.com:ethz-asl/yumi.git
     version: "8a2b06413"
-  
+
   vpp_msgs:
     type: git
     url: git@github.com:ethz-asl/vpp_msgs.git
     version: "6aff4c33a0"
-  
+
   gpd:
     type: git
     url: git@github.com:kekeblom/gpd.git
     version: "ab8d2ca"
-  
+
   gpd_ros:
     type: git
     url: git@github.com:kekeblom/gpd_ros.git
@@ -23,7 +23,7 @@ repositories:
     type: git
     url: git@github.com:ridgeback/ridgeback_simulator.git
     version: noetic-wip
-  
+
   ridgeback_desktop:
     type: git
     url: git@github.com:ridgeback/ridgeback_desktop.git

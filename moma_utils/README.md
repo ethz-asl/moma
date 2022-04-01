@@ -2,9 +2,9 @@
 
 Utilities that can be shared among moma projects.
 
-* `ros_control.py`: Wrappers around various ROS control services.
-* `ros_conversions.py`: Various conversions to/from ROS messages.
-* `transform.py`: Rigid spatial transformations in Python.
+- `ros_control.py`: Wrappers around various ROS control services.
+- `ros_conversions.py`: Various conversions to/from ROS messages.
+- `transform.py`: Rigid spatial transformations in Python.
 
 ## Installation
 

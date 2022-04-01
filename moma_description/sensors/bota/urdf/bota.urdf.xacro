@@ -3,7 +3,7 @@
 
   <xacro:property name="bota_interface_height" default="0.06"/>
   <xacro:macro name="bota_sensor" params="parent *origin">
-  
+
     <joint name="bota_joint" type="fixed">
       <parent link="${parent}"/>
       <child link="ft_sensor0"/>
@@ -32,18 +32,5 @@
     </link>
 
 
-  </xacro:macro>    
+  </xacro:macro>
 </robot>
-
-
-
-
-
-
-
-
-
-
-
-
-

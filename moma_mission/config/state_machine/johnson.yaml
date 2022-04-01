@@ -28,9 +28,9 @@ OBSERVATION_APPROACH:
   default_outcome: None
   duration: 5.0
   target_frame: observation
-  startlist: [ 'mpc_ur_controller', 'path_admittance_ur_controller' ]
-  stoplist: [ 'scaled_pos_joint_traj_controller' ]
-  manager_namespace: ''
+  startlist: ["mpc_ur_controller", "path_admittance_ur_controller"]
+  stoplist: ["scaled_pos_joint_traj_controller"]
+  manager_namespace: ""
 
 MODEL_FIT_AUTOINJECTOR:
   dummy: false
@@ -42,20 +42,20 @@ OBJECT_APPROACH:
   default_outcome: None
   duration: 10.0
   target_frame: autoinjector
-  offset: [ 0, 0, -0.3 ]
+  offset: [0, 0, -0.3]
   angle_z: 1.57
   allow_flip: true
-  startlist: [ 'mpc_ur_controller', 'path_admittance_ur_controller' ]
-  stoplist: [ 'scaled_pos_joint_traj_controller' ]
-  manager_namespace: ''
+  startlist: ["mpc_ur_controller", "path_admittance_ur_controller"]
+  stoplist: ["scaled_pos_joint_traj_controller"]
+  manager_namespace: ""
 
 OBJECT_CONTACT:
   default_outcome: None
   duration: 4.0
   target_frame: autoinjector
-  offset: [ 0, 0, -0.27 ]
+  offset: [0, 0, -0.27]
   angle_z: 1.57
   allow_flip: true
-  startlist: [ 'mpc_ur_controller', 'path_admittance_ur_controller' ]
-  stoplist: [ 'scaled_pos_joint_traj_controller' ]
-  manager_namespace: ''
+  startlist: ["mpc_ur_controller", "path_admittance_ur_controller"]
+  stoplist: ["scaled_pos_joint_traj_controller"]
+  manager_namespace: ""

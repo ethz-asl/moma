@@ -13,5 +13,3 @@ class Robot:
         pin.framesForwardKinematics(self.model, self.data, q)
         pin.updateFramePlacements(self.model, self.data)
         return self.data.oMf[frame_id]
-   
-    

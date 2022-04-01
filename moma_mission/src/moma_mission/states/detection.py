@@ -13,7 +13,7 @@ class DetectionState(StateRos):
     Subscribe to a pose stream coming from a detector and publish a static tf corresponding to the object
     """
 
-    def __init__(self, ns, outcomes=['Completed', 'Failure']):
+    def __init__(self, ns, outcomes=["Completed", "Failure"]):
         StateRos.__init__(self, ns=ns, outcomes=outcomes)
         self.detection_pose_topic = self.get_scoped_param("detection_topic")
         self.base_frame_id = Frames.base_frame
@@ -21,7 +21,9 @@ class DetectionState(StateRos):
 
         self.detection_broadcaster = tf2_ros.StaticTransformBroadcaster()
         self.detection_pose = None
-        self.detection_sub = rospy.Subscriber(self.detection_pose_topic, PoseStamped, self.pose_callback)
+        self.detection_sub = rospy.Subscriber(
+            self.detection_pose_topic, PoseStamped, self.pose_callback
+        )
 
     def pose_callback(self, msg):
         if not self.detection_pose:
@@ -33,14 +35,20 @@ class DetectionState(StateRos):
 
         while not self.detection_pose:
             if rospy.is_shutdown():
-                return 'Failure'
-            rospy.loginfo_throttle(1.0, "Waiting for the detection pose on: [{}]".format(self.detection_pose_topic))
+                return "Failure"
+            rospy.loginfo_throttle(
+                1.0,
+                "Waiting for the detection pose on: [{}]".format(
+                    self.detection_pose_topic
+                ),
+            )
 
         # B = base frame
         # D = detection frame
         # V = valve frame
-        T_BD = transforms.get_transform(target=self.base_frame_id,
-                                        source=self.detection_pose.header.frame_id)
+        T_BD = transforms.get_transform(
+            target=self.base_frame_id, source=self.detection_pose.header.frame_id
+        )
         T_DV = transforms.pose_to_se3(self.detection_pose.pose)
         T_BV = T_BD.act(T_DV)
 
@@ -59,4 +67,4 @@ class DetectionState(StateRos):
 
         self.detection_broadcaster.sendTransform(object_pose)
         rospy.sleep(2.0)
-        return 'Completed'
+        return "Completed"

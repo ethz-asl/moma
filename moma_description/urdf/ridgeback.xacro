@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="ridgeback">
   <xacro:macro name="ridgeback">
-    
+
     <!-- Ridgeback -->
-    <xacro:include filename="$(find ridgeback_description)/urdf/ridgeback.urdf.xacro"/>  
+    <xacro:include filename="$(find ridgeback_description)/urdf/ridgeback.urdf.xacro"/>
 
     <!-- Sensor mount -->
     <link name="ridgeback_sensor_mount_link">
@@ -14,7 +14,7 @@
       </visual>
       <collision>
         <geometry>
-          <mesh filename="package://moma_description/meshes/ridgeback_sensor_mount.dae"/> 
+          <mesh filename="package://moma_description/meshes/ridgeback_sensor_mount.dae"/>
         </geometry>
       </collision>
     </link>

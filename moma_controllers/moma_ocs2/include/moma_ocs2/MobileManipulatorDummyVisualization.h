@@ -29,34 +29,35 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
-#include <robot_state_publisher/robot_state_publisher.h>
-#include <tf/transform_broadcaster.h>
-#include <sensor_msgs/JointState.h>
-
-#include <ocs2_ros_interfaces/mrt/DummyObserver.h>
-
 #include <moma_ocs2/MobileManipulatorInterface.h>
+#include <ocs2_ros_interfaces/mrt/DummyObserver.h>
 #include <ocs2_self_collision_visualization/GeometryInterfaceVisualization.h>
+#include <robot_state_publisher/robot_state_publisher.h>
+#include <sensor_msgs/JointState.h>
+#include <tf/transform_broadcaster.h>
 
 namespace ocs2 {
 namespace mobile_manipulator {
 
 class MobileManipulatorDummyVisualization final : public DummyObserver {
  public:
-  MobileManipulatorDummyVisualization(ros::NodeHandle& nodeHandle, const MobileManipulatorInterface& interface)
+  MobileManipulatorDummyVisualization(ros::NodeHandle& nodeHandle,
+                                      const MobileManipulatorInterface& interface)
       : pinocchioInterface_(interface.getPinocchioInterface()) {
     launchVisualizerNode(nodeHandle);
   }
 
   ~MobileManipulatorDummyVisualization() override = default;
 
-  void update(const SystemObservation& observation, const PrimalSolution& policy, const CommandData& command) override;
+  void update(const SystemObservation& observation, const PrimalSolution& policy,
+              const CommandData& command) override;
 
  private:
   void launchVisualizerNode(ros::NodeHandle& nodeHandle);
 
   void publishObservation(const ros::Time& timeStamp, const SystemObservation& observation);
-  void publishTargetTrajectories(const ros::Time& timeStamp, const TargetTrajectories& targetTrajectories);
+  void publishTargetTrajectories(const ros::Time& timeStamp,
+                                 const TargetTrajectories& targetTrajectories);
   void publishOptimizedTrajectory(const ros::Time& timeStamp, const PrimalSolution& policy);
 
   PinocchioInterface pinocchioInterface_;

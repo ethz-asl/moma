@@ -63,9 +63,9 @@
 
   <!-- Load Panda -->
   <xacro:include filename="$(find moma_description)/urdf/panda.xacro"/>
-  <xacro:panda 
-    connected_to="arm_mount_link" 
-    use_fixed_realsense="$(arg use_fixed_realsense)" 
+  <xacro:panda
+    connected_to="arm_mount_link"
+    use_fixed_realsense="$(arg use_fixed_realsense)"
     wrist_camera_name="hand_eye"
     tool="$(arg tool)"/>
 
@@ -81,18 +81,18 @@
   <xacro:if value="$(arg simulation)">
       <xacro:include filename="$(find moma_description)/urdf/panda_arm.gazebo.xacro"/>
       <xacro:include filename="$(find smb_description)/urdf/smb_ros_control.gazebo.xacro"/>
-      <xacro:smb_ros_control_plugin 
-        description_name="smb_description" 
-        broadcast_tf="false" 
-        robot_namespace="" 
+      <xacro:smb_ros_control_plugin
+        description_name="smb_description"
+        broadcast_tf="false"
+        robot_namespace=""
         control_namespace="smb"/>
-      <xacro:panda_gazebo 
-        arm_id="panda" 
+      <xacro:panda_gazebo
+        arm_id="panda"
         control_mode="$(arg control_mode)"
         description_name="arm_description"
-        robot_namespace="" 
+        robot_namespace=""
         control_namespace="panda"/>
   </xacro:if>
 
-  
+
 </robot>

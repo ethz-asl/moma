@@ -10,9 +10,8 @@ FTCalibration::FTCalibration() { n_meas_ = 0; }
 void FTCalibration::addMeasurement(const geometry_msgs::Vector3Stamped &gravity,
                                    const geometry_msgs::WrenchStamped &ft_raw) {
   if (gravity.header.frame_id != ft_raw.header.frame_id) {
-    ROS_ERROR(
-        "Gravity vector and ft raw expressed in different frames (%s, %s)!",
-        gravity.header.frame_id.c_str(), ft_raw.header.frame_id.c_str());
+    ROS_ERROR("Gravity vector and ft raw expressed in different frames (%s, %s)!",
+              gravity.header.frame_id.c_str(), ft_raw.header.frame_id.c_str());
     return;
   }
 
@@ -56,14 +55,12 @@ void FTCalibration::addMeasurement(const geometry_msgs::Vector3Stamped &gravity,
 Eigen::VectorXd FTCalibration::getCalib() {
   Eigen::VectorXd ft_calib_params(10);
 
-  ft_calib_params =
-      H_.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(Z_);
+  ft_calib_params = H_.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(Z_);
 
   return ft_calib_params;
 }
 
-Eigen::MatrixXd FTCalibration::getMeasurementMatrix(
-    const Eigen::Vector3d &g) {
+Eigen::MatrixXd FTCalibration::getMeasurementMatrix(const Eigen::Vector3d &g) {
   Eigen::Vector3d w;
   Eigen::Vector3d alpha;
   Eigen::Vector3d a;

@@ -29,14 +29,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
-#include <memory>
-
 #include <moma_ocs2/definitions.h>
+#include <ocs2_core/constraint/StateConstraint.h>
+#include <ocs2_oc/synchronized_module/ReferenceManager.h>
 #include <ocs2_pinocchio_interface/PinocchioEndEffectorKinematics.h>
 #include <ocs2_robotic_tools/end_effector/EndEffectorKinematics.h>
 
-#include <ocs2_core/constraint/StateConstraint.h>
-#include <ocs2_oc/synchronized_module/ReferenceManager.h>
+#include <memory>
 
 namespace ocs2 {
 namespace mobile_manipulator {
@@ -46,14 +45,18 @@ class EndEffectorConstraint final : public StateConstraint {
   using vector3_t = Eigen::Matrix<scalar_t, 3, 1>;
   using quaternion_t = Eigen::Quaternion<scalar_t>;
 
-  EndEffectorConstraint(const EndEffectorKinematics<scalar_t>& endEffectorKinematics, const ReferenceManager& referenceManager);
+  EndEffectorConstraint(const EndEffectorKinematics<scalar_t>& endEffectorKinematics,
+                        const ReferenceManager& referenceManager);
   ~EndEffectorConstraint() override = default;
-  EndEffectorConstraint* clone() const override { return new EndEffectorConstraint(*endEffectorKinematicsPtr_, *referenceManagerPtr_); }
+  EndEffectorConstraint* clone() const override {
+    return new EndEffectorConstraint(*endEffectorKinematicsPtr_, *referenceManagerPtr_);
+  }
 
   size_t getNumConstraints(scalar_t time) const override;
-  vector_t getValue(scalar_t time, const vector_t& state, const PreComputation& preComputation) const override;
-  VectorFunctionLinearApproximation getLinearApproximation(scalar_t time, const vector_t& state,
-                                                           const PreComputation& preComputation) const override;
+  vector_t getValue(scalar_t time, const vector_t& state,
+                    const PreComputation& preComputation) const override;
+  VectorFunctionLinearApproximation getLinearApproximation(
+      scalar_t time, const vector_t& state, const PreComputation& preComputation) const override;
 
  private:
   EndEffectorConstraint(const EndEffectorConstraint& other) = default;

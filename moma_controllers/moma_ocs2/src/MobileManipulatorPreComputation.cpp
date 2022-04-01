@@ -27,13 +27,12 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ******************************************************************************/
 
-#include <pinocchio/fwd.hpp>
+#include <moma_ocs2/MobileManipulatorPreComputation.h>
 
 #include <pinocchio/algorithm/frames.hpp>
 #include <pinocchio/algorithm/jacobian.hpp>
 #include <pinocchio/algorithm/kinematics.hpp>
-
-#include <moma_ocs2/MobileManipulatorPreComputation.h>
+#include <pinocchio/fwd.hpp>
 
 namespace ocs2 {
 namespace mobile_manipulator {
@@ -41,8 +40,12 @@ namespace mobile_manipulator {
 /******************************************************************************************************/
 /******************************************************************************************************/
 /******************************************************************************************************/
-MobileManipulatorPreComputation::MobileManipulatorPreComputation(PinocchioInterface pinocchioInterface, const size_t armInputDim, const BaseType baseType)
-    : pinocchioInterface_(std::move(pinocchioInterface)), pinocchioMapping_(armInputDim, baseType), armInputDim_(armInputDim), baseType_(baseType) {}
+MobileManipulatorPreComputation::MobileManipulatorPreComputation(
+    PinocchioInterface pinocchioInterface, const size_t armInputDim, const BaseType baseType)
+    : pinocchioInterface_(std::move(pinocchioInterface)),
+      pinocchioMapping_(armInputDim, baseType),
+      armInputDim_(armInputDim),
+      baseType_(baseType) {}
 
 /******************************************************************************************************/
 /******************************************************************************************************/
@@ -54,7 +57,8 @@ MobileManipulatorPreComputation* MobileManipulatorPreComputation::clone() const 
 /******************************************************************************************************/
 /******************************************************************************************************/
 /******************************************************************************************************/
-void MobileManipulatorPreComputation::request(RequestSet request, scalar_t t, const vector_t& x, const vector_t& u) {
+void MobileManipulatorPreComputation::request(RequestSet request, scalar_t t, const vector_t& x,
+                                              const vector_t& u) {
   if (!request.containsAny(Request::Cost + Request::Constraint + Request::SoftConstraint)) {
     return;
   }
@@ -77,7 +81,8 @@ void MobileManipulatorPreComputation::request(RequestSet request, scalar_t t, co
 /******************************************************************************************************/
 /******************************************************************************************************/
 /******************************************************************************************************/
-void MobileManipulatorPreComputation::requestFinal(RequestSet request, scalar_t t, const vector_t& x) {
+void MobileManipulatorPreComputation::requestFinal(RequestSet request, scalar_t t,
+                                                   const vector_t& x) {
   if (!request.containsAny(Request::Cost + Request::Constraint + Request::SoftConstraint)) {
     return;
   }

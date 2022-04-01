@@ -10,14 +10,14 @@
         <arg name="mpc"                     value="false"/>
         <arg name="publish_robot_state"     value="false"/>  <!-- Since we do this in the current launch for the full robot -->
     </include>
-  
+
     <!-- Sensors -->
     <include file="$(find smb)/launch/sensors.launch">
       <arg name="launch_versavis"       value="true"/>
       <arg name="launch_depth_cam"      value="false"/>
       <arg name="launch_tracking_cam"   value="true"/>
     </include>
-  
+
     <!-- Low level smb controller -->
     <include file="$(find smb_lowlevel_controller)/launch/smb_lowlevel_controller.launch" ns="smb">
 	  <arg name="description_name"            value="/smb_description"/>

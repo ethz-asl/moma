@@ -28,7 +28,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  ******************************************************************************/
 
 #include <moma_ocs2/MobileManipulatorInterface.h>
-
 #include <ocs2_mpc/MPC_DDP.h>
 #include <ocs2_ros_interfaces/mpc/MPC_ROS_Interface.h>
 #include <ocs2_ros_interfaces/synchronized_module/RosReferenceManager.h>
@@ -39,7 +38,6 @@ using namespace ocs2;
 using namespace mobile_manipulator;
 
 int main(int argc, char** argv) {
-
   // Initialize ros node
   ros::init(argc, argv, "mobile_manipulator_mpc");
   ros::NodeHandle nodeHandle;
@@ -48,24 +46,24 @@ int main(int argc, char** argv) {
 
   // Params
   std::string taskFile;
-  if (!nodeHandle.param("/ocs2_mpc/task_file", taskFile, {})){
+  if (!nodeHandle.param("/ocs2_mpc/task_file", taskFile, {})) {
     ROS_ERROR("Failed to retrieve /ocs2_mpc/task_file from param server.");
     return 0;
   }
   std::string urdfXML;
-  if (!nodeHandle.param("/ocs2_mpc/robot_description_ocs2", urdfXML, {})){
+  if (!nodeHandle.param("/ocs2_mpc/robot_description_ocs2", urdfXML, {})) {
     ROS_ERROR("Failed to retrieve /ocs2_mpc/robot_description_ocs2 from param server.");
     return 0;
   }
-  
+
   int baseTypeInt;
-  if (!nodeHandle.param("/ocs2_mpc/base_type", baseTypeInt, 0)){
+  if (!nodeHandle.param("/ocs2_mpc/base_type", baseTypeInt, 0)) {
     ROS_ERROR("Failed to retrieve /ocs2_mpc/base_type from param server.");
     return 0;
   }
-  if (baseTypeInt >= BASE_TYPE_COUNT){
-      ROS_ERROR("The value of base_type is not supported.");
-      return 0;
+  if (baseTypeInt >= BASE_TYPE_COUNT) {
+    ROS_ERROR("The value of base_type is not supported.");
+    return 0;
   }
   BaseType baseType = static_cast<BaseType>(baseTypeInt);
   const std::string libFolder = ros::package::getPath("moma_ocs2") + "/auto_generated";
@@ -78,10 +76,9 @@ int main(int argc, char** argv) {
       new ocs2::RosReferenceManager("mobile_manipulator", interface.getReferenceManagerPtr()));
   rosReferenceManagerPtr->subscribe(nodeHandle);
 
-
   // MPC
-  ocs2::MPC_DDP mpc(interface.mpcSettings(), interface.ddpSettings(), interface.getRollout(), interface.getOptimalControlProblem(),
-                    interface.getInitializer());
+  ocs2::MPC_DDP mpc(interface.mpcSettings(), interface.ddpSettings(), interface.getRollout(),
+                    interface.getOptimalControlProblem(), interface.getInitializer());
   mpc.getSolverPtr()->setReferenceManager(rosReferenceManagerPtr);
 
   // Launch MPC ROS node

@@ -13,7 +13,7 @@
 
   <!-- Custom intrinsics publishers -->
   <arg name="custom_intrinsics_file" default="$(env HOME)/calibration/camera_calibration.yaml" />
-  <node name="camera_intrinsics_publisher" pkg="moma_sensor_tools" type="yaml_to_camera_info_publisher.py" 
+  <node name="camera_intrinsics_publisher" pkg="moma_sensor_tools" type="yaml_to_camera_info_publisher.py"
     args="$(arg custom_intrinsics_file)" output="screen" if="$(arg custom_intrinsics)"/>
 
   <include file="$(find object_keypoints_ros)/launch/keypoints.launch">
@@ -32,7 +32,7 @@
     <arg name="gpu"               value="false"/>
     <arg name="operation_mode"    value="service"/>
   </include>
-  
+
   <node pkg="rosbag" type="play" name="rosbag_play" args="-r 0.1 $(arg bag_file)" launch-prefix="bash -c 'sleep 3.0; $0 $@' " if="$(arg play_bag)"/>
   <node pkg="moma_sensor_tools" type="consolidate_tf_static.py" name="consolidate_tf" if="$(arg play_bag)"/>
 </launch>

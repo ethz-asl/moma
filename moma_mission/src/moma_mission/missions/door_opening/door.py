@@ -13,7 +13,7 @@ class Door:
     hinge_frame = "door_hinge"
     door_base_frame = "shelf"
     handle_frame = "handle_link"
-    R_H_EE = R.from_euler('xyz', [0.0, -90.0, 0.0], degrees=True).as_dcm()
+    R_H_EE = R.from_euler("xyz", [0.0, -90.0, 0.0], degrees=True).as_dcm()
 
     # the ee is placed exactly at the end effector --> they have zero relative translation
     T_H_EE = pin.SE3(R_H_EE, np.array([0.0, 0.0, 0.0]))
@@ -24,9 +24,11 @@ class Door:
         self.tf_world_door_bc = tf2_ros.StaticTransformBroadcaster()
         self.pinocchio_robot = Robot(description_name)
 
-    def generate_door_opening_trajectory(self, opening_angle: float, opening_speed: float) -> Path:
+    def generate_door_opening_trajectory(
+        self, opening_angle: float, opening_speed: float
+    ) -> Path:
         """
-        Generate a door opening profile, using the urdf model as a method to compute subsequent grasp 
+        Generate a door opening profile, using the urdf model as a method to compute subsequent grasp
         locations as a function of the opening angle
         """
         path = Path()
@@ -38,11 +40,11 @@ class Door:
         q = np.array([0.0])
 
         rospy.loginfo(
-            f"Generating opening trajectory: increment={increment}, steps={steps}, dt waypoints={dt}")
+            f"Generating opening trajectory: increment={increment}, steps={steps}, dt waypoints={dt}"
+        )
         for i in range(steps):
             q[0] = i * increment
-            T_W_H = self.pinocchio_robot.get_frame_placement(
-                self.handle_frame, q)
+            T_W_H = self.pinocchio_robot.get_frame_placement(self.handle_frame, q)
             T_W_EE = T_W_H.act(self.T_H_EE)
 
             pose_stamped = PoseStamped()
@@ -53,18 +55,22 @@ class Door:
         return path
 
     def publish_base_frame_from_hand(self, world_frame, ee_frame):
-        transform = self.tf_buffer.lookup_transform(ee_frame,  # target frame
-                                                    world_frame,  # source frame
-                                                    # tf at first available time
-                                                    rospy.Time(0),
-                                                    rospy.Duration(3))
+        transform = self.tf_buffer.lookup_transform(
+            ee_frame,  # target frame
+            world_frame,  # source frame
+            # tf at first available time
+            rospy.Time(0),
+            rospy.Duration(3),
+        )
         T_EE_W = tf_to_se3(transform)
 
-        transform = self.tf_buffer.lookup_transform(self.door_base_frame,  # target frame
-                                                    self.handle_frame,  # source frame
-                                                    # tf at first available time
-                                                    rospy.Time(0),
-                                                    rospy.Duration(3))
+        transform = self.tf_buffer.lookup_transform(
+            self.door_base_frame,  # target frame
+            self.handle_frame,  # source frame
+            # tf at first available time
+            rospy.Time(0),
+            rospy.Duration(3),
+        )
         T_B_H = tf_to_se3(transform)
 
         # get the chained transform from world to base
@@ -85,7 +91,8 @@ class Door:
         tf_world_door.transform.rotation.w = q[3]
 
         print(
-            f"Transform from {self.world_frame} to {self.door_base_frame} is \n{T_W_B}")
+            f"Transform from {self.world_frame} to {self.door_base_frame} is \n{T_W_B}"
+        )
 
         self.tf_world_door_bc.sendTransform(tf_world_door)
         rospy.sleep(2.0)

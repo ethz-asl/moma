@@ -4,38 +4,29 @@
 
 #pragma once
 
-#include <mutex>
-
-#include <pinocchio/fwd.hpp>
-
-#include <pinocchio/algorithm/frames.hpp>
-#include <pinocchio/algorithm/jacobian.hpp>
-#include <pinocchio/algorithm/kinematics.hpp>
-
-#include <robot_control/modeling/robot_wrapper.h>
-
-#include <moma_ocs2/definitions.h>
+#include <eigen_conversions/eigen_msg.h>
+#include <geometry_msgs/TransformStamped.h>
 #include <moma_ocs2/MobileManipulatorInterface.h>
 #include <moma_ocs2/definitions.h>
-
+#include <nav_msgs/Path.h>
 #include <ocs2_core/misc/Benchmark.h>
 #include <ocs2_mpc/MPC_MRT_Interface.h>
 #include <ocs2_msgs/mpc_observation.h>
 #include <ocs2_ros_interfaces/common/RosMsgConversions.h>
-
-#include <nav_msgs/Path.h>
-#include <ros/ros.h>
-#include <ros/package.h>
-
-#include <eigen_conversions/eigen_msg.h>
-
-#include <geometry_msgs/TransformStamped.h>
-#include <std_msgs/Float64MultiArray.h>
 #include <realtime_tools/realtime_publisher.h>
-
+#include <robot_control/modeling/robot_wrapper.h>
+#include <ros/package.h>
+#include <ros/ros.h>
+#include <std_msgs/Float64MultiArray.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <tf2_ros/buffer.h>
 #include <tf2_ros/transform_listener.h>
+
+#include <mutex>
+#include <pinocchio/algorithm/frames.hpp>
+#include <pinocchio/algorithm/jacobian.hpp>
+#include <pinocchio/algorithm/kinematics.hpp>
+#include <pinocchio/fwd.hpp>
 
 namespace moma_controllers {
 
@@ -52,7 +43,7 @@ class MpcController {
   ~MpcController() {
     ROS_INFO("[MpcController::~MpcController] destroying mpc controller.");
     unloaded_ = true;
-    if (mpcThread_.joinable()){
+    if (mpcThread_.joinable()) {
       mpcThread_.join();
     }
   }
@@ -61,34 +52,34 @@ class MpcController {
     std::string robotName;
 
     // Params
-    if (!nh_.param("/ocs2_mpc/task_file", taskFile_, {})){
+    if (!nh_.param("/ocs2_mpc/task_file", taskFile_, {})) {
       ROS_ERROR("Failed to retrieve /ocs2_mpc/task_file from param server.");
       return 0;
     }
-    if (!nh_.param("/ocs2_mpc/robot_description_ocs2", urdfXML_, {})){
+    if (!nh_.param("/ocs2_mpc/robot_description_ocs2", urdfXML_, {})) {
       ROS_ERROR("Failed to retrieve /ocs2_mpc/robot_description_ocs2 from param server.");
       return 0;
     }
 
-    if (!nh_.param("/ocs2_mpc/reference_frame", referenceFrame_, {"odom"})){
+    if (!nh_.param("/ocs2_mpc/reference_frame", referenceFrame_, {"odom"})) {
       ROS_ERROR("Failed to retrieve /ocs2_mpc/reference_frame from param server.");
       return 0;
     }
 
     int baseTypeInt;
-    if (!nh_.param("/ocs2_mpc/base_type", baseTypeInt, 0)){
+    if (!nh_.param("/ocs2_mpc/base_type", baseTypeInt, 0)) {
       ROS_ERROR("Failed to retrieve /ocs2_mpc/base_type from param server.");
       return 0;
     }
 
-    if (baseTypeInt >= ocs2::mobile_manipulator::BASE_TYPE_COUNT){
+    if (baseTypeInt >= ocs2::mobile_manipulator::BASE_TYPE_COUNT) {
       ROS_ERROR("The value of base_type is not supported.");
       return 0;
     }
     baseType_ = static_cast<ocs2::mobile_manipulator::BaseType>(baseTypeInt);
 
-    mm_interface_.reset(
-        new ocs2::mobile_manipulator::MobileManipulatorInterface(taskFile_, urdfXML_, ArmInputDim, baseType_));
+    mm_interface_.reset(new ocs2::mobile_manipulator::MobileManipulatorInterface(
+        taskFile_, urdfXML_, ArmInputDim, baseType_));
     mpcPtr_ = mm_interface_->getMpc();
 
     // mpc solution update thread
@@ -97,11 +88,13 @@ class MpcController {
 
     mpcTimer_.reset();
 
-    const std::unique_ptr<rc::RobotWrapper> robot_model = std::unique_ptr<rc::RobotWrapper>(new rc::RobotWrapper());
+    const std::unique_ptr<rc::RobotWrapper> robot_model =
+        std::unique_ptr<rc::RobotWrapper>(new rc::RobotWrapper());
     robot_model->initFromXml(urdfXML_);
     if (ocs2::mobile_manipulator::INPUT_DIM(ArmInputDim) != robot_model->getDof()) {
-      ROS_ERROR_STREAM("The arm input dimension size is not correct. Expected " << ocs2::mobile_manipulator::INPUT_DIM(ArmInputDim)
-                                                                                << " but got " << robot_model->getDof());
+      ROS_ERROR_STREAM("The arm input dimension size is not correct. Expected "
+                       << ocs2::mobile_manipulator::INPUT_DIM(ArmInputDim) << " but got "
+                       << robot_model->getDof());
       return 0;
     }
 
@@ -146,8 +139,8 @@ class MpcController {
       return false;
     }
     tf::transformMsgToEigen(transform.transform, T_tool_ee_);
-    ROS_INFO_STREAM("Transform from " << mm_interface_->getEEFrame() << " to " << tool_link_ << " is"
-                                      << std::endl
+    ROS_INFO_STREAM("Transform from " << mm_interface_->getEEFrame() << " to " << tool_link_
+                                      << " is" << std::endl
                                       << T_tool_ee_.matrix());
 
     ROS_INFO("[MpcController::init] Initializing threads.");
@@ -198,18 +191,18 @@ class MpcController {
    */
   void pathCallback(const nav_msgs::PathConstPtr& desiredPath) {
     if (desiredPath->poses.empty()) {
-      //ROS_WARN("[MPC_Controller::pathCallback] Received path is empty");
+      // ROS_WARN("[MPC_Controller::pathCallback] Received path is empty");
       return;
     }
 
     bool ok = sanityCheck(*desiredPath);
     if (!ok) {
-      //ROS_WARN("[MPC_Controller::pathCallback] Received path is ill formed.");
+      // ROS_WARN("[MPC_Controller::pathCallback] Received path is ill formed.");
       return;
     }
 
-    //ROS_DEBUG_STREAM("[MPC_Controller::pathCallback] Received new path with "
-    //                << desiredPath->poses.size() << " poses.");
+    // ROS_DEBUG_STREAM("[MPC_Controller::pathCallback] Received new path with "
+    //                 << desiredPath->poses.size() << " poses.");
 
     {
       std::lock_guard<std::mutex> lock(desiredPathMutex_);
@@ -222,19 +215,22 @@ class MpcController {
 
   inline state_vector_t getPositionCommand() const { return positionCommand_; }
   inline input_vector_t getVelocityCommand() const { return velocityCommand_; }
-  /*inline joint_vector_t getArmPositionCommand() const { return positionCommand_.tail<ocs2::mobile_manipulator::ARM_INPUT_DIM>(); }
-  inline joint_vector_t getArmVelocityCommand() const { return velocityCommand_.tail<ocs2::mobile_manipulator::ARM_INPUT_DIM>(); }
-  inline base_vector_t getBasePositionCommand() const { return positionCommand_.head<ocs2::mobile_manipulator::BASE_INPUT_DIM>(); }
-  inline base_vector_t getBaseVelocityCommand() const { return velocityCommand_.head<ocs2::mobile_manipulator::BASE_INPUT_DIM>(); }*/
+  /*inline joint_vector_t getArmPositionCommand() const { return
+  positionCommand_.tail<ocs2::mobile_manipulator::ARM_INPUT_DIM>(); } inline joint_vector_t
+  getArmVelocityCommand() const { return
+  velocityCommand_.tail<ocs2::mobile_manipulator::ARM_INPUT_DIM>(); } inline base_vector_t
+  getBasePositionCommand() const { return
+  positionCommand_.head<ocs2::mobile_manipulator::BASE_INPUT_DIM>(); } inline base_vector_t
+  getBaseVelocityCommand() const { return
+  velocityCommand_.head<ocs2::mobile_manipulator::BASE_INPUT_DIM>(); }*/
   inline const ros::NodeHandle& getNodeHandle() { return nh_; }
 
  protected:
-
   /**
    * Optional preprocessing step for the tracked path.
    * @param desiredPath
    */
-  virtual void adjustPath(nav_msgs::Path& desiredPath) {};
+  virtual void adjustPath(nav_msgs::Path& desiredPath){};
 
  private:
   void advanceMpc() {
@@ -244,12 +240,12 @@ class MpcController {
       }
 
       if (!observationEverReceived_) {
-        //ROS_WARN_THROTTLE(3.0, "Observation never received. Skipping MPC update.");
+        // ROS_WARN_THROTTLE(3.0, "Observation never received. Skipping MPC update.");
         continue;
       }
 
       if (!referenceEverReceived_) {
-        //ROS_WARN_THROTTLE(3.0, "Reference never received. Skipping MPC update.");
+        // ROS_WARN_THROTTLE(3.0, "Reference never received. Skipping MPC update.");
         continue;
       }
 
@@ -293,9 +289,10 @@ class MpcController {
         ROS_ERROR_STREAM(exc.what());
       }
       mpcTimer_.endTimer();
-      //ROS_INFO_STREAM_THROTTLE(2.0, "Mpc update took " << mpcTimer_.getLastIntervalInMilliseconds() << " ms.");
+      // ROS_INFO_STREAM_THROTTLE(2.0, "Mpc update took " <<
+      // mpcTimer_.getLastIntervalInMilliseconds() << " ms.");
       policyReady_ = true;
-      //std::this_thread::sleep_for(std::chrono::milliseconds((int)(1e3 / mpcFrequency_)));
+      // std::this_thread::sleep_for(std::chrono::milliseconds((int)(1e3 / mpcFrequency_)));
     }
   }
 
@@ -321,8 +318,8 @@ class MpcController {
       std::lock_guard<std::mutex> lock(policyMutex_);
       try {
         mpc_mrt_interface_->updatePolicy();
-        mpc_mrt_interface_->evaluatePolicy(observation_offset_.time, observation_offset_.state, mpcState, mpcInput,
-                                           mode);
+        mpc_mrt_interface_->evaluatePolicy(observation_offset_.time, observation_offset_.state,
+                                           mpcState, mpcInput, mode);
       } catch (const std::runtime_error& error) {
         ROS_ERROR("[MpcController::updateCommand] Error on calling evaluatePolicy()");
         return;
@@ -348,13 +345,12 @@ class MpcController {
       // Desired state trajectory
       ocs2::vector_array_t& xDesiredTrajectory = targetTrajectories.stateTrajectory;
       xDesiredTrajectory[idx].resize(7);
-      xDesiredTrajectory[idx].head<3>() << waypoint.pose.position.x,
-          waypoint.pose.position.y, waypoint.pose.position.z;
+      xDesiredTrajectory[idx].head<3>() << waypoint.pose.position.x, waypoint.pose.position.y,
+          waypoint.pose.position.z;
       xDesiredTrajectory[idx][3] = waypoint.pose.orientation.x;
       xDesiredTrajectory[idx][4] = waypoint.pose.orientation.y;
       xDesiredTrajectory[idx][5] = waypoint.pose.orientation.z;
       xDesiredTrajectory[idx][6] = waypoint.pose.orientation.w;
-
 
       // Desired input trajectory
       ocs2::vector_array_t& uDesiredTrajectory = targetTrajectories.inputTrajectory;
@@ -379,7 +375,10 @@ class MpcController {
   bool sanityCheck(const nav_msgs::Path& path) {
     // check that path adheres to conventional frame
     if (path.header.frame_id != referenceFrame_) {
-      ROS_ERROR_STREAM("[MpcController::transformPath] Desired path must be in [" << referenceFrame_ << "] frame. This should coincide at initialization, with the root of the kinematic chain.");
+      ROS_ERROR_STREAM("[MpcController::transformPath] Desired path must be in ["
+                       << referenceFrame_
+                       << "] frame. This should coincide at initialization, with the root of the "
+                          "kinematic chain.");
       return false;
     }
 
@@ -417,7 +416,7 @@ class MpcController {
 
   // publish ros
   void publishRos() {
-    //publishDesiredPath();
+    // publishDesiredPath();
     publishCurrentRollout();
     publishObservation();
   }
@@ -436,9 +435,8 @@ class MpcController {
       try {
         time_trajectory = mpc_mrt_interface_->getPolicy().timeTrajectory_;
         state_trajectory = mpc_mrt_interface_->getPolicy().stateTrajectory_;
-      }
-      catch(std::runtime_error& err){
-        //ROS_WARN_STREAM_THROTTLE(1.0, err.what());
+      } catch (std::runtime_error& err) {
+        // ROS_WARN_STREAM_THROTTLE(1.0, err.what());
         return;
       }
     }
@@ -470,7 +468,7 @@ class MpcController {
       rollout.poses.push_back(pose);
     }
 
-    if (rollout_publisher_.trylock()){
+    if (rollout_publisher_.trylock()) {
       rollout_publisher_.msg_ = rollout;
       rollout_publisher_.unlockAndPublish();
     }
@@ -531,15 +529,14 @@ class MpcController {
   std::string referenceFrame_;  // the world reference frame for the kinematic tree
   tf2_ros::Buffer tf_buffer_;
   tf2_ros::TransformListener tf_listener_;
-  Eigen::Affine3d T_tool_ee_;   // transform from frame tracked by MPC to the actual tool frame
-  Eigen::Affine3d T_x_tool_;    // transfrom from point in the path to the path reference frame
-  Eigen::Affine3d T_base_ee_;   // transform from base to desired end effector pose
+  Eigen::Affine3d T_tool_ee_;  // transform from frame tracked by MPC to the actual tool frame
+  Eigen::Affine3d T_x_tool_;   // transfrom from point in the path to the path reference frame
+  Eigen::Affine3d T_base_ee_;  // transform from base to desired end effector pose
 
   // realtime publisher
   double publishRosFrequency_;
   std::thread publishRosThread_;
   realtime_tools::RealtimePublisher<nav_msgs::Path> command_path_publisher_;
   realtime_tools::RealtimePublisher<nav_msgs::Path> rollout_publisher_;
-
 };
-}  // namespace mobile_manipulator
+}  // namespace moma_controllers

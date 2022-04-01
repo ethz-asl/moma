@@ -28,19 +28,16 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  ******************************************************************************/
 
 // needs to be included before boost
-#include <pinocchio/multibody/geometry.hpp>
-
+#include <moma_ocs2/MobileManipulatorInterface.h>
 #include <ocs2_pinocchio_interface/PinocchioInterface.h>
-
 #include <ocs2_self_collision/PinocchioGeometryInterface.h>
 #include <ocs2_self_collision/loadStdVectorOfPair.h>
 #include <ocs2_self_collision_visualization/GeometryInterfaceVisualization.h>
-
-#include <moma_ocs2/MobileManipulatorInterface.h>
-
 #include <ros/package.h>
 #include <ros/ros.h>
 #include <sensor_msgs/JointState.h>
+
+#include <pinocchio/multibody/geometry.hpp>
 
 using namespace ocs2;
 using namespace mobile_manipulator;
@@ -74,21 +71,25 @@ int main(int argc, char** argv) {
   ros::NodeHandle nodeHandle;
 
   std::string robotDescription;
-  if (!nodeHandle.param<std::string>("robot_description_for_mpc", robotDescription, "")){
+  if (!nodeHandle.param<std::string>("robot_description_for_mpc", robotDescription, "")) {
     throw std::runtime_error("Failed to retrieve robot description from param server. Aborting.");
   }
 
   const std::string taskFileFolder = "mpc";
-  const std::string taskFile = ros::package::getPath("ocs2_mobile_manipulator") + "/config/" + taskFileFolder + "/task.info";
+  const std::string taskFile =
+      ros::package::getPath("ocs2_mobile_manipulator") + "/config/" + taskFileFolder + "/task.info";
 
   std::cerr << "Loading task file: " << taskFile << std::endl;
 
-  pInterface.reset(new PinocchioInterface(MobileManipulatorInterface::buildPinocchioInterfaceFromXML(robotDescription)));
+  pInterface.reset(new PinocchioInterface(
+      MobileManipulatorInterface::buildPinocchioInterfaceFromXML(robotDescription)));
 
   std::vector<std::pair<size_t, size_t>> selfCollisionObjectPairs;
   std::vector<std::pair<std::string, std::string>> selfCollisionLinkPairs;
-  loadData::loadStdVectorOfPair(taskFile, "selfCollision.collisionObjectPairs", selfCollisionObjectPairs);
-  loadData::loadStdVectorOfPair(taskFile, "selfCollision.collisionLinkPairs", selfCollisionLinkPairs);
+  loadData::loadStdVectorOfPair(taskFile, "selfCollision.collisionObjectPairs",
+                                selfCollisionObjectPairs);
+  loadData::loadStdVectorOfPair(taskFile, "selfCollision.collisionLinkPairs",
+                                selfCollisionLinkPairs);
   for (const auto& element : selfCollisionObjectPairs) {
     std::cerr << "[" << element.first << ", " << element.second << "]; ";
   }
@@ -99,7 +100,8 @@ int main(int argc, char** argv) {
   }
   std::cerr << std::endl;
 
-  gInterface.reset(new PinocchioGeometryInterface(*pInterface, selfCollisionLinkPairs, selfCollisionObjectPairs));
+  gInterface.reset(new PinocchioGeometryInterface(*pInterface, selfCollisionLinkPairs,
+                                                  selfCollisionObjectPairs));
 
   vInterface.reset(new GeometryInterfaceVisualization(*pInterface, *gInterface, nodeHandle));
 
