@@ -37,7 +37,6 @@ jobs:
         submodules: "recursive"
         path: ${{steps.res-setup.outputs.ros-workspace-directory-name}}
 
-      - name: Install dependencies
       - run: export CATKIN_WS=${{steps.res-setup.outputs.ros-workspace-directory-name}}
       - run: sudo apt install python3-vcstool
       - run: cd $CATKIN_WS/src
@@ -46,4 +45,3 @@ jobs:
       - run: ./moma/install_dependencies.sh --control
       - run: source ../devel/setup.bash
       - run: catkin build --cmake-args -DCMAKE_BUILD_TYPE=RelWithDebInfo
-      - shell: bash
