@@ -20,13 +20,6 @@
     </group>
 
     <group ns="panda">
-        <group ns="mpc_controller">
-          <param name="task_file" value="$(find moma_ocs2)/config/mpc/task_panda.info"/>
-        </group>
-        <group ns="mpc_wholebody_controller">
-          <param name="task_file" value="$(find moma_ocs2)/config/mpc/task_panda_wholebody.info"/>
-        </group>
-
         <group if="$(eval arg('tool') == 'panda_hand')">
             <node name="gripper_controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="franka_gripper" />
         </group>
@@ -36,7 +29,7 @@
         </group>
 
         <!-- start joint position trajectory controller -->
-        <rosparam file="$(find moma_gazebo)/config/panda_controllers.yaml" command="load" />
+        <rosparam file="$(find moma_gazebo)/config/panda_controllers.yaml" command="load" subst_value="true"/>
         <rosparam file="$(find moma_gazebo)/config/gripper_controllers.yaml" command="load" />
 
         <node name="arm_start_controller_spawner"

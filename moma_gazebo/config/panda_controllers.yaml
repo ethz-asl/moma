@@ -125,6 +125,7 @@ mpc_controller:
   arm_id: panda
 
   robot_name: "panda"
+  task_file: "$(find moma_ocs2)/config/mpc/task_panda.info"
   base_type: 0
   base_link: "tracking_camera_odom"
   tool_link: "tool_frame"
@@ -164,6 +165,7 @@ mpc_wholebody_controller:
   arm_id: panda
 
   robot_name: "panda"
+  task_file: "$(find moma_ocs2)/config/mpc/task_panda_wholebody.info"
   base_type: 1
   base_link: "tracking_camera_odom"
   tool_link: "tool_frame"
