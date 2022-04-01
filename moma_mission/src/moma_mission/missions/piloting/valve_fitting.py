@@ -344,7 +344,7 @@ class ValveFitter:
             raise NameError(f"Unknown method {method}")
 
     def estimate_from_3d_points(
-        self, points_3d, frame, handle_radius=0.0, error_threshold=0.003
+        self, points_3d, camera_pose, frame, handle_radius=0.0, error_threshold=0.003
     ):
         C = points_3d[:, 0]
 
@@ -354,6 +354,11 @@ class ValveFitter:
         P3 = points_3d[:, 3]
         n = np.cross((P2 - P1), (P3 - P1))
         n = n / np.linalg.norm(n)
+
+        # Valve should always face towards camera,
+        # such that the turning direction is consistent
+        if np.dot(camera_pose.position - C, n) < 0:
+            n = -n
 
         # get geometric center as the mean
         k = points_3d.shape[1] - 1
@@ -374,11 +379,8 @@ class ValveFitter:
 
         # TODO validity check if n * (Cg - C) is roughly equal to (Cg - C)
 
-        # residual_error = max([abs(r - radius) for radius in radii])
+        residual_error = max([abs(r - radius) for radius in radii])
         # we care about a keypoint being very off
-        residual_error = max(
-            [abs(np.linalg.norm(points_3d[:, i + 1] - Cg) - r) for i in range(k)]
-        )
         rospy.loginfo(f"Valve fitting residual error is {residual_error}")
 
         if residual_error <= error_threshold:
@@ -593,11 +595,13 @@ class RansacMatcher:
         max_reference = 0
         best_matched_observations = None
         best_matched_observations3d = None
+        best_matched_observations_cams = None
 
         for i, (cam_ref, obs_ref) in enumerate(zip(self.cameras, self.observations)):
             matched_total = 0
             matched_observations = deepcopy(self.observations)
             matched_observations3d = deepcopy(self.observations3d)
+            matched_observations_cams = deepcopy(self.cameras)
             for j, (cam, obs, obs3d) in enumerate(
                 zip(self.cameras, self.observations, self.observations3d)
             ):
@@ -610,23 +614,31 @@ class RansacMatcher:
                     if np.all(matches >= 0):
                         matched_observations[j] = obs[matches, :]
                         matched_observations3d[j] = obs3d[matches, :]
+                        matched_observations_cams[j] = cam[matches, :]
                         matched_total += 1  # we mathced all features with respect to the reference observation
                     else:
                         matched_observations[j] = None
                         matched_observations3d[j] = None
+                        matched_observations_cams[j] = None
 
             if matched_total > max_matches:
                 max_reference = i
                 max_matches = matched_total
                 best_matched_observations = matched_observations
                 best_matched_observations3d = matched_observations3d
+                best_matched_observations_cams = matched_observations_cams
         max_matches += 1  # count also the reference observation as "match with itself"
         if max_matches < self.min_consensus:
             success = False
         print(
             f"Max #matches: {max_matches}, with ref#{max_reference} (min consensus={self.min_consensus})"
         )
-        return success, best_matched_observations, best_matched_observations3d
+        return (
+            success,
+            best_matched_observations,
+            best_matched_observations3d,
+            best_matched_observations_cams,
+        )
 
 
 class ValveVisualizer:
