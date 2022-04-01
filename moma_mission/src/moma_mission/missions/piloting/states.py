@@ -12,6 +12,9 @@ from object_keypoints_ros.srv import KeypointsPerception, KeypointsPerceptionReq
 from moma_mission.utils.transforms import se3_to_pose_ros
 from moma_mission.utils.trajectory import get_timed_path_to_target
 from moma_mission.utils.robot import Robot
+from moma_mission.utils.transforms import (
+    tf_to_se3,
+)
 from moma_mission.states.navigation import SingleNavGoalState
 from moma_mission.states.model_fit import ModelFitState
 
@@ -578,10 +581,23 @@ class ValveManipulationModelState(StateRos):
         self.poses_publisher = rospy.Publisher(
             poses_topic, PoseArray, queue_size=1, latch=True
         )
+        self.robot_base_frame = self.get_scoped_param("robot_base_frame", None)
 
     def run(self):
         valve_model = self.global_context.ctx.valve_model
-        valve_planner = ValveModelPlanner(valve_model)
+        robot_base_pose = None
+        if self.robot_base_frame is not None:
+            robot_base_pose = tf_to_se3(
+                self.tf_buffer.lookup_transform(
+                    self.robot_base_frame,
+                    valve_model.frame,
+                    rospy.Time(0),  # tf at first available time
+                    rospy.Duration(3),
+                )
+            )
+        valve_planner = ValveModelPlanner(
+            valve_model=valve_model, robot_base_pose=robot_base_pose
+        )
         path = valve_planner.get_path(angle_max=self.turning_angle)
         if path is None:
             rospy.logerr("Could not obtain a valid valve manipulation path")

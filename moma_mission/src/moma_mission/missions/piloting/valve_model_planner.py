@@ -10,6 +10,8 @@ from moma_mission.missions.piloting.valve_fitting import ValveModel
 class ValveModelPlanner:
     """
     Generate graps and paths given a valve model
+
+    @param robot_base_pose: pose of the robot base, should be in the same frame as valve_model
     """
 
     def __init__(self, valve_model=ValveModel(), robot_base_pose=None):
@@ -17,15 +19,9 @@ class ValveModelPlanner:
         self.robot_base_heading = None
 
         if robot_base_pose is not None:
-            assert robot_base_pose.header.frame_id == valve_model.frame
-            self.robot_base_heading = np.array(
-                [
-                    robot_base_pose.position.x,
-                    robot_base_pose.position.y,
-                    robot_base_pose.position.z,
-                ]
-            )
-            self.robot_base_heading /= np.linalg.norm(self.robot_base_heading)
+            # assert robot_base_pose.header.frame_id == valve_model.frame
+            self.robot_base_heading = robot_base_pose.rotation[:, 0]
+            # self.robot_base_heading /= np.linalg.norm(self.robot_base_heading)
 
     def _get_all_grasping_poses(self, inverted=False, samples=100):
         """
