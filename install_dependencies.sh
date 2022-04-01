@@ -17,6 +17,7 @@ fail() {
 install_ci() {
   sudo apt-get -qq install clang-format
   pip3 install pre-commit
+  cd $CATKIN_WS/src/moma
   pre-commit install
 }
 
