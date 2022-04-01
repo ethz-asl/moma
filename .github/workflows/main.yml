@@ -32,11 +32,17 @@ jobs:
         with:
           required-ros-distributions: noetic
 
+      - name: Setup ROS workspace
+        uses: ros-tooling/action-ros-ci@v0.2
+        id: ros_workspace
+        with:
+          target-ros1-distro: noetic
+
       - name: Checkout repo
         uses: actions/checkout@v2
         with:
           submodules: "recursive"
-          path: ${{steps.ros-setup.outputs.ros-workspace-directory-name}}
+          path: ${{steps.ros_workspace.outputs.ros-workspace-directory-name}}
 
       - run: |
           export CATKIN_WS=${{steps.ros_setup.outputs.ros-workspace-directory-name}}
