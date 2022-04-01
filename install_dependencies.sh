@@ -19,6 +19,7 @@ install_ci() {
   pip3 install pre-commit
   cd $CATKIN_WS/src/moma
   pre-commit install
+  cd ..
 }
 
 install_robotpkg() {
