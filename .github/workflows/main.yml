@@ -38,7 +38,7 @@ jobs:
           submodules: "recursive"
           path: ${{steps.ros-setup.outputs.ros-workspace-directory-name}}
 
-      - run: export CATKIN_WS=${{steps.res-setup.outputs.ros-workspace-directory-name}}
+      - run: export CATKIN_WS=${{steps.ros-setup.outputs.ros-workspace-directory-name}}
       - run: sudo apt install python3-vcstool
       - run: cd $CATKIN_WS/src
       - run: vcs import --recursive --input moma/moma_core.repos
