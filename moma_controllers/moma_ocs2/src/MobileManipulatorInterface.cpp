@@ -27,8 +27,13 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ******************************************************************************/
 
-#include "moma_ocs2/MobileManipulatorInterface.h"
+// clang-format off
+#include <pinocchio/fwd.hpp>  // forward declarations must be included first.
+#include <pinocchio/multibody/joint/joint-composite.hpp>
+#include <pinocchio/multibody/model.hpp>
+// clang-format on
 
+#include "moma_ocs2/MobileManipulatorInterface.h"
 #include <ocs2_core/initialization/DefaultInitializer.h>
 #include <ocs2_core/misc/LoadData.h>
 #include <ocs2_core/soft_constraint/StateInputSoftConstraint.h>
@@ -44,9 +49,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <ocs2_self_collision/SelfCollisionConstraintCppAd.h>
 #include <ocs2_self_collision/loadStdVectorOfPair.h>
 
-#include <pinocchio/fwd.hpp>  // forward declarations must be included first.
-#include <pinocchio/multibody/joint/joint-composite.hpp>
-#include <pinocchio/multibody/model.hpp>
 #include <string>
 
 #include "moma_ocs2/MobileManipulatorDynamics.h"

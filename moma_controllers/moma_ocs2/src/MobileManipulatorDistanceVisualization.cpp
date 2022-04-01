@@ -28,16 +28,19 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  ******************************************************************************/
 
 // needs to be included before boost
-#include <moma_ocs2/MobileManipulatorInterface.h>
+// clang-format off
+#include <pinocchio/multibody/geometry.hpp>
+// clang-format on
+
 #include <ocs2_pinocchio_interface/PinocchioInterface.h>
 #include <ocs2_self_collision/PinocchioGeometryInterface.h>
 #include <ocs2_self_collision/loadStdVectorOfPair.h>
 #include <ocs2_self_collision_visualization/GeometryInterfaceVisualization.h>
+#include <moma_ocs2/MobileManipulatorInterface.h>
+
 #include <ros/package.h>
 #include <ros/ros.h>
 #include <sensor_msgs/JointState.h>
-
-#include <pinocchio/multibody/geometry.hpp>
 
 using namespace ocs2;
 using namespace mobile_manipulator;

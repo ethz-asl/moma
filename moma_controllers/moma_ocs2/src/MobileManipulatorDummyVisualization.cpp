@@ -27,6 +27,11 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  ******************************************************************************/
 
+//clang-format off
+#include <pinocchio/fwd.hpp>
+#include <pinocchio/algorithm/frames.hpp>
+#include <pinocchio/algorithm/kinematics.hpp>
+
 #include <geometry_msgs/PoseArray.h>
 #include <moma_ocs2/MobileManipulatorDummyVisualization.h>
 #include <moma_ocs2/MobileManipulatorInterface.h>
@@ -38,9 +43,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <visualization_msgs/MarkerArray.h>
 
 #include <kdl_parser/kdl_parser.hpp>
-#include <pinocchio/algorithm/frames.hpp>
-#include <pinocchio/algorithm/kinematics.hpp>
-#include <pinocchio/fwd.hpp>
+//clang-format on
 
 namespace ocs2 {
 namespace mobile_manipulator {
