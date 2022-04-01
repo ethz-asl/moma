@@ -14,6 +14,12 @@ fail() {
     exit 1
 }
 
+install_ci() {
+  sudo apt-get -qq install clang-format
+  pip3 install pre-commit
+  pre-commit install
+}
+
 install_robotpkg() {
   echo "Installing robotpkg libraries"
 
@@ -158,6 +164,7 @@ echo "Starting installation"
 touch ~/.moma_bashrc
 
 
+install_ci
 install_system_deps
 install_external
 if $INSTALL_CONTROL_DEPS
