@@ -27,7 +27,7 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  ******************************************************************************/
 
-//clang-format off
+// clang-format off
 #include <moma_ocs2/MobileManipulatorInterface.h>
 #include <moma_ocs2/MobileManipulatorDummyVisualization.h>
 #include <ocs2_mpc/SystemObservation.h>
@@ -35,7 +35,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <ocs2_ros_interfaces/mrt/MRT_ROS_Interface.h>
 #include <ros/init.h>
 #include <ros/package.h>
-//clang-format on
+// clang-format on
 
 using namespace ocs2;
 using namespace mobile_manipulator;

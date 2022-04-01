@@ -29,14 +29,14 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
-//clang-format off
+// clang-format off
 #include <moma_ocs2/definitions.h>
 #include <ocs2_pinocchio_interface/PinocchioEndEffectorKinematics.h>
 #include <ocs2_robotic_tools/end_effector/EndEffectorKinematics.h>
 
 #include <ocs2_core/constraint/StateConstraint.h>
 #include <ocs2_oc/synchronized_module/ReferenceManager.h>
-//clang-format on
+// clang-format on
 
 #include <memory>
 
