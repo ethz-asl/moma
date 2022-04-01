@@ -1,9 +1,9 @@
 // Copyright (c) 2017 Franka Emika GmbH
 // Use of this source code is governed by the Apache-2.0 license, see LICENSE
 #pragma once
-//clang-format off
+// clang-format off
 #include <robot_control/modeling/robot_wrapper.h>
-//clang-format on
+// clang-format on
 
 #include <controller_interface/multi_interface_controller.h>
 #include <dynamic_reconfigure/server.h>

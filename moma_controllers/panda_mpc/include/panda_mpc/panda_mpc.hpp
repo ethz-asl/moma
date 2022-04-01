@@ -8,9 +8,9 @@
 #include <string>
 #include <vector>
 
-//clang-format off
+// clang-format off
 #include <robot_control/modeling/robot_wrapper.h>
-//clang-format on
+// clang-format on
 
 #include <control_toolbox/pid.h>
 #include <controller_interface/multi_interface_controller.h>

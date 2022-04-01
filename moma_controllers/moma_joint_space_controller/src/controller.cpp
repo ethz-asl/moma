@@ -1,6 +1,6 @@
-//clang-format off
+// clang-format off
 #include "moma_joint_space_controller/controller.h"
-//clang-format on
+// clang-format on
 
 #include <angles/angles.h>
 #include <pluginlib/class_list_macros.h>

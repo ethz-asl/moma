@@ -27,16 +27,17 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ******************************************************************************/
 
+// clang-format off
+#include <pinocchio/algorithm/frames.hpp>
+#include <pinocchio/algorithm/kinematics.hpp>
+#include <pinocchio/fwd.hpp>
+// clang-format on
 #include <gtest/gtest.h>
 #include <moma_ocs2_example/MobileManipulatorInterface.h>
 #include <moma_ocs2_example/MobileManipulatorPinocchioMapping.h>
 #include <moma_ocs2_example/constraint/EndEffectorConstraint.h>
 #include <ocs2_pinocchio_interface/PinocchioEndEffectorKinematics.h>
 #include <ros/package.h>
-
-#include <pinocchio/algorithm/frames.hpp>
-#include <pinocchio/algorithm/kinematics.hpp>
-#include <pinocchio/fwd.hpp>
 
 using namespace ocs2;
 using namespace mobile_manipulator;
