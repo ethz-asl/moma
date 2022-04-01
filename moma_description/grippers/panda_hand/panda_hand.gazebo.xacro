@@ -5,7 +5,7 @@
     <gazebo reference="${arm_id}_hand"/>
     <gazebo reference="${arm_id}_leftfinger"/>
     <gazebo reference="${arm_id}_rightfinger"/>
-    
+
     <transmission name="${arm_id}_finger_joint1_trans">
       <type>transmission_interface/SimpleTransmission</type>
       <joint name="${arm_id}_finger_joint1">

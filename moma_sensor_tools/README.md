@@ -2,7 +2,6 @@
 
 Collection of utilities related to sensor used in the MoMa demos.
 
-
 Currently this package contains utilities to use for calibration and wrench filtering.
 
 ## Calibration
@@ -16,9 +15,11 @@ All calibration files are kept locally on the PC that has the camera attached to
 ![](https://i.ytimg.com/vi/yAYqt3RpT6c/maxresdefault.jpg)
 
 **Prerequisites:**
+
 - Checkerboard calibration pattern
 
 **Potential conflicts:**
+
 - Ensure no conflicting version of OpenCV is installed via `pip`. Some of the keypoint pipeline tools might install this as part of the ML pipeline. If you get an error, do `pip uninstall opencv_python_headless`.
 
 **Method:**
@@ -34,6 +35,7 @@ The calibration of the intrinsics is done using the [`camera_calibration`](http:
    ```
 3. Follow the GUI instructions, until all direction and rotation axes light up green.
 4. The calibration GUI generates a file `/tmp/calibrationdata.tar.gz` which needs to be extracted:
+
    ```bash
    tar -xvf /tmp/calibrationdata.tar.gz
    ```
@@ -49,46 +51,54 @@ The calibration of the intrinsics is done using the [`camera_calibration`](http:
 ![](https://github.com/IFL-CAMP/easy_handeye/raw/master/docs/img/eye_on_hand_aruco_pic.png)
 
 **Prerequisites:**
+
 - Apriltag marker (you can print them for example from [this resource](resources/apriltags_36h11_1-50.pdf))
 - Having completed a proper intrinsic calibration routine
 
 **Method:**
-The hand-eye calibration can be performed using the [easy_hand_eye](https://github.com/IFL-CAMP/easy_handeye) package and the [easy_hand_eye rqt gui](https://github.com/IFL-CAMP/easy_handeye/tree/master/rqt_easy_handeye). Here we provide some launch and config files which should be easy to setup and reproduce for any MoMa robot. For more information, refer to the documentation of the calibration packages.  
+The hand-eye calibration can be performed using the [easy_hand_eye](https://github.com/IFL-CAMP/easy_handeye) package and the [easy_hand_eye rqt gui](https://github.com/IFL-CAMP/easy_handeye/tree/master/rqt_easy_handeye). Here we provide some launch and config files which should be easy to setup and reproduce for any MoMa robot. For more information, refer to the documentation of the calibration packages.
 
 1. Ensure the [Apriltag id and size settings](config/handeye_calibration/apriltags.yaml) match your physical ones.
 2. Launch the panda robot on the robot computer:
-    ```bash
-    roslaunch moma_robot robot_pc.launch
-    ```
+   ```bash
+   roslaunch moma_robot robot_pc.launch
+   ```
 3. In a ROS-networked operator PC, run the calibration routine:
-    ```bash
-    roslaunch moma_sensor_tools calibration.launch 
-    ```
-    This will launch the realsense camera driver, and a sample collection gui that will allow to alternate between different camera viewpoints and collect apriltag marker poses. The calibration routine also launches the apriltag detector which reads the specific aprilag configuration from this [config file](config/handeye_calibration/apriltags.yaml). Make sure that the information in this file reflects the apriltag you are currently using, namely the tag id and dimension is the same as the one you printed.
 
-    *Note:* If you want to run the camera node and the operator node on separate PCs, use
-    ```bash
-    roslaunch moma_sensor_tools calibration.launch operator_pc:=false
-    ```
+   ```bash
+   roslaunch moma_sensor_tools calibration.launch
+   ```
+
+   This will launch the realsense camera driver, and a sample collection gui that will allow to alternate between different camera viewpoints and collect apriltag marker poses. The calibration routine also launches the apriltag detector which reads the specific aprilag configuration from this [config file](config/handeye_calibration/apriltags.yaml). Make sure that the information in this file reflects the apriltag you are currently using, namely the tag id and dimension is the same as the one you printed.
+
+   _Note:_ If you want to run the camera node and the operator node on separate PCs, use
+
+   ```bash
+   roslaunch moma_sensor_tools calibration.launch operator_pc:=false
+   ```
+
    and
+
    ```bash
     roslaunch moma_sensor_tools calibration.launch camera_pc:=false
-    ```
+   ```
+
 4. Once the calibration is done, click on save and the new calibration config will be generated in the folder `~/.ros/easy_hand_eye`. For usage, the default local path where the file is expected is `~/calibration/handeye_calibration.yaml`. Please move the file to this location immediately to avoid confusion. If you want to keep it permanently, also make a copy of it to `$(moma_sensor_tools)/config/handeye_calibration/(robot-application-name/configuration-name).yaml`.
 
 To use the newly generated calibration transform, launch:
+
 ```bash
 roslaunch moma_sensor_tools publish_calibration.launch calibration_file:=<path to calibration file>
 ```
 
 where `calibration_file:=<path to calibration file>` is only required if you stored the file in a non-standard path.
 
-
 ## Wrench filtering and plotting
 
 Wrench filter calibration is performed sending the robot to various target poses and estimating, assuming that the wrench is only generated by the payload, its properties (COM, weights and biases).
 
 To show a plot of the raw and filtered wrench applied at the end effector, follow these steps:
+
 - Launch a franka state controller on the real robot (for example `roslaunch moma_robot robot_pc.launch`)
 - Run the wrench filtering: `roslaunch moma_sensor_tools ft_sensor_standalone.launch`
   - Accept to start to previous streaming plugin

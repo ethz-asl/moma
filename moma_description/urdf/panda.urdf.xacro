@@ -6,7 +6,7 @@
   <xacro:arg name="include_gazebo_control" default="true"/>
   <xacro:include filename="$(find moma_description)/urdf/panda.xacro"/>
   <xacro:include filename="$(find moma_description)/urdf/panda_arm.gazebo.xacro"/>
-  
+
   <link name="world"/>
   <link name="base_link"/>
   <joint name="base_link_joint" type="fixed">

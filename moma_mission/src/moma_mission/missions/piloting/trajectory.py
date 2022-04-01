@@ -39,7 +39,9 @@ class ValveTrajectoryGenerator(object):
         self.tf_ref_valve = None
         self.tf_grasp_valve = None
         self.tf_ref_valve_bc = tf2_ros.StaticTransformBroadcaster()
-        self.target_pose_pub = rospy.Publisher("/target_pose", PoseStamped, queue_size=1)
+        self.target_pose_pub = rospy.Publisher(
+            "/target_pose", PoseStamped, queue_size=1
+        )
 
     def estimate_valve_from_lateral_grasp(self):
         """
@@ -48,8 +50,9 @@ class ValveTrajectoryGenerator(object):
         frame
         """
         tf_ref_ee = self.get_end_effector_pose()
-        tf_valve_grasp = pin.SE3(self.valve.rotation_valve_latgrasp,
-                                 self.valve.translation_valve_latgrasp)
+        tf_valve_grasp = pin.SE3(
+            self.valve.rotation_valve_latgrasp, self.valve.translation_valve_latgrasp
+        )
         self.tf_grasp_valve = tf_valve_grasp.inverse()
         # grasp == ee
         self.tf_ref_valve = tf_ref_ee.act(self.tf_grasp_valve)
@@ -62,8 +65,10 @@ class ValveTrajectoryGenerator(object):
         frame
         """
         tf_ref_ee = self.get_end_effector_pose()
-        self.tf_grasp_valve = pin.SE3(self.valve.rotation_valve_frontgrasp,
-                                      self.valve.translation_valve_frontgrasp).inverse()
+        self.tf_grasp_valve = pin.SE3(
+            self.valve.rotation_valve_frontgrasp,
+            self.valve.translation_valve_frontgrasp,
+        ).inverse()
         # grasp == ee
         self.tf_ref_valve = tf_ref_ee.act(self.tf_grasp_valve)
         self.reset_valve_tf()
@@ -92,10 +97,14 @@ class ValveTrajectoryGenerator(object):
         Compute the new target point advancing the rotation angle of the valve
         in the valve frame anc then converting into reference frame
         """
-        q = R.from_euler('xyz', [0.0, 0.0, theta], degrees=False).as_quat()
-        t = np.array([self.valve.valve_radius * np.cos(theta),
-                      self.valve.valve_radius * np.sin(theta),
-                      0.0])
+        q = R.from_euler("xyz", [0.0, 0.0, theta], degrees=False).as_quat()
+        t = np.array(
+            [
+                self.valve.valve_radius * np.cos(theta),
+                self.valve.valve_radius * np.sin(theta),
+                0.0,
+            ]
+        )
         tf_valve_grasp = pin.SE3(pin.Quaternion(q[3], q[0], q[1], q[2]), t)
 
         # Apply rotation offset and project to ref frame
@@ -129,11 +138,13 @@ class ValveTrajectoryGenerator(object):
         # self.theta_dot = np.min([self.theta_dot_max, 1.0/error])
 
     def get_end_effector_pose(self):
-        """ Retrieve the end effector pose. Let it fail if unable to get the transform """
-        transform = self.tf_buffer.lookup_transform(self.frames.base_frame,  # target frame
-                                                    self.frames.tool_frame,  # source frame
-                                                    rospy.Time(0),  # tf at first available time
-                                                    rospy.Duration(3))
+        """Retrieve the end effector pose. Let it fail if unable to get the transform"""
+        transform = self.tf_buffer.lookup_transform(
+            self.frames.base_frame,  # target frame
+            self.frames.tool_frame,  # source frame
+            rospy.Time(0),  # tf at first available time
+            rospy.Duration(3),
+        )
         return tf_to_se3(transform)
 
     def run(self, dt, theta_target):
@@ -144,10 +155,14 @@ class ValveTrajectoryGenerator(object):
             rate.sleep()
         return True
 
-    def get_path(self, angle_start_deg, angle_end_deg, speed_deg=5.0, angle_delta_deg=1.0):
+    def get_path(
+        self, angle_start_deg, angle_end_deg, speed_deg=5.0, angle_delta_deg=1.0
+    ):
         rospy.loginfo(
-            "Computing trajectory: angle start: {}, angle end: {}, speed: {}".format(angle_start_deg, angle_end_deg,
-                                                                                     speed_deg))
+            "Computing trajectory: angle start: {}, angle end: {}, speed: {}".format(
+                angle_start_deg, angle_end_deg, speed_deg
+            )
+        )
         angle_start = np.deg2rad(angle_start_deg)
         angle_end = np.deg2rad(angle_end_deg)
         speed = np.deg2rad(speed_deg)
@@ -165,7 +180,9 @@ class ValveTrajectoryGenerator(object):
         dt = abs(angle_delta / speed)
         angle_delta = speed * dt
         direction = (angle_end - angle_start) / abs(angle_end - angle_start)
-        rospy.loginfo("angle delta is: {}, direction is: {}".format(angle_delta, direction))
+        rospy.loginfo(
+            "angle delta is: {}, direction is: {}".format(angle_delta, direction)
+        )
 
         time = 0.0
         path = Path()

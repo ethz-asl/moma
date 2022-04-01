@@ -40,14 +40,19 @@ class MobileManipulatorPinocchioMapping final : public PinocchioStateInputMappin
  private:
   BaseType baseType_;
   size_t armInputDim_;
+
  public:
   using Base = PinocchioStateInputMapping<SCALAR>;
   using typename Base::matrix_t;
   using typename Base::vector_t;
 
-  MobileManipulatorPinocchioMapping(const size_t armInputDim, const BaseType baseType = BaseType::none) : armInputDim_(armInputDim), baseType_(baseType) {};
+  MobileManipulatorPinocchioMapping(const size_t armInputDim,
+                                    const BaseType baseType = BaseType::none)
+      : armInputDim_(armInputDim), baseType_(baseType){};
   ~MobileManipulatorPinocchioMapping() override = default;
-  MobileManipulatorPinocchioMapping<SCALAR>* clone() const override { return new MobileManipulatorPinocchioMapping<SCALAR>(*this); }
+  MobileManipulatorPinocchioMapping<SCALAR>* clone() const override {
+    return new MobileManipulatorPinocchioMapping<SCALAR>(*this);
+  }
 
   vector_t getPinocchioJointPosition(const vector_t& state) const override { return state; }
 
@@ -57,7 +62,7 @@ class MobileManipulatorPinocchioMapping final : public PinocchioStateInputMappin
     typename vector_t::Scalar vx;      // forward velocity in base frame
     typename vector_t::Scalar vy;      // sideways velocity in base frame
     typename vector_t::Scalar vtheta;  // angular velocity
-    switch(baseType_) {
+    switch (baseType_) {
       case BaseType::holonomic:
         vx = input(0);
         vy = input(1);
@@ -74,15 +79,17 @@ class MobileManipulatorPinocchioMapping final : public PinocchioStateInputMappin
         vy = typename vector_t::Scalar(0.0);
         vtheta = typename vector_t::Scalar(0.0);
     }
-    dxdt << cos(theta) * vx - sin(theta) * vy, sin(theta) * vx + cos(theta) * vy, vtheta, input.tail(armInputDim_);
+    dxdt << cos(theta) * vx - sin(theta) * vy, sin(theta) * vx + cos(theta) * vy, vtheta,
+        input.tail(armInputDim_);
     return dxdt;
   }
 
-  std::pair<matrix_t, matrix_t> getOcs2Jacobian(const vector_t& state, const matrix_t& Jq, const matrix_t& Jv) const override {
+  std::pair<matrix_t, matrix_t> getOcs2Jacobian(const vector_t& state, const matrix_t& Jq,
+                                                const matrix_t& Jv) const override {
     matrix_t dfdu(Jv.rows(), INPUT_DIM(armInputDim_));
     Eigen::Matrix<SCALAR, 3, 3> dvdu_base;
     const SCALAR theta = state(2);
-    switch(baseType_) {
+    switch (baseType_) {
       case BaseType::holonomic:
         // clang-format off
         dvdu_base << cos(theta), -sin(theta), 0.0,

@@ -35,16 +35,18 @@ namespace mobile_manipulator {
 /******************************************************************************************************/
 /******************************************************************************************************/
 /******************************************************************************************************/
-vector_t JointPositionLimits::getValue(scalar_t time, const vector_t& state, const PreComputation&) const {
+vector_t JointPositionLimits::getValue(scalar_t time, const vector_t& state,
+                                       const PreComputation&) const {
   return state;
 }
 
 /******************************************************************************************************/
 /******************************************************************************************************/
 /******************************************************************************************************/
-VectorFunctionLinearApproximation JointPositionLimits::getLinearApproximation(scalar_t time, const vector_t& state,
-                                                                              const PreComputation&) const {
-  VectorFunctionLinearApproximation limits(INPUT_DIM(armInputDim_), STATE_DIM(armInputDim_), INPUT_DIM(armInputDim_));
+VectorFunctionLinearApproximation JointPositionLimits::getLinearApproximation(
+    scalar_t time, const vector_t& state, const PreComputation&) const {
+  VectorFunctionLinearApproximation limits(INPUT_DIM(armInputDim_), STATE_DIM(armInputDim_),
+                                           INPUT_DIM(armInputDim_));
   limits.f = state;
   limits.dfdx.setIdentity();
   limits.dfdu.setZero();

@@ -31,20 +31,17 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <string>
 
-
 // OCS2
+#include <moma_ocs2/definitions.h>
 #include <ocs2_core/Types.h>
 #include <ocs2_core/initialization/Initializer.h>
 #include <ocs2_ddp/DDP_Settings.h>
-#include <ocs2_mpc/MPC_Settings.h>
 #include <ocs2_mpc/MPC_DDP.h>
+#include <ocs2_mpc/MPC_Settings.h>
 #include <ocs2_oc/rollout/TimeTriggeredRollout.h>
 #include <ocs2_oc/synchronized_module/ReferenceManager.h>
-#include <ocs2_robotic_tools/common/RobotInterface.h>
-
-#include <moma_ocs2/definitions.h>
 #include <ocs2_pinocchio_interface/PinocchioInterface.h>
-
+#include <ocs2_robotic_tools/common/RobotInterface.h>
 
 namespace ocs2 {
 namespace mobile_manipulator {
@@ -64,7 +61,8 @@ class MobileManipulatorInterface final : public RobotInterface {
    * @param [in] libraryFolder: The absolute path to the directory to generate CppAD library into.
    * @param [in] urdfXML: The URDF description string for the robot.
    */
-  explicit MobileManipulatorInterface(const std::string& taskFile, const std::string& urdfXML, const size_t armInputDim, const BaseType& baseType);
+  explicit MobileManipulatorInterface(const std::string& taskFile, const std::string& urdfXML,
+                                      const size_t armInputDim, const BaseType& baseType);
 
   const vector_t& getInitialState() { return initialState_; }
 
@@ -76,7 +74,9 @@ class MobileManipulatorInterface final : public RobotInterface {
 
   std::unique_ptr<ocs2::MPC_DDP> getMpc();
 
-  std::shared_ptr<ReferenceManagerInterface> getReferenceManagerPtr() const override { return referenceManagerPtr_; }
+  std::shared_ptr<ReferenceManagerInterface> getReferenceManagerPtr() const override {
+    return referenceManagerPtr_;
+  }
 
   const Initializer& getInitializer() const override { return *initializerPtr_; }
 
@@ -93,13 +93,16 @@ class MobileManipulatorInterface final : public RobotInterface {
 
  private:
   std::unique_ptr<StateInputCost> getQuadraticInputCost(const std::string& taskFile);
-  std::unique_ptr<StateCost> getEndEffectorConstraint(const PinocchioInterface& pinocchioInterface, const std::string& taskFile,
-                                                      const std::string& prefix, bool useCaching, const std::string& libraryFolder,
+  std::unique_ptr<StateCost> getEndEffectorConstraint(const PinocchioInterface& pinocchioInterface,
+                                                      const std::string& taskFile,
+                                                      const std::string& prefix, bool useCaching,
+                                                      const std::string& libraryFolder,
                                                       bool recompileLibraries);
-  std::unique_ptr<StateCost> getSelfCollisionConstraint(const PinocchioInterface& pinocchioInterface, const std::string& taskFile,
-                                                        const std::string& urdfXML, bool useCaching, const std::string& libraryFolder,
-                                                        bool recompileLibraries);
-  
+  std::unique_ptr<StateCost> getSelfCollisionConstraint(
+      const PinocchioInterface& pinocchioInterface, const std::string& taskFile,
+      const std::string& urdfXML, bool useCaching, const std::string& libraryFolder,
+      bool recompileLibraries);
+
   std::unique_ptr<StateCost> getJointPositionLimitConstraint(const std::string& taskFile);
   std::unique_ptr<StateInputCost> getJointVelocityLimitConstraint(const std::string& taskFile);
 

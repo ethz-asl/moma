@@ -26,7 +26,7 @@
         <material name="">
           <color rgba="0.75294 0.75294 0.75294 1" />
         </material>
-      </collision>       
+      </collision>
     </link>
 
     <joint name="zedm_mount_to_zed_link" type="fixed">
@@ -100,6 +100,6 @@
     </joint>
 
     <link name="${camera_name}_right_camera_optical_frame"/>
-  </xacro:macro>  
-    
+  </xacro:macro>
+
 </robot>

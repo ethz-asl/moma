@@ -2,7 +2,7 @@
 <robot xmlns:xacro="http://wiki.ros.org/xacro"
        name="sensor" >
 
- 
+
   <xacro:arg name="prefix" default="ft_sensor0"/>
 
   <xacro:include filename="$(find rokubimini_description)/urdf/BFT_SENS_SER_M8.urdf.xacro" />

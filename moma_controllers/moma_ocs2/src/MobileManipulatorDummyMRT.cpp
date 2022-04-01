@@ -27,13 +27,11 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  ******************************************************************************/
 
-#include <moma_ocs2/MobileManipulatorInterface.h>
 #include <moma_ocs2/MobileManipulatorDummyVisualization.h>
-
+#include <moma_ocs2/MobileManipulatorInterface.h>
 #include <ocs2_mpc/SystemObservation.h>
 #include <ocs2_ros_interfaces/mrt/MRT_ROS_Dummy_Loop.h>
 #include <ocs2_ros_interfaces/mrt/MRT_ROS_Interface.h>
-
 #include <ros/init.h>
 #include <ros/package.h>
 
@@ -41,7 +39,6 @@ using namespace ocs2;
 using namespace mobile_manipulator;
 
 int main(int argc, char** argv) {
-
   const int armInputDim = 7;
 
   // Initialize ros node
@@ -50,29 +47,30 @@ int main(int argc, char** argv) {
 
   // Params
   std::string taskFile;
-  if (!nodeHandle.param("/ocs2_mpc/task_file", taskFile, {})){
+  if (!nodeHandle.param("/ocs2_mpc/task_file", taskFile, {})) {
     ROS_ERROR("Failed to retrieve /ocs2_mpc/task_file from param server.");
     return 0;
   }
   std::string urdfXML;
-  if (!nodeHandle.param("/ocs2_mpc/robot_description_ocs2", urdfXML, {})){
+  if (!nodeHandle.param("/ocs2_mpc/robot_description_ocs2", urdfXML, {})) {
     ROS_ERROR("Failed to retrieve /ocs2_mpc/robot_description_ocs2 from param server.");
     return 0;
   }
 
   int baseTypeInt;
-  if (!nodeHandle.param("/ocs2_mpc/base_type", baseTypeInt, 0)){
+  if (!nodeHandle.param("/ocs2_mpc/base_type", baseTypeInt, 0)) {
     ROS_ERROR("Failed to retrieve /ocs2_mpc/base_type from param server.");
     return 0;
   }
-  if (baseTypeInt >= BASE_TYPE_COUNT){
+  if (baseTypeInt >= BASE_TYPE_COUNT) {
     ROS_ERROR("The value of base_type is not supported.");
     return 0;
   }
   BaseType baseType = static_cast<BaseType>(baseTypeInt);
 
   // Robot Interface
-  mobile_manipulator::MobileManipulatorInterface interface(taskFile, urdfXML, armInputDim, baseType);
+  mobile_manipulator::MobileManipulatorInterface interface(taskFile, urdfXML, armInputDim,
+                                                           baseType);
 
   // MRT
   MRT_ROS_Interface mrt("mobile_manipulator");
@@ -84,7 +82,8 @@ int main(int argc, char** argv) {
       new mobile_manipulator::MobileManipulatorDummyVisualization(nodeHandle, interface));
 
   // Dummy MRT
-  MRT_ROS_Dummy_Loop dummy(mrt, interface.mpcSettings().mrtDesiredFrequency_, interface.mpcSettings().mpcDesiredFrequency_);
+  MRT_ROS_Dummy_Loop dummy(mrt, interface.mpcSettings().mrtDesiredFrequency_,
+                           interface.mpcSettings().mpcDesiredFrequency_);
   dummy.subscribeObservers({dummyVisualization});
 
   // initial state
@@ -98,7 +97,8 @@ int main(int argc, char** argv) {
   initTarget.head(3) << 0.5, 0.0, 0.8;
   initTarget.tail(4) << Eigen::Quaternion<scalar_t>(0.0, 0.7071068, 0, 0.7071068).coeffs();
   const vector_t zeroInput = vector_t::Zero(mobile_manipulator::INPUT_DIM(armInputDim));
-  const TargetTrajectories initTargetTrajectories({initObservation.time}, {initTarget}, {zeroInput});
+  const TargetTrajectories initTargetTrajectories({initObservation.time}, {initTarget},
+                                                  {zeroInput});
 
   // Run dummy (loops while ros is ok)
   dummy.run(initObservation, initTargetTrajectories);

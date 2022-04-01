@@ -8,26 +8,24 @@
 #include <string>
 #include <vector>
 
+//clang-format off
 #include <robot_control/modeling/robot_wrapper.h>
+//clang-format on
 
-#include <moma_ocs2_ros/mpc_velocity_controller.h>
 #include <control_toolbox/pid.h>
 #include <controller_interface/multi_interface_controller.h>
+#include <franka_hw/franka_cartesian_command_interface.h>
+#include <franka_hw/franka_model_interface.h>
 #include <geometry_msgs/Twist.h>
 #include <hardware_interface/joint_command_interface.h>
 #include <hardware_interface/robot_hw.h>
+#include <moma_ocs2_ros/mpc_velocity_controller.h>
+#include <nav_msgs/Odometry.h>
 #include <realtime_tools/realtime_publisher.h>
 #include <ros/node_handle.h>
 #include <ros/time.h>
 
-#include <franka_hw/franka_cartesian_command_interface.h>
-#include <franka_hw/franka_model_interface.h>
-
-#include <nav_msgs/Odometry.h>
-#include <geometry_msgs/Twist.h>
-
 namespace moma_controllers {
-
 class PandaMpcController
     : public controller_interface::MultiInterfaceController<
           franka_hw::FrankaModelInterface, hardware_interface::EffortJointInterface,
@@ -40,7 +38,7 @@ class PandaMpcController
       controller_interface::MultiInterfaceController<franka_hw::FrankaModelInterface,
                                                      hardware_interface::EffortJointInterface,
                                                      franka_hw::FrankaStateInterface>;
-  PandaMpcController() : BASE(true)/*, tfListener_(tfBuffer_)*/{};
+  PandaMpcController() : BASE(true) /*, tfListener_(tfBuffer_)*/ {};
 
   bool init(hardware_interface::RobotHW* robot_hw, ros::NodeHandle& node_handle,
             ros::NodeHandle& controller_nh) override;
@@ -66,11 +64,11 @@ class PandaMpcController
   ros::Time last_start_time_;
   bool sim_;
 
-  //tf2_ros::Buffer tfBuffer_;
-  //tf2_ros::TransformListener tfListener_;
+  // tf2_ros::Buffer tfBuffer_;
+  // tf2_ros::TransformListener tfListener_;
 
-  //std::string world_frame_;
-  //std::string base_link_;
+  // std::string world_frame_;
+  // std::string base_link_;
   std::string odom_topic_ = "";
   std::string command_base_topic_;
   ros::Subscriber odom_sub_;

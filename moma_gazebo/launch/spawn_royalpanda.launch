@@ -20,7 +20,7 @@
   <node name="spawn_royalpanda" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen" args="-urdf -param robot_description -model royalpanda
       -x $(arg x)
       -y $(arg y)
-      -z $(arg z) 
+      -z $(arg z)
       -J panda_joint1 0
       -J panda_joint2 -0.785
       -J panda_joint3 0

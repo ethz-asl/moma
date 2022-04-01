@@ -3,7 +3,10 @@
 import rospy
 import tf2_ros
 
-from interactive_markers.interactive_marker_server import InteractiveMarkerServer, InteractiveMarkerFeedback
+from interactive_markers.interactive_marker_server import (
+    InteractiveMarkerServer,
+    InteractiveMarkerFeedback,
+)
 from interactive_markers.menu_handler import MenuHandler
 from visualization_msgs.msg import InteractiveMarker, InteractiveMarkerControl, Marker
 from geometry_msgs.msg import PoseStamped
@@ -12,6 +15,7 @@ int_marker = InteractiveMarker()
 marker_pose = PoseStamped()
 menu_handler = MenuHandler()
 pose_pub = None
+
 
 def make_sphere(radius):
     marker = Marker()
@@ -45,7 +49,9 @@ def wait_for_initial_pose(feedback, base_frame, target_frame):
     listener = tf2_ros.TransformListener(buffer)
 
     try:
-        trans = buffer.lookup_transform(base_frame, target_frame, rospy.Time(), rospy.Duration(10.0))
+        trans = buffer.lookup_transform(
+            base_frame, target_frame, rospy.Time(), rospy.Duration(10.0)
+        )
         marker_pose.header.frame_id = base_frame
         marker_pose.header.stamp = rospy.get_rostime()
         marker_pose.pose.orientation = trans.transform.rotation
@@ -54,8 +60,11 @@ def wait_for_initial_pose(feedback, base_frame, target_frame):
         if feedback is not None:
             server.insert(int_marker, process_feedback)
             server.applyChanges()
-    except (tf2_ros.LookupException, tf2_ros.ConnectivityException,
-            tf2_ros.ExtrapolationException) as exc:
+    except (
+        tf2_ros.LookupException,
+        tf2_ros.ConnectivityException,
+        tf2_ros.ExtrapolationException,
+    ) as exc:
         rospy.logwarn(exc)
         return False
     return True
@@ -76,7 +85,7 @@ if __name__ == "__main__":
     int_marker.header.frame_id = base_frame_id
     int_marker.scale = 0.3
     int_marker.name = "equilibrium_pose"
-    int_marker.description = ("Target Cartesian Pose")
+    int_marker.description = "Target Cartesian Pose"
     int_marker.pose = marker_pose.pose
 
     # insert a box
@@ -133,9 +142,12 @@ if __name__ == "__main__":
     server.insert(int_marker, process_feedback)
 
     # add a menu handler
-    menu_handler.insert("Reset Pose", callback= lambda fb : wait_for_initial_pose(fb, base_frame_id, target_frame_id))
+    menu_handler.insert(
+        "Reset Pose",
+        callback=lambda fb: wait_for_initial_pose(fb, base_frame_id, target_frame_id),
+    )
     menu_handler.insert("Send Target Pose", callback=publisher_callback)
-    menu_handler.apply( server, int_marker.name)
+    menu_handler.apply(server, int_marker.name)
 
     # apply changes and spin
     server.applyChanges()

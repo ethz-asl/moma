@@ -10,7 +10,7 @@
   <arg name="world_name" default="$(find moma_gazebo)/worlds/planner_tutorial.world"/>
 
   <env name="GAZEBO_MODEL_PATH" value="$(optenv GAZEBO_MODEL_PATH):$(find moma_gazebo)/models:$(find piloting_demo)/models"/>
-  
+
   <!-- send the robot XML to param server -->
   <param name="robot_description" command="$(find xacro)/xacro $(find moma_description)/urdf/superpanda.urdf.xacro use_nominal_extrinsics:=true use_fixed_realsense:=$(arg use_fixed_realsense)
     control_mode:=$(arg control_mode) tool:=$(arg tool)"/>
@@ -18,10 +18,10 @@
   <!-- Allow interoperability between sim and real robot (we cannot change topic name on sim gripper controller plugin) -->
   <remap from="/panda/franka_gripper/gripper_cmd" to="/panda/franka_gripper/gripper_action"/>
 
-  <!-- diff_drive_controller is hard coded to /ns/robot_description so we need this remap -->  
+  <!-- diff_drive_controller is hard coded to /ns/robot_description so we need this remap -->
   <remap from="/smb/robot_description" to="/smb_description"/>
 
- 
+
   <!-- start gazebo -->
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
     <arg name="use_sim_time" value="true" />
@@ -35,7 +35,7 @@
   <node name="spawn_panda" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen" args="-urdf -param robot_description -model superpanda
       -x $(arg x)
       -y $(arg y)
-      -z $(arg z) 
+      -z $(arg z)
       -J panda_joint1 0
       -J panda_joint2 -0.785
       -J panda_joint3 0
@@ -46,7 +46,7 @@
 
   <param name="valve_description" command="$(find xacro)/xacro --inorder $(find piloting_demo)/urdf/valve.urdf.xacro pitch:=0 yaw:=0.0 x:=0.5"/>
 
-  <node name="spawn_valve" pkg="gazebo_ros" type="spawn_model" args="-param valve_description -urdf -model valve" output="screen"/> 
+  <node name="spawn_valve" pkg="gazebo_ros" type="spawn_model" args="-param valve_description -urdf -model valve" output="screen"/>
 
   <node name="valve_state_publisher"  type="robot_state_publisher"  pkg="robot_state_publisher">
     <remap from="robot_description" to="valve_description"/>

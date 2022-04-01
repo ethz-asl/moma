@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="panda">
-  <xacro:macro name="panda" params="connected_to:='' rpy:='0 0 0' xyz:='0 0 0' use_fixed_realsense:=false 
+  <xacro:macro name="panda" params="connected_to:='' rpy:='0 0 0' xyz:='0 0 0' use_fixed_realsense:=false
     tool:='panda_hand' wrist_camera_name:='wrist_camera'">
 
     <!-- panda arm  -->
@@ -40,7 +40,7 @@
       <xacro:include filename="$(find moma_description)/grippers/robotiq_2f_85/urdf/robotiq_2f_85.xacro"/>
       <xacro:robotiq_2f_85 parent="panda_link8" prefix="">
         <origin xyz="0 0 0" rpy="0 0 0"/>
-      </xacro:robotiq_2f_85> 
+      </xacro:robotiq_2f_85>
     </xacro:if>
 
     <!-- robotiq 2f-85 toolset (plate + FT sensor + gripper + zedm camera) -->
@@ -48,7 +48,7 @@
       <xacro:include filename="$(find moma_description)/grippers/robotiq_2f_toolset/urdf/robotiq_2f_toolset.xacro"/>
       <xacro:robotiq_2f_toolset parent="panda_link8">
         <origin xyz="0 0 0" rpy="0 0 ${pi/2}"/>
-      </xacro:robotiq_2f_toolset> 
+      </xacro:robotiq_2f_toolset>
     </xacro:if>
 
     <!-- end effector frame for MoveIt -->

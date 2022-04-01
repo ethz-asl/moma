@@ -4,9 +4,7 @@ camera_name: narrow_stereo
 camera_matrix:
   rows: 3
   cols: 3
-  data: [923.003325,   0.     , 626.0,
-           0.     , 923.00325, 364.0,
-           0.     ,   0.     ,   1.     ]
+  data: [923.003325, 0., 626.0, 0., 923.00325, 364.0, 0., 0., 1.]
 distortion_model: radtan
 distortion_coefficients:
   rows: 1
@@ -15,12 +13,8 @@ distortion_coefficients:
 rectification_matrix:
   rows: 3
   cols: 3
-  data: [1., 0., 0.,
-         0., 1., 0.,
-         0., 0., 1.]
+  data: [1., 0., 0., 0., 1., 0., 0., 0., 1.]
 projection_matrix:
   rows: 3
   cols: 4
-  data: [923.003325,   0.     , 626.0,   0.,
-           0.     , 923.003325, 364.0,   0.,
-           0.     ,   0.     ,   1.,0.]
+  data: [923.003325, 0., 626.0, 0., 0., 923.003325, 364.0, 0., 0., 0., 1., 0.]

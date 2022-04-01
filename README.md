@@ -23,27 +23,33 @@ git clone --recurse-submodules git@github.com:ethz-asl/moma.git
 ```
 
 Set the environment variable `$CATKIN_WS` to the root of your catkin workspace.
+
 ```bash
 export CATKIN_WS=~/catkin_ws
 ```
 
 To download the dependency packages, the vcs command-line tools will be used. For more information about the tool you can check this [link](http://wiki.ros.org/vcstool).
+
 ```bash
 sudo apt install python3-vcstool
 ```
+
 To download the moma packages by using vcs tool run the following terminal commands in order.
+
 ```
 cd $CATKIN_WS/src
 vcs import --recursive --input moma/moma_core.repos
 ```
 
 To install additional packages (as for example required for the demos or piloting), use `vcs`:
+
 ```
 vcs import --recursive --input moma/moma_<NAME>.repos
 ```
+
 where `<NAME>` needs to be replaced by the corresponding repos filename.
 
-Install the remaning dependencies using the provided script. 
+Install the remaning dependencies using the provided script.
 
 ```bash
 cd $CATKIN_WS/src
@@ -62,7 +68,7 @@ Before you start developing, familiarize yourself with the [robotic platform](ht
 
 ### Grasp demo
 
-__Update needed__
+**Update needed**
 
 ~~Then, use catkin to build the desired packages, e.g.~~
 
@@ -87,8 +93,9 @@ To run a playbook, first install Ansible (`pip install --user ansible`). Copy th
 The hosts file is an inventory file specifying groups of hosts. A playbook is always run against a group and all the commands will be run on all machines in that group.
 
 To set up the franka control computer, run:
+
 ```
 ansible-playbook operations/setup_franka.yaml --ask-pass --ask-become-pass
 ```
-The `--ask-pass` flag is not needed if ssh authentication is being used.
 
+The `--ask-pass` flag is not needed if ssh authentication is being used.

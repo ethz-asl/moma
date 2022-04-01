@@ -1,4 +1,3 @@
-
 import rospy
 import numpy as np
 from typing import List
@@ -26,6 +25,7 @@ from moma_mission.missions.piloting.rcs_bridge import RCSBridge
 
 gRCS = RCSBridge()
 
+
 class SetUp(StateRos):
     def __init__(self, ns):
         StateRos.__init__(self, ns=ns)
@@ -35,45 +35,56 @@ class SetUp(StateRos):
         global gRCS
         if not gRCS.read_params():
             rospy.logerr("Failed to read gRCS params")
-            return 'Failure'
-        
+            return "Failure"
+
         if not gRCS.init_ros():
-            rospy.logerr('Failed to initialize RCSBridge ros')
-            return 'Failure'
+            rospy.logerr("Failed to initialize RCSBridge ros")
+            return "Failure"
 
         if not gRCS.read_waypoints_from_file(self.waypoints_file):
             rospy.logerr("Failed to read waypoints from file")
-            return 'Failure'
-        
+            return "Failure"
+
         if not gRCS.upload_waypoints():
             rospy.logerr("Failed to upload waypoints.")
-            return 'Failure'
+            return "Failure"
 
         if not gRCS.upload_hl_action():
             rospy.logerr("Failed to upload high level actions")
-            return 'Failure'
-        return 'Completed'
+            return "Failure"
+        return "Completed"
+
 
 class Idle(StateRos):
     """
-    Parses the command from the gRCS and start the execution of the mission. 
+    Parses the command from the gRCS and start the execution of the mission.
     Otherwise it idles
     """
+
     def __init__(self, ns):
-        StateRos.__init__(self, ns=ns, outcomes=['ExecuteInspectionPlan', 'ExecuteManipulationPlan', 'Failure'])
-    
+        StateRos.__init__(
+            self,
+            ns=ns,
+            outcomes=["ExecuteInspectionPlan", "ExecuteManipulationPlan", "Failure"],
+        )
+
     def run(self):
         while True:
             command_id, command = gRCS.get_current_hl_command()
             if command_id == 0:
-                return 'ExecuteManipulationPlan'
+                return "ExecuteManipulationPlan"
             elif command_id == 1:
-                rospy.loginfo("Received high level command {}: {}".format(command_id, command))
-                return 'ExecuteInspectionPlan'
+                rospy.loginfo(
+                    "Received high level command {}: {}".format(command_id, command)
+                )
+                return "ExecuteInspectionPlan"
             elif command_id == 2:
-                return 'Failure'
+                return "Failure"
             rospy.sleep(1.0)
-            rospy.loginfo_throttle(3.0, "In [IDLE] state... Waiting from gRCS commands.")
+            rospy.loginfo_throttle(
+                3.0, "In [IDLE] state... Waiting from gRCS commands."
+            )
+
 
 class HomePose(StateRosControl):
     """
@@ -89,29 +100,34 @@ class HomePose(StateRosControl):
     def run(self):
         controller_switched = self.do_switch()
         if not controller_switched:
-            return 'Failure'
+            return "Failure"
 
         # !!! The following poses are all referenced to the arm base frame
         # home pose
         home_pose_position = np.array([0.096, 0.266, 0.559])
         home_pose_orientation = np.array([0.011, 0.751, 0.660, 0.010])
 
-        home_pose = numpy_to_pose_stamped(home_pose_position, home_pose_orientation, frame_id=Frames.base_frame)
+        home_pose = numpy_to_pose_stamped(
+            home_pose_position, home_pose_orientation, frame_id=Frames.base_frame
+        )
 
         target_pose = PoseStamped()
         target_pose.header.frame_id = Frames.base_frame
-        target_pose.pose = se3_to_pose_ros(self.get_transform(target=Frames.base_frame,
-                                                         source=Frames.tool_frame))
+        target_pose.pose = se3_to_pose_ros(
+            self.get_transform(target=Frames.base_frame, source=Frames.tool_frame)
+        )
 
-        path = get_timed_path_to_target(start_pose=home_pose,
-                                        target_pose=target_pose,
-                                        linear_velocity=0.25, angular_velocity=0.25)
+        path = get_timed_path_to_target(
+            start_pose=home_pose,
+            target_pose=target_pose,
+            linear_velocity=0.25,
+            angular_velocity=0.25,
+        )
         self.path_publisher.publish(path)
-        if not self.wait_until_reached(target_frame=Frames.tool_frame, 
-                                       quiet=True):
-            return 'Failure'
+        if not self.wait_until_reached(target_frame=Frames.tool_frame, quiet=True):
+            return "Failure"
         else:
-            return 'Completed'
+            return "Completed"
 
 
 class WaypointNavigationState(SingleNavGoalState):
@@ -120,35 +136,38 @@ class WaypointNavigationState(SingleNavGoalState):
     """
 
     def __init__(self, ns):
-        SingleNavGoalState.__init__(self, ns=ns, outcomes=['Completed',
-                                                           'Failure',
-                                                           'NextWaypoint'])
+        SingleNavGoalState.__init__(
+            self, ns=ns, outcomes=["Completed", "Failure", "NextWaypoint"]
+        )
 
     def run(self):
         waypoint = gRCS.next_waypoint()
-        
+
         if waypoint is None:
-            return 'Completed'
-    
+            return "Completed"
+
         goal = PoseStamped()
         goal.header.frame_id = Frames.odom_frame
         goal.header.stamp = rospy.get_rostime()
-        goal.pose.position.x = waypoint.x 
+        goal.pose.position.x = waypoint.x
         goal.pose.position.y = waypoint.y
         goal.pose.position.z = 0.0
         goal.pose.orientation.x = 0.0
         goal.pose.orientation.y = 0.0
-        goal.pose.orientation.z = np.sin(waypoint.orientation/2.0)
-        goal.pose.orientation.w = np.cos(waypoint.orientation/2.0)
+        goal.pose.orientation.z = np.sin(waypoint.orientation / 2.0)
+        goal.pose.orientation.w = np.cos(waypoint.orientation / 2.0)
 
-        rospy.loginfo("Reaching goal at {}, {}".format(goal.pose.position.x, goal.pose.position.y))
+        rospy.loginfo(
+            "Reaching goal at {}, {}".format(goal.pose.position.x, goal.pose.position.y)
+        )
         success = self.reach_goal(goal, action=True)
         if not success:
             rospy.logerr("Failed to reach base goal.")
-            return 'Failure'
+            return "Failure"
 
         gRCS.set_waypoint_done()
-        return 'NextWaypoint'
+        return "NextWaypoint"
+
 
 class NavigationState(SingleNavGoalState):
     """
@@ -160,21 +179,26 @@ class NavigationState(SingleNavGoalState):
         self.target_frame = self.get_scoped_param("target_frame")
 
     def run(self):
-        T_map_target = self.get_transform(target=Frames.map_frame, source=self.target_frame)
+        T_map_target = self.get_transform(
+            target=Frames.map_frame, source=self.target_frame
+        )
         if T_map_target is None:
-            return 'Failure'
+            return "Failure"
 
         goal = PoseStamped()
         goal.header.frame_id = Frames.map_frame
         goal.pose = se3_to_pose_ros(T_map_target)
 
-        rospy.loginfo("Reaching goal at {}, {}".format(goal.pose.position.x, goal.pose.position.y))
+        rospy.loginfo(
+            "Reaching goal at {}, {}".format(goal.pose.position.x, goal.pose.position.y)
+        )
         success = self.reach_goal(goal)
         if not success:
             rospy.logerr("Failed to reach base goal.")
-            return 'Failure'
+            return "Failure"
 
-        return 'Completed'
+        return "Completed"
+
 
 class DetectionPosesVisitor(StateRosControl):
     """
@@ -189,40 +213,49 @@ class DetectionPosesVisitor(StateRosControl):
     def run(self):
         controller_switched = self.do_switch()
         if not controller_switched:
-            return 'Failure'
+            return "Failure"
 
         poses = Valve.get_detection_poses()
         rospy.loginfo("Moving to {} different viewpoints".format(len(poses)))
         for pose in poses:
             start_pose = PoseStamped()
             start_pose.header.frame_id = Frames.base_frame
-            start_pose.pose = se3_to_pose_ros(self.get_transform(target=Frames.base_frame,
-                                                                 source=Frames.tool_frame))
-            path = get_timed_path_to_target(start_pose=start_pose,
-                                            target_pose=pose,
-                                            linear_velocity=0.25, angular_velocity=0.25)
+            start_pose.pose = se3_to_pose_ros(
+                self.get_transform(target=Frames.base_frame, source=Frames.tool_frame)
+            )
+            path = get_timed_path_to_target(
+                start_pose=start_pose,
+                target_pose=pose,
+                linear_velocity=0.25,
+                angular_velocity=0.25,
+            )
             rospy.loginfo("Moving to the next viewpoint")
             self.path_publisher.publish(path)
-            if not self.wait_until_reached(target_frame=Frames.tool_frame, target_pose=pose, quiet=True):
-                return 'Failure'
+            if not self.wait_until_reached(
+                target_frame=Frames.tool_frame, target_pose=pose, quiet=True
+            ):
+                return "Failure"
             else:
                 rospy.loginfo("Viewpoint reached.")
 
             rospy.loginfo("Sleeping 3.0 sec before moving to next viewpoint.")
             rospy.sleep(3.0)
-        return 'Completed'
+        return "Completed"
 
 
 class ModelFitValve(ModelFitState):
     """
     Call a detection service to fit a valve model
     """
+
     def __init__(self, ns):
         ModelFitState.__init__(self, ns=ns, outcomes=["Completed", "Retry", "Failure"])
-        self.k = 3 # TODO remove the hard coded 3 = number of spokes in the valve
-        self.valve_fitter = ValveFitter(k=3) 
+        self.k = 3  # TODO remove the hard coded 3 = number of spokes in the valve
+        self.valve_fitter = ValveFitter(k=3)
 
-        self.marker_publisher = rospy.Publisher("/detected_valve/marker", Marker, queue_size=1)
+        self.marker_publisher = rospy.Publisher(
+            "/detected_valve/marker", Marker, queue_size=1
+        )
 
     def _object_name(self) -> str:
         return Frames.valve_frame
@@ -244,8 +277,10 @@ class ModelFitValve(ModelFitState):
         marker.pose.position.z = 0
         return marker
 
-    def _model_fit(self, keypoints_perception: List[Pose], frame: str) -> TransformStamped:
-        points_3d = np.zeros((3, self.k +1)) # spokes plus center
+    def _model_fit(
+        self, keypoints_perception: List[Pose], frame: str
+    ) -> TransformStamped:
+        points_3d = np.zeros((3, self.k + 1))  # spokes plus center
         for i, kpt in enumerate(keypoints_perception):
             points_3d[:, i] = np.array([kpt.position.x, kpt.position.y, kpt.position.z])
 
@@ -267,18 +302,17 @@ class ModelFitValve(ModelFitState):
         marker.pose.position.x = center[0]
         marker.pose.position.y = center[1]
         marker.pose.position.z = center[2]
-        
+
         marker.pose.orientation.x = q[0]
         marker.pose.orientation.y = q[1]
         marker.pose.orientation.z = q[2]
         marker.pose.orientation.w = q[3]
         self.marker_publisher.publish(marker)
-       
+
         object_pose = TransformStamped()
         object_pose.transform.translation = marker.pose.position
         object_pose.transform.rotation = marker.pose.orientation
         return object_pose
-
 
 
 class LateralGraspState(StateRosControl):
@@ -291,7 +325,9 @@ class LateralGraspState(StateRosControl):
         path_topic_name = self.get_scoped_param("path_topic_name")
 
         self.path_publisher = rospy.Publisher(path_topic_name, Path, queue_size=1)
-        self.candidate_poses_publisher = rospy.Publisher("/candidate_poses", Path, queue_size=1)
+        self.candidate_poses_publisher = rospy.Publisher(
+            "/candidate_poses", Path, queue_size=1
+        )
         self.grasp_planner = GraspPlanner()
 
         self.first_run = True  # select the candidate grasp only at the first run
@@ -301,7 +337,7 @@ class LateralGraspState(StateRosControl):
     def run(self):
         controller_switched = self.do_switch()
         if not controller_switched:
-            return 'Failure'
+            return "Failure"
 
         if self.first_run:
             # For debugging only
@@ -313,13 +349,20 @@ class LateralGraspState(StateRosControl):
             approach_pose = self.grasp_planner.compute_lateral_approach_pose()
             start_pose = PoseStamped()
             start_pose.header.frame_id = Frames.base_frame
-            start_pose.pose = se3_to_pose_ros(self.get_transform(target=Frames.base_frame, source=Frames.tool_frame))
-            path = get_timed_path_to_target(start_pose=start_pose,
-                                            target_pose=approach_pose,
-                                            linear_velocity=0.25, angular_velocity=0.25)
+            start_pose.pose = se3_to_pose_ros(
+                self.get_transform(target=Frames.base_frame, source=Frames.tool_frame)
+            )
+            path = get_timed_path_to_target(
+                start_pose=start_pose,
+                target_pose=approach_pose,
+                linear_velocity=0.25,
+                angular_velocity=0.25,
+            )
             self.path_publisher.publish(path)
-            if not self.wait_until_reached(target_frame=Frames.tool_frame, target_pose=approach_pose, quiet=True):
-                return 'Failure'
+            if not self.wait_until_reached(
+                target_frame=Frames.tool_frame, target_pose=approach_pose, quiet=True
+            ):
+                return "Failure"
 
             # Goal 1: move tool to the valve plane, not yet at the handle
             self.pre_grasp = self.grasp_planner.compute_lateral_pre_grasp_pose()
@@ -333,24 +376,34 @@ class LateralGraspState(StateRosControl):
         start_pose = PoseStamped()
         start_pose.header.frame_id = Frames.base_frame
 
-        start_pose.pose = se3_to_pose_ros(self.get_transform(target=Frames.base_frame, source=Frames.tool_frame))
-        path = get_timed_path_to_target(start_pose=start_pose,
-                                        target_pose=self.pre_grasp,
-                                        linear_velocity=0.5, angular_velocity=0.5)
+        start_pose.pose = se3_to_pose_ros(
+            self.get_transform(target=Frames.base_frame, source=Frames.tool_frame)
+        )
+        path = get_timed_path_to_target(
+            start_pose=start_pose,
+            target_pose=self.pre_grasp,
+            linear_velocity=0.5,
+            angular_velocity=0.5,
+        )
         self.path_publisher.publish(path)
         if not self.wait_until_reached(Frames.tool_frame, self.pre_grasp, quiet=True):
-            return 'Failure'
+            return "Failure"
 
         # Goal 2: move forward to surround the valve
-        start_pose.pose = se3_to_pose_ros(self.get_transform(target=Frames.base_frame, source=Frames.tool_frame))
-        path = get_timed_path_to_target(start_pose=start_pose,
-                                        target_pose=self.grasp,
-                                        linear_velocity=0.1, angular_velocity=0.1)
+        start_pose.pose = se3_to_pose_ros(
+            self.get_transform(target=Frames.base_frame, source=Frames.tool_frame)
+        )
+        path = get_timed_path_to_target(
+            start_pose=start_pose,
+            target_pose=self.grasp,
+            linear_velocity=0.1,
+            angular_velocity=0.1,
+        )
         self.path_publisher.publish(path)
         if not self.wait_until_reached(Frames.tool_frame, self.grasp, quiet=True):
-            return 'Failure'
+            return "Failure"
 
-        return 'Completed'
+        return "Completed"
 
 
 class ValveManipulation(StateRosControl):
@@ -369,26 +422,36 @@ class ValveManipulation(StateRosControl):
 
         self.trajectory_generator = ValveTrajectoryGenerator()
         self.theta_current = 0.0
-        self.set_context('full_rotation_done', False)
+        self.set_context("full_rotation_done", False)
 
     def step(self):
-        path = self.trajectory_generator.get_path(angle_start_deg=0.0,
-                                                  angle_end_deg=self.angle_step_deg,
-                                                  speed_deg=self.speed_deg,
-                                                  angle_delta_deg=self.angle_delta_deg)
+        path = self.trajectory_generator.get_path(
+            angle_start_deg=0.0,
+            angle_end_deg=self.angle_step_deg,
+            speed_deg=self.speed_deg,
+            angle_delta_deg=self.angle_delta_deg,
+        )
 
         self.path_publisher.publish(path)
-        if not self.wait_until_reached(Frames.tool_frame, path.poses[-1], quiet=True, linear_tolerance=0.02):
-            return 'Failure'
+        if not self.wait_until_reached(
+            Frames.tool_frame, path.poses[-1], quiet=True, linear_tolerance=0.02
+        ):
+            return "Failure"
 
         else:
-            rospy.loginfo("Total angle is: {} (target angle={})".format(self.total_angle, self.angle_end_deg))
-            self.total_angle += self.angle_step_deg  # compute the absolute total angle displacement
+            rospy.loginfo(
+                "Total angle is: {} (target angle={})".format(
+                    self.total_angle, self.angle_end_deg
+                )
+            )
+            self.total_angle += (
+                self.angle_step_deg
+            )  # compute the absolute total angle displacement
 
             if abs(self.total_angle) > abs(self.angle_end_deg):
                 self.set_context("full_rotation_done", True, overwrite=True)
                 rospy.loginfo("Valve has been successfully operated.")
-            return 'Completed'
+            return "Completed"
 
 
 class LateralManipulation(ValveManipulation):
@@ -402,7 +465,7 @@ class LateralManipulation(ValveManipulation):
     def run(self):
         controller_switched = self.do_switch()
         if not controller_switched:
-            return 'Failure'
+            return "Failure"
 
         self.trajectory_generator.estimate_valve_from_lateral_grasp()
         return self.step()
@@ -414,8 +477,9 @@ class PostLateralGraspState(StateRosControl):
     """
 
     def __init__(self, ns):
-        StateRosControl.__init__(self, ns=ns,
-                                    outcomes=['Completed', 'Failure', 'FullRotationDone'])
+        StateRosControl.__init__(
+            self, ns=ns, outcomes=["Completed", "Failure", "FullRotationDone"]
+        )
         path_topic_name = self.get_scoped_param("path_topic_name")
         self.path_publisher = rospy.Publisher(path_topic_name, Path, queue_size=1)
         self.grasp_planner = GraspPlanner()
@@ -423,29 +487,37 @@ class PostLateralGraspState(StateRosControl):
     def run(self):
         controller_switched = self.do_switch()
         if not controller_switched:
-            return 'Failure'
+            return "Failure"
 
         # Goal 1: move away from the valve in the radial direction
         # Assumption is that we are in a grasp state
         target_pose = self.grasp_planner.compute_post_lateral_grasp()
         start_pose = PoseStamped()
         start_pose.header.frame_id = Frames.base_frame
-        start_pose.pose = se3_to_pose_ros(self.get_transform(target=Frames.base_frame, source=Frames.tool_frame))
-        path = get_timed_path_to_target(start_pose=start_pose,
-                                        target_pose=target_pose,
-                                        linear_velocity=0.1, angular_velocity=0.1)
+        start_pose.pose = se3_to_pose_ros(
+            self.get_transform(target=Frames.base_frame, source=Frames.tool_frame)
+        )
+        path = get_timed_path_to_target(
+            start_pose=start_pose,
+            target_pose=target_pose,
+            linear_velocity=0.1,
+            angular_velocity=0.1,
+        )
         self.path_publisher.publish(path)
-        if not self.wait_until_reached(Frames.tool_frame, 
-                                       target_pose, 
-                                       linear_tolerance=0.02, 
-                                       angular_tolerance=0.2,
-                                       quiet=True):
-            return 'Failure'
+        if not self.wait_until_reached(
+            Frames.tool_frame,
+            target_pose,
+            linear_tolerance=0.02,
+            angular_tolerance=0.2,
+            quiet=True,
+        ):
+            return "Failure"
 
         if self.global_context.ctx.full_rotation_done:
-            return 'FullRotationDone'
+            return "FullRotationDone"
 
-        return 'Completed'
+        return "Completed"
+
 
 # Unsupported for now
 # class FrontalGraspState(RosControlPoseReaching):

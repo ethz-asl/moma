@@ -36,7 +36,8 @@ using namespace mobile_manipulator;
 /**
  * Converts the pose of the interactive marker to TargetTrajectories.
  */
-TargetTrajectories goalPoseToTargetTrajectories(const Eigen::Vector3d& position, const Eigen::Quaterniond& orientation,
+TargetTrajectories goalPoseToTargetTrajectories(const Eigen::Vector3d& position,
+                                                const Eigen::Quaterniond& orientation,
                                                 const SystemObservation& observation) {
   // time trajectory
   const scalar_array_t timeTrajectory{observation.time};
@@ -54,7 +55,8 @@ int main(int argc, char* argv[]) {
   ::ros::init(argc, argv, robotName + "_target");
   ::ros::NodeHandle nodeHandle;
 
-  TargetTrajectoriesInteractiveMarker targetPoseCommand(nodeHandle, robotName, &goalPoseToTargetTrajectories);
+  TargetTrajectoriesInteractiveMarker targetPoseCommand(nodeHandle, robotName,
+                                                        &goalPoseToTargetTrajectories);
   targetPoseCommand.publishInteractiveMarker();
 
   // Successful exit

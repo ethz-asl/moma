@@ -15,7 +15,8 @@ rospy.sleep(1.0)
 # debug that the trajectory generation is correct
 rospy.loginfo("Publishing opening trajectory")
 path = door.generate_door_opening_trajectory(
-    opening_angle=math.pi/2.0, opening_speed=0.5)
+    opening_angle=math.pi / 2.0, opening_speed=0.5
+)
 
 rospy.loginfo(f"Poses in the path: {len(path.poses)}")
 path_publisher = rospy.Publisher("/trajectory", Path, queue_size=1)

@@ -20,11 +20,11 @@
     <!-- Remap topics from those used in code to those on the ROS network -->
     <remap from="image_rect" to="$(arg camera_name)/$(arg image_domain)/image_raw" />
     <remap from="$(arg camera_name)/$(arg image_domain)/camera_info" to="/camera_info" if="$(arg custom_intrinsics)" />
-    
+
     <param name="camera_frame" value="$(arg camera_name)_color_optical_frame" />
     <param name="publish_tag_detections_image" type="bool" value="true" />      <!-- default: false -->
     <rosparam command="load" file="$(find moma_sensor_tools)/config/handeye_calibration/apriltag_settings.yaml"/>
-    <rosparam command="load" file="$(find moma_sensor_tools)/config/handeye_calibration/apriltags.yaml"/>  
+    <rosparam command="load" file="$(find moma_sensor_tools)/config/handeye_calibration/apriltags.yaml"/>
   </node>
 
   <!-- Optionally run the realsense-->

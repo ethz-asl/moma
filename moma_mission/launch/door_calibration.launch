@@ -2,7 +2,7 @@
 <launch>
     <arg name="rviz" default="false"/>
     <!-- A launch for calibration of the current door placement using the end effector as a measurement toool -->
-    
+
     <!-- Calibration node -->
     <node pkg="moma_mission" type="calibrate_door.py" name="door_calibration_node" output="screen"/>
 

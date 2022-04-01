@@ -18,16 +18,19 @@ class TransformVisitorState(StateRosControl):
         self.offset = self.get_scoped_param("offset", [0, 0, 0])
         self.angle_z = self.get_scoped_param("angle_z", 0)
         self.duration = self.get_scoped_param("duration", 0.0)
-        self.timeout = self.get_scoped_param("timeout", 2 * self.duration if self.duration > 0 else 30.0)
+        self.timeout = self.get_scoped_param(
+            "timeout", 2 * self.duration if self.duration > 0 else 30.0
+        )
         self.allow_flip = self.get_scoped_param("allow_flip", False)
 
         self.path_publisher = rospy.Publisher(
-            self.get_scoped_param("path_topic", "/desired_path"), Path, queue_size=1)
+            self.get_scoped_param("path_topic", "/desired_path"), Path, queue_size=1
+        )
 
     def run(self):
         controller_switched = self.do_switch()
         if not controller_switched:
-            return 'Failure'
+            return "Failure"
 
         path = Path()
         path.header.frame_id = self.control_frame
@@ -41,7 +44,7 @@ class TransformVisitorState(StateRosControl):
             path.poses.append(pose_stamped)
 
         T_c_t = self.get_transform(self.control_frame, self.target_frame)
-        H_t_toff = tf.transformations.rotation_matrix(self.angle_z, [0,0,1])
+        H_t_toff = tf.transformations.rotation_matrix(self.angle_z, [0, 0, 1])
         H_t_toff[0:3, 3] = self.offset
         H_c_toff = T_c_t.homogeneous @ H_t_toff
 
@@ -49,18 +52,22 @@ class TransformVisitorState(StateRosControl):
             T_c_ee = self.get_transform(self.control_frame, self.ee_frame)
             H_c_ee = T_c_ee.homogeneous
             if np.dot(H_c_toff[0:3, 0], H_c_ee[0:3, 0]) < 0:
-                rospy.loginfo('Using a flipped pose')
+                rospy.loginfo("Using a flipped pose")
                 H_toff_toffflip = tf.transformations.rotation_matrix(np.pi, [0, 0, 1])
                 H_c_toff = H_c_toff @ H_toff_toffflip
         T_c_toff = pin.SE3(H_c_toff)
 
         pose_stamped = se3_to_pose_stamped(T_c_toff, self.control_frame)
-        pose_stamped.header.stamp = rospy.get_rostime() + rospy.Duration.from_sec(self.duration)
+        pose_stamped.header.stamp = rospy.get_rostime() + rospy.Duration.from_sec(
+            self.duration
+        )
         path.poses.append(pose_stamped)
 
         self.path_publisher.publish(path)
-        if not self.wait_until_reached(self.ee_frame, path.poses[-1], timeout=self.timeout):
-            return 'Failure'
+        if not self.wait_until_reached(
+            self.ee_frame, path.poses[-1], timeout=self.timeout
+        ):
+            return "Failure"
 
         rospy.sleep(2.0)
-        return 'Completed'
+        return "Completed"

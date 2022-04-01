@@ -21,5 +21,5 @@ local_ip: "10.0.0.140"
 local_port: 14543
 local_component_id: 25
 sensor_components_ids:
-    - 35
-    - 45
+  - 35
+  - 45

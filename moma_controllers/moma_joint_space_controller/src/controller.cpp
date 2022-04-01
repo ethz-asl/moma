@@ -1,15 +1,16 @@
+//clang-format off
 #include "moma_joint_space_controller/controller.h"
-#include "moma_msgs/JointResult.h"
+//clang-format on
 
 #include <angles/angles.h>
 #include <pluginlib/class_list_macros.h>
 
-namespace moma_controllers {
+#include "moma_msgs/JointResult.h"
 
+namespace moma_controllers {
 bool JointSpaceController::init(hardware_interface::RobotHW* hw, ros::NodeHandle& root_nh,
                                 ros::NodeHandle& controller_nh) {
-
-  if (!controller_nh.param<std::vector<std::string>>("joint_names", joint_names_, {})){
+  if (!controller_nh.param<std::vector<std::string>>("joint_names", joint_names_, {})) {
     ROS_ERROR("Failed to get joint_names param");
     return false;
   }
@@ -51,8 +52,7 @@ bool JointSpaceController::init(hardware_interface::RobotHW* hw, ros::NodeHandle
     return false;
   }
 
-  if (!controller_nh.getParam("/arm_description", arm_description_) ||
-      arm_description_.empty()) {
+  if (!controller_nh.getParam("/arm_description", arm_description_) || arm_description_.empty()) {
     ROS_ERROR_STREAM("Could not find param /arm_description or invalid param");
     return false;
   }
@@ -67,8 +67,7 @@ bool JointSpaceController::init(hardware_interface::RobotHW* hw, ros::NodeHandle
   joint_current_ = Eigen::VectorXd::Zero(n_joints_);
 
   trajectory_subscriber_ =
-      controller_nh.subscribe("goal", 1,
-                              &JointSpaceController::joint_callback, this);
+      controller_nh.subscribe("goal", 1, &JointSpaceController::joint_callback, this);
 
   action_server_ = std::make_unique<ActionServer>(
       controller_nh, "/joint_space_controller_server",
@@ -84,8 +83,8 @@ bool JointSpaceController::init(hardware_interface::RobotHW* hw, ros::NodeHandle
 
     for (size_t i = 0; i < n_joints_; i++) {
       control_toolbox::Pid pid;
-      if (!pid.init(
-              ros::NodeHandle(controller_nh.getNamespace() + "/pid_gains/" + joint_names_[i]), false)) {
+      if (!pid.init(ros::NodeHandle(controller_nh.getNamespace() + "/pid_gains/" + joint_names_[i]),
+                    false)) {
         ROS_ERROR_STREAM("Failed to load PID parameters from " << joint_names_[i] + "/pid");
         return false;
       }
@@ -104,7 +103,7 @@ bool JointSpaceController::init(hardware_interface::RobotHW* hw, ros::NodeHandle
   return true;
 }
 
-void JointSpaceController::starting(const ros::Time& time){
+void JointSpaceController::starting(const ros::Time& time) {
   read_state();
   position_command_ = q_.head(n_joints_);
   velocity_command_ = Eigen::VectorXd::Zero(n_joints_);
@@ -113,7 +112,7 @@ void JointSpaceController::starting(const ros::Time& time){
 }
 
 bool JointSpaceController::add_command_handles(hardware_interface::RobotHW* hw) {
-  if (sim_){
+  if (sim_) {
     auto command_interface = hw->get<hardware_interface::EffortJointInterface>();
     if (command_interface == nullptr) {
       ROS_ERROR_STREAM("Can't get command interface");
@@ -123,8 +122,7 @@ bool JointSpaceController::add_command_handles(hardware_interface::RobotHW* hw) 
     for (size_t i = 0; i < n_joints_; i++) {
       joint_handles_.push_back(command_interface->getHandle(joint_names_[i]));
     }
-  }
-  else{
+  } else {
     auto command_interface = hw->get<hardware_interface::VelocityJointInterface>();
     if (command_interface == nullptr) {
       ROS_ERROR_STREAM("Can't get command interface");
@@ -152,7 +150,7 @@ void JointSpaceController::update(const ros::Time& time, const ros::Duration& pe
     std::stringstream ss;
     for (int i = 0; i < n_joints_; i++) {
       double joint_error, velocity_command;
-      
+
       angles::shortest_angular_distance_with_large_limits(
           q_[i], joint_desired_now(i), lower_limit_[i], upper_limit_[i], joint_error);
       ss << "q[" << i << "]" << q_[i] << ", ";
@@ -171,8 +169,7 @@ void JointSpaceController::update(const ros::Time& time, const ros::Duration& pe
     }
     success_ = all_reached;
     ROS_DEBUG_STREAM(ss.str());
-  } 
-  else {
+  } else {
     velocity_command_.setZero();
   }
   write_command(period);
@@ -183,8 +180,7 @@ void JointSpaceController::write_command(const ros::Duration& period) {
     for (int i = 0; i < n_joints_; i++) {
       joint_handles_[i].setCommand(velocity_command_[i]);
     }
-  } 
-  else {
+  } else {
     read_state();
     model_->updateState(q_, qd_);
     model_->computeAllTerms();
@@ -198,11 +194,11 @@ void JointSpaceController::write_command(const ros::Duration& period) {
       angles::shortest_angular_distance_with_large_limits(
           q_(i), position_command_(i), lower_limit_[i], upper_limit_[i], position_error(i));
       velocity_error(i) = 0.0 - qd_(i);
-      pd_term(i) = pid_controllers_[i].computeCommand(position_error(i), velocity_error(i),
-                                                      period);
+      pd_term(i) = pid_controllers_[i].computeCommand(position_error(i), velocity_error(i), period);
     }
 
-    Eigen::VectorXd tau = model_->getInertia().block(0, 0, n_joints_, n_joints_) * pd_term + gravity_and_coriolis;
+    Eigen::VectorXd tau =
+        model_->getInertia().block(0, 0, n_joints_, n_joints_) * pd_term + gravity_and_coriolis;
     ROS_DEBUG_STREAM_THROTTLE(
         1.0,
         "position current: " << q_.transpose() << std::endl
@@ -261,8 +257,7 @@ void JointSpaceController::cleanup() {
   }
 };
 
-void JointSpaceController::execute_callback(
-    const moma_msgs::JointGoalConstPtr& goal) {
+void JointSpaceController::execute_callback(const moma_msgs::JointGoalConstPtr& goal) {
   if (goal->position.size() != n_joints_) {
     ROS_ERROR_STREAM(
         "Target joint configuration message has the wrong size: " << goal->position.size());
@@ -277,7 +272,7 @@ void JointSpaceController::execute_callback(
   moma_msgs::JointResult result;
   result.success = false;
   success_ = false;
-  
+
   // start executing the action
   while (ros::ok()) {
     // check that preempt has not been requested by the client

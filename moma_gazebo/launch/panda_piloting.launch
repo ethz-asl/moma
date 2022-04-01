@@ -26,10 +26,10 @@
 
   <!-- spawn valve -->
   <include file="$(find moma_gazebo)/launch/load_valve.launch"/>
-  
+
   <!-- OCS2 params -->
   <param name="ocs2_mpc/task_file"  value="$(find moma_ocs2)/config/mpc/task_panda.info"/>
-  <param name="ocs2_mpc/robot_description_ocs2" command="$(find xacro)/xacro $(find moma_description)/urdf/superpanda.urdf.xacro 
+  <param name="ocs2_mpc/robot_description_ocs2" command="$(find xacro)/xacro $(find moma_description)/urdf/superpanda.urdf.xacro
     use_nominal_extrinsics:=true tool:='none' mpc_model:=true"/>
   <param name="ocs2_mpc/base_type" value="$(arg base_type)"/>
   <include file="$(find panda_mpc)/launch/interactive_marker.launch"/>
@@ -54,7 +54,7 @@
   <group if="$(eval arg('tool') in ['robotiq_2f_85', 'robotiq_2f_toolset'])">
     <node name="gripper_controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="robotiq_2f_85_controller" />
   </group>
-  
+
   <!-- start a robot state publisher -->
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="true" output="screen" />
 

@@ -1,15 +1,16 @@
+//clang-format off
 #include "moma_joint_velocity_controller/controller.h"
-#include "moma_msgs/JointResult.h"
+//clang-format on
 
 #include <angles/angles.h>
 #include <pluginlib/class_list_macros.h>
 
+#include "moma_msgs/JointResult.h"
+
 namespace moma_controllers {
-
 bool JointVelocityController::init(hardware_interface::RobotHW* hw, ros::NodeHandle& root_nh,
-                                ros::NodeHandle& controller_nh) {
-
-  if (!controller_nh.param<std::vector<std::string>>("joint_names", joint_names_, {})){
+                                   ros::NodeHandle& controller_nh) {
+  if (!controller_nh.param<std::vector<std::string>>("joint_names", joint_names_, {})) {
     ROS_ERROR("Failed to get joint_names param");
     return false;
   }
@@ -55,8 +56,7 @@ bool JointVelocityController::init(hardware_interface::RobotHW* hw, ros::NodeHan
     return false;
   }
 
-  if (!controller_nh.getParam("/arm_description", arm_description_) ||
-      arm_description_.empty()) {
+  if (!controller_nh.getParam("/arm_description", arm_description_) || arm_description_.empty()) {
     ROS_ERROR_STREAM("Could not find param /arm_description or invalid param");
     return false;
   }
@@ -67,8 +67,7 @@ bool JointVelocityController::init(hardware_interface::RobotHW* hw, ros::NodeHan
   velocity_available_ = false;
   velocity_desired_ = Eigen::VectorXd::Zero(n_joints_);
   velocity_subscriber_ =
-      controller_nh.subscribe("goal", 1,
-                              &JointVelocityController::joint_callback, this);
+      controller_nh.subscribe("goal", 1, &JointVelocityController::joint_callback, this);
 
   // Init specialized command handles
   if (!add_command_handles(hw)) return false;
@@ -80,8 +79,8 @@ bool JointVelocityController::init(hardware_interface::RobotHW* hw, ros::NodeHan
 
     for (size_t i = 0; i < n_joints_; i++) {
       control_toolbox::Pid pid;
-      if (!pid.init(
-              ros::NodeHandle(controller_nh.getNamespace() + "/pid_gains/" + joint_names_[i]), false)) {
+      if (!pid.init(ros::NodeHandle(controller_nh.getNamespace() + "/pid_gains/" + joint_names_[i]),
+                    false)) {
         ROS_ERROR_STREAM("Failed to load PID parameters from " << joint_names_[i] + "/pid");
         return false;
       }
@@ -100,7 +99,7 @@ bool JointVelocityController::init(hardware_interface::RobotHW* hw, ros::NodeHan
   return true;
 }
 
-void JointVelocityController::starting(const ros::Time& time){
+void JointVelocityController::starting(const ros::Time& time) {
   read_state();
   position_command_ = q_.head(n_joints_);
   velocity_command_ = Eigen::VectorXd::Zero(n_joints_);
@@ -118,8 +117,7 @@ bool JointVelocityController::add_command_handles(hardware_interface::RobotHW* h
     for (size_t i = 0; i < n_joints_; i++) {
       joint_handles_.push_back(command_interface->getHandle(joint_names_[i]));
     }
-  }
-  else {
+  } else {
     auto command_interface = hw->get<hardware_interface::VelocityJointInterface>();
     if (command_interface == nullptr) {
       ROS_ERROR_STREAM("Can't get command interface");
@@ -143,20 +141,24 @@ void JointVelocityController::update(const ros::Time& time, const ros::Duration&
       // Try to reach target velocity
       double velocity_desired_with_vmax_amax_limits = velocity_desired_[i];
       // Respect maximum acceleration / deceleration
-      velocity_desired_with_vmax_amax_limits = std::clamp(velocity_desired_with_vmax_amax_limits,
-                                                          velocity_command_[i] < 0 ? velocity_command_[i] - max_acceleration_ * dt : velocity_command_[i] - max_deceleration_ * dt,
-                                                          velocity_command_[i] < 0 ? velocity_command_[i] + max_deceleration_ * dt : velocity_command_[i] + max_acceleration_ * dt);
+      velocity_desired_with_vmax_amax_limits =
+          std::clamp(velocity_desired_with_vmax_amax_limits,
+                     velocity_command_[i] < 0 ? velocity_command_[i] - max_acceleration_ * dt
+                                              : velocity_command_[i] - max_deceleration_ * dt,
+                     velocity_command_[i] < 0 ? velocity_command_[i] + max_deceleration_ * dt
+                                              : velocity_command_[i] + max_acceleration_ * dt);
       // Start decelerating in time before hitting limit
       // Constant deceleration model: Δq = 1/2 * a * t^2 and v = a * t
-      velocity_desired_with_vmax_amax_limits = std::clamp(velocity_desired_with_vmax_amax_limits,
-                                                          -sqrt(2.0 * std::max(q_(i) - lower_limit_[i] - safety_margin_, 0.0) * max_deceleration_),
-                                                          sqrt(2.0 * std::max(upper_limit_[i] - q_(i) - safety_margin_, 0.0) * max_deceleration_));
+      velocity_desired_with_vmax_amax_limits = std::clamp(
+          velocity_desired_with_vmax_amax_limits,
+          -sqrt(2.0 * std::max(q_(i) - lower_limit_[i] - safety_margin_, 0.0) * max_deceleration_),
+          sqrt(2.0 * std::max(upper_limit_[i] - q_(i) - safety_margin_, 0.0) * max_deceleration_));
       // Do not exceed maximum velocity
-      velocity_desired_with_vmax_amax_limits = std::clamp(velocity_desired_with_vmax_amax_limits,
-                                                          -max_velocity_,
-                                                          max_velocity_);
+      velocity_desired_with_vmax_amax_limits =
+          std::clamp(velocity_desired_with_vmax_amax_limits, -max_velocity_, max_velocity_);
 
-      position_command_[i] = position_command_[i] + velocity_desired_with_vmax_amax_limits * dt * gain_;
+      position_command_[i] =
+          position_command_[i] + velocity_desired_with_vmax_amax_limits * dt * gain_;
       velocity_command_[i] = velocity_desired_with_vmax_amax_limits;
     }
   } else {
@@ -170,8 +172,7 @@ void JointVelocityController::write_command(const ros::Duration& period) {
     for (int i = 0; i < n_joints_; i++) {
       joint_handles_[i].setCommand(velocity_command_[i]);
     }
-  } 
-  else {
+  } else {
     read_state();
     model_->updateState(q_, qd_);
     model_->computeAllTerms();
@@ -185,11 +186,11 @@ void JointVelocityController::write_command(const ros::Duration& period) {
       angles::shortest_angular_distance_with_large_limits(
           q_(i), position_command_(i), lower_limit_[i], upper_limit_[i], position_error(i));
       velocity_error(i) = 0.0 - qd_(i);
-      pd_term(i) = pid_controllers_[i].computeCommand(position_error(i), velocity_error(i),
-                                                      period);
+      pd_term(i) = pid_controllers_[i].computeCommand(position_error(i), velocity_error(i), period);
     }
 
-    Eigen::VectorXd tau = model_->getInertia().block(0, 0, n_joints_, n_joints_) * pd_term + gravity_and_coriolis;
+    Eigen::VectorXd tau =
+        model_->getInertia().block(0, 0, n_joints_, n_joints_) * pd_term + gravity_and_coriolis;
     ROS_DEBUG_STREAM_THROTTLE(
         1.0,
         "position current: " << q_.transpose() << std::endl
@@ -237,4 +238,5 @@ void JointVelocityController::joint_callback(const sensor_msgs::JointStateConstP
 }
 }  // namespace moma_controllers
 
-PLUGINLIB_EXPORT_CLASS(moma_controllers::JointVelocityController, controller_interface::ControllerBase)
+PLUGINLIB_EXPORT_CLASS(moma_controllers::JointVelocityController,
+                       controller_interface::ControllerBase)

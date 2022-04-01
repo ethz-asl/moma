@@ -1,5 +1,6 @@
 import rospy
 
+
 class Frames:
     map_frame = "map"
     tool_frame = "tool_frame"
@@ -22,11 +23,13 @@ class Frames:
 
     @classmethod
     def print_summary(cls):
-        print(f"""================================
+        print(
+            f"""================================
 Valve opening frames data:
 ================================
 Map frame: \t{cls.map_frame}
 Valve frame: \t{cls.valve_frame}
 Base frame: \t{cls.base_frame}
 Tool frame: \t{cls.tool_frame}
-================================\n""")
+================================\n"""
+        )

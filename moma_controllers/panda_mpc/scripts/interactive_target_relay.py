@@ -30,9 +30,11 @@ def callback(msg):
 rospy.init_node("mpc_target_relay_node")
 frame_id = rospy.get_param("~frame_id")
 in_topic = rospy.get_param("~in_topic")
-out_topic  = rospy.get_param("~out_topic")
+out_topic = rospy.get_param("~out_topic")
 
-in_subscriber = rospy.Subscriber(in_topic, mpc_target_trajectories, callback, queue_size=10)
+in_subscriber = rospy.Subscriber(
+    in_topic, mpc_target_trajectories, callback, queue_size=10
+)
 out_publisher = rospy.Publisher(out_topic, Path, queue_size=1)
 
 rospy.spin()

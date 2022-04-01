@@ -30,19 +30,37 @@ import rospkg
 import rospy
 
 from python_qt_binding import loadUi
-from python_qt_binding.QtCore import QAbstractTableModel, QModelIndex, Qt,\
-                                     QTimer, QVariant, Signal
-from python_qt_binding.QtWidgets import QWidget, QFormLayout, QHeaderView,\
-					QMenu, QStyledItemDelegate
-from python_qt_binding.QtGui import QCursor, QFont, QIcon, QStandardItem,\
-                                    QStandardItemModel
+from python_qt_binding.QtCore import (
+    QAbstractTableModel,
+    QModelIndex,
+    Qt,
+    QTimer,
+    QVariant,
+    Signal,
+)
+from python_qt_binding.QtWidgets import (
+    QWidget,
+    QFormLayout,
+    QHeaderView,
+    QMenu,
+    QStyledItemDelegate,
+)
+from python_qt_binding.QtGui import (
+    QCursor,
+    QFont,
+    QIcon,
+    QStandardItem,
+    QStandardItemModel,
+)
 from qt_gui.plugin import Plugin
 
 from controller_manager_msgs.msg import ControllerState
 from controller_manager_msgs.srv import *
-from controller_manager_msgs.utils\
-    import ControllerLister, ControllerManagerLister,\
-    get_rosparam_controller_names
+from controller_manager_msgs.utils import (
+    ControllerLister,
+    ControllerManagerLister,
+    get_rosparam_controller_names,
+)
 
 from .update_combo import update_combo
 
@@ -50,36 +68,41 @@ from .update_combo import update_combo
 def __hash__(self):
     return hash(self.name)
 
+
 # Fix for ROS noetic
-setattr(ControllerState, '__hash__', __hash__)
+setattr(ControllerState, "__hash__", __hash__)
+
 
 class ControllerManager(Plugin):
     """
     Graphical frontend for managing ros_control controllers.
     """
+
     _cm_update_freq = 1  # Hz
 
     def __init__(self, context):
         super(ControllerManager, self).__init__(context)
-        self.setObjectName('ControllerManager')
+        self.setObjectName("ControllerManager")
 
         # Create QWidget and extend it with all the attributes and children
         # from the UI file
         self._widget = QWidget()
         rp = rospkg.RosPack()
-        ui_file = os.path.join(rp.get_path('moma_controller_manager_gui'),
-                               'resource',
-                               'controller_manager.ui')
+        ui_file = os.path.join(
+            rp.get_path("moma_controller_manager_gui"),
+            "resource",
+            "controller_manager.ui",
+        )
         loadUi(ui_file, self._widget)
-        self._widget.setObjectName('ControllerManagerUi')
+        self._widget.setObjectName("ControllerManagerUi")
 
         # Pop-up that displays controller information
         self._popup_widget = QWidget()
-        ui_file = os.path.join(rp.get_path('moma_controller_manager_gui'),
-                               'resource',
-                               'controller_info.ui')
+        ui_file = os.path.join(
+            rp.get_path("moma_controller_manager_gui"), "resource", "controller_info.ui"
+        )
         loadUi(ui_file, self._popup_widget)
-        self._popup_widget.setObjectName('ControllerInfoUi')
+        self._popup_widget.setObjectName("ControllerInfoUi")
 
         # Show _widget.windowTitle on left-top of each plugin (when
         # it's set in _widget). This is useful when you open multiple
@@ -87,8 +110,9 @@ class ControllerManager(Plugin):
         # plugin at once, these lines add number to make it easy to
         # tell from pane to pane.
         if context.serial_number() > 1:
-            self._widget.setWindowTitle(self._widget.windowTitle() +
-                                        (' (%d)' % context.serial_number()))
+            self._widget.setWindowTitle(
+                self._widget.windowTitle() + (" (%d)" % context.serial_number())
+            )
         # Add widget to the user interface
         context.add_widget(self._widget)
 
@@ -105,12 +129,14 @@ class ControllerManager(Plugin):
 
         # Controller state icons
         rospack = rospkg.RosPack()
-        path = rospack.get_path('moma_controller_manager_gui')
-        self._icons = {'running': QIcon(path + '/resource/led_green.png'),
-                       'stopped': QIcon(path + '/resource/led_red.png'),
-                       'uninitialized': QIcon(path + '/resource/led_off.png'),
-                       'initialized': QIcon(path + '/resource/led_red.png'),
-                       'switch': QIcon(path + '/resource/cm_icon.png')}
+        path = rospack.get_path("moma_controller_manager_gui")
+        self._icons = {
+            "running": QIcon(path + "/resource/led_green.png"),
+            "stopped": QIcon(path + "/resource/led_red.png"),
+            "uninitialized": QIcon(path + "/resource/led_off.png"),
+            "initialized": QIcon(path + "/resource/led_red.png"),
+            "switch": QIcon(path + "/resource/cm_icon.png"),
+        }
 
         # Controllers display
         table_view = self._widget.table_view
@@ -127,15 +153,13 @@ class ControllerManager(Plugin):
         # Timer for controller manager updates
         self._list_cm = ControllerManagerLister()
         self._update_cm_list_timer = QTimer(self)
-        self._update_cm_list_timer.setInterval(1000.0 /
-                                               self._cm_update_freq)
+        self._update_cm_list_timer.setInterval(1000.0 / self._cm_update_freq)
         self._update_cm_list_timer.timeout.connect(self._update_cm_list)
         self._update_cm_list_timer.start()
 
         # Timer for running controller updates
         self._update_ctrl_list_timer = QTimer(self)
-        self._update_ctrl_list_timer.setInterval(1000.0 /
-                                                 self._cm_update_freq)
+        self._update_ctrl_list_timer.setInterval(1000.0 / self._cm_update_freq)
         self._update_ctrl_list_timer.timeout.connect(self._update_controllers)
         self._update_ctrl_list_timer.start()
 
@@ -149,12 +173,12 @@ class ControllerManager(Plugin):
         self._popup_widget.hide()
 
     def save_settings(self, plugin_settings, instance_settings):
-        instance_settings.set_value('cm_ns', self._cm_ns)
+        instance_settings.set_value("cm_ns", self._cm_ns)
 
     def restore_settings(self, plugin_settings, instance_settings):
         # Restore last session's controller_manager, if present
         self._update_cm_list()
-        cm_ns = instance_settings.value('cm_ns')
+        cm_ns = instance_settings.value("cm_ns")
         cm_combo = self._widget.cm_combo
         cm_list = [cm_combo.itemText(i) for i in range(cm_combo.count())]
         try:
@@ -164,16 +188,24 @@ class ControllerManager(Plugin):
             pass
 
     # def trigger_configuration(self):
-        # Comment in to signal that the plugin has a way to configure
-        # This will enable a setting button (gear icon) in each dock widget
-        # title bar
-        # Usually used to open a modal configuration dialog
+    # Comment in to signal that the plugin has a way to configure
+    # This will enable a setting button (gear icon) in each dock widget
+    # title bar
+    # Usually used to open a modal configuration dialog
 
     def _update_cm_list(self):
         update_combo(self._widget.cm_combo, self._list_cm())
 
-        if self._widget.cm_combo.currentIndex() == -1 and self._widget.cm_combo.count() > 0:
-            relevant_items = [i for i in range(self._widget.cm_combo.count()) if self._widget.cm_combo.itemText(i) == '/controller_manager' or self._widget.cm_combo.itemText(i) == '/control/controller_manager']
+        if (
+            self._widget.cm_combo.currentIndex() == -1
+            and self._widget.cm_combo.count() > 0
+        ):
+            relevant_items = [
+                i
+                for i in range(self._widget.cm_combo.count())
+                if self._widget.cm_combo.itemText(i) == "/controller_manager"
+                or self._widget.cm_combo.itemText(i) == "/control/controller_manager"
+            ]
             if len(relevant_items) > 0:
                 self._widget.cm_combo.setCurrentIndex(relevant_items[0])
                 self._on_cm_change(self._widget.cm_combo.itemText(relevant_items[0]))
@@ -196,18 +228,18 @@ class ControllerManager(Plugin):
             # NOTE: Persistent services are used for performance reasons.
             # If the controller manager dies, we detect it and disconnect from
             # it anyway
-            load_srv_name = _append_ns(cm_ns, 'load_controller')
-            self._load_srv = rospy.ServiceProxy(load_srv_name,
-                                                LoadController,
-                                                persistent=True)
-            unload_srv_name = _append_ns(cm_ns, 'unload_controller')
-            self._unload_srv = rospy.ServiceProxy(unload_srv_name,
-                                                  UnloadController,
-                                                  persistent=True)
-            switch_srv_name = _append_ns(cm_ns, 'switch_controller')
-            self._switch_srv = rospy.ServiceProxy(switch_srv_name,
-                                                  SwitchController,
-                                                  persistent=True)
+            load_srv_name = _append_ns(cm_ns, "load_controller")
+            self._load_srv = rospy.ServiceProxy(
+                load_srv_name, LoadController, persistent=True
+            )
+            unload_srv_name = _append_ns(cm_ns, "unload_controller")
+            self._unload_srv = rospy.ServiceProxy(
+                unload_srv_name, UnloadController, persistent=True
+            )
+            switch_srv_name = _append_ns(cm_ns, "switch_controller")
+            self._switch_srv = rospy.ServiceProxy(
+                switch_srv_name, SwitchController, persistent=True
+            )
         else:
             self._load_srv = None
             self._unload_srv = None
@@ -243,9 +275,9 @@ class ControllerManager(Plugin):
             add_ctrl = not any(name == ctrl.name for ctrl in controllers)
             if add_ctrl:
                 type_str = _rosparam_controller_type(all_ctrls_ns, name)
-                uninit_ctrl = ControllerState(name=name,
-                                              type=type_str,
-                                              state='uninitialized')
+                uninit_ctrl = ControllerState(
+                    name=name, type=type_str, state="uninitialized"
+                )
                 controllers.append(uninit_ctrl)
         return controllers
 
@@ -265,23 +297,37 @@ class ControllerManager(Plugin):
 
         if len(rows) > 1:
             ctrls = [self._controllers[rows[i].row()] for i in range(len(rows))]
-            ctrls_active = [ctrl for ctrl in ctrls if ctrl.state == 'running']
-            ctrls_inactive = [ctrl for ctrl in ctrls if ctrl.state in ['stopped', 'initialized', 'uninitialized']]
+            ctrls_active = [ctrl for ctrl in ctrls if ctrl.state == "running"]
+            ctrls_inactive = [
+                ctrl
+                for ctrl in ctrls
+                if ctrl.state in ["stopped", "initialized", "uninitialized"]
+            ]
             ctrls_conflicts = self._find_conflicting_controllers(ctrls_inactive)
             # At the moment, there is no prevention against purposefully starting two conflicting controllers
             ctrls_conflicts = list(set(ctrls_conflicts) - set(ctrls_active))
-            str_conflicts = '' if len(ctrls_conflicts) == 0 else 'and stop conflicting {}'.format([ctrl_conflict.name for ctrl_conflict in ctrls_conflicts])
+            str_conflicts = (
+                ""
+                if len(ctrls_conflicts) == 0
+                else "and stop conflicting {}".format(
+                    [ctrl_conflict.name for ctrl_conflict in ctrls_conflicts]
+                )
+            )
 
-            #if len(ctrls_active) < 1 or len(ctrls_inactive) < 1:
-                #return
+            # if len(ctrls_active) < 1 or len(ctrls_inactive) < 1:
+            # return
 
-            action_switch = menu.addAction(self._icons['switch'], 'Switch {}'.format(str_conflicts))
+            action_switch = menu.addAction(
+                self._icons["switch"], "Switch {}".format(str_conflicts)
+            )
 
             action = menu.exec_(self._widget.table_view.mapToGlobal(pos))
 
             # Evaluate user action
             if action == action_switch:
-                for ctrl_inactive in [ctrl for ctrl in ctrls_inactive if ctrl.state == 'uninitialized']:
+                for ctrl_inactive in [
+                    ctrl for ctrl in ctrls_inactive if ctrl.state == "uninitialized"
+                ]:
                     self._load_controller(ctrl_inactive.name)
                 self._switch_controllers(ctrls_inactive, ctrls_active)
 
@@ -292,41 +338,50 @@ class ControllerManager(Plugin):
 
             ctrl = self._controllers[row]
             ctrls_conflicts = self._find_conflicting_controllers([ctrl])
-            str_conflicts = '' if len(ctrls_conflicts) == 0 else 'and stop conflicting {}'.format([ctrl_conflict.name for ctrl_conflict in ctrls_conflicts])
+            str_conflicts = (
+                ""
+                if len(ctrls_conflicts) == 0
+                else "and stop conflicting {}".format(
+                    [ctrl_conflict.name for ctrl_conflict in ctrls_conflicts]
+                )
+            )
 
-            if ctrl.state == 'running':
-                action_stop = menu.addAction(self._icons['stopped'], 'Stop')
-                action_kill = menu.addAction(self._icons['uninitialized'],
-                                             'Stop and Unload')
-            elif ctrl.state == 'stopped':
-                action_start = menu.addAction(self._icons['running'],
-                                              'Start again {}'.format(str_conflicts))
-                action_unload = menu.addAction(self._icons['uninitialized'],
-                                               'Unload')
-            elif ctrl.state == 'initialized':
-                action_start = menu.addAction(self._icons['running'], 'Start {}'.format(str_conflicts))
-                action_unload = menu.addAction(self._icons['uninitialized'],
-                                               'Unload')
-            elif ctrl.state == 'uninitialized':
-                action_load = menu.addAction(self._icons['stopped'], 'Load')
-                action_spawn = menu.addAction(self._icons['running'],
-                                              'Load and Start {}'.format(str_conflicts))
+            if ctrl.state == "running":
+                action_stop = menu.addAction(self._icons["stopped"], "Stop")
+                action_kill = menu.addAction(
+                    self._icons["uninitialized"], "Stop and Unload"
+                )
+            elif ctrl.state == "stopped":
+                action_start = menu.addAction(
+                    self._icons["running"], "Start again {}".format(str_conflicts)
+                )
+                action_unload = menu.addAction(self._icons["uninitialized"], "Unload")
+            elif ctrl.state == "initialized":
+                action_start = menu.addAction(
+                    self._icons["running"], "Start {}".format(str_conflicts)
+                )
+                action_unload = menu.addAction(self._icons["uninitialized"], "Unload")
+            elif ctrl.state == "uninitialized":
+                action_load = menu.addAction(self._icons["stopped"], "Load")
+                action_spawn = menu.addAction(
+                    self._icons["running"], "Load and Start {}".format(str_conflicts)
+                )
 
             action = menu.exec_(self._widget.table_view.mapToGlobal(pos))
 
             # Evaluate user action
-            if ctrl.state == 'running':
+            if ctrl.state == "running":
                 if action == action_stop:
                     self._stop_controller(ctrl.name)
                 elif action == action_kill:
                     self._stop_controller(ctrl.name)
                     self._unload_controller(ctrl.name)
-            elif ctrl.state == 'stopped' or ctrl.state == 'initialized':
+            elif ctrl.state == "stopped" or ctrl.state == "initialized":
                 if action == action_start:
                     self._switch_controllers([ctrl], ctrls_conflicts)
                 elif action == action_unload:
                     self._unload_controller(ctrl.name)
-            elif ctrl.state == 'uninitialized':
+            elif ctrl.state == "uninitialized":
                 if action == action_load:
                     self._load_controller(ctrl.name)
                 if action == action_spawn:
@@ -341,7 +396,7 @@ class ControllerManager(Plugin):
         popup.ctrl_type.setText(ctrl.type)
 
         res_model = QStandardItemModel()
-        model_root = QStandardItem('Claimed Resources')
+        model_root = QStandardItem("Claimed Resources")
         res_model.appendRow(model_root)
         for hw_res in ctrl.claimed_resources:
             hw_iface_item = QStandardItem(hw_res.hardware_interface)
@@ -361,7 +416,7 @@ class ControllerManager(Plugin):
 
         # Show context menu
         menu = QMenu(self._widget.table_view)
-        action_toggle_auto_resize = menu.addAction('Toggle Auto-Resize')
+        action_toggle_auto_resize = menu.addAction("Toggle Auto-Resize")
         action = menu.exec_(header.mapToGlobal(pos))
 
         # Evaluate user action
@@ -374,10 +429,23 @@ class ControllerManager(Plugin):
     def _find_conflicting_controllers(self, ctrls_new):
         conflicting = set()
         for ctrl_new in ctrls_new:
-            for ctrl_running in [controller for controller in self._controllers if controller.state == 'running']:
+            for ctrl_running in [
+                controller
+                for controller in self._controllers
+                if controller.state == "running"
+            ]:
                 for claimed_new in ctrl_new.claimed_resources:
                     for claimed_running in ctrl_running.claimed_resources:
-                        if len([resource_new for resource_new in claimed_new.resources if resource_new in claimed_running.resources]) > 0:
+                        if (
+                            len(
+                                [
+                                    resource_new
+                                    for resource_new in claimed_new.resources
+                                    if resource_new in claimed_running.resources
+                                ]
+                            )
+                            > 0
+                        ):
                             conflicting.add(ctrl_running)
         return conflicting
 
@@ -389,16 +457,18 @@ class ControllerManager(Plugin):
 
     def _stop_controller(self, name):
         strict = SwitchControllerRequest.STRICT
-        req = SwitchControllerRequest(start_controllers=[],
-                                      stop_controllers=[name],
-                                      strictness=strict)
+        req = SwitchControllerRequest(
+            start_controllers=[], stop_controllers=[name], strictness=strict
+        )
         self._switch_srv.call(req)
 
     def _switch_controllers(self, start_ctrls, stop_ctrls):
         strict = SwitchControllerRequest.STRICT
-        req = SwitchControllerRequest(start_controllers=[ctrl.name for ctrl in start_ctrls],
-                                      stop_controllers=[ctrl.name for ctrl in stop_ctrls],
-                                      strictness=strict)
+        req = SwitchControllerRequest(
+            start_controllers=[ctrl.name for ctrl in start_ctrls],
+            stop_controllers=[ctrl.name for ctrl in stop_ctrls],
+            strictness=strict,
+        )
         self._switch_srv.call(req)
 
 
@@ -409,7 +479,8 @@ class ControllerTable(QAbstractTableModel):
     The model allows display of basic read-only information like controller
     name and state.
     """
-    def __init__(self, controller_info,  icons, parent=None):
+
+    def __init__(self, controller_info, icons, parent=None):
         QAbstractTableModel.__init__(self, parent)
         self._data = controller_info
         self._icons = icons
@@ -423,9 +494,9 @@ class ControllerTable(QAbstractTableModel):
     def headerData(self, col, orientation, role):
         if orientation == Qt.Horizontal and role == Qt.DisplayRole:
             if col == 0:
-                return 'controller'
+                return "controller"
             elif col == 1:
-                return 'state'
+                return "state"
         else:
             return None
 
@@ -461,6 +532,7 @@ class FontDelegate(QStyledItemDelegate):
     Simple delegate for customizing font weight and italization when
     displaying resources claimed by a controller
     """
+
     def paint(self, painter, option, index):
         if not index.parent().isValid():
             # Root level
@@ -494,9 +566,9 @@ def _resolve_controllers_ns(cm_ns):
     @return Controllers namespace
     @rtype str
     """
-    ns = cm_ns.rsplit('/', 1)[0]
+    ns = cm_ns.rsplit("/", 1)[0]
     if not ns:
-        ns += '/'
+        ns += "/"
     return ns
 
 
@@ -509,8 +581,8 @@ def _append_ns(in_ns, suffix):
     @rtype str
     """
     ns = in_ns
-    if ns[-1] != '/':
-        ns += '/'
+    if ns[-1] != "/":
+        ns += "/"
     ns += suffix
     return ns
 
@@ -525,5 +597,5 @@ def _rosparam_controller_type(ctrls_ns, ctrl_name):
     @return Controller type
     @rtype str
     """
-    type_param = _append_ns(ctrls_ns, ctrl_name) + '/type'
+    type_param = _append_ns(ctrls_ns, ctrl_name) + "/type"
     return rospy.get_param(type_param)

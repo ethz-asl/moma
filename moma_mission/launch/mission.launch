@@ -18,12 +18,12 @@
     <!-- Load the manipulated door -->
     <group if="$(eval arg('mission_name') == 'christmas')">
       <include file="$(find moma_mission)/launch/load_door.launch"/>
-      <node name="$(anon rviz)" pkg="rviz" type="rviz" args="-d $(find moma_mission)/config/rviz/door_opening.rviz" />   
+      <node name="$(anon rviz)" pkg="rviz" type="rviz" args="-d $(find moma_mission)/config/rviz/door_opening.rviz" />
    </group>
 
   <!-- start custom rviz -->
-  
-<!-- 
+
+<!--
     <node pkg="moma_mission" type="piloting.py" name="$(arg mission_name)_demo" output="screen">
         <param name="valve_radius" value="0.12"/>
         <param name="valve_frame" value="valve_base"/>
