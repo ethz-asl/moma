@@ -64,14 +64,21 @@ def se3_to_transform(se3pose, stamp, frame_id, child_frame_id):
     tf.transform.rotation.w = q[3]
     return tf
 
+
 def tf_to_se3(transform):
-    q = pin.Quaternion(transform.transform.rotation.w,
-                       transform.transform.rotation.x,
-                       transform.transform.rotation.y,
-                       transform.transform.rotation.z)
-    t = np.array([transform.transform.translation.x,
-                  transform.transform.translation.y,
-                  transform.transform.translation.z])
+    q = pin.Quaternion(
+        transform.transform.rotation.w,
+        transform.transform.rotation.x,
+        transform.transform.rotation.y,
+        transform.transform.rotation.z,
+    )
+    t = np.array(
+        [
+            transform.transform.translation.x,
+            transform.transform.translation.y,
+            transform.transform.translation.z,
+        ]
+    )
     return pin.SE3(q, t)
 
 
@@ -89,11 +96,8 @@ def tf_to_pose(transform):
 
 
 def pose_to_se3(pose):
-    q = pin.Quaternion(pose.orientation.w,
-                       pose.orientation.x,
-                       pose.orientation.y,
-                       pose.orientation.z)
-    t = np.array([pose.position.x,
-                  pose.position.y,
-                  pose.position.z])
+    q = pin.Quaternion(
+        pose.orientation.w, pose.orientation.x, pose.orientation.y, pose.orientation.z
+    )
+    t = np.array([pose.position.x, pose.position.y, pose.position.z])
     return pin.SE3(q, t)

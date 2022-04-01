@@ -29,7 +29,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <moma_ocs2/MobileManipulatorPreComputation.h>
 #include <moma_ocs2/constraint/EndEffectorConstraint.h>
-
 #include <ocs2_core/misc/LinearInterpolation.h>
 
 namespace ocs2 {
@@ -38,28 +37,30 @@ namespace mobile_manipulator {
 /******************************************************************************************************/
 /******************************************************************************************************/
 /******************************************************************************************************/
-EndEffectorConstraint::EndEffectorConstraint(const EndEffectorKinematics<scalar_t>& endEffectorKinematics,
-                                             const ReferenceManager& referenceManager)
+EndEffectorConstraint::EndEffectorConstraint(
+    const EndEffectorKinematics<scalar_t>& endEffectorKinematics,
+    const ReferenceManager& referenceManager)
     : StateConstraint(ConstraintOrder::Linear),
       endEffectorKinematicsPtr_(endEffectorKinematics.clone()),
       referenceManagerPtr_(&referenceManager) {
   if (endEffectorKinematics.getIds().size() != 1) {
-    throw std::runtime_error("[EndEffectorConstraint] endEffectorKinematics has wrong number of end effector IDs.");
+    throw std::runtime_error(
+        "[EndEffectorConstraint] endEffectorKinematics has wrong number of end effector IDs.");
   }
-  pinocchioEEKinPtr_ = dynamic_cast<PinocchioEndEffectorKinematics*>(endEffectorKinematicsPtr_.get());
+  pinocchioEEKinPtr_ =
+      dynamic_cast<PinocchioEndEffectorKinematics*>(endEffectorKinematicsPtr_.get());
 }
 
 /******************************************************************************************************/
 /******************************************************************************************************/
 /******************************************************************************************************/
-size_t EndEffectorConstraint::getNumConstraints(scalar_t time) const {
-  return 6;
-}
+size_t EndEffectorConstraint::getNumConstraints(scalar_t time) const { return 6; }
 
 /******************************************************************************************************/
 /******************************************************************************************************/
 /******************************************************************************************************/
-vector_t EndEffectorConstraint::getValue(scalar_t time, const vector_t& state, const PreComputation& preComputation) const {
+vector_t EndEffectorConstraint::getValue(scalar_t time, const vector_t& state,
+                                         const PreComputation& preComputation) const {
   // PinocchioEndEffectorKinematics requires pre-computation with shared PinocchioInterface.
   if (pinocchioEEKinPtr_ != nullptr) {
     const auto& preCompMM = cast<MobileManipulatorPreComputation>(preComputation);
@@ -69,16 +70,19 @@ vector_t EndEffectorConstraint::getValue(scalar_t time, const vector_t& state, c
   const auto desiredPositionOrientation = interpolateEndEffectorPose(time);
 
   vector_t constraint(6);
-  constraint.head<3>() = endEffectorKinematicsPtr_->getPosition(state).front() - desiredPositionOrientation.first;
-  constraint.tail<3>() = endEffectorKinematicsPtr_->getOrientationError(state, {desiredPositionOrientation.second}).front();
+  constraint.head<3>() =
+      endEffectorKinematicsPtr_->getPosition(state).front() - desiredPositionOrientation.first;
+  constraint.tail<3>() =
+      endEffectorKinematicsPtr_->getOrientationError(state, {desiredPositionOrientation.second})
+          .front();
   return constraint;
 }
 
 /******************************************************************************************************/
 /******************************************************************************************************/
 /******************************************************************************************************/
-VectorFunctionLinearApproximation EndEffectorConstraint::getLinearApproximation(scalar_t time, const vector_t& state,
-                                                                                const PreComputation& preComputation) const {
+VectorFunctionLinearApproximation EndEffectorConstraint::getLinearApproximation(
+    scalar_t time, const vector_t& state, const PreComputation& preComputation) const {
   // PinocchioEndEffectorKinematics requires pre-computation with shared PinocchioInterface.
   if (pinocchioEEKinPtr_ != nullptr) {
     const auto& preCompMM = cast<MobileManipulatorPreComputation>(preComputation);
@@ -94,7 +98,9 @@ VectorFunctionLinearApproximation EndEffectorConstraint::getLinearApproximation(
   approximation.dfdx.topRows<3>() = eePosition.dfdx;
 
   const auto eeOrientationError =
-      endEffectorKinematicsPtr_->getOrientationErrorLinearApproximation(state, {desiredPositionOrientation.second}).front();
+      endEffectorKinematicsPtr_
+          ->getOrientationErrorLinearApproximation(state, {desiredPositionOrientation.second})
+          .front();
   approximation.f.tail<3>() = eeOrientationError.f;
   approximation.dfdx.bottomRows<3>() = eeOrientationError.dfdx;
 
@@ -104,7 +110,8 @@ VectorFunctionLinearApproximation EndEffectorConstraint::getLinearApproximation(
 /******************************************************************************************************/
 /******************************************************************************************************/
 /******************************************************************************************************/
-auto EndEffectorConstraint::interpolateEndEffectorPose(scalar_t time) const -> std::pair<vector_t, quaternion_t> {
+auto EndEffectorConstraint::interpolateEndEffectorPose(scalar_t time) const
+    -> std::pair<vector_t, quaternion_t> {
   const auto& targetTrajectories = referenceManagerPtr_->getTargetTrajectories();
   const auto& timeTrajectory = targetTrajectories.timeTrajectory;
   const auto& stateTrajectory = targetTrajectories.stateTrajectory;

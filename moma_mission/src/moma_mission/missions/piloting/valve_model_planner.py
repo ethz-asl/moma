@@ -31,7 +31,16 @@ class ValveModelPlanner:
         quat = [R.from_matrix(r).as_quat() for r in rot]
         # Also store the index and the total count to be able
         # to restore continuous sequences after filtering grasps
-        poses = [{"index": i, "samples": samples, "angle": t, "position": p, "orientation": q} for i, (p, q, t) in enumerate(zip(points, quat, thetas))]
+        poses = [
+            {
+                "index": i,
+                "samples": samples,
+                "angle": t,
+                "position": p,
+                "orientation": q,
+            }
+            for i, (p, q, t) in enumerate(zip(points, quat, thetas))
+        ]
         return poses
 
     def _is_radial_grasp(self, grasp):
@@ -63,7 +72,9 @@ class ValveModelPlanner:
 
         pos = self.valve_model.spokes_positions
         rad = self.valve_model.spoke_radius
-        return np.all((np.linalg.norm(grasp["position"] - pos, axis=1) - rad) > safety_distance)
+        return np.all(
+            (np.linalg.norm(grasp["position"] - pos, axis=1) - rad) > safety_distance
+        )
 
     def _get_grasp_score(self, grasp):
         """
@@ -72,7 +83,7 @@ class ValveModelPlanner:
         z_axis = R.from_quat(grasp["orientation"]).as_matrix()[:, 2]
         return np.dot(z_axis, np.array([0, 0, -1]))
 
-    def _get_valid_paths(self, grasps_start, grasps, angle_max=2*np.pi):
+    def _get_valid_paths(self, grasps_start, grasps, angle_max=2 * np.pi):
         """
         Get a list of valid paths
 
@@ -105,8 +116,10 @@ class ValveModelPlanner:
 
                 if len(poses) > 1:
                     # Shortest angular distance
-                    angle += min((poses[-1]["angle"] - poses[-2]["angle"]) % (2 * np.pi),
-                                 (poses[-2]["angle"] - poses[-1]["angle"]) % (2 * np.pi))
+                    angle += min(
+                        (poses[-1]["angle"] - poses[-2]["angle"]) % (2 * np.pi),
+                        (poses[-2]["angle"] - poses[-1]["angle"]) % (2 * np.pi),
+                    )
                 if angle >= abs(angle_max):
                     break
 
@@ -120,7 +133,7 @@ class ValveModelPlanner:
 
         return paths
 
-    def get_path(self, angle_max=2*np.pi):
+    def get_path(self, angle_max=2 * np.pi):
         """
         Given a maximum angle that we want to achieve withing a single manipulation step
         extract a path with the following properties
@@ -147,7 +160,9 @@ class ValveModelPlanner:
 
         # If no path meets angle specification, choose longest path
         if len(valid_paths) == 0:
-            rospy.logdebug_throttle(1.0, "No path meets max angle specification, using longest one")
+            rospy.logdebug_throttle(
+                1.0, "No path meets max angle specification, using longest one"
+            )
             return max(all_paths, key=lambda path: path["angle"])
 
         # Otherwise choose path with highest score
@@ -176,25 +191,27 @@ if __name__ == "__main__":
 
     poses_pub = rospy.Publisher("/plan", PoseArray, queue_size=1)
 
-    valve_model = ValveModel(center=[0.5,0.5,0.5], depth=0.1)
+    valve_model = ValveModel(center=[0.5, 0.5, 0.5], depth=0.1)
     valve_planner = ValvePlanner(valve_model)
 
-    #valve_model.transform(pitch_deg=45)
-    #valve_model.turn(45)
+    # valve_model.transform(pitch_deg=45)
+    # valve_model.turn(45)
     while not rospy.is_shutdown():
         valve_model.transform(pitch_deg=1)
         valve_model.turn(1)
 
-        #grasps = valve_planner._get_all_grasping_poses()
-        #grasps = filter(valve_planner._is_radial_grasp, grasps)
-        #grasps = filter(valve_planner._is_non_singular_grasp, grasps)
-        #grasps = filter(valve_planner._is_non_obstructed_grasp, grasps)
+        # grasps = valve_planner._get_all_grasping_poses()
+        # grasps = filter(valve_planner._is_radial_grasp, grasps)
+        # grasps = filter(valve_planner._is_non_singular_grasp, grasps)
+        # grasps = filter(valve_planner._is_non_obstructed_grasp, grasps)
 
-        #path = valve_planner.get_path(angle_max=np.pi/2) # turn forwards
-        path = valve_planner.get_path(angle_max=-np.pi/2) # turn backwards
+        # path = valve_planner.get_path(angle_max=np.pi/2) # turn forwards
+        path = valve_planner.get_path(angle_max=-np.pi / 2)  # turn backwards
         if path is None:
             continue
-        rospy.loginfo_throttle(1.0, f"Turning angle: {path['angle']}, score: {path['score']}")
+        rospy.loginfo_throttle(
+            1.0, f"Turning angle: {path['angle']}, score: {path['score']}"
+        )
         grasps = path["poses"]
 
         poses_ros = valve_planner.poses_to_ros(grasps)

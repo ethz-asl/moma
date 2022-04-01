@@ -8,10 +8,10 @@
     <param name="target_frame" value="panda_hand"/>
     <param name="topic_name" value="/panda/cartesian_impedance_controller/equilibrium_pose"/>
   </node>
-  
+
   <!-- set the correct internal ee frame -->
   <node pkg="moma_cartesian_impedance_controller" type="set_EE_frame.py" name="set_EE_frame_node" output="screen" respawn="true"/>
-  
+
   <!-- valve model -->
   <include file="$(find piloting_demo)/launch/valve.launch">
     <arg name="sim" value="true"/>

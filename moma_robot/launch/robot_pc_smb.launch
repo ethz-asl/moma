@@ -10,7 +10,7 @@
         <arg name="mpc"                     value="false"/>
         <arg name="publish_robot_state"     value="false"/>  <!-- Since we do this in the current launch for the full robot -->
     </include>
-  
+
     <!-- Sensors -->
     <include file="$(find smb)/launch/sensors.launch">
       <arg name="launch_versavis"       value="true"/>

@@ -4,22 +4,20 @@
 
 #pragma once
 
-#include <memory>
-#include <string>
-#include <vector>
-
-#include <moma_ocs2_ros/mpc_velocity_controller.h>
 #include <control_toolbox/pid.h>
 #include <controller_interface/controller.h>
 #include <geometry_msgs/Twist.h>
 #include <hardware_interface/joint_command_interface.h>
+#include <moma_ocs2_ros/mpc_velocity_controller.h>
+#include <nav_msgs/Odometry.h>
 #include <realtime_tools/realtime_buffer.h>
 #include <realtime_tools/realtime_publisher.h>
 #include <ros/node_handle.h>
 #include <ros/time.h>
 
-#include <nav_msgs/Odometry.h>
-#include <geometry_msgs/Twist.h>
+#include <memory>
+#include <string>
+#include <vector>
 
 namespace moma_controllers {
 
@@ -33,7 +31,7 @@ class UrMpcController
  public:
   static constexpr size_t armInputDim_ = 6;
 
-  UrMpcController() : started_(false) {};
+  UrMpcController() : started_(false){};
 
   bool init(hardware_interface::VelocityJointInterface* hw, ros::NodeHandle& nh) override;
   void starting(const ros::Time&) override;

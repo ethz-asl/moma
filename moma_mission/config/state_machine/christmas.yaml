@@ -29,8 +29,13 @@ HOME_ROBOT:
   default_outcome: None
   action_name: /joint_space_controller_server
   manager_namespace: control
-  startlist: ['joint_space_controller']
-  stoplist: ['mpc_controller', 'path_passthrough_controller', 'effort_joint_trajectory_controller']
+  startlist: ["joint_space_controller"]
+  stoplist:
+    [
+      "mpc_controller",
+      "path_passthrough_controller",
+      "effort_joint_trajectory_controller",
+    ]
   joints_configurations:
     - [-0.76, -1.51, 0.94, -2.34, 0.12, 2.51, 1.6]
 
@@ -38,28 +43,28 @@ GRASP_PRESET:
   default_outcome: None
   action_name: /joint_space_controller_server
   manager_namespace: control
-  startlist: ['joint_space_controller']
-  stoplist: ['mpc_controller', 'path_passthrough_controller']
+  startlist: ["joint_space_controller"]
+  stoplist: ["mpc_controller", "path_passthrough_controller"]
   joints_configurations:
     - [-1.27, -0.9, 0.97, -2.52, 0.0, 3.46, 1.47]
     - [-1.48, -0.94, 1.09, -2.34, 0.1, 3.33, 1.48]
-  
+
 HOME_ROBOT_FINAL:
   default_outcome: None
   action_name: /joint_space_controller_server
   controller_name: joint_space_controller
   manager_namespace: control
-  startlist: ['joint_space_controller']
-  stoplist: ['mpc_controller', 'path_passthrough_controller']
+  startlist: ["joint_space_controller"]
+  stoplist: ["mpc_controller", "path_passthrough_controller"]
   joints_configurations:
     - [0.0, 0.0, 0.0, -1.57, 0.0, 1.57, 0.0]
 
 DOOR_MANIPULATION:
   default_outcome: None
   door_description_name: door_description
-  startlist: ['mpc_controller', 'path_passthrough_controller'] # , 
-  stoplist: ['joint_space_controller']
-  path_topic_name:  /desired_path
+  startlist: ["mpc_controller", "path_passthrough_controller"] # ,
+  stoplist: ["joint_space_controller"]
+  path_topic_name: /desired_path
   manager_namespace: control
   opening_angle_deg: 80.0
   opening_speed_deg: 5.0

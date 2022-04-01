@@ -9,13 +9,20 @@ class Valve:
     """
     Contains all the info necessary for grasp and trajectory generation
     """
+
     # geometry
     valve_radius = 0.12
 
     # relative transformation from grasp to point on valve perimeter
-    rotation_valve_latgrasp = R.from_euler('zyx', [180.0, -90.0, 0.0], degrees=True).as_dcm()
-    quaternion_valve_latgrasp = R.from_euler('zyx', [180.0, -90.0, 0.0], degrees=True).as_quat()
-    rotation_valve_frontgrasp = R.from_euler('xyz', [0.0, 0.0, 180.0], degrees=True).as_dcm()
+    rotation_valve_latgrasp = R.from_euler(
+        "zyx", [180.0, -90.0, 0.0], degrees=True
+    ).as_dcm()
+    quaternion_valve_latgrasp = R.from_euler(
+        "zyx", [180.0, -90.0, 0.0], degrees=True
+    ).as_quat()
+    rotation_valve_frontgrasp = R.from_euler(
+        "xyz", [0.0, 0.0, 180.0], degrees=True
+    ).as_dcm()
     translation_valve_latgrasp = np.array([valve_radius, 0.0, 0.0])
     translation_valve_frontgrasp = np.array([valve_radius, 0.0, 0.0])
 
@@ -38,19 +45,24 @@ class Valve:
     det_pose_position_5 = np.array([-0.016, 0.398, 0.517])
     det_pose_orientation_5 = np.array([0.272, 0.670, 0.673, 0.156])
 
-
-    det_poses = {'position': [det_pose_position_0,
-                              det_pose_position_1,
-                              det_pose_position_2,
-                              det_pose_position_3,
-                              det_pose_position_4,
-                              det_pose_position_5],
-                 'orientation': [det_pose_orientation_0,
-                                 det_pose_orientation_1,
-                                 det_pose_orientation_2,
-                                 det_pose_orientation_3,
-                                 det_pose_orientation_4,
-                                 det_pose_orientation_5]}
+    det_poses = {
+        "position": [
+            det_pose_position_0,
+            det_pose_position_1,
+            det_pose_position_2,
+            det_pose_position_3,
+            det_pose_position_4,
+            det_pose_position_5,
+        ],
+        "orientation": [
+            det_pose_orientation_0,
+            det_pose_orientation_1,
+            det_pose_orientation_2,
+            det_pose_orientation_3,
+            det_pose_orientation_4,
+            det_pose_orientation_5,
+        ],
+    }
 
     @classmethod
     def init_from_ros(cls):
@@ -64,9 +76,12 @@ class Valve:
     @classmethod
     def get_detection_poses(cls):
         poses = []
-        for translation, orientation in zip(cls.det_poses['position'],
-                                            cls.det_poses['orientation']):
+        for translation, orientation in zip(
+            cls.det_poses["position"], cls.det_poses["orientation"]
+        ):
             print(translation)
             print(orientation)
-            poses.append(numpy_to_pose_stamped(translation, orientation, Frames.base_frame))
+            poses.append(
+                numpy_to_pose_stamped(translation, orientation, Frames.base_frame)
+            )
         return poses

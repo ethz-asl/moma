@@ -7,6 +7,7 @@ A dashboard, user interfaces and tools for real-time robot state display, manual
 ## Installation
 
 Install the main dashboard, which will install the other tool packages as its dependencies.
+
 ```
 catkin build moma_dashboard
 ```
@@ -15,6 +16,7 @@ catkin build moma_dashboard
 
 These tools should be run as a node in the main launch file.
 For example, run them as part of a Gazebo simulation.
+
 ```
 roslaunch moma_gazebo panda_piloting.launch
 ```
@@ -24,6 +26,7 @@ roslaunch moma_gazebo panda_piloting.launch
 Alternatively, run only the main dashboard, which bundles all relevant tool interfaces in a common and consistent Qt perspective view.
 However, ensure that the controller manager is started and that `moman_joint_space_controller` and `moma_joint_velocity_controller` are loaded beforehand.
 Also, the [`dashboard.yaml`](moma_dashboard/config/dashboard.yaml) parameter file must be loaded onto the ROS parameter server.
+
 ```
 roslaunch moma_dashboard dashboard.launch
 ```

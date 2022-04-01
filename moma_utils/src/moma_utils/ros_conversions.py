@@ -106,7 +106,7 @@ def to_point_cloud_msg(points, frame_id=None, stamp=None):
 
 def waypoint_to_pose_msg(waypoint):
     """Converts 2D waypoint to a PoseStamped message.
-    
+
     Arguments:
         waypoint {list} -- Format: [position_x, position_y, yaw], where yaw is in deg.
     """

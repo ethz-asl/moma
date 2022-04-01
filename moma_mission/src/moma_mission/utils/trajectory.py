@@ -8,8 +8,10 @@ import tf2_ros
 from moma_mission.utils.transforms import pose_to_se3, tf_to_se3
 
 
-def get_timed_path_to_target(start_pose, target_pose, linear_velocity, angular_velocity):
-    """ Return a path from current pose to target timed with a specific velocity """
+def get_timed_path_to_target(
+    start_pose, target_pose, linear_velocity, angular_velocity
+):
+    """Return a path from current pose to target timed with a specific velocity"""
     if start_pose.header.frame_id != target_pose.header.frame_id:
         raise NameError("Start and target pose are in different frames")
 
@@ -30,10 +32,13 @@ def get_timed_path_to_target(start_pose, target_pose, linear_velocity, angular_v
     max_lin = max(abs(vel.linear))  # linear velocity to get there in 1 sec
     max_ang = max(abs(vel.angular))  # angular velocity to get there in 1 sec
 
-    reach_time = 1.0 * max(1.0, max(max_lin / linear_velocity, max_ang / angular_velocity))
-    pose_stamped_end.header.stamp = rospy.Duration.from_sec(reach_time) + pose_stamped_start.header.stamp
+    reach_time = 1.0 * max(
+        1.0, max(max_lin / linear_velocity, max_ang / angular_velocity)
+    )
+    pose_stamped_end.header.stamp = (
+        rospy.Duration.from_sec(reach_time) + pose_stamped_start.header.stamp
+    )
 
     path.poses.append(pose_stamped_start)
     path.poses.append(pose_stamped_end)
     return path
-

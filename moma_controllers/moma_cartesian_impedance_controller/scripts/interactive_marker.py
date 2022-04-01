@@ -14,6 +14,7 @@ menu_handler = MenuHandler()
 target_pub = None
 poses = []
 
+
 def make_sphere(radius):
     marker = Marker()
     marker.type = Marker.SPHERE
@@ -33,7 +34,7 @@ def add_target_callback(mode, feedback):
     target_pose.header.stamp = rospy.get_rostime()
     target_pose.header.frame_id = int_marker.header.frame_id
     target_pose.pose = feedback.pose
-    if mode == 'pose':
+    if mode == "pose":
         poses = [target_pose]
     else:
         poses.append(target_pose)
@@ -50,20 +51,20 @@ def publisher_callback(mode, feedback):
         rospy.logwarn("Path is empty! Cannot send target.")
         return
 
-    target = PoseStamped() if mode == 'pose' else Path()
+    target = PoseStamped() if mode == "pose" else Path()
     target_pose = PoseStamped()
     target_pose.header.stamp = rospy.get_rostime()
     target_pose.header.frame_id = int_marker.header.frame_id
     target_pose.pose = feedback.pose
 
-    if mode == 'pose':
+    if mode == "pose":
         target = poses[0]
     else:
         target.header = target_pose.header
         start_time = rospy.get_rostime()
         delta_time = 5.0
         for i, pose in enumerate(poses):
-            pose.header.stamp = start_time + rospy.Duration.from_sec(i * delta_time) 
+            pose.header.stamp = start_time + rospy.Duration.from_sec(i * delta_time)
         target.poses = poses
 
     target_pub.publish(target)
@@ -87,15 +88,20 @@ def wait_for_initial_pose(feedback, base_frame, target_frame):
     listener = tf2_ros.TransformListener(buffer)
 
     try:
-        trans = buffer.lookup_transform(base_frame, target_frame, rospy.Time(0), rospy.Duration(10.0))
+        trans = buffer.lookup_transform(
+            base_frame, target_frame, rospy.Time(0), rospy.Duration(10.0)
+        )
         int_marker.header.frame_id = base_frame
         int_marker.pose.position = trans.transform.translation
         int_marker.pose.orientation = trans.transform.rotation
         if feedback is not None:
             server.insert(int_marker, process_feedback)
             server.applyChanges()
-    except (tf2_ros.LookupException, tf2_ros.ConnectivityException,
-            tf2_ros.ExtrapolationException) as exc:
+    except (
+        tf2_ros.LookupException,
+        tf2_ros.ConnectivityException,
+        tf2_ros.ExtrapolationException,
+    ) as exc:
         rospy.logwarn(exc)
         return False
     return True
@@ -108,24 +114,26 @@ if __name__ == "__main__":
     base_frame_id = rospy.get_param("~base_frame")
     target_frame_id = rospy.get_param("~target_frame")
     topic_name = rospy.get_param("~topic_name")
-    mode = rospy.get_param("~mode") # can be 'path' or 'pose'
+    mode = rospy.get_param("~mode")  # can be 'path' or 'pose'
 
-    if mode not in {'path', 'pose'}:
+    if mode not in {"path", "pose"}:
         rospy.logerr(f"Wrong interactive marker mode: {mode}")
         sys.exit(-1)
 
     if not wait_for_initial_pose(None, base_frame_id, target_frame_id):
         rospy.logerr("Failed to initialize the marker pose.")
 
-    msg_type = PoseStamped if mode == 'pose' else Path
+    msg_type = PoseStamped if mode == "pose" else Path
     target_pub = rospy.Publisher(topic_name, msg_type, queue_size=10)
-    interactive_path_pub = rospy.Publisher("/interactive_path", Path, queue_size=1, latch=True)
+    interactive_path_pub = rospy.Publisher(
+        "/interactive_path", Path, queue_size=1, latch=True
+    )
 
     server = InteractiveMarkerServer(server_name)
     int_marker.header.frame_id = base_frame_id
     int_marker.scale = 0.3
     int_marker.name = server_name + "_marker"
-    int_marker.description = ("Target Cartesian Pose")
+    int_marker.description = "Target Cartesian Pose"
 
     # insert a box
     control = InteractiveMarkerControl()
@@ -189,10 +197,18 @@ if __name__ == "__main__":
     server.insert(int_marker, process_feedback)
 
     # add a menu handler
-    menu_handler.insert("Reset Pose", callback= lambda fb : wait_for_initial_pose(fb, base_frame_id, target_frame_id))
-    menu_handler.insert("Add Target Pose", callback= lambda fb: add_target_callback(mode=mode, feedback=fb))
-    menu_handler.insert("Send Target", callback= lambda fb: publisher_callback(mode=mode, feedback=fb))
-    menu_handler.apply( server, int_marker.name)
+    menu_handler.insert(
+        "Reset Pose",
+        callback=lambda fb: wait_for_initial_pose(fb, base_frame_id, target_frame_id),
+    )
+    menu_handler.insert(
+        "Add Target Pose",
+        callback=lambda fb: add_target_callback(mode=mode, feedback=fb),
+    )
+    menu_handler.insert(
+        "Send Target", callback=lambda fb: publisher_callback(mode=mode, feedback=fb)
+    )
+    menu_handler.apply(server, int_marker.name)
 
     # apply changes and spin
     server.applyChanges()

@@ -29,13 +29,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
-#include <memory>
-#include <string>
-
+#include <moma_ocs2/MobileManipulatorPinocchioMapping.h>
 #include <ocs2_core/PreComputation.h>
 #include <ocs2_pinocchio_interface/PinocchioInterface.h>
 
-#include <moma_ocs2/MobileManipulatorPinocchioMapping.h>
+#include <memory>
+#include <string>
 
 namespace ocs2 {
 namespace mobile_manipulator {
@@ -43,7 +42,8 @@ namespace mobile_manipulator {
 /** Callback for caching and reference update */
 class MobileManipulatorPreComputation : public PreComputation {
  public:
-  MobileManipulatorPreComputation(PinocchioInterface pinocchioInterface, const size_t armInputDim, const BaseType baseType = BaseType::none);
+  MobileManipulatorPreComputation(PinocchioInterface pinocchioInterface, const size_t armInputDim,
+                                  const BaseType baseType = BaseType::none);
   ~MobileManipulatorPreComputation() override = default;
 
   MobileManipulatorPreComputation(const MobileManipulatorPreComputation& rhs) = delete;

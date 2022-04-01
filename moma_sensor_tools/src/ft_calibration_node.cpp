@@ -1,10 +1,9 @@
-#include <moma_sensor_tools/ft_calibration_node.h>
 #include <geometry_msgs/TwistStamped.h>
+#include <moma_sensor_tools/ft_calibration_node.h>
 
 using namespace moma_sensor_tools;
 
-FTCalibrationNode::FTCalibrationNode(const ros::NodeHandle &n)
-    : n_(n), tf2_listener_(tf2_buffer_) {
+FTCalibrationNode::FTCalibrationNode(const ros::NodeHandle &n) : n_(n), tf2_listener_(tf2_buffer_) {
   pose_counter_ = 0;
   ft_counter_ = 0;
   received_ft_ = false;
@@ -18,12 +17,11 @@ bool FTCalibrationNode::init() {
 
 bool FTCalibrationNode::init_ros() {
   n_.param<bool>("debug", debug_, false);
-  if (debug_){
+  if (debug_) {
     gravity_publisher_ = n_.advertise<geometry_msgs::TwistStamped>("gravity_ft", 1);
   }
 
-  if (!n_.param<std::string>("gravity_aligned_frame",
-                             gravity_aligned_frame_, "")) {
+  if (!n_.param<std::string>("gravity_aligned_frame", gravity_aligned_frame_, "")) {
     ROS_ERROR("Failed to get gravity_aligned_frame from param server.");
     return false;
   }
@@ -34,49 +32,36 @@ bool FTCalibrationNode::init_ros() {
     return false;
   }
 
-  ft_raw_subscriber_ =
-      n_.subscribe(ft_raw_topic, 1, &FTCalibrationNode::ft_raw_callback, this);
+  ft_raw_subscriber_ = n_.subscribe(ft_raw_topic, 1, &FTCalibrationNode::ft_raw_callback, this);
 
   std::string joint_action_server_name;
-  if (!n_.param<std::string>("joint_action_server_name",
-                             joint_action_server_name, "")) {
+  if (!n_.param<std::string>("joint_action_server_name", joint_action_server_name, "")) {
     ROS_ERROR("Failed to get joint_action_server_name from param server.");
     return false;
   }
 
-  action_client_ =
-      std::make_unique<actionlib::SimpleActionClient<moma_msgs::JointAction>>(
-          joint_action_server_name, true);
+  action_client_ = std::make_unique<actionlib::SimpleActionClient<moma_msgs::JointAction>>(
+      joint_action_server_name, true);
 
-  if (!n_.param<std::string>("calib_file_name", calib_file_name_,
-                             "ft_calib_data.yaml")) {
-    ROS_WARN(
-        "No calib_file_name parameter, setting to default 'ft_calib.yaml'");
+  if (!n_.param<std::string>("calib_file_name", calib_file_name_, "ft_calib_data.yaml")) {
+    ROS_WARN("No calib_file_name parameter, setting to default 'ft_calib.yaml'");
   }
 
-  if (!n_.param<bool>("external_wrench_is_positive", external_wrench_is_positive_,
-                             true)) {
-    ROS_WARN(
-        "No external_wrench_is_positive parameter, setting to default: true");
+  if (!n_.param<bool>("external_wrench_is_positive", external_wrench_is_positive_, true)) {
+    ROS_WARN("No external_wrench_is_positive parameter, setting to default: true");
   }
   wrench_sign_ = (external_wrench_is_positive_) ? 1.0 : -1.0;
 
-  if (!n_.param<std::string>("calib_file_dir", calib_file_dir_,
-                             "~/.ros/ft_calib")) {
-    ROS_WARN(
-        "No calib_file_dir parameter, setting to default '~/.ros/ft_calib' ");
+  if (!n_.param<std::string>("calib_file_dir", calib_file_dir_, "~/.ros/ft_calib")) {
+    ROS_WARN("No calib_file_dir parameter, setting to default '~/.ros/ft_calib' ");
   }
 
-  if (!n_.param<std::string>("meas_file_name", meas_file_name_,
-                             "ft_calib_meas.txt")) {
-    ROS_WARN(
-        "No meas_file_name parameter, setting to default 'ft_calib_meas.txt'");
+  if (!n_.param<std::string>("meas_file_name", meas_file_name_, "ft_calib_meas.txt")) {
+    ROS_WARN("No meas_file_name parameter, setting to default 'ft_calib_meas.txt'");
   }
 
-  if (!n_.param<std::string>("meas_file_dir", meas_file_dir_,
-                             "~/.ros/ft_calib")) {
-    ROS_WARN(
-        "No meas_file_dir parameter, setting to default '~/.ros/ft_calib' ");
+  if (!n_.param<std::string>("meas_file_dir", meas_file_dir_, "~/.ros/ft_calib")) {
+    ROS_WARN("No meas_file_dir parameter, setting to default '~/.ros/ft_calib' ");
   }
 
   if (!n_.param<int>("num_poses", num_poses_, 1) || num_poses_ < 1) {
@@ -109,14 +94,12 @@ bool FTCalibrationNode::init_ros() {
   // initialize the file with gravity and F/T measurements
   // expand the path
   if (!meas_file_dir_.empty() && meas_file_dir_[0] == '~') {
-    assert(meas_file_dir_.size() == 1 or
-           meas_file_dir_[1] == '/');  // or other error handling
+    assert(meas_file_dir_.size() == 1 or meas_file_dir_[1] == '/');  // or other error handling
     char const *home = getenv("HOME");
     if (home or (home = getenv("USERPROFILE"))) {
       meas_file_dir_.replace(0, 1, home);
     } else {
-      char const *hdrive = getenv("HOMEDRIVE"),
-                 *hm_meas_file_dir = getenv("HOMEPATH");
+      char const *hdrive = getenv("HOMEDRIVE"), *hm_meas_file_dir = getenv("HOMEPATH");
       assert(hdrive);  // or other error handling
       assert(hm_meas_file_dir);
       meas_file_dir_.replace(0, 1, std::string(hdrive) + hm_meas_file_dir);
@@ -124,13 +107,11 @@ bool FTCalibrationNode::init_ros() {
   }
 
   std::ofstream meas_file;
-  meas_file.open((meas_file_dir_ + "/" + meas_file_name_).c_str(),
-                 std::ios::out);
+  meas_file.open((meas_file_dir_ + "/" + meas_file_name_).c_str(), std::ios::out);
 
   std::stringstream meas_file_header;
 
-  meas_file_header
-      << "\% gravity , f/t measurements all expressed in F/T sensor frame\n";
+  meas_file_header << "\% gravity , f/t measurements all expressed in F/T sensor frame\n";
   meas_file_header << "\% [gx, gy, gz, fx, fy, fz, tx, ty, tz]\n";
   meas_file << meas_file_header.str();
   meas_file.close();
@@ -140,22 +121,23 @@ bool FTCalibrationNode::init_ros() {
 
 // Calibrates the FT sensor by putting the arm in several different positions
 bool FTCalibrationNode::moveNextPose() {
-  if (pose_counter_ > (configurations_.size()-1)){
+  if (pose_counter_ > (configurations_.size() - 1)) {
     ROS_INFO("No more poses left.");
     finished_ = true;
     return true;
   }
 
-  ROS_INFO_STREAM("Moving to pose " << pose_counter_ << " = [" << configurations_[pose_counter_].transpose() << "]");
+  ROS_INFO_STREAM("Moving to pose " << pose_counter_ << " = ["
+                                    << configurations_[pose_counter_].transpose() << "]");
 
   moma_msgs::JointGoal goal;
   goal.position.resize(configurations_[pose_counter_].size());
-  for (int i=0; i<configurations_[pose_counter_].size(); i++){
+  for (int i = 0; i < configurations_[pose_counter_].size(); i++) {
     goal.position[i] = configurations_[pose_counter_][i];
   }
   action_client_->sendGoal(goal);
   bool finished_before_timeout = action_client_->waitForResult(ros::Duration(30.0));
-  if (!finished_before_timeout){
+  if (!finished_before_timeout) {
     ROS_WARN("Goal not achieved within timeout");
     return false;
   }
@@ -190,8 +172,7 @@ void FTCalibrationNode::saveCalibData() {
   // set the parameters in the parameter server
   n_.setParam("/ft_calib/bias", bias);
   n_.setParam("/ft_calib/gripper_mass", mass);
-  n_.setParam("/ft_calib/gripper_com_frame_id",
-              ft_raw_.header.frame_id.c_str());
+  n_.setParam("/ft_calib/gripper_com_frame_id", ft_raw_.header.frame_id.c_str());
   n_.setParam("/ft_calib/gripper_com_pose", COM_pose);
 
   // dump the parameters to YAML file
@@ -211,17 +192,15 @@ void FTCalibrationNode::saveCalibData() {
 void FTCalibrationNode::saveMeasurements(geometry_msgs::Vector3Stamped gravity,
                                          geometry_msgs::WrenchStamped ft_meas) {
   std::ofstream meas_file;
-  meas_file.open((meas_file_dir_ + "/" + meas_file_name_).c_str(),
-                 std::ios::out | std::ios::app);
+  meas_file.open((meas_file_dir_ + "/" + meas_file_name_).c_str(), std::ios::out | std::ios::app);
 
   std::stringstream meas_file_text;
 
-  meas_file_text << gravity.vector.x << " " << gravity.vector.y << " "
-                 << gravity.vector.z << " ";
-  meas_file_text << ft_meas.wrench.force.x << " " << ft_meas.wrench.force.y
-                 << " " << ft_meas.wrench.force.z << " ";
-  meas_file_text << ft_meas.wrench.torque.x << " " << ft_meas.wrench.torque.y
-                 << " " << ft_meas.wrench.torque.z << "\n";
+  meas_file_text << gravity.vector.x << " " << gravity.vector.y << " " << gravity.vector.z << " ";
+  meas_file_text << ft_meas.wrench.force.x << " " << ft_meas.wrench.force.y << " "
+                 << ft_meas.wrench.force.z << " ";
+  meas_file_text << ft_meas.wrench.torque.x << " " << ft_meas.wrench.torque.y << " "
+                 << ft_meas.wrench.torque.z << "\n";
 
   meas_file << meas_file_text.str();
 
@@ -231,8 +210,7 @@ void FTCalibrationNode::saveMeasurements(geometry_msgs::Vector3Stamped gravity,
 // finished moving the arm through the poses set in the config file
 bool FTCalibrationNode::finished() const { return finished_; }
 
-void FTCalibrationNode::ft_raw_callback(
-    const geometry_msgs::WrenchStamped::ConstPtr &msg) {
+void FTCalibrationNode::ft_raw_callback(const geometry_msgs::WrenchStamped::ConstPtr &msg) {
   ft_raw_ = *msg;
   received_ft_ = true;
 }
@@ -265,17 +243,17 @@ void FTCalibrationNode::addMeasurement() {
 
   try {
     // target_frame, source_frame ...
-    geometry_msgs::TransformStamped transform = tf2_buffer_.lookupTransform(ft_raw_.header.frame_id, gravity_aligned_frame_, ros::Time(0));
+    geometry_msgs::TransformStamped transform =
+        tf2_buffer_.lookupTransform(ft_raw_.header.frame_id, gravity_aligned_frame_, ros::Time(0));
     tf2::doTransform(gravity, gravity_ft_frame, transform);
     gravity_ft_frame.header.frame_id = ft_raw_.header.frame_id;
-  } catch (tf2::TransformException& ex) {
-    ROS_ERROR(
-        "Error transforming gravity aligned frame to the F/T sensor frame");
+  } catch (tf2::TransformException &ex) {
+    ROS_ERROR("Error transforming gravity aligned frame to the F/T sensor frame");
     ROS_ERROR("%s.", ex.what());
     return;
   }
 
-  if (debug_){
+  if (debug_) {
     geometry_msgs::TwistStamped gravity;
     gravity.header.frame_id = ft_raw_.header.frame_id;
     gravity.twist.linear.x = gravity_ft_frame.vector.x;
@@ -288,8 +266,7 @@ void FTCalibrationNode::addMeasurement() {
   saveMeasurements(gravity_ft_frame, ft_avg_);
 }
 
-void FTCalibrationNode::getCalib(double &mass, Eigen::Vector3d &COM_pos,
-                                 Eigen::Vector3d &f_bias,
+void FTCalibrationNode::getCalib(double &mass, Eigen::Vector3d &COM_pos, Eigen::Vector3d &f_bias,
                                  Eigen::Vector3d &t_bias) {
   Eigen::VectorXd ft_calib = ft_calib_.getCalib();
 
@@ -299,8 +276,7 @@ void FTCalibrationNode::getCalib(double &mass, Eigen::Vector3d &COM_pos,
     //		return;
   }
 
-  Eigen::Vector3d center_mass_position(ft_calib(1) / mass, ft_calib(2) / mass,
-                                       ft_calib(3) / mass);
+  Eigen::Vector3d center_mass_position(ft_calib(1) / mass, ft_calib(2) / mass, ft_calib(3) / mass);
 
   COM_pos = center_mass_position;
 
@@ -385,8 +361,8 @@ int main(int argc, char **argv) {
         std::cout << t_bias(0) << ", " << t_bias(1) << ", " << t_bias(2) << "]";
         std::cout << std::endl << std::endl;
         std::cout << "-------------------------------------------------------------" << std::endl;
-                   // clang-format on
-                   ft_calib_node.saveCalibData();
+        // clang-format on
+        ft_calib_node.saveCalibData();
       }
     }
 

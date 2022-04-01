@@ -27,18 +27,16 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ******************************************************************************/
 
-#include <pinocchio/fwd.hpp>
-
-#include <pinocchio/algorithm/frames.hpp>
-#include <pinocchio/algorithm/kinematics.hpp>
-#include <pinocchio/multibody/geometry.hpp>
-
 #include <gtest/gtest.h>
-#include <ros/package.h>
-
 #include <ocs2_mobile_manipulator_example/MobileManipulatorInterface.h>
 #include <ocs2_self_collision/SelfCollision.h>
 #include <ocs2_self_collision/SelfCollisionCppAd.h>
+#include <ros/package.h>
+
+#include <pinocchio/algorithm/frames.hpp>
+#include <pinocchio/algorithm/kinematics.hpp>
+#include <pinocchio/fwd.hpp>
+#include <pinocchio/multibody/geometry.hpp>
 
 using namespace ocs2;
 using namespace mobile_manipulator;
@@ -46,7 +44,8 @@ using namespace mobile_manipulator;
 class TestSelfCollision : public ::testing::Test {
  public:
   TestSelfCollision()
-      : pinocchioInterface(mobile_manipulator::MobileManipulatorInterface::buildPinocchioInterface(urdfPath)),
+      : pinocchioInterface(
+            mobile_manipulator::MobileManipulatorInterface::buildPinocchioInterface(urdfPath)),
         geometryInterface(pinocchioInterface, collisionPairs) {}
 
   void computeValue(PinocchioInterface& pinocchioInterface, const vector_t q) {
@@ -63,11 +62,14 @@ class TestSelfCollision : public ::testing::Test {
   }
 
   // initial joint configuration
-  const vector_t jointPositon = (vector_t(9) << 1.0, 1.0, 0.5, 2.5, -1.0, 1.5, 0.0, 1.0, 0.0).finished();
+  const vector_t jointPositon =
+      (vector_t(9) << 1.0, 1.0, 0.5, 2.5, -1.0, 1.5, 0.0, 1.0, 0.0).finished();
   const std::vector<std::pair<size_t, size_t>> collisionPairs = {{1, 4}, {1, 6}, {1, 9}};
 
-  const std::string urdfPath = ros::package::getPath("ocs2_mobile_manipulator_example") + "/urdf/mobile_manipulator.urdf";
-  const std::string libraryFolder = ros::package::getPath("ocs2_mobile_manipulator_example") + "/auto_generated";
+  const std::string urdfPath =
+      ros::package::getPath("ocs2_mobile_manipulator_example") + "/urdf/mobile_manipulator.urdf";
+  const std::string libraryFolder =
+      ros::package::getPath("ocs2_mobile_manipulator_example") + "/auto_generated";
   const scalar_t minDistance = 0.1;
 
   PinocchioInterface pinocchioInterface;
@@ -76,8 +78,8 @@ class TestSelfCollision : public ::testing::Test {
 
 TEST_F(TestSelfCollision, AnalyticalVsAutoDiffValue) {
   SelfCollision selfCollision(geometryInterface, minDistance);
-  SelfCollisionCppAd selfCollisionCppAd(pinocchioInterface, geometryInterface, minDistance, "testSelfCollision", libraryFolder, true,
-                                        false);
+  SelfCollisionCppAd selfCollisionCppAd(pinocchioInterface, geometryInterface, minDistance,
+                                        "testSelfCollision", libraryFolder, true, false);
 
   computeValue(pinocchioInterface, jointPositon);
 
@@ -88,8 +90,8 @@ TEST_F(TestSelfCollision, AnalyticalVsAutoDiffValue) {
 
 TEST_F(TestSelfCollision, AnalyticalVsAutoDiffApproximation) {
   SelfCollision selfCollision(geometryInterface, minDistance);
-  SelfCollisionCppAd selfCollisionCppAd(pinocchioInterface, geometryInterface, minDistance, "testSelfCollision", libraryFolder, true,
-                                        false);
+  SelfCollisionCppAd selfCollisionCppAd(pinocchioInterface, geometryInterface, minDistance,
+                                        "testSelfCollision", libraryFolder, true, false);
 
   computeLinearApproximation(pinocchioInterface, jointPositon);
 
@@ -114,8 +116,8 @@ TEST_F(TestSelfCollision, AnalyticalValueAndApproximation) {
 
 TEST_F(TestSelfCollision, testRandomJointPositions) {
   SelfCollision selfCollision(geometryInterface, minDistance);
-  SelfCollisionCppAd selfCollisionCppAd(pinocchioInterface, geometryInterface, minDistance, "testSelfCollision", libraryFolder, true,
-                                        false);
+  SelfCollisionCppAd selfCollisionCppAd(pinocchioInterface, geometryInterface, minDistance,
+                                        "testSelfCollision", libraryFolder, true, false);
 
   for (int i = 0; i < 10; i++) {
     vector_t q = vector_t::Random(9);

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="panda">
-  <xacro:macro name="panda" params="connected_to:='' rpy:='0 0 0' xyz:='0 0 0' use_fixed_realsense:=false 
+  <xacro:macro name="panda" params="connected_to:='' rpy:='0 0 0' xyz:='0 0 0' use_fixed_realsense:=false
     tool:='panda_hand' wrist_camera_name:='wrist_camera'">
 
     <!-- panda arm  -->
@@ -19,7 +19,8 @@
 
     <!-- panda hand -->
     <xacro:if value="${tool == 'panda_hand'}">
-      <xacro:include filename="$(find franka_description)/robots/hand.xacro"/>
+      <!--xacro:include filename="$(find franka_description)/robots/hand.xacro"/-->
+      <xacro:include filename="$(find moma_description)/grippers/panda_hand/panda_hand.xacro"/>
       <xacro:include filename="$(find moma_description)/grippers/panda_hand/panda_hand.gazebo.xacro"/>
       <xacro:hand ns="panda" rpy="0 0 ${-pi/4}" connected_to="panda_link8"/>
       <xacro:panda_hand_gazebo arm_id="panda"/>
@@ -39,7 +40,7 @@
       <xacro:include filename="$(find moma_description)/grippers/robotiq_2f_85/urdf/robotiq_2f_85.xacro"/>
       <xacro:robotiq_2f_85 parent="panda_link8" prefix="">
         <origin xyz="0 0 0" rpy="0 0 0"/>
-      </xacro:robotiq_2f_85> 
+      </xacro:robotiq_2f_85>
     </xacro:if>
 
     <!-- robotiq 2f-85 toolset (plate + FT sensor + gripper + zedm camera) -->
@@ -47,7 +48,7 @@
       <xacro:include filename="$(find moma_description)/grippers/robotiq_2f_toolset/urdf/robotiq_2f_toolset.xacro"/>
       <xacro:robotiq_2f_toolset parent="panda_link8">
         <origin xyz="0 0 0" rpy="0 0 ${pi/2}"/>
-      </xacro:robotiq_2f_toolset> 
+      </xacro:robotiq_2f_toolset>
     </xacro:if>
 
     <!-- end effector frame for MoveIt -->
@@ -55,6 +56,14 @@
     <joint name="joint_link8_default_ee" type="fixed">
       <parent link="panda_link8"/>
       <child link="panda_default_ee"/>
+      <origin rpy="0.0 0.0 -0.785" xyz="0.0 0.0 0.103"/>
+    </joint>
+
+    <!-- end effector as for the real hardware -->
+    <link name="panda_EE"/>
+    <joint name="joint_link8_panda_EE" type="fixed">
+      <parent link="panda_link8"/>
+      <child link="panda_EE"/>
       <origin rpy="0.0 0.0 -0.785" xyz="0.0 0.0 0.103"/>
     </joint>
 

@@ -12,9 +12,9 @@
     <xacro:zedm parent="ft_sensor0_mounting">
       <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 3.14"/>
     </xacro:zedm>
-    
+
     <xacro:robotiq_2f_85 parent="ft_sensor0_wrench" prefix="">
       <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
-    </xacro:robotiq_2f_85> 
+    </xacro:robotiq_2f_85>
   </xacro:macro>
 </robot>

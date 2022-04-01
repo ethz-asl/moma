@@ -66,8 +66,8 @@ REACH_DETECTION_HOTSPOT_FAR:
   base_odometry_topic: /base_odom
 
   manager_namespace: smb
-  startlist: ['smb_diff_drive']
-  stoplist: ['mpc_controller', 'mpc_wholebody_controller']
+  startlist: ["smb_diff_drive"]
+  stoplist: ["mpc_controller", "mpc_wholebody_controller"]
 
   timeout: 10000.0
   tolerance_m: 0.30
@@ -78,8 +78,8 @@ REACH_DETECTION_HOTSPOT_CLOSE:
   duration: 10.0
   control_frame: tracking_camera_odom
   target_frame: hotspot_close
-  startlist: [ 'mpc_wholebody_controller', 'path_passthrough_controller' ]
-  stoplist: [ 'mpc_controller', 'joint_space_controller' ]
+  startlist: ["mpc_wholebody_controller", "path_passthrough_controller"]
+  stoplist: ["mpc_controller", "joint_space_controller"]
   manager_namespace: panda
 
 WAYPOINT_FOLLOWING:
@@ -90,8 +90,8 @@ WAYPOINT_FOLLOWING:
   base_odometry_topic: /camera/odom/sample
 
   manager_namespace: smb
-  startlist: ['smb_diff_drive']
-  stoplist: ['mpc_controller', 'mpc_wholebody_controller']
+  startlist: ["smb_diff_drive"]
+  stoplist: ["mpc_controller", "mpc_wholebody_controller"]
 
   timeout: 10000.0
   tolerance_m: 0.30
@@ -166,7 +166,12 @@ GRASP_VALVE:
   manager_namespace: panda
   startlist: ["cartesian_impedance_controller"]
   stoplist:
-    ["mpc_controller", "mpc_wholebody_controller", "joint_space_controller", "path_passthrough_controller"]
+    [
+      "mpc_controller",
+      "mpc_wholebody_controller",
+      "joint_space_controller",
+      "path_passthrough_controller",
+    ]
 
   poses_topic: /valve_poses
   section: "first"
@@ -175,16 +180,20 @@ MANIPULATE_VALVE:
   default_outcome: None
   mode: pose
   linear_speed: 0.01
-  angular_speed: 0.1
+  angular_speed: 0.5
   control_frame: panda_link0
   pose_topic: "/panda/cartesian_impedance_controller/equilibrium_pose"
   manager_namespace: panda
   startlist: ["cartesian_impedance_controller"]
   stoplist:
-    ["mpc_controller", "mpc_wholebody_controller", "joint_space_controller", "path_passthrough_controller"]
+    [
+      "mpc_controller",
+      "mpc_wholebody_controller",
+      "joint_space_controller",
+      "path_passthrough_controller",
+    ]
 
   poses_topic: /valve_poses
-  angular_speed: 0.5
 
 BACKOFF_VALVE:
   default_outcome: None
@@ -194,7 +203,12 @@ BACKOFF_VALVE:
   manager_namespace: panda
   startlist: ["cartesian_impedance_controller"]
   stoplist:
-    ["mpc_controller", "mpc_wholebody_controller", "joint_space_controller", "path_passthrough_controller"]
+    [
+      "mpc_controller",
+      "mpc_wholebody_controller",
+      "joint_space_controller",
+      "path_passthrough_controller",
+    ]
   duration: 10.0
 
   poses_topic: /valve_poses

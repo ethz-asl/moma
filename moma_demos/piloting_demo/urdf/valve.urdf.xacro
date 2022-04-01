@@ -6,7 +6,7 @@
    <xacro:arg name="roll"   default="0.0"/>
    <xacro:arg name="pitch"  default="0.0"/>
    <xacro:arg name="yaw"    default="0.0"/>
-   
+
    <link name="map">
    </link>
 
@@ -15,12 +15,12 @@
       <parent link="map"/>
       <child link="valve_gt"/>
     </joint>
-   
+
     <link name="valve_gt">
     <inertial>
       <mass value="0.01" />
       <origin xyz="0 0 0.0"  rpy="0 0 0"/>
-      <inertia 
+      <inertia
         ixx = "0.000001" ixy = "0.0" ixz = "0.0"
         iyy = "0.000001" iyz = "0.0"
         izz = "0.000001" />

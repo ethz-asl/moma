@@ -4,7 +4,7 @@ import rospy
 
 class ControllerManager(object):
     """Wrapper around the ROS controller manager's service calls.
-    
+
     See http://wiki.ros.org/controller_manager for more information
     about the ROS controller manager.
     """

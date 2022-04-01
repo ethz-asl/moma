@@ -4,7 +4,8 @@ from moveit_msgs.msg import MoveItErrorCodes
 import os
 import sys
 import rospy
-#import moveit_commander  --- it cannot find a library after update on my laptop (giuseppe)
+
+# import moveit_commander  --- it cannot find a library after update on my laptop (giuseppe)
 # not used anyway, commenting everything at the moment
 import moveit_msgs.msg
 

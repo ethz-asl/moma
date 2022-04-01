@@ -3,10 +3,11 @@ from scipy.spatial.transform import Rotation
 
 
 def is_python3():
-    return platform.python_version()[0] == '3'
+    return platform.python_version()[0] == "3"
 
 
 if is_python3():
+
     class CompatibleRotation(Rotation):
         def __init__(self, *args, **kwargs):
             Rotation.__init__(self, *args, **kwargs)
@@ -19,6 +20,7 @@ if is_python3():
             return cls.from_matrix(*args, **kwargs)
 
 else:
+
     class CompatibleRotation(Rotation):
         def __init__(self, *args, **kwargs):
             Rotation.__init__(self, *args, **kwargs)
@@ -29,6 +31,7 @@ else:
         @classmethod
         def from_matrix(cls, *args, **kwargs):
             return cls.from_dcm(*args, **kwargs)
+
 
 if __name__ == "__main__":
     import numpy as np

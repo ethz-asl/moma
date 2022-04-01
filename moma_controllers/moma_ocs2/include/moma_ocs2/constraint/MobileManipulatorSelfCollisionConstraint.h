@@ -29,10 +29,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
-#include <memory>
-
 #include <moma_ocs2/MobileManipulatorPreComputation.h>
 #include <ocs2_self_collision/SelfCollisionConstraint.h>
+
+#include <memory>
 
 namespace ocs2 {
 namespace mobile_manipulator {
@@ -40,13 +40,18 @@ namespace mobile_manipulator {
 class MobileManipulatorSelfCollisionConstraint final : public SelfCollisionConstraint {
  public:
   MobileManipulatorSelfCollisionConstraint(const PinocchioStateInputMapping<scalar_t>& mapping,
-                                           PinocchioGeometryInterface pinocchioGeometryInterface, scalar_t minimumDistance)
+                                           PinocchioGeometryInterface pinocchioGeometryInterface,
+                                           scalar_t minimumDistance)
       : SelfCollisionConstraint(mapping, std::move(pinocchioGeometryInterface), minimumDistance) {}
   ~MobileManipulatorSelfCollisionConstraint() override = default;
-  MobileManipulatorSelfCollisionConstraint(const MobileManipulatorSelfCollisionConstraint& other) = default;
-  MobileManipulatorSelfCollisionConstraint* clone() const { return new MobileManipulatorSelfCollisionConstraint(*this); }
+  MobileManipulatorSelfCollisionConstraint(const MobileManipulatorSelfCollisionConstraint& other) =
+      default;
+  MobileManipulatorSelfCollisionConstraint* clone() const {
+    return new MobileManipulatorSelfCollisionConstraint(*this);
+  }
 
-  const PinocchioInterface& getPinocchioInterface(const PreComputation& preComputation) const override {
+  const PinocchioInterface& getPinocchioInterface(
+      const PreComputation& preComputation) const override {
     return cast<MobileManipulatorPreComputation>(preComputation).getPinocchioInterface();
   }
 };

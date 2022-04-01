@@ -7,7 +7,7 @@
 
   <xacro:macro name="robotiq_2f_85" params="parent prefix *origin">
 
-    
+
     <xacro:robotiq_ur_coupler parent="${parent}">
       <xacro:insert_block name='origin'/>
     </xacro:robotiq_ur_coupler>
@@ -32,7 +32,7 @@
         <child link="${prefix}tool_frame" />
         <axis xyz="0 0 0" />
     </joint>
-    
+
     <xacro:load_gazebo_gripper_transmissions prefix="${prefix}"/>
   </xacro:macro>
 </robot>
