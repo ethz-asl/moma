@@ -1,5 +1,7 @@
 # MoMa
 
+[![CI](https://github.com/ethz-asl/moma/actions/workflows/main.yml/badge.svg)](https://github.com/ethz-asl/moma/actions/workflows/main.yml)
+
 Main repository of the mobile manipulation (moma) team at ASL containing launch files, robot descriptions, utilities, controllers, and documentation for robot operation.
 
 ## Packages
