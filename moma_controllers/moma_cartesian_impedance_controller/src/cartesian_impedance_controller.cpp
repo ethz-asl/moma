@@ -1,6 +1,6 @@
-//clang-format off
+// clang-format off
 #include <moma_cartesian_impedance_controller/cartesian_impedance_controller.hpp>
-//clang-format on
+// clang-format on
 
 #include <controller_interface/controller_base.h>
 #include <eigen_conversions/eigen_msg.h>

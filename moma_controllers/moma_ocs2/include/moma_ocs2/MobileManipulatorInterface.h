@@ -32,7 +32,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <string>
 
 // OCS2
-#include <moma_ocs2/definitions.h>
 #include <ocs2_core/Types.h>
 #include <ocs2_core/initialization/Initializer.h>
 #include <ocs2_ddp/DDP_Settings.h>
@@ -40,8 +39,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <ocs2_mpc/MPC_Settings.h>
 #include <ocs2_oc/rollout/TimeTriggeredRollout.h>
 #include <ocs2_oc/synchronized_module/ReferenceManager.h>
-#include <ocs2_pinocchio_interface/PinocchioInterface.h>
+
+// clang-format off
 #include <ocs2_robotic_tools/common/RobotInterface.h>
+// clang-format on
+
+#include <moma_ocs2/definitions.h>
+#include <ocs2_pinocchio_interface/PinocchioInterface.h>
 
 namespace ocs2 {
 namespace mobile_manipulator {

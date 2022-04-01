@@ -27,8 +27,4 @@
         <arg name="robot_base_frame"    value="$(arg robot_base_frame)"/>
         <arg name="odom_topic"          value="$(arg odom_topic)"/>
     </include>
-
-    <!-- Publish base odometry from tracking cam odometry measurements -->
-    <node pkg="odometry_conversion" type="odometry_conversion_node" name="tracking_camera_odometry_conversion" output="screen"/>
-
 </launch>

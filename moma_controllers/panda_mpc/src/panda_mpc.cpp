@@ -2,9 +2,9 @@
 // Created by giuseppe on 22.01.21.
 //
 
-//clang-format off
+// clang-format off
 #include <panda_mpc/panda_mpc.hpp>
-//clang-format on
+// clang-format on
 
 #include <controller_interface/controller_base.h>
 #include <franka/robot_state.h>

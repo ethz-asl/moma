@@ -5,6 +5,7 @@
   <xacro:arg name="use_fixed_realsense" default="false"/>
   <xacro:arg name="tool" default="panda_hand"/>
   <xacro:arg name="control_mode" default='Position'/>
+  <xacro:arg name="wrist_camera_name" default='hand_eye'/>
 
   <!-- MPC Arguments -->
   <xacro:arg name="mpc_model" default="false"/>
@@ -66,7 +67,7 @@
   <xacro:panda
     connected_to="arm_mount_link"
     use_fixed_realsense="$(arg use_fixed_realsense)"
-    wrist_camera_name="hand_eye"
+    wrist_camera_name="$(arg wrist_camera_name)"
     tool="$(arg tool)"/>
 
   <!-- Rigid fix between SMB and Panda -->

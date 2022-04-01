@@ -3,6 +3,7 @@
   <arg name="robot_ip" default="192.168.1.12"/>
 
   <!-- Load the robot description -->
+  <arg name="simulation" value="false"/>
   <arg name="tool" default="panda_hand"/>
   <arg name="load_gripper" default="true"  if="$(eval arg('tool') == 'panda_hand')"/>
   <arg name="load_gripper" default="false" unless="$(eval arg('tool') == 'panda_hand')"/>
@@ -13,7 +14,8 @@
   <!-- send the robot XML to param server -->
   <param name="arm_description" command="$(find xacro)/xacro $(find moma_description)/urdf/panda.urdf.xacro
       use_nominal_extrinsics:=true use_fixed_realsense:=false tool:=$(arg tool) control_mode:='Effort' include_gazebo_control:=false"/>
-  <param name="robot_description" command="$(find xacro)/xacro $(find moma_description)/urdf/superpanda.urdf.xacro use_nominal_extrinsics:=true use_fixed_realsense:=false tool:=$(arg tool)"/>
+  <param name="robot_description" command="$(find xacro)/xacro $(find moma_description)/urdf/superpanda.urdf.xacro
+    use_nominal_extrinsics:=true use_fixed_realsense:=false tool:=$(arg tool) wrist_camera_name:=dummy"/>
 
   <node name="joint_state_publisher" type="joint_state_publisher" pkg="joint_state_publisher" output="screen">
     <rosparam if="$(arg load_gripper)" param="source_list">[panda/franka_state_controller/joint_states, panda/franka_gripper/joint_states] </rosparam>
@@ -28,6 +30,7 @@
     <param name="task_file" value="$(find moma_ocs2)/config/mpc/task_panda.info"/>
     <param name="robot_description_ocs2" command="$(find xacro)/xacro $(find moma_description)/urdf/superpanda.urdf.xacro mpc_model:=true use_nominal_extrinsics:=true tool:='none'"/>
     <param name="base_type" value="$(arg base_type)"/>
+    <param name="reference_frame" value="tracking_camera_odom"/>
   </group>
 
   <group ns="panda">
@@ -45,7 +48,7 @@
       <node name="state_controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="franka_state_controller"/>
 
       <!-- Load all available controllers -->
-      <rosparam command="load" file="$(find moma_robot)/config/controllers.yaml" />
+      <rosparam command="load" file="$(find moma_robot)/config/controllers.yaml" subst_value="true"/>
 
       <!-- Load but do not start these controllers -->
       <arg name="controllers_load_list"
