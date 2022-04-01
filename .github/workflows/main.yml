@@ -36,7 +36,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           submodules: "recursive"
-          path: ${{steps.res-setup.outputs.ros-workspace-directory-name}}
+          path: ${{steps.ros-setup.outputs.ros-workspace-directory-name}}
 
       - run: export CATKIN_WS=${{steps.res-setup.outputs.ros-workspace-directory-name}}
       - run: sudo apt install python3-vcstool
