@@ -28,9 +28,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  ******************************************************************************/
 
 #pragma once
-//clang-format off
+// clang-format off
 #include <ocs2_ros_interfaces/mrt/DummyObserver.h>
-//clang-format on
+// clang-format on
 
 #include <moma_ocs2/MobileManipulatorInterface.h>
 #include <ocs2_self_collision_visualization/GeometryInterfaceVisualization.h>

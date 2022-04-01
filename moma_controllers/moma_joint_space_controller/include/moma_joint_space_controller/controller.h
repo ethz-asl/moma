@@ -1,7 +1,7 @@
 #pragma once
-//clang-format on
+// clang-format on
 #include <robot_control/modeling/robot_wrapper.h>
-//clang-format off
+// clang-format off
 
 #include <actionlib/server/simple_action_server.h>
 #include <control_toolbox/pid.h>

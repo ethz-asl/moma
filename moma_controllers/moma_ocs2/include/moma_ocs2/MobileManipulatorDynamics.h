@@ -28,9 +28,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ******************************************************************************/
 
 #pragma once
-//clang-format off
+// clang-format off
 #include <ocs2_core/dynamics/SystemDynamicsBaseAD.h>
-//clang-format on
+// clang-format on
 
 #include <moma_ocs2/definitions.h>
 #include <ocs2_pinocchio_interface/PinocchioInterface.h>

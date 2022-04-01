@@ -27,11 +27,11 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ******************************************************************************/
 
-//clang-format off
+// clang-format off
 #include <pinocchio/algorithm/frames.hpp>
 #include <pinocchio/algorithm/kinematics.hpp>
 #include <pinocchio/fwd.hpp>
-//clang-format on
+// clang-format on
 #include <gtest/gtest.h>
 #include <moma_ocs2_example/MobileManipulatorInterface.h>
 #include <moma_ocs2_example/MobileManipulatorPinocchioMapping.h>
