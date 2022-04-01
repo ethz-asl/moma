@@ -12,18 +12,34 @@ class ValveModelPlanner:
     Generate graps and paths given a valve model
     """
 
-    def __init__(self, valve_model=ValveModel()):
+    def __init__(self, valve_model=ValveModel(), robot_base_pose=None):
         self.valve_model = valve_model
+        self.robot_base_heading = None
 
-    def _get_all_grasping_poses(self, samples=100):
+        if robot_base_pose is not None:
+            assert robot_base_pose.header.frame_id == valve_model.frame
+            self.robot_base_heading = np.array(
+                [
+                    robot_base_pose.position.x,
+                    robot_base_pose.position.y,
+                    robot_base_pose.position.z,
+                ]
+            )
+            self.robot_base_heading /= np.linalg.norm(self.robot_base_heading)
+
+    def _get_all_grasping_poses(self, inverted=False, samples=100):
         """
         Get all potential grasping poses
+
+        @param inverted: whether the gripper heading should be inverted
         """
         thetas = [i * 2 * np.pi / samples for i in range(samples)]
         points = [self.valve_model.get_point_on_wheel(theta) for theta in thetas]
 
         zdes = np.array([0.0, 0.0, -1.0])
         xs = [self.valve_model.get_tangent_on_wheel(theta) for theta in thetas]
+        if inverted:
+            xs = [-x for x in xs]
         zs = [zdes - np.dot(zdes, x) * x for x in xs]
         zs = [z / np.linalg.norm(z) for z in zs]
         ys = [np.cross(z, x) for x, z in zip(xs, zs)]
@@ -81,7 +97,15 @@ class ValveModelPlanner:
         Get a score for a particular grasping pose - the higher the better
         """
         z_axis = R.from_quat(grasp["orientation"]).as_matrix()[:, 2]
-        return np.dot(z_axis, np.array([0, 0, -1]))
+        z_score = np.dot(z_axis, np.array([0, 0, -1]))
+
+        # Avoid entangled robot configurations by considering the robot base heading
+        x_score = 0
+        if self.robot_base_heading is not None:
+            x_axis = R.from_quat(grasp["orientation"]).as_matrix()[:, 0]
+            x_score = np.dot(x_axis, self.robot_base_heading)
+
+        return z_score + x_score
 
     def _get_valid_paths(self, grasps_start, grasps, angle_max=2 * np.pi):
         """
@@ -133,7 +157,7 @@ class ValveModelPlanner:
 
         return paths
 
-    def get_path(self, angle_max=2 * np.pi):
+    def _get_all_valid_paths(self, angle_max, inverted=False):
         """
         Given a maximum angle that we want to achieve withing a single manipulation step
         extract a path with the following properties
@@ -141,17 +165,31 @@ class ValveModelPlanner:
         2. all the poses along the path points toward the center (if possible)
         3. all poses along the path are continuous
         4. the path meets the turning angle (otherwise, use longest available one)
-        5. prefer motion with a high score (if possible)
 
         @param angle_max: maximum turning angle (sign determines turning direction)
+        @param inverted: whether the gripper heading should be inverted
         """
-
-        grasps = self._get_all_grasping_poses()
+        grasps = self._get_all_grasping_poses(inverted=inverted)
         grasps = filter(self._is_radial_grasp, grasps)
         grasps = list(filter(self._is_non_singular_grasp, grasps))
         grasps_start = filter(self._is_non_obstructed_grasp, grasps)
 
-        all_paths = self._get_valid_paths(grasps_start, grasps, angle_max)
+        paths = self._get_valid_paths(grasps_start, grasps, angle_max)
+        return paths
+
+    def get_path(self, angle_max=2 * np.pi):
+        """
+        Given a maximum angle that we want to achieve withing a single manipulation step
+        extract a path with the following properties
+        1. [...] see description of _get_all_valid_paths
+        2. prefer motion with a high score (if possible)
+
+        @param angle_max: maximum turning angle (sign determines turning direction)
+        """
+
+        all_paths = self._get_all_valid_paths(angle_max=angle_max, inverted=False)
+        if self.robot_base_heading is not None:
+            all_paths += self._get_all_valid_paths(angle_max=angle_max, inverted=True)
         valid_paths = [path for path in all_paths if path["angle"] >= abs(angle_max)]
 
         if len(all_paths) == 0:
