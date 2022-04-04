@@ -219,7 +219,7 @@ path_admittance_ur_controller:
 cartesian_impedance_controller:
   type: moma_controllers/CartesianImpedanceController
   arm_id: panda
-  target_frame: tool_frame
+  tool_link: tool_frame
   joint_names:
     - panda_joint1
     - panda_joint2
