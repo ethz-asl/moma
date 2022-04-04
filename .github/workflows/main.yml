@@ -28,7 +28,17 @@ jobs:
       image: ros:noetic
 
     steps:
-      - run: mkdir -p catkin_ws/src
+      - name: Create workspace
+        run: |
+          mkdir -p catkin_ws/src
+          cd catkin_ws
+          catkin init
+          catkin config --cmake-args -DCMAKE_BUILD_TYPE=RelWithDebInfo
+
+      - name: Update Git
+        run: |
+          apt-get update
+          apt-get install -y git
 
       - name: Checkout repo
         uses: actions/checkout@v2
@@ -45,5 +55,6 @@ jobs:
 
       - name: Build
         run: |
+          cd ~/catkin_ws/src
           source ../devel/setup.bash
           catkin build --cmake-args -DCMAKE_BUILD_TYPE=RelWithDebInfo
