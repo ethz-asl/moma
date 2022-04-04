@@ -24,35 +24,31 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
+    container:
+      image: ros:noetic
 
     steps:
-      - name: Install ROS Noetic
-        id: ros_setup
-        uses: ros-tooling/setup-ros@v0.2
-        with:
-          required-ros-distributions: noetic
+      - name: Init workspace
+        run: |
+          mkdir -p catkin_ws/src && cd catkin_ws/src
+          echo "::set-env name=pwd
 
-      - name: Setup ROS workspace
-        uses: ros-tooling/action-ros-ci@v0.2
-        id: ros_workspace
-        with:
-          target-ros1-distro: noetic
+      - run: mkdir -p catkin_ws/src
 
       - name: Checkout repo
         uses: actions/checkout@v2
         with:
           submodules: "recursive"
-          path: ${{steps.ros_workspace.outputs.ros-workspace-directory-name}}
+          path: ~/catkin_ws/src
 
-      - run: |
-          export CATKIN_WS=${{steps.ros_setup.outputs.ros-workspace-directory-name}}
-          echo "::set-env name=CATKIN_WS::$CATKIN_WS"
-      - run: sudo apt install python3-vcstool
-      - run: |
-          echo "cd $CATKIN_WS/src"
-          cd $CATKIN_WS/src
-      - run: vcs import --recursive --input moma/moma_core.repos
-      - run: vcs import --recursive --input moma/moma_piloting.repos
-      - run: ./moma/install_dependencies.sh --control
-      - run: source ../devel/setup.bash
-      - run: catkin build --cmake-args -DCMAKE_BUILD_TYPE=RelWithDebInfo
+      - name: Install Dependencies
+        run: |
+          cd ~/catkin_ws/src
+          vcs import --recursive --input moma/moma_core.repos
+          vcs import --recursive --input moma/moma_piloting.repos
+           ./moma/install_dependencies.sh --control
+
+      - name: Build
+        run: |
+          source ../devel/setup.bash
+          catkin build --cmake-args -DCMAKE_BUILD_TYPE=RelWithDebInfo
