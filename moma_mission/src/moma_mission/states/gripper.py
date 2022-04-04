@@ -9,7 +9,7 @@ from control_msgs.msg import (
 )
 from franka_gripper.msg import GraspAction, GraspGoal, GraspResult
 
-from moma_mission.core import StateRos, StateRosControl
+from moma_mission.core import StateRos
 
 
 class GripperPositionControlState(StateRos):

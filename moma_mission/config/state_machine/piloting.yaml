@@ -98,7 +98,7 @@ WAYPOINT_FOLLOWING:
   tolerance_deg: 50
 
 DETECTION_DECISION:
-  default_outcome: Completed
+  default_outcome: Failure
 
 OBSERVATION_POSE:
   default_outcome: None
