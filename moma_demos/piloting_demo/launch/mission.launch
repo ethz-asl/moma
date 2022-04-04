@@ -2,19 +2,15 @@
 <launch>
   <arg name="sim" default="false"/>
 
-  <!-- interactive marker -->
-  <node pkg="moma_cartesian_impedance_controller" type="interactive_marker.py" name="interactive_marker" output="screen">
-    <param name="base_frame" value="panda_link0"/>
-    <param name="target_frame" value="panda_hand"/>
-    <param name="topic_name" value="/panda/cartesian_impedance_controller/equilibrium_pose"/>
-  </node>
-
-  <!-- set the correct internal ee frame -->
-  <node pkg="moma_cartesian_impedance_controller" type="set_EE_frame.py" name="set_EE_frame_node" output="screen" respawn="true"/>
+  <!-- Load joint controller to publish the joint state under object namespace -->
+  <group ns="valve" if="$(arg sim)">
+    <rosparam command="load" file="$(find piloting_demo)/config/sim/controllers.yaml"/>
+    <node name="valve_controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="valve_state_controller" />
+  </group>
 
   <!-- valve model -->
   <include file="$(find piloting_demo)/launch/valve.launch">
-    <arg name="sim" value="true"/>
+    <arg name="sim" value="$(arg sim)"/>
     <arg name="x" value="2.5"/>
     <arg name="y" value="2.5"/>
     <!-- arg name="z" value="0"/-->
