@@ -108,6 +108,7 @@ sudo apt-get install \
 	ros-$ROS_DISTRO-py-trees-ros \
 	ros-$ROS_DISTRO-rqt-py-trees \
 	ros-$ROS_DISTRO-libfranka \
+	ros-$ROS_DISTRO-franka-ros \
 	ros-$ROS_DISTRO-joint-state-publisher-gui \
 	ros-$ROS_DISTRO-ddynamic-reconfigure \
 	ros-$ROS_DISTRO-lms1xx \
