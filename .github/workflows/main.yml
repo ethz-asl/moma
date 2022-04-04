@@ -25,20 +25,20 @@ jobs:
   build:
     runs-on: ubuntu-latest
     container:
-      image: ros:noetic
+      image: ros:noetic-robot
 
     steps:
+      - name: Update Git
+        run: |
+          apt-get update
+          apt-get install -y git
+
       - name: Create workspace
         run: |
           mkdir -p catkin_ws/src
           cd catkin_ws
           catkin init
           catkin config --cmake-args -DCMAKE_BUILD_TYPE=RelWithDebInfo
-
-      - name: Update Git
-        run: |
-          apt-get update
-          apt-get install -y git
 
       - name: Checkout repo
         uses: actions/checkout@v2
