@@ -46,16 +46,16 @@ jobs:
         uses: actions/checkout@v2
         with:
           submodules: "recursive"
-          path: ~/catkin_ws/src
+          path: catkin_ws/src
 
       - name: Install Dependencies
         run: |
-          cd ~/catkin_ws/src
+          cd catkin_ws/src
           vcs import --recursive --input moma/moma_core.repos
           vcs import --recursive --input moma/moma_piloting.repos
            ./moma/install_dependencies.sh --control
 
       - name: Build
         run: |
-          cd ~/catkin_ws/src
+          cd catkin_ws/src
           source ../devel/setup.bash
