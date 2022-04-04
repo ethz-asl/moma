@@ -36,7 +36,7 @@ jobs:
       - name: Create workspace
         run: |
           sudo apt-get update
-          sudo apt-get install python3-catkin-tools
+          sudo apt-get install -y python3-catkin-tools
           mkdir -p catkin_ws/src
           cd catkin_ws
           catkin init
@@ -59,4 +59,3 @@ jobs:
         run: |
           cd ~/catkin_ws/src
           source ../devel/setup.bash
-          catkin build --cmake-args -DCMAKE_BUILD_TYPE=RelWithDebInfo
