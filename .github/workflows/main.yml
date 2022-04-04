@@ -50,6 +50,7 @@ jobs:
 
       - name: Install Dependencies
         run: |
+          sudo apt install -y python3-vcstool
           cd catkin_ws/src
           vcs import --recursive --input moma/moma_core.repos
           vcs import --recursive --input moma/moma_piloting.repos
