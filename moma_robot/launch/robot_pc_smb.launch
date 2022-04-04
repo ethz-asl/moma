@@ -9,6 +9,7 @@
         <arg name="simulation"              value="false"/>
         <arg name="mpc"                     value="false"/>
         <arg name="publish_robot_state"     value="false"/>  <!-- Since we do this in the current launch for the full robot -->
+        <arg name="setup"                   value="smb_piloting_properties"/>
     </include>
 
     <!-- Sensors -->
@@ -21,7 +22,9 @@
     <!-- Publish base odometry from tracking cam odometry measurements -->
     <node pkg="odometry_conversion"
           type="odometry_conversion_node"
-          name="tracking_camera_odometry_conversion" output="screen"/>
+          name="tracking_camera_odometry_conversion" output="screen">
+      <param name="use_planar_motion" value="true"/>
+    </node>
 
     <!-- Low level smb controller -->
     <include file="$(find smb_lowlevel_controller)/launch/smb_lowlevel_controller.launch" ns="smb">
