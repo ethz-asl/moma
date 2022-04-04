@@ -2,7 +2,12 @@ import rospy
 import actionlib
 from sensor_msgs.msg import JointState
 from std_msgs.msg import Float64
-from control_msgs.msg import GripperCommandAction, GripperCommandGoal
+from control_msgs.msg import (
+    GripperCommandAction,
+    GripperCommandGoal,
+    GripperCommandResult,
+)
+from franka_gripper.msg import GraspAction, GraspGoal, GraspResult
 
 from moma_mission.core import StateRos, StateRosControl
 
