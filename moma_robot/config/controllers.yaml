@@ -70,6 +70,7 @@ mpc_controller:
   arm_id: panda
 
   robot_name: "panda"
+  task_file: "$(find moma_ocs2)/config/mpc/task_panda.info"
   base_type: 0
   base_link: "tracking_camera_odom"
   tool_link: "tool_frame"
@@ -110,6 +111,7 @@ mpc_wholebody_controller:
   arm_id: panda
 
   robot_name: "panda"
+  task_file: "$(find moma_ocs2)/config/mpc/task_panda_wholebody.info"
   base_type: 1
   base_link: "tracking_camera_odom"
   tool_link: "tool_frame"
@@ -217,7 +219,7 @@ path_admittance_ur_controller:
 cartesian_impedance_controller:
   type: moma_controllers/CartesianImpedanceController
   arm_id: panda
-  target_frame: tool_frame
+  tool_link: tool_frame
   joint_names:
     - panda_joint1
     - panda_joint2

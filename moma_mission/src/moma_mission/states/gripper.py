@@ -2,9 +2,14 @@ import rospy
 import actionlib
 from sensor_msgs.msg import JointState
 from std_msgs.msg import Float64
-from control_msgs.msg import GripperCommandAction, GripperCommandGoal
+from control_msgs.msg import (
+    GripperCommandAction,
+    GripperCommandGoal,
+    GripperCommandResult,
+)
+from franka_gripper.msg import GraspAction, GraspGoal, GraspResult
 
-from moma_mission.core import StateRos, StateRosControl
+from moma_mission.core import StateRos
 
 
 class GripperPositionControlState(StateRos):
@@ -67,12 +72,12 @@ class GripperUSB(StateRos):
         return "Completed"
 
 
-class GripperControl(StateRos):
+class GripperAction(StateRos):
     """
     This state controls the gripper through the GripperCommandAction
     """
 
-    def __init__(self, ns=""):
+    def __init__(self, ns="", action_type=GripperCommandAction):
         StateRos.__init__(self, ns=ns)
 
         self.position = self.get_scoped_param("position")
@@ -80,15 +85,24 @@ class GripperControl(StateRos):
         self.tolerance = self.get_scoped_param("tolerance")
         self.server_timeout = self.get_scoped_param("timeout")
 
-        self.gripper_cmd = GripperCommandGoal()
-
-        self.gripper_cmd.command.position = self.position
-        self.gripper_cmd.command.max_effort = self.max_effort
-
+        self.gripper_goal = None
         self.gripper_action_name = self.get_scoped_param("gripper_action_name")
         self.gripper_client = actionlib.SimpleActionClient(
-            self.gripper_action_name, GripperCommandAction
+            self.gripper_action_name, action_type
         )
+        self._set_goal()
+        self.success = False
+
+    def _set_goal(self):
+        raise NotImplementedError()
+
+    def _done_cb(self, status, result):
+        if status == actionlib.GoalStatus.SUCCEEDED:
+            self.success = True
+        self._process_result(result)
+
+    def _process_result(self, result):
+        pass
 
     def run(self):
         if not self.gripper_client.wait_for_server(rospy.Duration(self.server_timeout)):
@@ -99,46 +113,14 @@ class GripperControl(StateRos):
             )
             return "Failure"
 
-        # TODO(giuseppe) remove hack --> kinova takes time to switch to highlevel mode
-        rospy.sleep(1.0)
-        self.gripper_client.send_goal(self.gripper_cmd)
+        self.gripper_client.send_goal(self.gripper_goal, done_cb=self._done_cb)
         if not self.gripper_client.wait_for_result(rospy.Duration(self.server_timeout)):
             rospy.logerr(
                 "Timeout exceeded while waiting the gripper action to complete"
             )
             return "Failure"
 
-        rospy.loginfo(
-            f"Sending gripper command: pos={self.gripper_cmd.command.position}, max_eff={self.gripper_cmd.command.max_effort}"
-        )
-        result = self.gripper_client.get_result()
-        error = abs(result.position - self.position)
-        tolerance_met = error < self.tolerance
-
-        success = True
-        if result is None:
-            rospy.logerr("None received from the gripper server")
-            success = False
-        elif result.stalled and not tolerance_met:
-            rospy.logerr(
-                "Gripper stalled and not moving, position error {} is larger than tolerance".format(
-                    error
-                )
-            )
-            success = False
-        elif result.stalled and tolerance_met:
-            rospy.logerr(
-                "Gripper stalled and not moving, position error {} is smaller than tolerance".format(
-                    error
-                )
-            )
-            success = True
-        elif result.reached_goal:
-            rospy.loginfo("Gripper successfully reached the goal")
-            success = True
-
-        if success:
-            rospy.sleep(1.0)  # just for safety
+        if self.success:
             return "Completed"
         else:
             return "Failure"

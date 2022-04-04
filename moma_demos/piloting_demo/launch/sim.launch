@@ -20,13 +20,6 @@
     </group>
 
     <group ns="panda">
-        <group ns="mpc_controller">
-          <param name="task_file" value="$(find moma_ocs2)/config/mpc/task_panda.info"/>
-        </group>
-        <group ns="mpc_wholebody_controller">
-          <param name="task_file" value="$(find moma_ocs2)/config/mpc/task_panda_wholebody.info"/>
-        </group>
-
         <group if="$(eval arg('tool') == 'panda_hand')">
             <node name="gripper_controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="franka_gripper" />
         </group>
@@ -36,7 +29,7 @@
         </group>
 
         <!-- start joint position trajectory controller -->
-        <rosparam file="$(find moma_gazebo)/config/panda_controllers.yaml" command="load" />
+        <rosparam file="$(find moma_gazebo)/config/panda_controllers.yaml" command="load" subst_value="true"/>
         <rosparam file="$(find moma_gazebo)/config/gripper_controllers.yaml" command="load" />
 
         <node name="arm_start_controller_spawner"
@@ -46,8 +39,14 @@
         <node name="arm_stop_controller_spawner"
               pkg="controller_manager"
               type="spawner"
-              output="screen" args="--stopped mpc_controller mpc_wholebody_controller joint_space_controller path_passthrough_controller path_admittance_controller"
+              output="screen" args="--stopped mpc_controller mpc_wholebody_controller cartesian_impedance_controller joint_space_controller path_passthrough_controller path_admittance_controller"
               launch-prefix="bash -c 'sleep 12; $0 $@' " />
+
+        <!-- Allow to use the grasp action as on the real robot -->
+        <node pkg="moma_gazebo" type="grasp_action_relay.py" name="grasp_action_relay" output="screen">
+            <param name="in_action_name" value="franka_gripper/grasp"/>
+            <param name="out_action_name" value="franka_gripper/gripper_action"/>
+        </node>
     </group>
 
     <!-- Joint the readings published by Smb and Panda -->
@@ -110,6 +109,6 @@
 
   <!-- try cleaner start waiting some time before unpausing -->
   <node name="unpause_gazebo" pkg="moma_gazebo" type="unpause_gazebo.py">
-      <param name="wait_before_unpause" value="8.0"/>
+      <param name="wait_before_unpause" value="5.0"/>
   </node>
 </launch>

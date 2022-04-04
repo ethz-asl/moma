@@ -51,6 +51,13 @@ class PathVisitorState(StateRosControl):
             self._poses_msg,
             queue_size=1,
         )
+
+        self.pose_publisher = rospy.Publisher(
+            self.get_scoped_param("pose_topic", "/desired_pose"),
+            PoseStamped,
+            queue_size=1,
+        )
+
         self.path_publisher = rospy.Publisher(
             self.get_scoped_param("path_topic", "/desired_path"), Path, queue_size=1
         )
