@@ -598,7 +598,7 @@ class RansacMatcher:
         max_reference = 0
         best_matched_observations = None
         best_matched_observations3d = None
-        best_matched_observations_cams = None
+        best_matched_observations_cam = None
 
         for i, (cam_ref, obs_ref) in enumerate(zip(self.cameras, self.observations)):
             matched_total = 0
@@ -617,7 +617,7 @@ class RansacMatcher:
                     if np.all(matches >= 0):
                         matched_observations[j] = obs[matches, :]
                         matched_observations3d[j] = obs3d[matches, :]
-                        matched_observations_cams[j] = cam[matches, :]
+                        matched_observations_cams[j] = cam
                         matched_total += 1  # we mathced all features with respect to the reference observation
                     else:
                         matched_observations[j] = None
@@ -629,7 +629,7 @@ class RansacMatcher:
                 max_matches = matched_total
                 best_matched_observations = matched_observations
                 best_matched_observations3d = matched_observations3d
-                best_matched_observations_cams = matched_observations_cams
+                best_matched_observations_cam = matched_observations_cams
         max_matches += 1  # count also the reference observation as "match with itself"
         if max_matches < self.min_consensus:
             success = False
@@ -640,7 +640,7 @@ class RansacMatcher:
             success,
             best_matched_observations,
             best_matched_observations3d,
-            best_matched_observations_cams,
+            best_matched_observations_cam,
         )
 
 
