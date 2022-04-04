@@ -18,8 +18,3 @@ repositories:
     type: git
     url: git@github.com:roboticsgroup/roboticsgroup_gazebo_plugins.git
     version: 4d93ecd
-
-  franka_ros:
-    type: git
-    url: git@github.com:ethz-asl/franka_ros.git
-    version: 2a4253bb6c46b3935079a52bd1ebae912ba220fe

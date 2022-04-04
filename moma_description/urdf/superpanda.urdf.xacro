@@ -2,6 +2,7 @@
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="superpanda">
 
   <!-- Panda Arguments -->
+  <xacro:arg name="sim" default="false"/>
   <xacro:arg name="use_fixed_realsense" default="false"/>
   <xacro:arg name="tool" default="panda_hand"/>
   <xacro:arg name="control_mode" default='Position'/>
@@ -66,6 +67,7 @@
   <xacro:include filename="$(find moma_description)/urdf/panda.xacro"/>
   <xacro:panda
     connected_to="arm_mount_link"
+    sim="$(arg sim)"
     use_fixed_realsense="$(arg use_fixed_realsense)"
     wrist_camera_name="$(arg wrist_camera_name)"
     tool="$(arg tool)"/>
