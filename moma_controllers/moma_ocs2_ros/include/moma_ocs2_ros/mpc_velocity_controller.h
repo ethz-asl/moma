@@ -107,7 +107,7 @@ class MpcController {
 
     std::string pathTopic;
     nh_.param<std::string>("path_topic", pathTopic, "/desired_path");
-    targetPathSubscriber_ = nh_.subscribe(pathTopic, 10, &MpcController::pathCallback, this);
+    targetPathSubscriber_ = nh_.subscribe(pathTopic, 1, &MpcController::pathCallback, this);
 
     observationPublisher_ =
         nh_.advertise<ocs2_msgs::mpc_observation>("/" + robotName + "_mpc_observation", 10);
@@ -181,7 +181,9 @@ class MpcController {
     ROS_INFO("[MPC_Controller::stop] Stopping MPC update thread");
     stopped_ = true;
     std::lock_guard<std::mutex> lock(stopTimeMutex_);
-    stopTime_ = ros::Time::now().toSec();
+    if (stopTime_ == 0) {
+      stopTime_ = ros::Time::now().toSec();
+    }
     ROS_INFO("[MPC_Controller::stop] Stopped MPC update thread");
   }
 
@@ -479,8 +481,8 @@ class MpcController {
   }
 
  protected:
-  double stopTime_;
-  double totalStopTime_;
+  double stopTime_ = 0;
+  double totalStopTime_ = 0;
   std::mutex stopTimeMutex_;
 
   std::string tool_link_;
