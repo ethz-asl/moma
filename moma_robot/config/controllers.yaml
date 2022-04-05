@@ -1,3 +1,13 @@
+panda_autorecovery:
+  dependent_controllers:
+    - mpc_controller
+    - mpc_wholebody_controller
+    - path_passthrough_controller
+    - path_admittance_controller
+    - joint_space_controller
+    - joint_velocity_controller
+  manager_namespace: panda
+
 cartesian_velocity_controller:
   type: panda_control/CartesianVelocityController
   arm_id: panda

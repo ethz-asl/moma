@@ -28,9 +28,9 @@ def get_param_safe(param_name, default=None):
         raise NameError("Failed to parse parameter {}".format(param_name))
 
 
-def switch_ros_controller(startlist=[], stoplist=[], manager_namespace=""):
+def get_ros_controllers(manager_namespace=""):
     list_controller_service_name = os.path.join(
-        manager_namespace, "controller_manager", "list_controllers"
+        "/", manager_namespace, "controller_manager", "list_controllers"
     )
     try:
         rospy.wait_for_service(list_controller_service_name, timeout=2.0)
@@ -38,6 +38,26 @@ def switch_ros_controller(startlist=[], stoplist=[], manager_namespace=""):
         rospy.logerr("Failed to call {}".format(list_controller_service_name))
         return False
 
+    list_service_client = rospy.ServiceProxy(
+        list_controller_service_name, ListControllers
+    )
+    req = ListControllersRequest()
+    res = list_service_client.call(req)
+    return res
+
+
+def get_ros_controllers_state(manager_namespace=""):
+    controllers = get_ros_controllers(manager_namespace=manager_namespace)
+    controllers_map = {ctrl.name: ctrl.state for ctrl in controllers.controller}
+    return controllers_map
+
+
+def get_filtered_controllers(state, manager_namespace=""):
+    controllers_map = get_ros_controllers_state(manager_namespace=manager_namespace)
+    return [name for name, s in controllers_map.items() if s == state]
+
+
+def switch_ros_controller(startlist=[], stoplist=[], manager_namespace=""):
     # stop all controllers running and not in the whitelist
     controller_stop_list = []
     controller_start_list = []
@@ -45,13 +65,8 @@ def switch_ros_controller(startlist=[], stoplist=[], manager_namespace=""):
     rospy.loginfo(
         f"switch_controller_ros:\nstart list={startlist}\nstop list={stoplist}"
     )
-    list_service_client = rospy.ServiceProxy(
-        list_controller_service_name, ListControllers
-    )
-    req = ListControllersRequest()
-    res = list_service_client.call(req)
 
-    controllers_map = {ctrl.name: ctrl.state for ctrl in res.controller}
+    controllers_map = get_ros_controllers_state(manager_namespace=manager_namespace)
     for controller in startlist:
         if controller not in controllers_map.keys():
             rospy.logerr(
@@ -85,7 +100,7 @@ def switch_ros_controller(startlist=[], stoplist=[], manager_namespace=""):
     rospy.loginfo("Stopping controllers: {}".format(controller_stop_list))
     rospy.loginfo("Starting controllers: {}".format(controller_start_list))
     switch_controller_service_name = os.path.join(
-        manager_namespace, "controller_manager", "switch_controller"
+        "/", manager_namespace, "controller_manager", "switch_controller"
     )
     try:
         rospy.wait_for_service(switch_controller_service_name, timeout=2.0)
@@ -108,9 +123,9 @@ def switch_ros_controller(startlist=[], stoplist=[], manager_namespace=""):
         rospy.logerr("Failed to switch ros controller")
         return False
 
-    if len(controller_stop_list) > 0:
-        rospy.loginfo("Sleeping 3.0 sec before returning")
-        rospy.sleep(3.0)
+    if len(controller_start_list) > 0:
+        rospy.loginfo("Sleeping 1.0 sec before returning")
+        rospy.sleep(1.0)
     else:
         rospy.loginfo("No new controller started")
 
