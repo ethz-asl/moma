@@ -35,7 +35,7 @@ bool PathPassthroughController::init(hardware_interface::JointStateInterface* hw
 
 void PathPassthroughController::update(const ros::Time& time, const ros::Duration& /*period*/) {
   if (!path_received_) {
-    ROS_WARN_STREAM_THROTTLE(2.0, "No path received yet.");
+    // ROS_WARN_STREAM_THROTTLE(2.0, "No path received yet.");
     return;
   }
 
@@ -45,6 +45,7 @@ void PathPassthroughController::update(const ros::Time& time, const ros::Duratio
   }
 
   desiredPathPublisher_.publish(desiredPath_);
+  path_received_ = false;
 }
 
 void PathPassthroughController::path_callback(const nav_msgs::PathConstPtr& msg) {
