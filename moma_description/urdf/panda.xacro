@@ -4,12 +4,12 @@
     tool:='panda_hand' wrist_camera_name:='wrist_camera'">
 
     <!-- panda arm  -->
-    <xacro:if value="${sim}">
+    <!--xacro:if value="${sim}"-->
         <xacro:include filename="$(find franka_description)/robots/panda_gazebo.xacro"/>
-    </xacro:if>
+    <!--/xacro:if>
     <xacro:unless value="${sim}">
         <xacro:include filename="$(find franka_description)/robots/panda_arm.xacro"/>
-    </xacro:unless>
+    </xacro:unless-->
     <xacro:panda_arm connected_to="${connected_to}" rpy="${rpy}" xyz="${xyz}"/>
 
     <!-- no tool frame -->
