@@ -55,7 +55,7 @@ try:
             NavigationState,
             transitions={
                 "Completed": "REACH_DETECTION_HOTSPOT_CLOSE",
-                "Failure": "Failure",
+                "Failure": "REACH_DETECTION_HOTSPOT_FAR",
             },
         )
 
@@ -63,7 +63,10 @@ try:
         state_machine.add(
             "REACH_DETECTION_HOTSPOT_CLOSE",
             TransformVisitorState,
-            transitions={"Completed": "DETECTION_DECISION", "Failure": "Failure"},
+            transitions={
+                "Completed": "DETECTION_DECISION",
+                "Failure": "REACH_DETECTION_HOTSPOT_FAR",
+            },
         )
 
         rospy.loginfo("Waypoint following")
