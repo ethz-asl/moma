@@ -13,7 +13,6 @@ from moma_mission.utils.transforms import se3_to_pose_ros, tf_to_se3
 from moma_mission.utils.trajectory import get_timed_path_to_target
 from moma_mission.utils.robot import Robot
 from moma_mission.states.navigation import SingleNavGoalState
-from moma_mission.states.model_fit import ModelFitState
 
 from moma_mission.core import StateRosControl, StateRos
 from moma_mission.utils.transforms import numpy_to_pose_stamped
@@ -290,6 +289,7 @@ class ModelFitValveState(StateRos):
         self.frame_id = None
         self.successful_detections = 0
         self.detections = []
+        self.camera_pose = None
         self.valve_fitter = ValveFitter(k=self.k)
         self.ransac_matcher = RansacMatcher(
             acceptance_ratio=self.acceptance_ratio,
@@ -360,10 +360,13 @@ class ModelFitValveState(StateRos):
             markers.markers.append(marker)
         return markers
 
-    def _model_fit(self, points3d: np.ndarray, frame: str) -> TransformStamped:
+    def _model_fit(self, points3d: np.ndarray) -> TransformStamped:
         valve: ValveModel
         residual, valve = self.valve_fitter.estimate_from_3d_points(
-            points3d, frame, error_threshold=self.error_threshold
+            points3d,
+            self.camera_pose,
+            self.frame_id,
+            error_threshold=self.error_threshold,
         )
         print(f"Fit valve with residual {residual}")
         if valve is None:
@@ -403,6 +406,7 @@ class ModelFitValveState(StateRos):
         req = KeypointsPerceptionRequest()
         res = self.perception_srv_client.call(req)
         self.frame_id = res.keypoints.header.frame_id
+        self.camera_pose = res.camera_pose
         camera = Camera()
         camera.set_intrinsics_from_camera_info(res.camera_info)
         camera.set_extrinsics_from_pose(res.camera_pose)
@@ -440,6 +444,7 @@ class ModelFitValveState(StateRos):
                 print(f"Fitting to\n{p.T} with shape\n{p.T.shape}")
                 residual, valve_fit = self.valve_fitter.estimate_from_3d_points(
                     p.T,
+                    self.camera_pose,
                     self.frame_id,
                     handle_radius=0.01,
                     error_threshold=self.error_threshold,
@@ -466,7 +471,7 @@ class ModelFitValveState(StateRos):
     def run(self):
         object_pose = TransformStamped()
         if self.dummy:
-            rospy.logwarn("[ModelFitState]: running dummy detection")
+            rospy.logwarn("[ModelFitValveState]: running dummy detection")
             object_pose.header.frame_id = "world"
             object_pose.header.stamp = rospy.get_rostime()
             object_pose.child_frame_id = self._object_name()
@@ -493,7 +498,12 @@ class ModelFitValveState(StateRos):
             # keyoints3d is a list [ (num_kpts x 3), (num_kpts x 3), None, ... ] num_observations long
             # and None if the observation was rejected
             try:
-                success, keypoints2d, keypoints3d = self.ransac_matcher.filter()
+                (
+                    success,
+                    keypoints2d,
+                    keypoints3d,
+                    cameras,
+                ) = self.ransac_matcher.filter()
             except:
                 rospy.logerr("Exception while matching and filtering detections.")
                 return "Failure"
@@ -521,7 +531,7 @@ class ModelFitValveState(StateRos):
                 rospy.logerr("Failed to fit 3d observations.")
                 return "Failure"
 
-            object_pose = self._model_fit(points.T, self.frame_id)
+            object_pose = self._model_fit(points.T)
             if object_pose is None:
                 return "Failure"
             object_pose.header.frame_id = self.frame_id
