@@ -5,8 +5,10 @@
     <arg name="use_fixed_realsense" default="false"/>
     <arg name="tool" default="panda_hand"/>
     <arg name="launch_navigation" default="true"/>
-    <arg name="world_name" default="$(find piloting_demo)/worlds/schutz.world"/>
+    <arg name="world_name" default="$(find piloting_demo)/worlds/jfloor.world"/>
     <arg name="use_global_map" default="true"/>
+    <arg name="global_map_config_file"   default="$(find piloting_demo)/maps/jfloor/map.yaml"/>
+    <arg name="global_map_cloud_file"     default="$(find piloting_demo)/maps/jfloor/map.pcd"/>
 
     <!-- Control-->
     <!-- load a arm only description for the arm controllers -->
@@ -76,6 +78,8 @@
         <arg name="sim"               value="true"/>
         <arg name="use_global_map"    value="$(arg use_global_map)"/>
         <arg name="global_frame"      value="map"/>
+        <arg name="global_map_config_file"      value="$(arg global_map_config_file)"/>
+        <arg name="global_map_cloud_file"      value="$(arg global_map_cloud_file)"/>
     </include>
 
     <!-- Publish base odometry from tracking cam odometry measurements -->
