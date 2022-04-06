@@ -1,3 +1,9 @@
+#!/bin/bash
+export DEBIAN_FRONTEND=noninteractive
+
+# source ROS
+source /opt/ros/$ROS_DISTRO/setup.bash
+
 #DISTRIB_RELEASE=$(lsb_release -sr)
 . /etc/lsb-release
 
@@ -39,6 +45,7 @@ EOF
 
 install_pinocchio() {
   echo "Installing pinocchio"
+  source ~/.moma_bashrc
 
   mkdir -p ~/git
   git clone git@github.com:stack-of-tasks/pinocchio.git ~/git/pinocchio
@@ -86,7 +93,7 @@ install_control() {
 }
 
 install_system_deps() {
-sudo apt-get install \
+sudo --preserve-env=DEBIAN_FRONTEND apt-get install \
 	ros-$ROS_DISTRO-ros-control \
 	ros-$ROS_DISTRO-ros-controllers \
 	ros-$ROS_DISTRO-gazebo-ros-pkgs \
@@ -106,7 +113,7 @@ sudo apt-get install \
 	ros-$ROS_DISTRO-interactive-marker-twist-server \
   ros-$ROS_DISTRO-plotjuggler-ros \
   ros-$ROS_DISTRO-jsk-rviz-plugins \
-	qtbase5-dev -y || fail "Error installing system dependencies"
+	qtbase5-dev -qq || fail "Error installing system dependencies"
 }
 
 
@@ -170,6 +177,7 @@ info "Sourcing moma workspace"
 echo "source ${CATKIN_WS}/devel/setup.bash" >> ~/.moma_bashrc
 source ~/.moma_bashrc
 
+cd ${CATKIN_WS}
 catkin config --cmake-args -DCMAKE_BUILD_TYPE=RelWithDebInfo || fail
 info "Installation complete"
 info "Now you can build moma packages"
