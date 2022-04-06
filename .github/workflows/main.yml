@@ -3,7 +3,7 @@ name: CI
 on:
   pull_request:
     branches: [projects/piloting_feature/ci]
-  push:
+  # push:
 
 jobs:
   linting:
@@ -22,25 +22,57 @@ jobs:
           pip install pre-commit
           pre-commit run --all-files
 
+  build-dev-image:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+        with:
+          submodules: "recursive"
+
+      - name: Get changed base dependencies
+        id: changed-files
+        uses: tj-actions/changed-files@v18.6
+        with:
+          files: |
+            Dockerfile
+            moma_core.repos
+            moma_piloting.repos
+            install_dependencies.sh
+
+      - name: Early exit - Image up to date
+        if: steps.changed-files.outputs.any_changed == 'false'
+
+      - name: Set up Docker Buildx
+        if: steps.changed-files.outputs.any_changed == 'true'
+        uses: docker/setup-buildx-action@v1
+
+      - name: Login to DockerHub
+        if: steps.changed-files.outputs.any_changed == 'true'
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push
+        if: steps.changed-files.outputs.any_changed == 'true'
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          push: true
+          tags: user/app:latest
+
   build:
+    needs: build-dev-image
     runs-on: ubuntu-latest
     container:
-      image: ros:noetic-robot
+      image: asl:piloting-image
 
     steps:
-      - name: Update Git
+      - name: Clean local files
         run: |
-          apt-get update
-          apt-get install -y git
-
-      - name: Create workspace
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y python3-catkin-tools
-          mkdir -p catkin_ws/src
-          cd catkin_ws
-          catkin init
-          catkin config --cmake-args -DCMAKE_BUILD_TYPE=RelWithDebInfo
+          catkin clean -y
+          rm -r catkin_ws/src/moma
 
       - name: Checkout repo
         uses: actions/checkout@v2
@@ -48,21 +80,5 @@ jobs:
           submodules: "recursive"
           path: catkin_ws/src/moma
 
-      - name: Install Dependencies
-        run: |
-          sudo apt install -y python3-vcstool
-          echo "Root"
-          echo $PWD
-          ls -h
-          cd catkin_ws/src
-          echo "In source"
-          echo $PWD
-          ls -h
-          vcs import --recursive --input moma/moma_core.repos
-          vcs import --recursive --input moma/moma_piloting.repos
-           ./moma/install_dependencies.sh --control
-
-      - name: Build
-        run: |
-          cd catkin_ws/src
-          source ../devel/setup.bash
+      - name: Build packages
+        run: catkin build piloting_demo
