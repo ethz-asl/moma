@@ -20,8 +20,9 @@ class ValveModelPlanner:
 
         if robot_base_pose is not None:
             # assert robot_base_pose.header.frame_id == valve_model.frame
-            self.robot_base_heading = robot_base_pose.rotation[:, 0]
-            # self.robot_base_heading /= np.linalg.norm(self.robot_base_heading)
+            # self.robot_base_heading = robot_base_pose.rotation[:, 0]  # trivial approach
+            self.robot_base_heading = valve_model.center - robot_base_pose.translation
+            self.robot_base_heading /= np.linalg.norm(self.robot_base_heading)
 
     def _get_all_grasping_poses(self, inverted=False, samples=100):
         """
