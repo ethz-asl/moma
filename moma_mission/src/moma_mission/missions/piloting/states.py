@@ -405,6 +405,10 @@ class ModelFitValveState(StateRos):
 
         req = KeypointsPerceptionRequest()
         res = self.perception_srv_client.call(req)
+
+        if len(res.keypoints.poses) != self.k + 1:
+            return False
+
         self.frame_id = res.keypoints.header.frame_id
         self.camera_pose = res.camera_pose
         camera = Camera()
@@ -412,6 +416,7 @@ class ModelFitValveState(StateRos):
         camera.set_extrinsics_from_pose(res.camera_pose)
         keypoints2d = np.zeros((len(res.keypoints2d), 2))
         keypoints3d = np.zeros((len(res.keypoints.poses), 3))
+
         for i, (kpt2d, kpt3d) in enumerate(zip(res.keypoints2d, res.keypoints.poses)):
             keypoints2d[i, 0] = kpt2d.x
             keypoints2d[i, 1] = kpt2d.y
@@ -497,36 +502,34 @@ class ModelFitValveState(StateRos):
             # trying to match keypoints and filtering based on best epipolar match
             # keyoints3d is a list [ (num_kpts x 3), (num_kpts x 3), None, ... ] num_observations long
             # and None if the observation was rejected
-            try:
-                (
-                    success,
-                    keypoints2d,
-                    keypoints3d,
-                    cameras,
-                ) = self.ransac_matcher.filter()
-            except:
-                rospy.logerr("Exception while matching and filtering detections.")
-                return "Failure"
+            # try:
+            #     (
+            #         success,
+            #         keypoints2d,
+            #         keypoints3d,
+            #         cameras,
+            #     ) = self.ransac_matcher.filter()
+            # except:
+            #     rospy.logerr("Exception while matching and filtering detections.")
+            #     return "Failure"
 
-            if not success:
-                rospy.logerr("Failed to match and filter detections.")
-                return "Failure"
+            # if not success:
+            #     rospy.logerr("Failed to match and filter detections.")
+            #     return "Failure"
 
             # visualize all the matches
-            valid_observations = [
-                kpts3d for kpts3d in keypoints3d if kpts3d is not None
-            ]
-            for points in valid_observations:
-                rospy.loginfo("Visualizing keypoints matches")
-                self.matches_publisher.publish(
-                    self._markers_from_keypoints(points, self.frame_id)
-                )
-                rospy.sleep(5.0)
+            # valid_observations = [
+            #     kpts3d for kpts3d in keypoints3d if kpts3d is not None
+            # ]
+            # for points in self.detections:
+            #    rospy.loginfo("Visualizing keypoints matches")
+            #    self.matches_publisher.publish(
+            #        self._markers_from_keypoints(points, self.frame_id)
+            #    )
+            #    rospy.sleep(5.0)
 
             # filter only valid and matched observations
-            points = self._filter_3d_observations(
-                valid_observations, method="geometric"
-            )
+            points = self._filter_3d_observations(self.detections, method="geometric")
             if points is None:
                 rospy.logerr("Failed to fit 3d observations.")
                 return "Failure"

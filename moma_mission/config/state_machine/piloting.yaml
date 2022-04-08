@@ -115,7 +115,7 @@ OBSERVATION_POSE:
 
 OBSERVATION_APPROACH:
   default_outcome: None
-  duration: 10.0
+  duration: 3.0
   control_frame: tracking_camera_odom
   target_frame: observation
   startlist: ["mpc_controller", "path_passthrough_controller"] #, 'path_admittance_controller' ]
