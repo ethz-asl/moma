@@ -70,7 +70,7 @@ jobs:
     needs: build-dev-image
     runs-on: ubuntu-latest
     container:
-      image: ${{ secrets.PILOTING_DOCKERHUB_USERNAME }}/noetic-deps:latest
+      image: piloting/noetic-deps:latest
 
     steps:
       - name: Clean local files
