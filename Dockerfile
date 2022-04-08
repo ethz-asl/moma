@@ -12,6 +12,7 @@ RUN git config --global url.https://github.com/.insteadOf git@github.com:
 RUN apt install curl
 
 # get install tools
+RUN echo "Hello"
 RUN apt-get install -y python3-catkin-tools python3-vcstool
 
 # create a catkin workspace
