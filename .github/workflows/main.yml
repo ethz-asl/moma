@@ -61,8 +61,8 @@ jobs:
         with:
           context: .
           builder: ${{ steps.buildx.outputs.name }}
-          cache-from: type=registry,ref=${{ secrets.DOCKER_HUB_USERNAME }}/noetic-deps:buildcache
-          cache-to: type=registry,ref=${{ secrets.DOCKER_HUB_USERNAME }}/noetic-deps:buildcache,mode=max
+          cache-from: type=registry,ref=${{ secrets.PILOTING_DOCKERHUB_USERNAME }}/noetic-deps:buildcache
+          cache-to: type=registry,ref=${{ secrets.PILOTING_DOCKERHUB_USERNAME }}/noetic-deps:buildcache,mode=max
           push: true
           tags: ${{ secrets.PILOTING_DOCKERHUB_USERNAME }}/noetic-deps:latest
 
