@@ -82,7 +82,9 @@ jobs:
         run: |
           cd /catkin_ws/src
           catkin clean -y
-          ln -s $GITHUB_WORKSPACE/moma moma
+          ln -s $GITHUB_WORKSPACE/moma/moma moma
+          ll -h
+          tree -l -L 2 -d
 
       - name: Build packages
         run: |
