@@ -73,10 +73,11 @@ jobs:
       image: piloting/noetic-deps:latest
 
     steps:
-      - name: Clean local files
+      - name: Prepare workspace
         run: |
-          cd /catkin_ws
+          cd /catkin_ws/src
           catkin clean -y
+          mkdir moma
 
       - name: Checkout repo
         uses: actions/checkout@v2
