@@ -85,7 +85,7 @@ jobs:
           apt-get install -qq tree
           echo $GITHUB_WORKSPACE
           tree -l -d -L 2 $GITHUB_WORKSPACE
-          ln -s $GITHUB_WORKSPACE/moma moma
+          ln -s $GITHUB_WORKSPACE moma
           tree -l -L 2 -d
 
       - name: Build packages
