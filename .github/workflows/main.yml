@@ -75,16 +75,16 @@ jobs:
     steps:
       - name: Clean local files
         run: |
-          cd catkin_ws
+          cd /catkin_ws
           catkin clean -y
 
       - name: Checkout repo
         uses: actions/checkout@v2
         with:
           submodules: "recursive"
-          path: catkin_ws/src/moma
+          path: /catkin_ws/src/moma
 
       - name: Build packages
         run: |
-          cd catkin_ws
+          cd /catkin_ws
           catkin build piloting_demo
