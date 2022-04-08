@@ -42,6 +42,7 @@ jobs:
 
       - name: Early exit - Image up to date
         if: steps.changed-files.outputs.any_changed == 'false'
+        run: echo "No image to be built"
 
       - name: Set up Docker Buildx
         if: steps.changed-files.outputs.any_changed == 'true'
