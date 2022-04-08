@@ -82,8 +82,10 @@ jobs:
         run: |
           cd /catkin_ws/src
           catkin clean -y
-          ln -s $GITHUB_WORKSPACE/moma/moma moma
           apt-get install -qq tree
+          echo $GITHUB_WORKSPACE
+          tree -l -d -L 2 $GITHUB_WORKSPACE
+          ln -s $GITHUB_WORKSPACE/moma moma
           tree -l -L 2 -d
 
       - name: Build packages
