@@ -73,17 +73,16 @@ jobs:
       image: piloting/noetic-deps:latest
 
     steps:
-      - name: Prepare workspace
-        run: |
-          cd /catkin_ws/src
-          catkin clean -y
-          mkdir moma
-
       - name: Checkout repo
         uses: actions/checkout@v2
         with:
           submodules: "recursive"
-          path: /catkin_ws/src/moma
+
+      - name: Prepare workspace
+        run: |
+          cd /catkin_ws/src
+          catkin clean -y
+          ln -s $GIHUB_WORKSPACE/moma moma
 
       - name: Build packages
         run: |
