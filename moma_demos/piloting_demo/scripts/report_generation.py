@@ -3,11 +3,9 @@
 from cmath import inf
 import os
 import cv2
-import sys
 import csv
+import numpy as np
 
-from cv2 import CV_16S
-from nbformat import write
 import tf2_py as tf2
 import rospy
 import json
@@ -19,10 +17,14 @@ from cv_bridge import CvBridge, CvBridgeError
 from sensor_msgs.msg import Image
 from geometry_msgs.msg import Vector3, Quaternion
 
+from moma_mission.utils.transforms import tf_to_se3
+
 # static configuration
 MAP_FRAME = "tracking_camera_odom"
+VALVE_FRAME = "valve_gt"
 IMAGE_TOPIC = "/versavis/cam0/image_raw_throttle"
-BASE_LINK = "base_link"
+IMAGES_DELTA_TIME = 5  # take a picture each 10 seconds
+BASE_LINK_FRAME = "base_link"
 ODOM_TOPIC = "/camera/odom/sample"
 CAMERA_UUID = str(uuid.uuid4())
 CAMERA_FOV = {  # https://www.intelrealsense.com/depth-camera-d435i/
@@ -35,6 +37,7 @@ SENSORS_LIST = {
     "realsense_t265": ["Realsense Tracking Camera", str(uuid.uuid4())],
     "imu": ["XSense Imu", str(uuid.uuid4())],
 }
+WRENCH_TOPIC = "/panda/franka_state_controller/F_ext"
 
 
 class ReportGenerator:
@@ -74,17 +77,17 @@ class ReportGenerator:
             )
         )
 
-        times = []
+        tf_times = []
         with tqdm(total=tf_msgs_count) as progress_bar:
             for topic, message, t in self.bag.read_messages(topics=tf_topics):
-                times.append(t)
+                tf_times.append(t)
                 for tf_message in message.transforms:
                     if topic == "/tf_static":
                         tf_tree.set_transform_static(tf_message, topic)
                     else:
                         tf_tree.set_transform(tf_message, topic)
             progress_bar.update(1)
-        return tf_tree, times
+        return tf_tree, tf_times
 
     # Utilities
     def get_files(self):
@@ -108,7 +111,7 @@ class ReportGenerator:
             }
             try:
                 tf_transform = self.tf_tree.lookup_transform_core(
-                    target_frame=BASE_LINK,
+                    target_frame=BASE_LINK_FRAME,
                     source_frame=sensor_frame,
                     time=rospy.Time(0),
                 )
@@ -129,7 +132,7 @@ class ReportGenerator:
                 print(exc)
                 print(
                     "[Report Generation]: Failed to get transform from {} to {}".format(
-                        sensor_frame, BASE_LINK
+                        sensor_frame, BASE_LINK_FRAME
                     )
                 )
             sensors.append(sensor_entry)
@@ -170,7 +173,7 @@ class ReportGenerator:
             for t in self.tf_times:
                 try:
                     tf_transform = self.tf_tree.lookup_transform_core(
-                        target_frame=MAP_FRAME, source_frame=BASE_LINK, time=t
+                        target_frame=MAP_FRAME, source_frame=BASE_LINK_FRAME, time=t
                     )
                     translation = [
                         tf_transform.transform.translation.x,
@@ -219,13 +222,12 @@ class ReportGenerator:
         os.makedirs(pictures_folder, exist_ok=True)
 
         bridge = CvBridge()
-        images_delta_time = 5  # take a picture each 10 seconds
         t_prev = -inf
         img_idx = 0
         with open(pictures_csv_file, "w") as f:
             writer = csv.writer(f)
             for topic, message, t in self.bag.read_messages(topics=IMAGE_TOPIC):
-                if (t.to_sec() - t_prev) > images_delta_time:
+                if (t.to_sec() - t_prev) > IMAGES_DELTA_TIME:
                     t_prev = t.to_sec()
 
                     cam_translation = [0.0, 0.0, 0.0]
@@ -279,26 +281,33 @@ class ReportGenerator:
         haptic_csv_file = os.path.join(self.report_dir, "haptic_sensing.csv")
         with open(haptic_csv_file, "w") as f:
             writer = csv.writer(f)
-            # just placeholder implementation to have a sequence of rows with reasonable timestamps
-            # and create a stuf file structure
-            idx = 0
-            for _, _, t in self.bag.read_messages():
-                if idx < 100:
-                    obj_position = [0.0, 0.0, 0.0]
-                    rotation_axis = [0.0, 0.0, 1.0]
-                    angle = [0.0]
-                    torque = [0.0]
-                    entry = (
-                        [t.to_sec(), self.task_uuid]
-                        + obj_position
-                        + rotation_axis
-                        + angle
-                        + torque
+            for topic, message, t in self.bag.read_messages(topics=WRENCH_TOPIC):
+                valve_transform = tf_to_se3(
+                    self.tf_tree.lookup_transform_core(
+                        target_frame=VALVE_FRAME,
+                        source_frame=MAP_FRAME,
+                        time=t,
                     )
-                    writer.writerow(entry)
-                    idx += 1
-                else:
-                    break
+                )
+                obj_position = valve_transform.translation
+                rotation_axis = valve_transform.rotation[:, 2]
+                angle = [0.0]
+                T_v_ee = tf_to_se3(
+                    self.tf_tree.lookup_transform_core(
+                        target_frame=VALVE_FRAME,
+                        source_frame=message.header.frame_id,
+                        time=t,
+                    )
+                )
+                torque = message.wrench.force.x * np.linalg.norm(T_v_ee.translation)
+                entry = (
+                    [t.to_sec(), self.task_uuid]
+                    + obj_position
+                    + rotation_axis
+                    + angle
+                    + torque
+                )
+                writer.writerow(entry)
 
     def run(self):
         self.extract_config()
