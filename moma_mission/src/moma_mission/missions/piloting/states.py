@@ -5,6 +5,7 @@ from typing import List
 from scipy.spatial.transform import Rotation
 from geometry_msgs.msg import PoseStamped, TransformStamped, Pose, PoseArray
 
+from std_msgs.msg import Bool
 from nav_msgs.msg import Path
 from visualization_msgs.msg import Marker, MarkerArray
 from object_keypoints_ros.srv import KeypointsPerception, KeypointsPerceptionRequest
@@ -579,6 +580,13 @@ class ValveManipulationModelState(StateRos):
             poses_topic, PoseArray, queue_size=1, latch=True
         )
 
+        path_inverted_topic = self.get_scoped_param(
+            "path_inverted_topic", "/valve_path_inverted"
+        )
+        self.path_inverted_publisher = rospy.Publisher(
+            path_inverted_topic, Bool, queue_size=1, latch=True
+        )
+
     def run(self):
         valve_model = self.global_context.ctx.valve_model
         valve_planner = ValveModelPlanner(valve_model)
@@ -587,6 +595,9 @@ class ValveManipulationModelState(StateRos):
             rospy.logerr("Could not obtain a valid valve manipulation path")
             return "Failure"
 
+        path_inverted = Bool()
+        path_inverted.data = path["inverted"]
+        self.path_inverted_publisher.publish(path_inverted)
         self.poses_publisher.publish(valve_planner.poses_to_ros(path["poses"]))
 
         return "Completed"

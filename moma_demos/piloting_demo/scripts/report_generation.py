@@ -52,6 +52,7 @@ SENSORS_LIST = {
 }
 CAMERA_UUID = SENSORS_LIST["realsense_d435i"][1]
 WRENCH_TOPIC = "/panda/franka_state_controller/F_ext"
+VALVE_PATH_INVERTED_TOPIC = "/valve_path_inverted"
 JOINT_STATES_TOPIC = "/joint_states"
 JOINT_FINGER_NAME = "panda_finger_joint1"
 GRIPPER_OPEN_THRESHOLD = 0.03
@@ -387,8 +388,9 @@ class ReportGenerator:
                 ]
             )
             gripper_closed = False
+            valve_path_inverted = None
             for topic, msg, t in self.bag.read_messages(
-                topics=[WRENCH_TOPIC, JOINT_STATES_TOPIC]
+                topics=[WRENCH_TOPIC, JOINT_STATES_TOPIC, VALVE_PATH_INVERTED_TOPIC]
             ):
                 if topic == WRENCH_TOPIC:
                     try:
@@ -409,11 +411,13 @@ class ReportGenerator:
                                 time=t,
                             )
                         )
+                        assert valve_path_inverted is not None
                         torque = (
                             msg.wrench.force.x * np.linalg.norm(T_v_ee.translation)
                             if gripper_closed
                             else 0.0
                         )
+                        torque = -torque if not valve_path_inverted else torque
                         entry = (
                             [t.to_sec(), self.task_uuid]
                             + list(obj_position)
@@ -434,6 +438,8 @@ class ReportGenerator:
                     finger_joint = msg.name.index(JOINT_FINGER_NAME)
                     finger_state = msg.position[finger_joint]
                     gripper_closed = finger_state < GRIPPER_OPEN_THRESHOLD
+                if topic == VALVE_PATH_INVERTED_TOPIC:
+                    valve_path_inverted = msg.data
 
     def run(self):
         self.extract_config()
