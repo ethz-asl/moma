@@ -1,5 +1,5 @@
 #!/bin/bash
-rosbag record --repeat-latched --output-name=/tmp/2022-04-08_full_demo \
+rosbag record --repeat-latched \
 /tf \
 /tf_static \
 /base_odom \
