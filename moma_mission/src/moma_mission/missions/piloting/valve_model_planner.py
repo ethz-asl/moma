@@ -104,7 +104,9 @@ class ValveModelPlanner:
 
         return z_score + x_score
 
-    def _get_valid_paths(self, grasps_start, grasps, angle_max=2 * np.pi):
+    def _get_valid_paths(
+        self, grasps_start, grasps, angle_max=2 * np.pi, inverted=False
+    ):
         """
         Get a list of valid paths
 
@@ -150,7 +152,14 @@ class ValveModelPlanner:
             # Thus it is important to average the final score
             # Note that the angle is always positive, independent of turning direction
             # to simplify evaluation and avoid taking abs() in comparisons
-            paths.append({"angle": angle, "score": score / len(poses), "poses": poses})
+            paths.append(
+                {
+                    "angle": angle,
+                    "score": score / len(poses),
+                    "inverted": inverted,
+                    "poses": poses,
+                }
+            )
 
         return paths
 
@@ -171,7 +180,12 @@ class ValveModelPlanner:
         grasps = list(filter(self._is_non_singular_grasp, grasps))
         grasps_start = filter(self._is_non_obstructed_grasp, grasps)
 
-        paths = self._get_valid_paths(grasps_start, grasps, angle_max)
+        paths = self._get_valid_paths(
+            grasps_start=grasps_start,
+            grasps=grasps,
+            angle_max=angle_max,
+            inverted=inverted,
+        )
         return paths
 
     def get_path(self, angle_max=2 * np.pi):
