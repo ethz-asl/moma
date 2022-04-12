@@ -272,9 +272,9 @@ class ValveModel:
         wheel_center_pose = TransformStamped()
         wheel_center_pose.child_frame_id = "valve_wheel_center"
         wheel_center_pose.header.stamp = rospy.Time.now()
-        wheel_center_pose.header.frame_id = markers[0].header.frame_id
-        wheel_center_pose.transform.translation = markers[0].pose.position
-        wheel_center_pose.transform.rotation = markers[0].pose.orientation
+        wheel_center_pose.header.frame_id = markers.markers[0].header.frame_id
+        wheel_center_pose.transform.translation = markers.markers[0].pose.position
+        wheel_center_pose.transform.rotation = markers.markers[0].pose.orientation
         self.pose_broadcaster.sendTransform(wheel_center_pose)
 
     def __str__(self):
