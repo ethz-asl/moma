@@ -52,7 +52,8 @@ SENSORS_LIST = {
 }
 CAMERA_UUID = SENSORS_LIST["realsense_d435i"][1]
 WRENCH_TOPIC = "/panda/franka_state_controller/F_ext"
-VALVE_PATH_INVERTED_TOPIC = "/valve_path_inverted"
+OBJECT_PATH_INVERTED_TOPIC = "/valve_path_inverted"
+OBJECT_ANGLE_TOPIC = "/valve_angle"
 JOINT_STATES_TOPIC = "/joint_states"
 JOINT_FINGER_NAME = "panda_finger_joint1"
 GRIPPER_OPEN_THRESHOLD = 0.03
@@ -388,9 +389,15 @@ class ReportGenerator:
                 ]
             )
             gripper_closed = False
-            valve_path_inverted = None
+            object_path_inverted = None
+            object_angle = 0.0
             for topic, msg, t in self.bag.read_messages(
-                topics=[WRENCH_TOPIC, JOINT_STATES_TOPIC, VALVE_PATH_INVERTED_TOPIC]
+                topics=[
+                    WRENCH_TOPIC,
+                    JOINT_STATES_TOPIC,
+                    OBJECT_PATH_INVERTED_TOPIC,
+                    OBJECT_ANGLE_TOPIC,
+                ]
             ):
                 if topic == WRENCH_TOPIC:
                     try:
@@ -402,8 +409,7 @@ class ReportGenerator:
                             )
                         )
                         obj_position = obj_transform.translation
-                        rotation_axis = obj_transform.rotation[:, 2]
-                        angle = 0.0
+                        obj_rotation_axis = obj_transform.rotation[:, 2]
                         T_v_ee = tf_to_se3(
                             self.tf_tree.lookup_transform_core(
                                 target_frame=OBJECT_FRAME,
@@ -411,18 +417,18 @@ class ReportGenerator:
                                 time=t,
                             )
                         )
-                        assert valve_path_inverted is not None
+                        assert object_path_inverted is not None
                         torque = (
                             msg.wrench.force.x * np.linalg.norm(T_v_ee.translation)
                             if gripper_closed
                             else 0.0
                         )
-                        torque = -torque if not valve_path_inverted else torque
+                        torque = -torque if not object_path_inverted else torque
                         entry = (
                             [t.to_sec(), self.task_uuid]
                             + list(obj_position)
-                            + list(rotation_axis)
-                            + [angle]
+                            + list(obj_rotation_axis)
+                            + [object_angle]
                             + [torque]
                         )
                         writer.writerow(entry)
@@ -438,8 +444,10 @@ class ReportGenerator:
                     finger_joint = msg.name.index(JOINT_FINGER_NAME)
                     finger_state = msg.position[finger_joint]
                     gripper_closed = finger_state < GRIPPER_OPEN_THRESHOLD
-                if topic == VALVE_PATH_INVERTED_TOPIC:
-                    valve_path_inverted = msg.data
+                if topic == OBJECT_PATH_INVERTED_TOPIC:
+                    object_path_inverted = msg.data
+                if topic == OBJECT_ANGLE_TOPIC:
+                    object_angle = msg.data
 
     def run(self):
         self.extract_config()
