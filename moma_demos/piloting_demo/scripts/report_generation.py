@@ -303,7 +303,7 @@ class ReportGenerator:
                         tf_transform = self.tf_tree.lookup_transform_core(
                             target_frame=MAP_FRAME,
                             source_frame=message.header.frame_id,
-                            time=rospy.Time(0),
+                            time=t,
                         )
                         cam_translation = [
                             tf_transform.transform.translation.x,
