@@ -1,6 +1,8 @@
 from turtle import shape
 import numpy as np
 import rospy
+import tf2_ros
+from geometry_msgs.msg import TransformStamped
 from visualization_msgs.msg import Marker, MarkerArray
 from scipy.spatial.transform import Rotation as R
 from moma_mission.missions.piloting.frames import Frames
@@ -54,6 +56,7 @@ class ValveModel:
         self.marker_pub = rospy.Publisher(
             "/valve_marker", MarkerArray, queue_size=1, latch=True
         )
+        self.pose_broadcaster = tf2_ros.StaticTransformBroadcaster()
         try:
             self.publish_markers()
         except:
@@ -258,7 +261,16 @@ class ValveModel:
         return markers
 
     def publish_markers(self):
-        self.marker_pub.publish(self.get_markers())
+        markers = self.get_markers()
+        self.marker_pub.publish(markers)
+
+        wheel_center_pose = TransformStamped()
+        wheel_center_pose.child_frame_id = "valve_wheel_center"
+        wheel_center_pose.header.stamp = rospy.Time.now()
+        wheel_center_pose.header.frame_id = markers[0].header.frame_id
+        wheel_center_pose.transform.translation = markers[0].pose.position
+        wheel_center_pose.transform.rotation = markers[0].pose.orientation
+        self.pose_broadcaster.sendTransform(wheel_center_pose)
 
     def __str__(self):
         return f"""
