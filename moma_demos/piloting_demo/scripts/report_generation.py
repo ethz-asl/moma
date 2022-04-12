@@ -410,20 +410,23 @@ class ReportGenerator:
                         )
                         obj_position = obj_transform.translation
                         obj_rotation_axis = obj_transform.rotation[:, 2]
-                        T_v_ee = tf_to_se3(
-                            self.tf_tree.lookup_transform_core(
-                                target_frame=OBJECT_FRAME,
-                                source_frame=msg.header.frame_id,
-                                time=t,
+
+                        torque = 0.0
+                        if gripper_closed:
+                            T_v_ee = tf_to_se3(
+                                self.tf_tree.lookup_transform_core(
+                                    target_frame=OBJECT_FRAME,
+                                    source_frame=msg.header.frame_id,
+                                    time=t,
+                                )
                             )
-                        )
-                        assert object_path_inverted is not None
-                        torque = (
-                            msg.wrench.force.x * np.linalg.norm(T_v_ee.translation)
-                            if gripper_closed
-                            else 0.0
-                        )
-                        torque = -torque if not object_path_inverted else torque
+
+                            assert object_path_inverted is not None
+                            torque = msg.wrench.force.x * np.linalg.norm(
+                                T_v_ee.translation
+                            )
+                            torque = -torque if object_path_inverted else torque
+
                         entry = (
                             [t.to_sec(), self.task_uuid]
                             + list(obj_position)
