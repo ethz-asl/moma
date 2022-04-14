@@ -113,12 +113,15 @@ class ReportGenerator:
         return tf_tree, tf_times
 
     # Utilities
-    def get_files(self):
+    @property
+    def files(self):
         return {
+            "config": "config.json",
             "pictures_metadata": "pictures_metadata.csv",
             "pictures_folder": "pictures",
             "telemetry_data": "localization_telemetry.csv",
             "haptic_data": "haptic_sensing.csv",
+            "objects": "objects.csv",
         }
 
     def get_sensors(self):
@@ -167,7 +170,7 @@ class ReportGenerator:
 
     def extract_config(self):
         print("[Report Generation]: Writing top level config file.")
-        config_file = os.path.join(self.report_dir, "config.json")
+        config_file = os.path.join(self.report_dir, self.files["config"])
 
         report_config = {
             "startDate": self.startDate,
@@ -178,7 +181,7 @@ class ReportGenerator:
             "insepctionTaskUuids": self.inspection_task_uuids,
             "type": self.inspection_type,
             "map": self.map_file,
-            "files": self.get_files(),
+            "files": self.files,
             "sensors": self.get_sensors(),
             "pictures": {
                 "folder": "pictures",
@@ -192,9 +195,81 @@ class ReportGenerator:
         with open(config_file, "w") as outfile:
             json.dump(report_config, outfile, indent=2)
 
+    def extract_objects(self):
+        print("[Report Generation]: Extracting object information.")
+        objects_csv_file = os.path.join(self.report_dir, self.files["objects"])
+        with open(objects_csv_file, "w") as f:
+            writer = csv.writer(f)
+            writer.writerow(
+                [
+                    "stamp",
+                    "task_uuid",
+                    "obj_ref",
+                    "obj_type",
+                    "p_x",
+                    "p_y",
+                    "p_z",
+                    "q_x",
+                    "q_y",
+                    "q_z",
+                    "q_w",
+                    "rotation_axis_x",
+                    "rotation_axis_y",
+                    "rotation_axis_z",
+                    "obj_info_0",
+                    "obj_info_1",
+                    "obj_info_2",
+                ]
+            )
+
+            for t in self.tf_times:
+                # object info
+                obj_ref = 1
+                obj_type = OBJECT_TYPE
+                obj_info = [0.0, 0.0, 0.0]
+
+                try:
+                    obj_transform = self.tf_tree.lookup_transform_core(
+                        target_frame=OBJECT_FRAME,
+                        source_frame=MAP_FRAME,
+                        time=t,
+                    )
+                    obj_se3 = tf_to_se3(obj_transform)
+
+                    obj_position = [
+                        obj_transform.transform.translation.x,
+                        obj_transform.transform.translation.y,
+                        obj_transform.transform.translation.z,
+                    ]
+                    obj_rotation = [
+                        obj_transform.transform.rotation.x,
+                        obj_transform.transform.rotation.y,
+                        obj_transform.transform.rotation.z,
+                        obj_transform.transform.rotation.w,
+                    ]
+                    obj_rotation_axis = obj_se3.rotation[:, 2]
+
+                    entry = (
+                        [t.to_sec(), self.task_uuid, obj_ref, obj_type]
+                        + obj_position
+                        + obj_rotation
+                        + list(obj_rotation_axis)
+                        + obj_info
+                    )
+                    writer.writerow(entry)
+                    break
+                except tf2.ExtrapolationException:
+                    print(
+                        f"[extract_objects] Skipping time {t} as there is no valid tf"
+                    )
+                except tf2.LookupException:
+                    print(
+                        f"[extract_objects] Skipping time {t} as the object was not localized yet"
+                    )
+
     def extract_telemetry(self):
         print("[Report Generation]: Extracting telemetry information.")
-        telemetry_csv_file = os.path.join(self.report_dir, "localization_telemetry.csv")
+        telemetry_csv_file = os.path.join(self.report_dir, self.files["telemetry_data"])
         with open(telemetry_csv_file, "w") as f:
             writer = csv.writer(f)
             writer.writerow(
@@ -223,7 +298,7 @@ class ReportGenerator:
 
     def extract_odometry(self):
         print("[Report Generation]: Extracting odometry information.")
-        telemetry_csv_file = os.path.join(self.report_dir, "localization_telemetry.csv")
+        telemetry_csv_file = os.path.join(self.report_dir, self.files["telemetry_data"])
         odom_msgs_count = self.bag.get_message_count(ODOM_TOPIC)
 
         with tqdm(total=odom_msgs_count) as progress_bar:
@@ -260,8 +335,10 @@ class ReportGenerator:
 
     def extract_pictures(self):
         print("[Report Generation]: Extracting pictures and saving metadata.")
-        pictures_folder = os.path.join(self.report_dir, "pictures")
-        pictures_csv_file = os.path.join(self.report_dir, "pictures_metadata.csv")
+        pictures_folder = os.path.join(self.report_dir, self.files["pictures_folder"])
+        pictures_csv_file = os.path.join(
+            self.report_dir, self.files["pictures_metadata"]
+        )
         os.makedirs(pictures_folder, exist_ok=True)
 
         bridge = CvBridge()
@@ -281,17 +358,7 @@ class ReportGenerator:
                     "cam_rot_y",
                     "cam_rot_z",
                     "cam_rot_w",
-                    "obj_type",
-                    "obj_pos_x",
-                    "obj_pos_y",
-                    "obj_pos_z",
-                    "obj_rot_x",
-                    "obj_rot_y",
-                    "obj_rot_z",
-                    "obj_rot_w",
-                    "obj_info_0",
-                    "obj_info_1",
-                    "obj_info_2",
+                    "obj_ref",
                 ]
             )
             for topic, message, t in self.bag.read_messages(topics=IMAGE_TOPIC):
@@ -324,41 +391,13 @@ class ReportGenerator:
                         )
 
                     # object info
-                    obj_type = [OBJECT_TYPE]
-                    obj_position = [0.0, 0.0, 0.0]
-                    obj_rotation = [0.0, 0.0, 0.0, 1.0]
-                    obj_info = [0.0, 0.0, 0.0]
-
-                    try:
-                        obj_transform = self.tf_tree.lookup_transform_core(
-                            target_frame=OBJECT_FRAME,
-                            source_frame=MAP_FRAME,
-                            time=t,
-                        )
-                        obj_position = [
-                            obj_transform.transform.translation.x,
-                            obj_transform.transform.translation.y,
-                            obj_transform.transform.translation.z,
-                        ]
-                        obj_rotation = [
-                            obj_transform.transform.rotation.x,
-                            obj_transform.transform.rotation.y,
-                            obj_transform.transform.rotation.z,
-                            obj_transform.transform.rotation.w,
-                        ]
-                    except tf2.LookupException:
-                        print(
-                            f"[extract_pictures] At time {t} the object was not localized yet"
-                        )
+                    obj_ref = 1
 
                     meta = (
                         ["DSC{:06d}.jpg".format(img_idx), t_prev, self.task_uuid]
                         + cam_translation
                         + cam_rotation
-                        + obj_type
-                        + obj_position
-                        + obj_rotation
-                        + obj_info
+                        + [obj_ref]
                     )
                     writer.writerow(meta)
                     img_idx += 1
@@ -371,19 +410,14 @@ class ReportGenerator:
 
     def extract_wrench(self):
         print("[Report Generation]: Extracting haptic wrench information.")
-        haptic_csv_file = os.path.join(self.report_dir, "haptic_sensing.csv")
+        haptic_csv_file = os.path.join(self.report_dir, self.files["haptic_data"])
         with open(haptic_csv_file, "w") as f:
             writer = csv.writer(f)
             writer.writerow(
                 [
                     "stamp",
                     "task_uuid",
-                    "obj_position_x",
-                    "obj_position_y",
-                    "obj_position_z",
-                    "rotation_axis_x",
-                    "rotation_axis_y",
-                    "rotation_axis_z",
+                    "obj_ref",
                     "angle",
                     "torque",
                 ]
@@ -400,49 +434,29 @@ class ReportGenerator:
                 ]
             ):
                 if topic == WRENCH_TOPIC:
-                    try:
-                        obj_transform = tf_to_se3(
+                    obj_ref = 1
+
+                    torque = 0.0
+                    if gripper_closed:
+                        T_v_ee = tf_to_se3(
                             self.tf_tree.lookup_transform_core(
                                 target_frame=OBJECT_FRAME,
-                                source_frame=MAP_FRAME,
+                                source_frame=msg.header.frame_id,
                                 time=t,
                             )
                         )
-                        obj_position = obj_transform.translation
-                        obj_rotation_axis = obj_transform.rotation[:, 2]
 
-                        torque = 0.0
-                        if gripper_closed:
-                            T_v_ee = tf_to_se3(
-                                self.tf_tree.lookup_transform_core(
-                                    target_frame=OBJECT_FRAME,
-                                    source_frame=msg.header.frame_id,
-                                    time=t,
-                                )
-                            )
+                        assert object_path_inverted is not None
+                        torque = msg.wrench.force.x * np.linalg.norm(T_v_ee.translation)
+                        torque = -torque if object_path_inverted else torque
 
-                            assert object_path_inverted is not None
-                            torque = msg.wrench.force.x * np.linalg.norm(
-                                T_v_ee.translation
-                            )
-                            torque = -torque if object_path_inverted else torque
-
-                        entry = (
-                            [t.to_sec(), self.task_uuid]
-                            + list(obj_position)
-                            + list(obj_rotation_axis)
-                            + [object_angle]
-                            + [torque]
-                        )
-                        writer.writerow(entry)
-                    except tf2.ExtrapolationException:
-                        print(
-                            f"[extract_wrench] Skipping time {t} as there is no valid tf"
-                        )
-                    except tf2.LookupException:
-                        print(
-                            f"[extract_wrench] Skipping time {t} as the object was not detected yet"
-                        )
+                    entry = (
+                        [t.to_sec(), self.task_uuid]
+                        + [obj_ref]
+                        + [object_angle]
+                        + [torque]
+                    )
+                    writer.writerow(entry)
                 if topic == JOINT_STATES_TOPIC:
                     finger_joint = msg.name.index(JOINT_FINGER_NAME)
                     finger_state = msg.position[finger_joint]
@@ -454,6 +468,7 @@ class ReportGenerator:
 
     def run(self):
         self.extract_config()
+        self.extract_objects()
         self.extract_pictures()
         # extract_telemetry(bag, report_dir) this uses tf, available when localizing against map
         self.extract_odometry()
