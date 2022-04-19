@@ -18,8 +18,6 @@ RUN apt-get install -y python3-catkin-tools python3-vcstool
 RUN mkdir -p ${HOME}/catkin_ws/src/moma
 ENV CATKIN_WS=${HOME}/catkin_ws
 WORKDIR ${CATKIN_WS}
-RUN catkin init
-RUN catkin config --cmake-args -DCMAKE_BUILD_TYPE=RelWithDebInfo
 
 COPY install_dependencies.sh *.repos ${CATKIN_WS}/src/moma/
 WORKDIR ${CATKIN_WS}/src
@@ -31,5 +29,7 @@ RUN DEBIAN_FRONTEND=noninteractive moma/install_dependencies.sh --control --pilo
 FROM deps AS build
 COPY . ${CATKIN_WS}/src/moma/
 WORKDIR ${CATKIN_WS}
+RUN catkin init
+RUN catkin config --cmake-args -DCMAKE_BUILD_TYPE=RelWithDebInfo
 RUN catkin config --extend /opt/ros/noetic
 RUN . ~/.moma_bashrc && catkin build piloting_demo
