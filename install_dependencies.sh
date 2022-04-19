@@ -109,6 +109,11 @@ install_control() {
   info "Control dependencies installation successful"
 }
 
+install_piloting() {
+  install_mavsdk
+  info "Piloting dependencies installation successful"
+}
+
 install_system_deps() {
 sudo --preserve-env=DEBIAN_FRONTEND apt-get install \
 	ros-$ROS_DISTRO-ros-control \
