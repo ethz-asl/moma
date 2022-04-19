@@ -26,9 +26,10 @@ WORKDIR ${CATKIN_WS}/src
 RUN vcs import --recursive --input moma/moma_core.repos
 RUN vcs import --recursive --input moma/moma_piloting.repos
 RUN vcs import --input https://raw.githubusercontent.com/cartographer-project/cartographer_ros/master/cartographer_ros.rosinstall
-RUN DEBIAN_FRONTEND=noninteractive moma/install_dependencies.sh --control
+RUN DEBIAN_FRONTEND=noninteractive moma/install_dependencies.sh --control --piloting
 
 FROM deps AS build
 COPY . ${CATKIN_WS}/src/moma/
 WORKDIR ${CATKIN_WS}
-RUN . /opt/ros/noetic/setup.bash && catkin build piloting_demo
+RUN catkin config --extend /opt/ros/noetic
+RUN . ~/.moma_bashrc && catkin build piloting_demo

@@ -84,6 +84,23 @@ EOF
 }
 
 
+install_mavsdk() {
+  mkdir -p ~/git
+  git clone https://github.com/fada-catec/piloting-mavsdk ~/git/piloting-mavsdk
+  cd ~/git/piloting-mavsdk
+  mkdir install
+  mkdir build && cd build
+  cmake .. -DCMAKE_INSTALL_PREFIX=<path-to-piloting-mavsdk>/install
+  make -j4
+  make install
+
+  cat << EOF >> ~/.moma_bashrc
+export LD_LIBRARY_PATH=${HOME}/git/piloting-mavsdk/install/lib:\$LD_LIBRARY_PATH
+export CMAKE_PREFIX_PATH=${HOME}/git/piloting-mavsdk/install:\$CMAKE_PREFIX_PATH
+EOF
+}
+
+
 install_control() {
   #ROBOTPKG_NAMES=("robotpkg-octomap" "robotpkg-hpp-fcl")
   #dpkg -s "${ROBOTPKG_NAMES[@]}" >/dev/null 2>&1 || install_robotpkg
@@ -121,13 +138,15 @@ install_external() {
 	vcs import --recursive --input moma/moma_core.repos || fail "Error importing dependencies"
 }
 
-usage="$(basename "$0") [-h] [-c --control] -- moma stack installation script\n
+usage="$(basename "$0") [-h] [-c --control] [-p --piloting] -- moma stack installation script\n
 where:\n
     -h  show this help text\n
-    -c  install control dependencies (required to build custom controllers)\n"
+    -c  install control dependencies (required to build custom controllers)\n
+    -p  install piloting dependencies (required to build piloting demo)\n"
 
 POSITIONAL=()
 INSTALL_CONTROL_DEPS=false
+INSTALL_PILOTING_DEPS=false
 while [[ $# -gt 0 ]]; do
   key="$1"
 
@@ -140,6 +159,10 @@ while [[ $# -gt 0 ]]; do
       INSTALL_CONTROL_DEPS=true
       shift # past argument
       ;;
+    -p|--piloting)
+      INSTALL_PILOTING_DEPS=true
+      shift # past argument
+      ;;
     *)    # unknown option
       POSITIONAL+=("$1") # save it in an array for later
       shift # past argument
@@ -150,6 +173,7 @@ done
 set -- "${POSITIONAL[@]}" # restore positional parameters
 
 info "Installing control dependencies  = ${INSTALL_CONTROL_DEPS}"
+info "Installing piloting dependencies  = ${INSTALL_PILOTING_DEPS}"
 
 
 if [ "$DISTRIB_RELEASE" == "20.04" ] && [ "$ROS_DISTRO" == "noetic" ]; then
@@ -171,6 +195,11 @@ if $INSTALL_CONTROL_DEPS
 then
   info "Installing control dependencies"
   install_control
+fi
+if $INSTALL_PILOTING_DEPS
+then
+  info "Installing piloting dependencies"
+  install_piloting
 fi
 
 info "Sourcing moma workspace"
