@@ -4,7 +4,7 @@ FROM ros:noetic-robot AS deps
 ENV DEBIAN_FRONTEND=noninteractive
 
 # update repos
-RUN apt-get update && apt-get -qq upgrade
+RUN apt-get -qq update && apt-get -qq upgrade
 
 # update git and set to always point to https
 RUN apt-get install -y git
