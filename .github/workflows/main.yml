@@ -1,8 +1,8 @@
-name: CI
+name: CI2
 
 on:
   pull_request:
-    branches: [projects/piloting_feature/ci]
+    branches: [projects/piloting_feature/ci_test2]
   push:
 
 jobs:
@@ -22,7 +22,7 @@ jobs:
           pip install pre-commit
           pre-commit run --all-files
 
-  build-dev-image:
+  deps:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
@@ -55,7 +55,7 @@ jobs:
           username: ${{ secrets.PILOTING_DOCKERHUB_USERNAME }}
           password: ${{ secrets.PILOTING_DOCKERHUB_TOKEN }}
 
-      - name: Build and push
+      - name: Get deps and push
         if: steps.changed-files.outputs.any_changed == 'true'
         uses: docker/build-push-action@v2
         with:
@@ -64,31 +64,23 @@ jobs:
           cache-from: type=registry,ref=${{ secrets.PILOTING_DOCKERHUB_USERNAME }}/noetic-deps:buildcache
           cache-to: type=registry,ref=${{ secrets.PILOTING_DOCKERHUB_USERNAME }}/noetic-deps:buildcache,mode=max
           push: true
+          target: deps
           tags: ${{ secrets.PILOTING_DOCKERHUB_USERNAME }}/noetic-deps:latest
 
   build:
-    needs: build-dev-image
+    needs: deps
     runs-on: ubuntu-latest
     container:
       image: piloting/noetic-deps:latest
 
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v2
+      - name: Build and push
+        uses: docker/build-push-action@v2
         with:
-          submodules: "recursive"
-
-      - name: Prepare workspace
-        run: |
-          cd /catkin_ws/src
-          catkin clean -y
-          apt-get install -qq tree
-          echo $GITHUB_WORKSPACE
-          tree -l -d -L 2 $GITHUB_WORKSPACE
-          ln -s $GITHUB_WORKSPACE moma
-          tree -l -L 2 -d
-
-      - name: Build packages
-        run: |
-          cd /catkin_ws
-          catkin build piloting_demo
+          context: .
+          builder: ${{ steps.buildx.outputs.name }}
+          cache-from: type=registry,ref=${{ secrets.PILOTING_DOCKERHUB_USERNAME }}/noetic-deps:buildcache
+          cache-to: type=registry,ref=${{ secrets.PILOTING_DOCKERHUB_USERNAME }}/noetic-deps:buildcache,mode=max
+          push: true
+          target: build
+          tags: ${{ secrets.PILOTING_DOCKERHUB_USERNAME }}/noetic-release:latest
