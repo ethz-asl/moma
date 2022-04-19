@@ -31,4 +31,4 @@ RUN DEBIAN_FRONTEND=noninteractive moma/install_dependencies.sh --control
 FROM deps AS build
 COPY . ${CATKIN_WS}/src/moma/
 WORKDIR ${CATKIN_WS}
-RUN catkin build piloting_demo
+RUN source /opt/ros/noetic/setup.bash && catkin build piloting_demo
