@@ -192,7 +192,7 @@ if __name__ == "__main__":
     poses_pub = rospy.Publisher("/plan", PoseArray, queue_size=1)
 
     valve_model = ValveModel(center=[0.5, 0.5, 0.5], depth=0.1)
-    valve_planner = ValvePlanner(valve_model)
+    valve_planner = ValveModelPlanner(valve_model)
 
     # valve_model.transform(pitch_deg=45)
     # valve_model.turn(45)
@@ -217,4 +217,4 @@ if __name__ == "__main__":
         poses_ros = valve_planner.poses_to_ros(grasps)
         poses_pub.publish(poses_ros)
 
-        rospy.sleep(0.02)
+        # rospy.sleep(0.02)
