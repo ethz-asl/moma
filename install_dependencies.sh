@@ -155,8 +155,7 @@ sudo --preserve-env=DEBIAN_FRONTEND apt-get install \
 	ros-$ROS_DISTRO-interactive-marker-twist-server \
   ros-$ROS_DISTRO-plotjuggler-ros \
   ros-$ROS_DISTRO-jsk-rviz-plugins \
-  ros-$ROS_DISTRO-map-server \
-	qtbase5-dev -y || fail "Error installing system dependencies"
+	qtbase5-dev libgoogle-glog-dev -y || fail "Error installing system dependencies"
 }
 
 
