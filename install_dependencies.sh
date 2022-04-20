@@ -90,7 +90,7 @@ install_mavsdk() {
   cd ~/git/piloting-mavsdk
   mkdir install
   mkdir build && cd build
-  cmake .. -DCMAKE_INSTALL_PREFIX=<path-to-piloting-mavsdk>/install
+  cmake .. -DCMAKE_INSTALL_PREFIX=${HOME}/git/piloting-mavsdk/install
   make -j4
   make install
 
@@ -208,7 +208,7 @@ then
 fi
 
 info "Sourcing moma workspace"
-echo "source ${CATKIN_WS}/devel/setup.bash" >> ~/.moma_bashrc
+echo "source ${CATKIN_WS}/devel/setup.bash || true" >> ~/.moma_bashrc
 source ~/.moma_bashrc
 
 cd ${CATKIN_WS}
