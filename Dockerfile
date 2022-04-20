@@ -12,7 +12,7 @@ RUN git config --global url.https://github.com/.insteadOf git@github.com:
 RUN apt install curl
 
 # get install tools
-RUN apt-get install -y python3-catkin-tools python3-vcstool
+RUN apt-get install -y python3-catkin-tools python3-vcstool python3-pip
 
 # create a catkin workspace
 RUN mkdir -p /root/catkin_ws/src/moma

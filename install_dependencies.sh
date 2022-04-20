@@ -101,6 +101,17 @@ EOF
 }
 
 
+install_object_keypoints() {
+  mkdir -p ~/git
+  git clone git@github.com:ethz-asl/object_keypoints.git -b monocular_fix ~/git/object_keypoints
+  cd ~/git/object_keypoints
+  pip3 install -r requirements.txt
+  pip3 install -e .
+  cd perception/corner_net_lite/core/models/py_utils/_cpools
+  python3 setup.py install --user
+}
+
+
 install_control() {
   #ROBOTPKG_NAMES=("robotpkg-octomap" "robotpkg-hpp-fcl")
   #dpkg -s "${ROBOTPKG_NAMES[@]}" >/dev/null 2>&1 || install_robotpkg
@@ -111,6 +122,7 @@ install_control() {
 
 install_piloting() {
   install_mavsdk
+  install_object_keypoints
   info "Piloting dependencies installation successful"
 }
 
