@@ -7,9 +7,9 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get -qq update && apt-get -qq upgrade
 
 # update git and set to always point to https
+RUN apt-get install -y curl
 RUN apt-get install -y git
 RUN git config --global url.https://github.com/.insteadOf git@github.com:
-RUN apt install curl
 
 # get install tools
 RUN apt-get install -y python3-catkin-tools python3-vcstool python3-pip
