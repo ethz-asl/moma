@@ -5,11 +5,8 @@ import smach_ros
 
 from moma_mission.core import StateMachineRos, StateRos
 from moma_mission.missions.piloting.states import *
-from moma_mission.missions.piloting.manipulation import ValveManipulationUrdfState
-from moma_mission.states.gripper import GripperControl
+from moma_mission.states.gripper import GripperControl, GripperGrasp
 from moma_mission.states.manipulation import JointsConfigurationAction
-from moma_mission.states.observation import FOVSamplerState
-from moma_mission.states.transform_visitor import TransformVisitorState
 
 
 def homing_sequence_factory():
@@ -17,7 +14,7 @@ def homing_sequence_factory():
     with homing_sequence:
         homing_sequence.add(
             "OPEN_GRIPPER",
-            GripperControl,
+            GripperGrasp,
             transitions={"Completed": "HOME_ROBOT", "Failure": "Failure"},
         )
 
@@ -27,50 +24,6 @@ def homing_sequence_factory():
             transitions={"Completed": "Success", "Failure": "Failure"},
         )
     return homing_sequence
-
-
-def detection_sequence_factory():
-    detection_sequence = StateMachineRos(outcomes=["Success", "Failure"])
-    with detection_sequence:
-        # Hacky, but avoids to define an almost empty class with additional outcomes
-        detection_sequence.add(
-            "DETECTION_DECISION",
-            StateRos,
-            transitions={
-                "Completed": "OBSERVATION_POSE",
-                "Failure": "MODEL_URDF_VALVE",
-            },
-        )
-
-        detection_sequence.add(
-            "OBSERVATION_POSE",
-            FOVSamplerState,
-            transitions={"Completed": "OBSERVATION_APPROACH", "Failure": "Failure"},
-        )
-
-        detection_sequence.add(
-            "OBSERVATION_APPROACH",
-            TransformVisitorState,
-            transitions={"Completed": "MODEL_FIT_VALVE", "Failure": "OBSERVATION_POSE"},
-        )
-
-        detection_sequence.add(
-            "MODEL_FIT_VALVE",
-            ModelFitValve,
-            transitions={
-                "Completed": "Success",
-                "Failure": "Failure",
-                "Retry": "OBSERVATION_POSE",
-            },
-        )
-
-        detection_sequence.add(
-            "MODEL_URDF_VALVE",
-            ValveManipulationUrdfState,
-            transitions={"Completed": "Success", "Failure": "Failure"},
-        )
-
-    return detection_sequence
 
 
 def lateral_manipulation_sequence_factory():

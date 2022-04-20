@@ -1,5 +1,32 @@
 <?xml version="1.0"?>
 <launch>
+  <arg name="sim" default="false"/>
+
+  <!-- Load joint controller to publish the joint state under object namespace -->
+  <group ns="valve" if="$(arg sim)">
+    <rosparam command="load" file="$(find piloting_demo)/config/sim/controllers.yaml"/>
+    <node name="valve_controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="valve_state_controller" />
+  </group>
+
+  <!-- valve model -->
+  <include file="$(find piloting_demo)/launch/valve.launch">
+    <arg name="sim" value="$(arg sim)"/>
+    <arg name="x" value="2.5"/>
+    <arg name="y" value="2.5"/>
+    <!-- arg name="z" value="0"/-->
+  </include>
+
+  <!-- detection hotspot relative to estimated valve pose -->
+  <node pkg="tf2_ros"
+        type="static_transform_publisher"
+        name="hotspot_far_broadcaster"
+        args="-1 -2 0 0.79 0 0 valve_gt hotspot_far" />
+
+  <node pkg="tf2_ros"
+          type="static_transform_publisher"
+          name="hotspot_close_broadcaster"
+          args="0.0 0 0.4 0 0 3.14 valve_gt hotspot_close" />
+
   <!-- mission state machine -->
   <rosparam command="load" file="$(find moma_mission)/config/state_machine/piloting.yaml" subst_value="true"/>
   <rosparam command="load" file="$(find moma_mission)/config/state_machine/piloting_frames.yaml"/>

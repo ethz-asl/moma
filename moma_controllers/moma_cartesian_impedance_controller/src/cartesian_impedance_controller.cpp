@@ -1,6 +1,6 @@
-//clang-format off
+// clang-format off
 #include <moma_cartesian_impedance_controller/cartesian_impedance_controller.hpp>
-//clang-format on
+// clang-format on
 
 #include <controller_interface/controller_base.h>
 #include <eigen_conversions/eigen_msg.h>
@@ -63,8 +63,8 @@ bool CartesianImpedanceController::init_params(ros::NodeHandle& node_handle) {
     return false;
   }
 
-  if (!node_handle.getParam("target_frame", target_frame_id_) || target_frame_id_.empty()) {
-    ROS_ERROR_STREAM("Failed to get target_frame or invalid param.");
+  if (!node_handle.getParam("tool_link", target_frame_id_) || target_frame_id_.empty()) {
+    ROS_ERROR_STREAM("Failed to get tool_link or invalid param.");
     return false;
   }
 

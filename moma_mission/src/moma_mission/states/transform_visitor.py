@@ -22,6 +22,8 @@ class TransformVisitorState(StateRosControl):
             "timeout", 2 * self.duration if self.duration > 0 else 30.0
         )
         self.allow_flip = self.get_scoped_param("allow_flip", False)
+        self.linear_tolerance = self.get_scoped_param("linear_tolerance", 0.02)
+        self.angular_tolerance = self.get_scoped_param("angular_tolerance", 0.1)
 
         self.path_publisher = rospy.Publisher(
             self.get_scoped_param("path_topic", "/desired_path"), Path, queue_size=1
@@ -65,7 +67,11 @@ class TransformVisitorState(StateRosControl):
 
         self.path_publisher.publish(path)
         if not self.wait_until_reached(
-            self.ee_frame, path.poses[-1], timeout=self.timeout
+            self.ee_frame,
+            path.poses[-1],
+            timeout=self.timeout,
+            linear_tolerance=self.linear_tolerance,
+            angular_tolerance=self.angular_tolerance,
         ):
             return "Failure"
 

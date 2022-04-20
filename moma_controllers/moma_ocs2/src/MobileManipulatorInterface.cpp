@@ -27,8 +27,13 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ******************************************************************************/
 
-#include "moma_ocs2/MobileManipulatorInterface.h"
+// clang-format off
+#include <pinocchio/fwd.hpp>  // forward declarations must be included first.
+#include <pinocchio/multibody/joint/joint-composite.hpp>
+#include <pinocchio/multibody/model.hpp>
+// clang-format on
 
+#include "moma_ocs2/MobileManipulatorInterface.h"
 #include <ocs2_core/initialization/DefaultInitializer.h>
 #include <ocs2_core/misc/LoadData.h>
 #include <ocs2_core/soft_constraint/StateInputSoftConstraint.h>
@@ -44,9 +49,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <ocs2_self_collision/SelfCollisionConstraintCppAd.h>
 #include <ocs2_self_collision/loadStdVectorOfPair.h>
 
-#include <pinocchio/fwd.hpp>  // forward declarations must be included first.
-#include <pinocchio/multibody/joint/joint-composite.hpp>
-#include <pinocchio/multibody/model.hpp>
 #include <string>
 
 #include "moma_ocs2/MobileManipulatorDynamics.h"
@@ -86,7 +88,11 @@ MobileManipulatorInterface::MobileManipulatorInterface(const std::string& taskFi
   std::cerr << "Loading task file: " << taskFile_ << std::endl;
 
   // create library folder if it does not exist
-  libraryFolder_ = ros::package::getPath("moma_ocs2") + "/auto_generated";
+  // also ensure that it does not collide to the same path for different configurations
+  // (put all relevant parameters in the path to disambiguate)
+  // otherwise multi-instantiation does not work correctly
+  libraryFolder_ = ros::package::getPath("moma_ocs2") + "/auto_generated/" +
+                   std::to_string(armInputDim) + "_" + std::to_string(static_cast<int>(baseType));
   boost::filesystem::path libraryFolderPath(libraryFolder_);
   boost::filesystem::create_directories(libraryFolderPath);
   std::cerr << "[MobileManipulatorInterface] Generated library path: " << libraryFolderPath

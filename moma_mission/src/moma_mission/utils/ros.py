@@ -67,10 +67,11 @@ def switch_ros_controller(startlist=[], stoplist=[], manager_namespace=""):
     for controller in stoplist:
         if controller not in controllers_map.keys():
             rospy.logwarn(
-                "Conrtoller [{}] is not loaded. Have you unloaded it?".format(
+                "Controller [{}] is not loaded. Have you unloaded it?".format(
                     controller
                 )
             )
+            continue
 
         if controllers_map[controller] == "running":
             controller_stop_list.append(controller)

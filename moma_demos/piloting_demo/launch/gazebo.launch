@@ -44,19 +44,4 @@
       -J panda_joint6 1.571
       -J panda_joint7 0.785" />
 
-  <param name="valve_description" command="$(find xacro)/xacro --inorder $(find piloting_demo)/urdf/valve.urdf.xacro pitch:=0 yaw:=0.0 x:=0.5"/>
-
-  <node name="spawn_valve" pkg="gazebo_ros" type="spawn_model" args="-param valve_description -urdf -model valve" output="screen"/>
-
-  <node name="valve_state_publisher"  type="robot_state_publisher"  pkg="robot_state_publisher">
-    <remap from="robot_description" to="valve_description"/>
-    <remap from="/joint_states"     to="/valve/joint_states"/>
-  </node>
-
-  <!-- Load joint controller to publish the joint state under object namespace -->
-  <group ns="valve">
-    <rosparam command="load" file="$(find piloting_demo)/config/sim/controllers.yaml"/>
-    <node name="valve_controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="valve_state_controller" />
-  </group>
-
 </launch>

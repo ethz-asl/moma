@@ -10,10 +10,24 @@
   </node>
 
   <!-- Interactive marker -->
-  <node pkg="moma_cartesian_impedance_controller" name="interactive_marker" type="interactive_marker.py">
+  <node pkg="moma_cartesian_impedance_controller" name="impedance_marker" type="interactive_marker.py">
+    <param name="server_name"   value="cartesian_impedance_interactive_target"/>
+    <param name="mode"          value="pose"/>
     <param name="base_frame"    value="panda_link0"/>
-    <param name="target_frame"  value="tool_frame"/>
+    <param name="target_frame"  value="panda_EE"/>
+    <param name="tool_link"     value="tool_frame"/>
     <param name="topic_name"    value="/panda/cartesian_impedance_controller/equilibrium_pose"/>
+  </node>
+
+
+  <!-- Interactive marker -->
+  <node pkg="moma_cartesian_impedance_controller" name="mpc_marker" type="interactive_marker.py">
+    <param name="server_name"   value="mpc_interactive_target"/>
+    <param name="mode"          value="path"/>
+    <param name="base_frame"    value="tracking_camera_odom"/>
+    <param name="target_frame"  value="panda_EE"/>
+    <param name="tool_link"     value="tool_frame"/>
+    <param name="topic_name"    value="/desired_path"/>
   </node>
 
 </launch>

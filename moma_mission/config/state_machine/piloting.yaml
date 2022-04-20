@@ -10,19 +10,19 @@ IDLE:
 
 OPEN_GRIPPER:
   default_outcome: None
-  gripper_action_name: /panda/franka_gripper/gripper_action
-  position: 0.03
+  gripper_action_name: /panda/franka_gripper/grasp
+  position: 0.08
   max_effort: 20
-  tolerance: 0.001
-  timeout: 5.0
+  tolerance: 0.1
+  timeout: 10.0
 
 CLOSE_GRIPPER:
   default_outcome: None
-  gripper_action_name: /panda/franka_gripper/gripper_action
+  gripper_action_name: /panda/franka_gripper/grasp
   position: 0.0
-  max_effort: 20
-  tolerance: 0.001
-  timeout: 5.0
+  max_effort: 1.0
+  tolerance: 0.1
+  timeout: 10.0
 
 HOME_ROBOT:
   default_outcome: None
@@ -32,6 +32,8 @@ HOME_ROBOT:
   stoplist:
     [
       "mpc_controller",
+      "mpc_wholebody_controller",
+      "cartesian_impedance_controller",
       "path_passthrough_controller",
       "effort_joint_trajectory_controller",
     ]
@@ -47,27 +49,38 @@ HOME_ROBOT_FINAL:
   stoplist:
     [
       "mpc_controller",
+      "mpc_wholebody_controller",
+      "cartesian_impedance_controller",
       "path_passthrough_controller",
       "effort_joint_trajectory_controller",
     ]
   joints_configurations:
     - [-0.65, -0.885, 0, -2.1, 0, 1.571, 0]
 
-REACH_DETECTION_HOTSPOT:
-  default_outcome: Completed
+REACH_DETECTION_HOTSPOT_FAR:
+  default_outcome: None
   goal_action_topic: /move_base
-  target_frame: navigation_target
+  target_frame: hotspot_far
   goal_pose_topic: /move_base_simple/goal
   base_pose_topic: /base_pose_measured
   base_odometry_topic: /base_odom
 
   manager_namespace: smb
   startlist: ["smb_diff_drive"]
-  stoplist: []
+  stoplist: ["mpc_controller", "mpc_wholebody_controller"]
 
   timeout: 10000.0
   tolerance_m: 0.30
   tolerance_deg: 50
+
+REACH_DETECTION_HOTSPOT_CLOSE:
+  default_outcome: None
+  duration: 10.0
+  control_frame: tracking_camera_odom
+  target_frame: hotspot_close
+  startlist: ["mpc_wholebody_controller", "path_passthrough_controller"]
+  stoplist: ["mpc_controller", "joint_space_controller"]
+  manager_namespace: panda
 
 WAYPOINT_FOLLOWING:
   default_outcome: None
@@ -78,35 +91,35 @@ WAYPOINT_FOLLOWING:
 
   manager_namespace: smb
   startlist: ["smb_diff_drive"]
-  stoplist: []
+  stoplist: ["mpc_controller", "mpc_wholebody_controller"]
 
   timeout: 10000.0
   tolerance_m: 0.30
   tolerance_deg: 50
 
 DETECTION_DECISION:
-  default_outcome: Failure
+  default_outcome: Completed
 
 OBSERVATION_POSE:
   default_outcome: None
   sample_name: observation
-  map_frame: world
+  map_frame: tracking_camera_odom
   object_frame: valve_gt
   camera_frame: hand_eye_color_optical_frame
   controlled_frame: tool_frame
   object_size: 0.20
   camera_info_topic: "/camera_info"
-  lateral_view_angle_deg: 20
+  lateral_view_angle_deg: 10
   image_fill_ratio: 0.5
   heading: [1, 0, 0]
 
 OBSERVATION_APPROACH:
   default_outcome: None
-  duration: 5.0
+  duration: 3.0
   control_frame: tracking_camera_odom
   target_frame: observation
   startlist: ["mpc_controller", "path_passthrough_controller"] #, 'path_admittance_controller' ]
-  stoplist: ["joint_space_controller"]
+  stoplist: ["mpc_wholebody_controller", "joint_space_controller"]
   manager_namespace: panda
 
 MODEL_FIT_VALVE:
@@ -114,8 +127,19 @@ MODEL_FIT_VALVE:
   dummy: false
   dummy_position: [0.8, 0.0, 0.5]
   dummy_orientation: [0.0, 0.707, 0.0, 0.707]
+  error_threshold: 0.03
+  min_successful_detections: 3
+  feature_matcher_acceptance_ratio: 1000.0
+  ransac_min_consensus: 1 #2   # must be > min_successful detections
 
-MODEL_URDF_VALVE:
+PLAN_MODEL_VALVE:
+  default_outcome: None
+
+  poses_topic: /valve_poses
+  robot_base_frame: panda_link0
+  turning_angle_deg: 120.0
+
+PLAN_URDF_VALVE:
   default_outcome: None
 
   poses_topic: /valve_poses
@@ -123,9 +147,13 @@ MODEL_URDF_VALVE:
 
 APPROACH_VALVE:
   default_outcome: None
+  mode: path
+  control_frame: tracking_camera_odom
   manager_namespace: panda
   startlist: ["mpc_controller", "path_passthrough_controller"]
-  stoplist: ["joint_space_controller"]
+  stoplist: ["mpc_wholebody_controller", "joint_space_controller"]
+  linear_tolerance: 0.05
+  angular_tolerance: 0.1
 
   poses_topic: /valve_poses
   offset: [0, 0, -0.1]
@@ -133,27 +161,56 @@ APPROACH_VALVE:
 
 GRASP_VALVE:
   default_outcome: None
+  mode: pose
+  control_frame: panda_link0
+  pose_topic: "/panda/cartesian_impedance_controller/equilibrium_pose"
   manager_namespace: panda
-  startlist: ["mpc_controller", "path_passthrough_controller"]
-  stoplist: ["joint_space_controller"]
+  startlist: ["cartesian_impedance_controller"]
+  stoplist:
+    [
+      "mpc_controller",
+      "mpc_wholebody_controller",
+      "joint_space_controller",
+      "path_passthrough_controller",
+    ]
 
   poses_topic: /valve_poses
   section: "first"
 
 MANIPULATE_VALVE:
   default_outcome: None
+  mode: pose
+  linear_speed: 0.01
+  angular_speed: 0.5
+  control_frame: panda_link0
+  pose_topic: "/panda/cartesian_impedance_controller/equilibrium_pose"
   manager_namespace: panda
-  startlist: ["mpc_controller", "path_passthrough_controller"]
-  stoplist: ["joint_space_controller"]
+  startlist: ["cartesian_impedance_controller"]
+  stoplist:
+    [
+      "mpc_controller",
+      "mpc_wholebody_controller",
+      "joint_space_controller",
+      "path_passthrough_controller",
+    ]
 
   poses_topic: /valve_poses
-  angular_speed: 0.5
 
 BACKOFF_VALVE:
   default_outcome: None
+  mode: pose
+  control_frame: panda_link0
+  pose_topic: "/panda/cartesian_impedance_controller/equilibrium_pose"
   manager_namespace: panda
-  startlist: ["mpc_controller", "path_passthrough_controller"]
-  stoplist: ["joint_space_controller"]
+  startlist: ["cartesian_impedance_controller"]
+  stoplist:
+    [
+      "mpc_controller",
+      "mpc_wholebody_controller",
+      "joint_space_controller",
+      "path_passthrough_controller",
+    ]
+  duration: 10.0
 
   poses_topic: /valve_poses
   offset: [0, 0, -0.1]

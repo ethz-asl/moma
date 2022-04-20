@@ -6,6 +6,7 @@
   <arg name="enable_depth"      default="true"/>
   <arg name="debug_pcl"         default="false"/> <!-- show point cloud to debug calibration -->
   <arg name="calibration_file"  default="$(env HOME)/calibration/handeye_calibration.yaml"/>
+
   <!-- Intrinsic camera calibration done with the camera_calibration package -->
   <arg name="custom_intrinsics" default="true" />
   <arg name="custom_intrinsics_file" default="$(env HOME)/calibration/camera_calibration.yaml" />

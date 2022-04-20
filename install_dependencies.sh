@@ -20,6 +20,14 @@ fail() {
     exit 1
 }
 
+install_ci() {
+  sudo apt-get -qq install clang-format
+  pip3 install pre-commit
+  cd $CATKIN_WS/src/moma
+  pre-commit install
+  cd ..
+}
+
 install_robotpkg() {
   echo "Installing robotpkg libraries"
 
@@ -147,7 +155,8 @@ sudo --preserve-env=DEBIAN_FRONTEND apt-get install \
 	ros-$ROS_DISTRO-interactive-marker-twist-server \
   ros-$ROS_DISTRO-plotjuggler-ros \
   ros-$ROS_DISTRO-jsk-rviz-plugins \
-	qtbase5-dev -qq || fail "Error installing system dependencies"
+  ros-$ROS_DISTRO-map-server \
+	qtbase5-dev -y || fail "Error installing system dependencies"
 }
 
 
@@ -206,6 +215,7 @@ echo "Starting installation"
 touch ~/.moma_bashrc
 
 
+install_ci
 install_system_deps
 install_external
 if $INSTALL_CONTROL_DEPS

@@ -13,7 +13,7 @@ cartesian_velocity_controller:
   max_duration_between_commands: 0.1 # velocity is set to 0 if no new command is received within this time
 
 joint_space_controller:
-  simulation: false
+  simulation: $(arg simulation)
   type: moma_controllers/JointSpaceController
   joint_names:
     - panda_joint1
@@ -46,7 +46,7 @@ joint_space_controller:
       { p: 100.0, i: 0.0, d: 10.0, i_clamp_min: -0.1, i_clamp_max: 0.1 }
 
 joint_velocity_controller:
-  simulation: false
+  simulation: $(arg simulation)
   type: moma_controllers/JointVelocityController
   joint_names:
     - panda_joint1
@@ -66,14 +66,17 @@ joint_velocity_controller:
 
 mpc_controller:
   type: moma_controllers/PandaMpcController
-  simulation: false
+  simulation: $(arg simulation)
   arm_id: panda
 
   robot_name: "panda"
+  task_file: "$(find moma_ocs2)/config/mpc/task_panda.info"
+  base_type: 0
   base_link: "tracking_camera_odom"
   tool_link: "tool_frame"
   odom_topic: "/base_odom"
   command_base_topic: "/smb_mpc/command_twist"
+  measurement_trust_factor: 0.8
   joint_names:
     - panda_joint1
     - panda_joint2
@@ -88,17 +91,58 @@ mpc_controller:
 
   gains:
     panda_joint1:
-      { p: 800.0, i: 0.0, d: 50.0, i_clamp_min: -100.0, i_clamp_max: 100.0 }
+      { p: 800.0, i: 0.0, d: 100.0, i_clamp_min: -100.0, i_clamp_max: 100.0 }
     panda_joint2:
-      { p: 500.0, i: 0.0, d: 30.0, i_clamp_min: -5.0, i_clamp_max: 5.0 }
+      { p: 500.0, i: 0.0, d: 100.0, i_clamp_min: -5.0, i_clamp_max: 5.0 }
     panda_joint3:
-      { p: 500.0, i: 0.0, d: 30.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
+      { p: 500.0, i: 0.0, d: 100.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
     panda_joint4:
       { p: 500.0, i: 0.0, d: 30.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
     panda_joint5:
       { p: 300.0, i: 0.0, d: 10.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
     panda_joint6:
       { p: 300.0, i: 0.0, d: 10.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
+    panda_joint7:
+      { p: 100.0, i: 0.0, d: 5.0, i_clamp_min: -0.1, i_clamp_max: 0.1 }
+
+mpc_wholebody_controller:
+  type: moma_controllers/PandaMpcController
+  simulation: $(arg simulation)
+  arm_id: panda
+
+  robot_name: "panda"
+  task_file: "$(find moma_ocs2)/config/mpc/task_panda_wholebody.info"
+  base_type: 1
+  base_link: "tracking_camera_odom"
+  tool_link: "tool_frame"
+  odom_topic: "/base_odom"
+  command_base_topic: "/smb_mpc/command_twist"
+  measurement_trust_factor: 0.8
+  joint_names:
+    - panda_joint1
+    - panda_joint2
+    - panda_joint3
+    - panda_joint4
+    - panda_joint5
+    - panda_joint6
+    - panda_joint7
+  mpc_frequency: 20
+  command_topic: "/joints_position_controller/command"
+  path_topic: /mpc_reference_path
+
+  gains:
+    panda_joint1:
+      { p: 1000.0, i: 0.0, d: 80.0, i_clamp_min: -100.0, i_clamp_max: 100.0 }
+    panda_joint2:
+      { p: 1000.0, i: 0.0, d: 80.0, i_clamp_min: -5.0, i_clamp_max: 5.0 }
+    panda_joint3:
+      { p: 1000.0, i: 0.0, d: 80.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
+    panda_joint4:
+      { p: 1000.0, i: 0.0, d: 80.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
+    panda_joint5:
+      { p: 300.0, i: 0.0, d: 30.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
+    panda_joint6:
+      { p: 300.0, i: 0.0, d: 30.0, i_clamp_min: -1.0, i_clamp_max: 1.0 }
     panda_joint7:
       { p: 100.0, i: 0.0, d: 5.0, i_clamp_min: -0.1, i_clamp_max: 0.1 }
 
@@ -149,10 +193,10 @@ path_admittance_controller:
 
   kp_linear_gains: [50.0, 50.0, 50.0]
   kp_angular_gains: [5.0, 5.0, 5.0]
-  kd_linear_gains: [50, 50, 50]
+  kd_linear_gains: [30, 30, 30]
   kd_angular_gains: [25.0, 25.0, 25.0]
 
-  force_threshold: [2.0, 2.0, 2.0]
+  force_threshold: [5.0, 5.0, 5.0]
   torque_threshold: [0.5, 0.5, 0.5]
 
 path_admittance_ur_controller:
@@ -175,7 +219,7 @@ path_admittance_ur_controller:
 cartesian_impedance_controller:
   type: moma_controllers/CartesianImpedanceController
   arm_id: panda
-  target_frame: tool_frame
+  tool_link: tool_frame
   joint_names:
     - panda_joint1
     - panda_joint2
@@ -184,7 +228,7 @@ cartesian_impedance_controller:
     - panda_joint5
     - panda_joint6
     - panda_joint7
-  filter_params: 0.1
+  filter_params: 0.05
   safety_margin: 0.087 # ~5 degrees
   q_nullspace: [0.0, 0.0, 0.0, -1.5, 0.0, 1.5, 0.0]
   lower_limit: [-2.8973, -1.7628, -2.8973, -3.0718, -2.8973, -0.0175, -2.8973]
