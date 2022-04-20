@@ -28,7 +28,7 @@ RUN vcs import --input https://raw.githubusercontent.com/cartographer-project/ca
 RUN apt-get -qq update && apt-get -qq upgrade
 RUN DEBIAN_FRONTEND=noninteractive moma/install_dependencies.sh --control --piloting
 RUN rosdep update
-RUN rosdep install --from-paths . --ignore-src -r -y
+RUN rosdep install --from-paths . --ignore-src -r -y || true
 
 FROM deps AS build
 COPY . ${CATKIN_WS}/src/moma/
