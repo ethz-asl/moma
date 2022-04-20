@@ -27,6 +27,8 @@ RUN vcs import --recursive --input moma/moma_piloting.repos
 RUN vcs import --input https://raw.githubusercontent.com/cartographer-project/cartographer_ros/master/cartographer_ros.rosinstall
 RUN apt-get -qq update && apt-get -qq upgrade
 RUN DEBIAN_FRONTEND=noninteractive moma/install_dependencies.sh --control --piloting
+RUN rosdep update
+RUN rosdep install --from-paths . --ignore-src -r -y
 
 FROM deps AS build
 COPY . ${CATKIN_WS}/src/moma/
