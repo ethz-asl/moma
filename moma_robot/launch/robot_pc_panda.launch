@@ -8,19 +8,15 @@
   <arg name="load_gripper" default="true"  if="$(eval arg('tool') == 'panda_hand')"/>
   <arg name="load_gripper" default="false" unless="$(eval arg('tool') == 'panda_hand')"/>
 
-  <!-- send the robot XML to param server -->
-  <param name="arm_description" command="$(find xacro)/xacro $(find moma_description)/urdf/panda.urdf.xacro
-      use_nominal_extrinsics:=true use_fixed_realsense:=false tool:=$(arg tool) control_mode:='Effort' include_gazebo_control:=false"/>
-  <param name="robot_description" command="$(find xacro)/xacro $(find moma_description)/urdf/superpanda.urdf.xacro
-    use_nominal_extrinsics:=true use_fixed_realsense:=false tool:=$(arg tool) wrist_camera_name:=dummy"/>
+  <include file="$(find moma_robot)/launch/robot_pc_panda_description.launch">
+    <arg name="tool" value="$(arg tool)" />
+  </include>
 
   <node name="joint_state_publisher" type="joint_state_publisher" pkg="joint_state_publisher" output="screen">
     <rosparam if="$(arg load_gripper)" param="source_list">[panda/franka_state_controller/joint_states, panda/franka_gripper/joint_states] </rosparam>
     <rosparam unless="$(arg load_gripper)" param="source_list">[panda/franka_state_controller/joint_states] </rosparam>
     <param name="rate" value="30"/>
   </node>
-
-  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" output="screen"/>
 
   <!-- OCS2 params -->
   <group ns="ocs2_mpc">
