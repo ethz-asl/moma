@@ -65,7 +65,7 @@ jobs:
           cache-to: type=registry,ref=${{ secrets.PILOTING_DOCKERHUB_USERNAME }}/noetic-deps:buildcache,mode=max
           push: true
           target: deps
-          tags: ${{ secrets.PILOTING_DOCKERHUB_USERNAME }}/noetic-deps:${{github.event.number}}
+          tags: ${{ secrets.PILOTING_DOCKERHUB_USERNAME }}/noetic-deps:${{github.event.pull_request.number}}
 
   build:
     needs: deps
@@ -95,12 +95,12 @@ jobs:
           cache-to: type=registry,ref=${{ secrets.PILOTING_DOCKERHUB_USERNAME }}/noetic-deps:buildcache,mode=max
           push: true
           target: build
-          tags: ${{ secrets.PILOTING_DOCKERHUB_USERNAME }}/noetic-release:${{github.event.number}}
+          tags: ${{ secrets.PILOTING_DOCKERHUB_USERNAME }}/noetic-release:${{github.event.pull_request.number}}
 
   test:
     #needs: build
     runs-on: ubuntu-latest
-    container: piloting/noetic-release:${{github.event.number}}
+    container: piloting/noetic-release:${{github.event.pull_request.number}}
 
     steps:
       - name: Run tests
