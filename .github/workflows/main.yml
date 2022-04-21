@@ -96,3 +96,10 @@ jobs:
           push: true
           target: build
           tags: ${{ secrets.PILOTING_DOCKERHUB_USERNAME }}/noetic-release:latest
+
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run tests
+        uses: docker://piloting/noetic-release:latest
