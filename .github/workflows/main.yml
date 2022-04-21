@@ -99,11 +99,19 @@ jobs:
   test:
     #    needs: build
     runs-on: ubuntu-latest
-    container:
-      image: piloting/noetic-dev:latest
-      options: --user root
     steps:
-      - run: /ros_entrypoint.sh rostest piloting_demo mission.test
+      - run: |
+          docker run -t ${{ secrets.PILOTING_DOCKERHUB_USERNAME }}/noetic-dev:latest rostest piloting_demo mission.test
+
+#  test:
+#    needs: build
+#    runs-on: ubuntu-latest
+#    container:
+#      image: piloting/noetic-dev:latest
+#      options: --user root
+#    steps:
+#      - run: /ros_entrypoint.sh rostest piloting_demo mission.test
+
 #  test:
 #    needs: build
 #    runs-on: ubuntu-latest
