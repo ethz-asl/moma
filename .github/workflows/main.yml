@@ -97,6 +97,7 @@ jobs:
           tags: ${{ secrets.PILOTING_DOCKERHUB_USERNAME }}/noetic-dev:latest
 
   test:
+    runs-on: ubuntu-latest
     container:
       image: piloting/noetic-dev:latest
       options: --user root
