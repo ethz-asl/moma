@@ -8,7 +8,7 @@ RUN apt-get -qq update && apt-get -qq upgrade
 
 # update git and set to always point to https
 RUN apt-get install -y curl
-RUN apt-get install -y git
+RUN apt-get install -y git git-lfs
 RUN git config --global url.https://github.com/.insteadOf git@github.com:
 
 # get install tools
