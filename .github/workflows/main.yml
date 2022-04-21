@@ -102,6 +102,6 @@ jobs:
 
     steps:
       - name: Run tests
-        uses: docker://piloting/noetic-release:${{github.event.number}}
+        uses: docker://piloting/noetic-release:${{env.github.event.number}}
         with:
           args: rostest piloting_demo mission.test
