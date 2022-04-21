@@ -9,6 +9,7 @@
     <license>TODO</license>
 
     <buildtool_depend>catkin</buildtool_depend>
+    <build_depend>rostest</build_depend>
 
     <!-- franka dependencies -->
     <!-- <exec_depend>franka_hw</exec_depend> -->
