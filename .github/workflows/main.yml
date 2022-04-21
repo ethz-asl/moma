@@ -38,6 +38,7 @@ jobs:
             moma_core.repos
             moma_piloting.repos
             install_dependencies.sh
+            **/requirements.txt
 
       - name: Early exit - Image up to date
         if: steps.changed-files.outputs.any_changed == 'false'
