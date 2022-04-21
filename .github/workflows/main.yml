@@ -103,3 +103,6 @@ jobs:
     steps:
       - name: Run tests
         uses: docker://piloting/noetic-release:latest
+        with:
+          entrypoint: ["/bin/bash", "-c", "source ~/.moma_bashrc"]
+          args: rostest piloting_demo mission.test
