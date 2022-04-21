@@ -37,4 +37,4 @@ RUN catkin config --cmake-args -DCMAKE_BUILD_TYPE=RelWithDebInfo
 RUN catkin config --extend /opt/ros/noetic
 SHELL ["/bin/bash", "-c"]
 RUN source ~/.moma_bashrc && catkin build piloting_demo
-ENTRYPOINT ["./ros_entrypoint.sh"]
+ENTRYPOINT ["./src/moma/ros_entrypoint.sh"]
