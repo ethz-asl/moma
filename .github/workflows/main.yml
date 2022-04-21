@@ -64,7 +64,7 @@ jobs:
           cache-to: type=registry,ref=${{ secrets.PILOTING_DOCKERHUB_USERNAME }}/noetic-deps:buildcache,mode=max
           push: true
           target: deps
-          tags: ${{ secrets.PILOTING_DOCKERHUB_USERNAME }}/noetic-deps:${{github.event.number}}
+          tags: ${{ secrets.PILOTING_DOCKERHUB_USERNAME }}/noetic-deps:latest
 
   build:
     needs: deps
@@ -94,7 +94,7 @@ jobs:
           cache-to: type=registry,ref=${{ secrets.PILOTING_DOCKERHUB_USERNAME }}/noetic-deps:buildcache,mode=max
           push: true
           target: build
-          tags: ${{ secrets.PILOTING_DOCKERHUB_USERNAME }}/noetic-release:${{github.event.number}}
+          tags: ${{ secrets.PILOTING_DOCKERHUB_USERNAME }}/noetic-release:latest
 
   test:
     needs: build
@@ -102,6 +102,6 @@ jobs:
 
     steps:
       - name: Run tests
-        uses: docker://piloting/noetic-release:${{env.github.event.number}}
+        uses: docker://piloting/noetic-release:latest
         with:
           args: rostest piloting_demo mission.test
