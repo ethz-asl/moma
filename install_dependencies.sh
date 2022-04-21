@@ -129,6 +129,7 @@ install_control() {
 }
 
 install_piloting() {
+  pip3 install -r ${CATKIN_WS}/src/moma/moma_mission/requirements.txt
   install_mavsdk
   install_object_keypoints
   info "Piloting dependencies installation successful"
