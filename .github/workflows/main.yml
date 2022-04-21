@@ -98,7 +98,7 @@ jobs:
           tags: ${{ secrets.PILOTING_DOCKERHUB_USERNAME }}/noetic-release:latest
 
   test:
-    needs: build
+    #needs: build
     runs-on: ubuntu-latest
     steps:
       - name: Run tests
