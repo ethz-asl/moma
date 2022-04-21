@@ -97,12 +97,13 @@ jobs:
           tags: ${{ secrets.PILOTING_DOCKERHUB_USERNAME }}/noetic-dev:latest
 
   test:
+    #    needs: build
     runs-on: ubuntu-latest
     container:
       image: piloting/noetic-dev:latest
       options: --user root
     steps:
-      - run: rostest piloting_demo mission.test
+      - run: /bin/bash -c rostest piloting_demo mission.test
 #  test:
 #    needs: build
 #    runs-on: ubuntu-latest
