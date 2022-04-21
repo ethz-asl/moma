@@ -20,7 +20,8 @@ ENV CATKIN_WS=/root/catkin_ws
 WORKDIR ${CATKIN_WS}
 RUN catkin init
 
-COPY install_dependencies.sh *.repos */requirements.txt ${CATKIN_WS}/src/moma/
+COPY install_dependencies.sh *.repos ${CATKIN_WS}/src/moma/
+COPY moma_mission/requirements.txt ${CATKIN_WS}/src/moma/moma_mission/
 WORKDIR ${CATKIN_WS}/src
 RUN vcs import --recursive --input moma/moma_core.repos
 RUN vcs import --recursive --input moma/moma_piloting.repos
