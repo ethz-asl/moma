@@ -3,7 +3,6 @@ name: CI
 on:
   pull_request:
     branches: [projects/piloting]
-  push:
 
 jobs:
   linting:
@@ -65,7 +64,7 @@ jobs:
           cache-to: type=registry,ref=${{ secrets.PILOTING_DOCKERHUB_USERNAME }}/noetic-deps:buildcache,mode=max
           push: true
           target: deps
-          tags: ${{ secrets.PILOTING_DOCKERHUB_USERNAME }}/noetic-deps:latest
+          tags: ${{ secrets.PILOTING_DOCKERHUB_USERNAME }}/noetic-deps:${{github.event.number}}
 
   build:
     needs: deps
@@ -95,7 +94,7 @@ jobs:
           cache-to: type=registry,ref=${{ secrets.PILOTING_DOCKERHUB_USERNAME }}/noetic-deps:buildcache,mode=max
           push: true
           target: build
-          tags: ${{ secrets.PILOTING_DOCKERHUB_USERNAME }}/noetic-release:latest
+          tags: ${{ secrets.PILOTING_DOCKERHUB_USERNAME }}/noetic-release:${{github.event.number}}
 
   test:
     needs: build
@@ -103,6 +102,6 @@ jobs:
 
     steps:
       - name: Run tests
-        uses: docker://piloting/noetic-release:latest
+        uses: docker://piloting/noetic-release:${{github.event.number}}
         with:
           args: rostest piloting_demo mission.test
