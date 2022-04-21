@@ -97,11 +97,17 @@ jobs:
           tags: ${{ secrets.PILOTING_DOCKERHUB_USERNAME }}/noetic-dev:latest
 
   test:
-    needs: build
-    runs-on: ubuntu-latest
-
+    container:
+      image: piloting/noetic-dev:latest
+      options: --user root
     steps:
-      - name: Run tests
-        uses: docker://piloting/noetic-dev:latest
-        with:
-          args: rostest piloting_demo mission.test
+      - run: rostest piloting_demo mission.test
+#  test:
+#    needs: build
+#    runs-on: ubuntu-latest
+#
+#    steps:
+#      - name: Run tests
+#        uses: docker://piloting/noetic-dev:latest
+#        with:
+#          args: rostest piloting_demo mission.test
