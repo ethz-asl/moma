@@ -5,5 +5,5 @@ find_package(catkin_simple REQUIRED)
 
 catkin_simple()
 
-catkin_install_python(PROGRAMS scripts/unpause_gazebo.py
+catkin_install_python(PROGRAMS scripts/unpause_gazebo.py scripts/gazebo_smart_spawner.py
         DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
