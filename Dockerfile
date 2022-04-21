@@ -32,9 +32,15 @@ RUN rosdep install --from-paths . --ignore-src -r -y || true
 
 FROM deps AS build
 COPY . ${CATKIN_WS}/src/moma/
+COPY ros_entrypoint.sh /
 WORKDIR ${CATKIN_WS}
 RUN catkin config --cmake-args -DCMAKE_BUILD_TYPE=RelWithDebInfo
 RUN catkin config --extend /opt/ros/noetic
 SHELL ["/bin/bash", "-c"]
 RUN source ~/.moma_bashrc && catkin build piloting_demo
-ENTRYPOINT ["./src/moma/ros_entrypoint.sh"]
+# Redundant
+ENTRYPOINT ["/ros_entrypoint.sh"]
+
+FROM piloting/noetic-release:latest AS build-cached
+COPY . ${CATKIN_WS}/src/moma/
+RUN source ~/.moma_bashrc && catkin build piloting_demo

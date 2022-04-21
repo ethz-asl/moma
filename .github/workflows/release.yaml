@@ -1,0 +1,36 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - projects/piloting
+
+jobs:
+  build-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+        with:
+          submodules: "recursive"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.PILOTING_DOCKERHUB_USERNAME }}
+          password: ${{ secrets.PILOTING_DOCKERHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          builder: ${{ steps.buildx.outputs.name }}
+          cache-from: type=registry,ref=${{ secrets.PILOTING_DOCKERHUB_USERNAME }}/noetic-deps:buildcache
+          cache-to: type=registry,ref=${{ secrets.PILOTING_DOCKERHUB_USERNAME }}/noetic-deps:buildcache,mode=max
+          push: true
+          target: build
+          tags: ${{ secrets.PILOTING_DOCKERHUB_USERNAME }}/noetic-release:latest
