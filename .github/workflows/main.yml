@@ -105,4 +105,4 @@ jobs:
     steps:
       - name: Run tests
         run: |
-          /bin/bash -c source ~/.moma_bashrc && rostest piloting_demo mission.test
+          rostest piloting_demo mission.test
