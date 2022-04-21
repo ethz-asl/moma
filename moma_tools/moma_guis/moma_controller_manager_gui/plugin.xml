@@ -7,7 +7,7 @@
     <qtgui>
       <group>
         <label>Robot Tools</label>
-            <icon type="theme">folder</icon>
+        <icon type="theme">folder</icon>
         <statustip>Plugins related to robot tools.</statustip>
       </group>
       <label>MoMa Controller Manager</label>
