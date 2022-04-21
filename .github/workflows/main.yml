@@ -1,8 +1,8 @@
-name: CI2
+name: CI
 
 on:
   pull_request:
-    branches: [projects/piloting_feature/ci_test2]
+    branches: [projects/piloting]
   push:
 
 jobs:
