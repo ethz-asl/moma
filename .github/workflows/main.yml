@@ -100,9 +100,9 @@ jobs:
   test:
     #needs: build
     runs-on: ubuntu-latest
+    container: ${{ secrets.PILOTING_DOCKERHUB_USERNAME }}/noetic-release:latest
+
     steps:
       - name: Run tests
-        uses: docker://piloting/noetic-release:latest
-        with:
-          entrypoint: /bin/bash
-          args: -c source ~/.moma_bashrc && rostest piloting_demo mission.test
+        run: |
+          /bin/bash -c source ~/.moma_bashrc && rostest piloting_demo mission.test
