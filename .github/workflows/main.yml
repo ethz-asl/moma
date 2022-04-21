@@ -103,7 +103,7 @@ jobs:
       image: piloting/noetic-dev:latest
       options: --user root
     steps:
-      - run: /bin/bash -c rostest piloting_demo mission.test
+      - run: /ros_entrypoint.sh rostest piloting_demo mission.test
 #  test:
 #    needs: build
 #    runs-on: ubuntu-latest
