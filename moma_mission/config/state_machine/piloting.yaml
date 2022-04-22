@@ -14,7 +14,7 @@ OPEN_GRIPPER:
   position: 0.08
   max_effort: 20
   tolerance: 0.1
-  timeout: 10.0
+  timeout: 35.0
 
 CLOSE_GRIPPER:
   default_outcome: None
