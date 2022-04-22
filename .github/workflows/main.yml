@@ -104,7 +104,7 @@ jobs:
     steps:
       - name: Run docker test
         run: |
-          docker run -t ${{ secrets.PILOTING_DOCKERHUB_USERNAME }}/noetic-dev:${{github.event.number}} rostest --text piloting_demo mission.test
+          docker run -t ${{ secrets.PILOTING_DOCKERHUB_USERNAME }}/noetic-dev:${{github.event.number}} rostest piloting_demo mission.test
 
 #  test:
 #    needs: build
