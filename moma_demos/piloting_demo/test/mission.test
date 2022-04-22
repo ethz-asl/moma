@@ -4,9 +4,6 @@
     <arg name="gui" value="false" />
     <arg name="rviz" value="false" />
   </include>
-  <include file="$(find piloting_demo)/launch/mission.launch">
-    <arg name="sim" value="true" />
-  </include>
 
-  <test test-name="piloting_mission" pkg="piloting_demo" type="test.py"/>
+  <test test-name="piloting_mission" pkg="piloting_demo" type="test.py" time-limit="900.0"/>
 </launch>

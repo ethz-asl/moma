@@ -189,12 +189,11 @@ except Exception as exc:
     sys.exit(0)
 
 # Execute state machine
-# TODO Better subscribe to some topic to see if everything is up and running
-# TODO or even better: make the initial timeout to wait for the action servers larger
-rospy.sleep(10)
 rospy.loginfo("\n\nRunning the mission state machine!\n\n")
 outcome = state_machine.execute()
 rospy.loginfo("Mission plan terminated with outcome {}.".format(outcome))
+if outcome != "Completed":
+    sys.exit(1)
 
 # Wait for ctrl-c to stop the application
 # introspection_server.stop()
