@@ -12,10 +12,11 @@ class TestPilotingMission(unittest.TestCase):
             ["roslaunch", "piloting_demo", "mission.launch", "sim:=true"],
             stderr=subprocess.PIPE,
         )
-        err = "exit code" in str(p.stderr.read())
-        self.assertEquals(err, False)
+        err = str(p.stderr.read())
+        p.communicate()
+        self.assertEquals("exit code" in err, False)
         # https://github.com/ros/ros_comm/issues/919
-        self.assertEquals(p.returncode, None)
+        self.assertEquals(p.returncode, 0)
 
 
 if __name__ == "__main__":
