@@ -28,6 +28,8 @@
     <!-- perception dependencies -->
     <exec_depend>moma_sensor_tools</exec_depend>
     <exec_depend>object_keypoints_ros</exec_depend>
+    <exec_depend>realsense2_camera</exec_depend>
+    <exec_depend>realsense2_description</exec_depend>
 
     <!-- piloting dependencies -->
     <exec_depend>moma_mission</exec_depend>
