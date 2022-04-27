@@ -9,6 +9,7 @@
   <xacro:arg name="rpy" default="0 0 0"/>
   <xacro:arg name="use_fixed_realsense" default="false"/>
   <xacro:arg name="use_nominal_extrinsics" default="false"/>
+  <xacro:arg name="include_control_plugin" default="false"/>
 
   <xacro:include filename="$(find moma_description)/urdf/panda_arm.xacro"/>
   <xacro:moma_panda arm_id="$(arg arm_id)"
@@ -19,5 +20,6 @@
                     xyz="$(arg xyz)"
                     rpy="$(arg rpy)"
                     use_fixed_realsense="$(arg use_fixed_realsense)"
-                    use_nominal_extrinsics="$(arg use_nominal_extrinsics)"/>
+                    use_nominal_extrinsics="$(arg use_nominal_extrinsics)"
+                    include_control_plugin="$(arg include_control_plugin)"/>
 </robot>

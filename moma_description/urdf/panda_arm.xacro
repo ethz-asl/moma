@@ -11,7 +11,8 @@
                                        xyz:='0 0 0'
                                        rpy:='0 0 0'
                                        use_fixed_realsense:=false
-                                       use_nominal_extrinsics:=false">
+                                       use_nominal_extrinsics:=false
+                                       include_control_plugin:=false">
   <xacro:unless value="${gazebo}">
     <!-- Create a URDF for a real hardware -->
     <xacro:include filename="$(find franka_description)/robots/panda_arm.xacro" />
@@ -53,6 +54,7 @@
       </joint>
     </xacro:if>
 
+
     <xacro:gazebo-joint joint="${arm_id}_joint1" transmission="hardware_interface/PositionJointInterface" />
     <xacro:gazebo-joint joint="${arm_id}_joint2" transmission="hardware_interface/PositionJointInterface" />
     <xacro:gazebo-joint joint="${arm_id}_joint3" transmission="hardware_interface/PositionJointInterface" />
@@ -83,13 +85,18 @@
        tip="${arm_id}_joint8"
      />
 
-    <gazebo>
-      <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
-        <controlPeriod>0.001</controlPeriod>
-        <robotSimType>franka_gazebo/FrankaHWSim</robotSimType>
-      </plugin>
-      <self_collide>true</self_collide>
-    </gazebo>
+    <xacro:if value="${include_control_plugin}">
+      <gazebo>
+        <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
+          <controlPeriod>0.001</controlPeriod>
+          <robotSimType>franka_gazebo/FrankaHWSim</robotSimType>
+          <robotNamespace>/panda</robotNamespace>
+          <robotParam>robot_description_arm</robotParam>
+          <robotDescription>robot_description_arm</robotDescription>
+        </plugin>
+        <self_collide>true</self_collide>
+      </gazebo>
+    </xacro:if>
   </xacro:if>
 
   <!-- end effector frame for MoveIt -->
