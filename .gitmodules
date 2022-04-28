@@ -1,11 +1,3 @@
-[submodule "franka_ros"]
-	path = submodules/franka_ros
-	url = git@github.com:ethz-asl/franka_ros.git
-	branch = melodic-devel
-[submodule "ridgeback"]
-	path = submodules/ridgeback
-	url = git@github.com:ethz-asl/ridgeback.git
-	branch = kinetic-devel
 [submodule "submodules/yumi"]
 	path = submodules/yumi
 	url = git@github.com:ethz-asl/yumi.git
@@ -16,4 +8,3 @@
 [submodule "submodules/vpp_msgs"]
 	path = submodules/vpp_msgs
 	url = git@github.com:ethz-asl/vpp_msgs.git
-
