@@ -979,6 +979,15 @@ Visualization Manager:
         Show Robot Visual: true
       Value: true
       Velocity_Scaling_Factor: 0.1
+    - Class: rviz/InteractiveMarkers
+      Enable Transparency: true
+      Enabled: true
+      Name: InteractiveMarkers
+      Show Axes: false
+      Show Descriptions: true
+      Show Visual Aids: false
+      Update Topic: /mobile_base/twist_marker_server/update
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48

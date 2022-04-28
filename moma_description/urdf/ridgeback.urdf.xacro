@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="ridgeback">
+  <xacro:arg name="include_control_plugin" default="false"/>
   <xacro:include filename="$(find moma_description)/urdf/ridgeback.xacro"/>
-  <xacro:ridgeback/>
+  <xacro:ridgeback include_control_plugin="$(arg include_control_plugin)"/>
 </robot>

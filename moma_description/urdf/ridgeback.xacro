@@ -6,6 +6,7 @@
     <xacro:include filename="$(find moma_description)/urdf/ridgeback_nocontrol.xacro"/>
     <xacro:if value="${include_control_plugin}">
       <xacro:include filename="$(find moma_description)/urdf/ridgeback.gazebo.xacro"/>
+      <xacro:ridgeback_gazebo robot_ns="/mobile_base"/>
     </xacro:if>
 
     <!-- Sensor mount -->

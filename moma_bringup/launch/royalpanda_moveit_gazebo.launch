@@ -31,6 +31,9 @@
                 -J $(arg arm_id)_finger_joint2 0.001"
        />
 
+  <!-- Remap command velocity topic -->
+  <remap from="/mobile_base/cmd_vel" to="/cmd_vel"/>
+
   <include file="$(find gazebo_ros)/launch/empty_world.launch" if="$(arg gazebo)">
     <arg name="world_name" value="$(arg world)"/>
     <!-- Always start in paused mode, and only unpause when spawning the model -->
@@ -71,9 +74,45 @@
     />
   </group>
 
+  <!-- Base controllers -->
+  <arg name="joystick" default="false" />
+  <group ns="mobile_base">
+    <param name="robot_description"
+       command="xacro $(find moma_description)/urdf/ridgeback.urdf.xacro
+                include_control_plugin:=false"/>
+
+    <rosparam param="gazebo_ros_control/pid_gains">
+      front_left_wheel:
+        p: 1
+        i: 0.1
+        d: 0
+      front_right_wheel:
+        p: 1
+        i: 0.1
+        d: 0
+      rear_left_wheel:
+        p: 1
+        i: 0.1
+        d: 0
+      rear_right_wheel:
+        p: 1
+        i: 0.1
+        d: 0
+    </rosparam>
+    <include file="$(find ridgeback_control)/launch/control.launch" />
+    <include file="$(find ridgeback_control)/launch/teleop.launch">
+      <arg name="joystick" value="$(arg joystick)"/>
+    </include>
+  </group>
+
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" output="screen" />
   <node name="joint_state_publisher" type="joint_state_publisher" pkg="joint_state_publisher">
-    <rosparam param="source_list">[panda/franka_state_controller/joint_states, panda/franka_gripper/joint_states]</rosparam>
+    <rosparam param="source_list">
+      [panda/franka_state_controller/joint_states,
+      panda/franka_gripper/joint_states,
+      mobile_base/joint_states,
+      mobile_base/odom]
+    </rosparam>
     <param name="rate" value="30"/>
   </node>
 
@@ -89,33 +128,6 @@
         args="-param robot_description -urdf -model $(arg arm_id) $(arg unpause)
               $(arg initial_joint_positions)
               "/>
-
-  <!-- Ridgeback control -->
-<!--  <arg name="joystick" default="false" />-->
-<!--  <include file="$(find ridgeback_control)/launch/control.launch" />-->
-<!--  <include file="$(find ridgeback_control)/launch/teleop.launch">-->
-<!--    <arg name="joystick" value="$(arg joystick)"/>-->
-<!--  </include>-->
-<!--  <rosparam param="/gazebo_ros_control/pid_gains">-->
-<!--    front_left_wheel:-->
-<!--      p: 1-->
-<!--      i: 0.1-->
-<!--      d: 0-->
-<!--    front_right_wheel:-->
-<!--      p: 1-->
-<!--      i: 0.1-->
-<!--      d: 0-->
-<!--    rear_left_wheel:-->
-<!--      p: 1-->
-<!--      i: 0.1-->
-<!--      d: 0-->
-<!--    rear_right_wheel:-->
-<!--      p: 1-->
-<!--      i: 0.1-->
-<!--      d: 0-->
-<!--  </rosparam>-->
-
-<!--  <node pkg="rviz" type="rviz" output="screen" name="rviz" args="-d $(find franka_example_controllers)/launch/rviz/franka_description_with_marker.rviz" if="$(arg rviz)"/>-->
 
   <node if="$(arg rviz)" name="$(anon rviz)" pkg="rviz" type="rviz" respawn="false" args="-d $(find moma_bringup)/config/royalpanda_moveit.rviz" output="screen">
     <rosparam command="load" file="$(find royalpanda_moveit_config)/config/kinematics.yaml"/>

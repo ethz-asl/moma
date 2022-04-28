@@ -4,15 +4,7 @@
     <xacro:arg name="use_nominal_extrinsics" default="false"/>
 
     <xacro:include filename="$(find moma_description)/urdf/ridgeback.xacro"/>
-    <xacro:ridgeback/>
-
-    <!-- <link name="world"/>
-    <link name="mid_mount"/>
-    <joint name="world_joint" type="fixed">
-        <parent link="world"/>
-        <child link="mid_mount"/>
-        <origin xyz="0 0 0" rpy="0 0 0"/>
-    </joint> -->
+    <xacro:ridgeback include_control_plugin="true"/>
 
     <link name="franka_mount_link"/>
     <joint name="arm_mount_joint" type="fixed">
