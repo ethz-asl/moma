@@ -8,4 +8,4 @@ moveit_setup_assistant_config:
   CONFIG:
     author_name: Julian Foerster
     author_email: fjulian@ethz.ch
-    generated_timestamp: 1651132509
+    generated_timestamp: 1651133466
