@@ -80,7 +80,7 @@ Visualization Manager:
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
-    Fixed Frame: odom
+    Fixed Frame: base_link
   Name: root
   Tools:
     - Class: rviz/Interact
@@ -108,7 +108,7 @@ Visualization Manager:
       Name: Current View
       Near Clip Distance: 0.01
       Pitch: 0.5
-      Target Frame: odom
+      Target Frame: base_link
       Yaw: -0.6232355833053589
     Saved: ~
 Window Geometry:

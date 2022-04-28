@@ -22,23 +22,28 @@
         <joint name="panda_joint6" value="1.57"/>
         <joint name="panda_joint7" value="0.785"/>
     </group_state>
-    <!--VIRTUAL JOINT: Purpose: this element defines a virtual joint between a robot link and an external frame of reference (considered fixed with respect to the robot)-->
-    <virtual_joint name="v_joint" type="floating" parent_frame="odom" child_link="base_link"/>
-    <!--PASSIVE JOINT: Purpose: this element is used to mark joints that are not actuated-->
-    <passive_joint name="v_joint"/>
     <!--DISABLE COLLISIONS: By default it is assumed that any link of the robot could potentially come into collision with any other link in the robot. This tag disables collision checking between a specified pair of links. -->
     <disable_collisions link1="chassis_link" link2="front_left_wheel_link" reason="Adjacent"/>
     <disable_collisions link1="chassis_link" link2="front_right_wheel_link" reason="Adjacent"/>
+    <disable_collisions link1="chassis_link" link2="panda_hand" reason="User"/>
+    <disable_collisions link1="chassis_link" link2="panda_leftfinger" reason="User"/>
     <disable_collisions link1="chassis_link" link2="panda_link0" reason="Adjacent"/>
     <disable_collisions link1="chassis_link" link2="panda_link1" reason="Never"/>
     <disable_collisions link1="chassis_link" link2="panda_link2" reason="Never"/>
     <disable_collisions link1="chassis_link" link2="panda_link3" reason="Never"/>
     <disable_collisions link1="chassis_link" link2="panda_link4" reason="Never"/>
+    <disable_collisions link1="chassis_link" link2="panda_link5" reason="User"/>
+    <disable_collisions link1="chassis_link" link2="panda_link6" reason="User"/>
+    <disable_collisions link1="chassis_link" link2="panda_link7" reason="User"/>
+    <disable_collisions link1="chassis_link" link2="panda_rightfinger" reason="User"/>
     <disable_collisions link1="chassis_link" link2="rear_left_wheel_link" reason="Adjacent"/>
     <disable_collisions link1="chassis_link" link2="rear_right_wheel_link" reason="Adjacent"/>
     <disable_collisions link1="chassis_link" link2="ridgeback_sensor_mount_link" reason="Adjacent"/>
     <disable_collisions link1="chassis_link" link2="top_link" reason="Adjacent"/>
+    <disable_collisions link1="chassis_link" link2="wrist_camera_link" reason="User"/>
     <disable_collisions link1="front_left_wheel_link" link2="front_right_wheel_link" reason="Adjacent"/>
+    <disable_collisions link1="front_left_wheel_link" link2="panda_hand" reason="User"/>
+    <disable_collisions link1="front_left_wheel_link" link2="panda_leftfinger" reason="User"/>
     <disable_collisions link1="front_left_wheel_link" link2="panda_link0" reason="Never"/>
     <disable_collisions link1="front_left_wheel_link" link2="panda_link1" reason="Never"/>
     <disable_collisions link1="front_left_wheel_link" link2="panda_link2" reason="Never"/>
@@ -46,11 +51,15 @@
     <disable_collisions link1="front_left_wheel_link" link2="panda_link4" reason="Never"/>
     <disable_collisions link1="front_left_wheel_link" link2="panda_link5" reason="Never"/>
     <disable_collisions link1="front_left_wheel_link" link2="panda_link6" reason="Never"/>
+    <disable_collisions link1="front_left_wheel_link" link2="panda_link7" reason="Never"/>
+    <disable_collisions link1="front_left_wheel_link" link2="panda_rightfinger" reason="User"/>
     <disable_collisions link1="front_left_wheel_link" link2="rear_left_wheel_link" reason="Adjacent"/>
     <disable_collisions link1="front_left_wheel_link" link2="rear_right_wheel_link" reason="Adjacent"/>
     <disable_collisions link1="front_left_wheel_link" link2="ridgeback_sensor_mount_link" reason="Never"/>
     <disable_collisions link1="front_left_wheel_link" link2="top_link" reason="Never"/>
-    <disable_collisions link1="front_right_wheel_link" link2="panda_leftfinger" reason="Never"/>
+    <disable_collisions link1="front_left_wheel_link" link2="wrist_camera_link" reason="User"/>
+    <disable_collisions link1="front_right_wheel_link" link2="panda_hand" reason="User"/>
+    <disable_collisions link1="front_right_wheel_link" link2="panda_leftfinger" reason="User"/>
     <disable_collisions link1="front_right_wheel_link" link2="panda_link0" reason="Never"/>
     <disable_collisions link1="front_right_wheel_link" link2="panda_link1" reason="Never"/>
     <disable_collisions link1="front_right_wheel_link" link2="panda_link2" reason="Never"/>
@@ -58,15 +67,17 @@
     <disable_collisions link1="front_right_wheel_link" link2="panda_link4" reason="Never"/>
     <disable_collisions link1="front_right_wheel_link" link2="panda_link5" reason="Never"/>
     <disable_collisions link1="front_right_wheel_link" link2="panda_link6" reason="Never"/>
-    <disable_collisions link1="front_right_wheel_link" link2="panda_link7" reason="Never"/>
-    <disable_collisions link1="front_right_wheel_link" link2="panda_rightfinger" reason="Never"/>
+    <disable_collisions link1="front_right_wheel_link" link2="panda_link7" reason="User"/>
+    <disable_collisions link1="front_right_wheel_link" link2="panda_rightfinger" reason="User"/>
     <disable_collisions link1="front_right_wheel_link" link2="rear_left_wheel_link" reason="Adjacent"/>
     <disable_collisions link1="front_right_wheel_link" link2="rear_right_wheel_link" reason="Adjacent"/>
     <disable_collisions link1="front_right_wheel_link" link2="ridgeback_sensor_mount_link" reason="Never"/>
     <disable_collisions link1="front_right_wheel_link" link2="top_link" reason="Never"/>
+    <disable_collisions link1="front_right_wheel_link" link2="wrist_camera_link" reason="User"/>
     <disable_collisions link1="panda_hand" link2="panda_leftfinger" reason="Adjacent"/>
     <disable_collisions link1="panda_hand" link2="panda_link3" reason="Never"/>
     <disable_collisions link1="panda_hand" link2="panda_link4" reason="Never"/>
+    <disable_collisions link1="panda_hand" link2="panda_link5" reason="Default"/>
     <disable_collisions link1="panda_hand" link2="panda_link6" reason="Never"/>
     <disable_collisions link1="panda_hand" link2="panda_link7" reason="Adjacent"/>
     <disable_collisions link1="panda_hand" link2="panda_rightfinger" reason="Adjacent"/>
@@ -79,7 +90,7 @@
     <disable_collisions link1="panda_leftfinger" link2="panda_link7" reason="Never"/>
     <disable_collisions link1="panda_leftfinger" link2="panda_rightfinger" reason="Default"/>
     <disable_collisions link1="panda_leftfinger" link2="rear_left_wheel_link" reason="Never"/>
-    <disable_collisions link1="panda_leftfinger" link2="rear_right_wheel_link" reason="Never"/>
+    <disable_collisions link1="panda_leftfinger" link2="rear_right_wheel_link" reason="User"/>
     <disable_collisions link1="panda_leftfinger" link2="wrist_camera_link" reason="Never"/>
     <disable_collisions link1="panda_link0" link2="panda_link1" reason="Adjacent"/>
     <disable_collisions link1="panda_link0" link2="panda_link2" reason="Never"/>
@@ -122,6 +133,7 @@
     <disable_collisions link1="panda_link4" link2="top_link" reason="Never"/>
     <disable_collisions link1="panda_link4" link2="wrist_camera_link" reason="Never"/>
     <disable_collisions link1="panda_link5" link2="panda_link6" reason="Adjacent"/>
+    <disable_collisions link1="panda_link5" link2="panda_link7" reason="Default"/>
     <disable_collisions link1="panda_link5" link2="rear_left_wheel_link" reason="Never"/>
     <disable_collisions link1="panda_link5" link2="rear_right_wheel_link" reason="Never"/>
     <disable_collisions link1="panda_link6" link2="panda_link7" reason="Adjacent"/>
