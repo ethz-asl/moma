@@ -1,7 +1,6 @@
 import rospy
 import numpy as np
 import tf2_ros
-from typing import List
 from scipy.spatial.transform import Rotation
 from geometry_msgs.msg import PoseStamped, TransformStamped, Pose, PoseArray
 
@@ -33,36 +32,15 @@ from moma_mission.missions.piloting.trajectory import ValveTrajectoryGenerator
 from moma_mission.missions.piloting.rcs_bridge import RCSBridge
 
 
-gRCS = RCSBridge()
-
-
 class SetUp(StateRos):
     def __init__(self, ns):
         StateRos.__init__(self, ns=ns)
-        self.waypoints_file = self.get_scoped_param("waypoints_file_path")
 
     def run(self):
-        global gRCS
-        if not gRCS.read_params():
-            rospy.logerr("Failed to read gRCS params")
-            return "Failure"
-
-        if not gRCS.init_ros():
-            rospy.logerr("Failed to initialize RCSBridge ros")
-            return "Failure"
-
-        if not gRCS.read_waypoints_from_file(self.waypoints_file):
-            rospy.logerr("Failed to read waypoints from file")
-            return "Failure"
-
-        if not gRCS.upload_waypoints():
-            rospy.logerr("Failed to upload waypoints.")
-            return "Failure"
-
-        if not gRCS.upload_hl_action():
-            rospy.logerr("Failed to upload high level actions")
-            return "Failure"
-        return "Completed"
+        self.set_context("gRCS", RCSBridge())
+        gRCS = self.global_context.ctx.gRCS
+        init_state = gRCS.init_all()
+        return "Completed" if init_state else "Failure"
 
 
 class Idle(StateRos):
@@ -75,24 +53,28 @@ class Idle(StateRos):
         StateRos.__init__(
             self,
             ns=ns,
-            outcomes=["ExecuteInspectionPlan", "ExecuteManipulationPlan", "Failure"],
+            outcomes=["ExecuteInspectionPlan", "ExecuteDummyPlan", "Failure"],
         )
 
     def run(self):
+        gRCS = self.global_context.ctx.gRCS
         while True:
-            command_id, command = gRCS.get_current_hl_command()
-            if command_id == 0:
-                return "ExecuteManipulationPlan"
-            elif command_id == 1:
-                rospy.loginfo(
-                    "Received high level command {}: {}".format(command_id, command)
-                )
-                return "ExecuteInspectionPlan"
-            elif command_id == 2:
-                return "Failure"
+            if gRCS.is_waypoints_available:
+                if gRCS.is_continuable:
+                    return "ExecuteInspectionPlan"
+                else:
+                    rospy.loginfo(
+                        "Waiting for continuation request until reaching next waypoint"
+                    )
+
+            command, info = gRCS.get_current_hl_command()
+            if command == "TAKE_PHOTO":
+                rospy.loginfo("Taking a photo")
+            elif command is not None:
+                rospy.logerr(f"Command {command} not understood by the state machine")
             rospy.sleep(1.0)
             rospy.loginfo_throttle(
-                3.0, "In [IDLE] state... Waiting from gRCS commands."
+                3.0, "In [IDLE] state... Waiting for commands from gRCS."
             )
 
 

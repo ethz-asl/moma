@@ -5,10 +5,11 @@
     <arg name="use_fixed_realsense" default="false"/>
     <arg name="tool" default="panda_hand"/>
     <arg name="launch_navigation" default="true"/>
-    <arg name="world_name" default="$(find piloting_demo)/worlds/jfloor.world"/>
     <arg name="use_global_map" default="true"/>
-    <arg name="global_map_config_file"   default="$(find piloting_demo)/maps/jfloor/map.yaml"/>
-    <arg name="global_map_cloud_file"     default="$(find piloting_demo)/maps/jfloor/map.pcd"/>
+    <arg name="map_name" default="jfloor"/>
+    <arg name="global_map_config_file"   default="$(find piloting_demo)/maps/$(arg map_name)/map.yaml"/>
+    <arg name="global_map_cloud_file"     default="$(find piloting_demo)/maps/$(arg map_name)/map.pcd"/>
+    <arg name="world_name" default="$(find piloting_demo)/worlds/$(arg map_name).world"/>
 
     <!-- Control-->
     <!-- load a arm only description for the arm controllers -->
