@@ -1,14 +1,13 @@
 #!/usr/bin/env python
 import sys
 import rospy
-import smach
-import smach_ros
 from moma_mission.core.state_ros import *
 from moma_mission.missions.piloting.states import *
 from moma_mission.missions.piloting.sequences import *
 from moma_mission.states.observation import FOVSamplerState
 from moma_mission.states.transform_visitor import TransformVisitorState
 from moma_mission.states.path_visitor import PathVisitorState
+from moma_mission.states.waypoint_broadcaster import WaypointBroadcasterState
 
 
 # Init ros
@@ -43,8 +42,20 @@ try:
             "IDLE",
             Idle,
             transitions={
-                "ExecuteInspectionPlan": "WAYPOINT_FOLLOWING",
-                "ExecuteManipulationPlan": "REACH_DETECTION_HOTSPOT_FAR",
+                "ExecuteInspectionPlan": "BROADCAST_WAYPOINT",
+                "ExecuteDummyPlan": "REACH_DETECTION_HOTSPOT_FAR",
+                "Failure": "Failure",
+            },
+        )
+
+        rospy.loginfo("Reach detection hotspot far")
+        state_machine.add(
+            "BROADCAST_WAYPOINT",
+            WaypointBroadcasterState,
+            transitions={
+                "Completed": "DETECTION_DECISION",
+                "Waypoint": "WAYPOINT_FOLLOWING",
+                "Wait": "IDLE",
                 "Failure": "Failure",
             },
         )
@@ -69,11 +80,10 @@ try:
         rospy.loginfo("Waypoint following")
         state_machine.add(
             "WAYPOINT_FOLLOWING",
-            WaypointNavigationState,
+            NavigationState,
             transitions={
-                "Completed": "Success",
+                "Completed": "IDLE",
                 "Failure": "Failure",
-                "NextWaypoint": "WAYPOINT_FOLLOWING",
             },
         )
 
