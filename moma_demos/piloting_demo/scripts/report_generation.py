@@ -370,7 +370,6 @@ class ReportGenerator:
                     cam_rotation = [0.0, 0.0, 0.0, 1.0]
 
                     try:
-                        print(f"{MAP_FRAME}, {message.header.frame_id}")
                         tf_transform = self.tf_tree.lookup_transform_core(
                             target_frame=MAP_FRAME,
                             source_frame=message.header.frame_id,
@@ -484,7 +483,6 @@ class ReportGenerator:
             self.report_dir if full_output_path is None else full_output_path
         )
         shutil.make_archive(full_output_path, "zip", self.report_dir)
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generates a report.")
