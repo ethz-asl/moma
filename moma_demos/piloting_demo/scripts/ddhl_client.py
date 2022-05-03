@@ -2,22 +2,11 @@ import os
 import rospy
 import requests
 
-from requests_toolbelt.multipart.encoder import MultipartEncoder
-
-mp_encoder = MultipartEncoder(
-    fields={
-        # Content-Disposition header with just the part name
-        "mission": open(
-            "/home/giuseppe/Downloads/files.zip", "rb"
-        )  # ('files.zip', open("/home/giuseppe/Downloads/files.zip", 'rb'), 'multipart/form-data'),
-    }
-)
-
 
 class DDDHL_Client:
-    def __init__(self, debug=False) -> None:
-        self.user = "giuseppe.rizzi"
-        self.password = "Piloting2020"
+    def __init__(self, user, password, debug=False) -> None:
+        self.user = user
+        self.password = password
         self.post_url = (
             "http://httpbin.org/post"
             if debug
@@ -34,20 +23,20 @@ class DDDHL_Client:
             return False
 
         file_obj = open(full_archive_path, "rb")
+        files = [("files", ("files.zip", file_obj, "application/zip"))]
+
         res = requests.post(
-            url=self.post_url,
-            auth=(self.user, self.password),
-            # headers = { 'Content-Type' : 'multipart/form-data' },
-            files={"file": file_obj},
-        )  # ("files", file_obj)})
-        # data=mp_encoder)
-        rospy.loginfo(res)
-        rospy.logerr(f"Response returned {res}")
+            url=self.post_url, auth=(self.user, self.password), files=files
+        )
+
+        rospy.logerr(
+            f"Post response: {res.text}\nReturned CODE[{res.status_code}] : {res.reason}"
+        )
         return res.ok
 
 
 if __name__ == "__main__":
-    client = DDDHL_Client()
+    client = DDDHL_Client(user="giuseppe.rizzi", password="Piloting2020")
     ok = client.post_mission_data("/home/giuseppe/Downloads/files.zip")
     if not ok:
         rospy.logerr("Failed to upload mission data.")
