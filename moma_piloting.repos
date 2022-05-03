@@ -21,7 +21,7 @@ repositories:
 
   smb_path_planner:
     type: git
-    url: git@github.com:grizzi/smb_path_planner.git
+    url: git@github.com:ethz-asl/smb_path_planner.git
     version: master
 
   teb_local_planner:

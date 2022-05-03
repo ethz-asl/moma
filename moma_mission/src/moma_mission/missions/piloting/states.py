@@ -10,11 +10,10 @@ from nav_msgs.msg import Path
 from visualization_msgs.msg import Marker, MarkerArray
 from object_keypoints_ros.srv import KeypointsPerception, KeypointsPerceptionRequest
 
-from moma_mission.utils.transforms import se3_to_pose_ros
+from moma_mission.utils.transforms import se3_to_pose_ros, tf_to_se3
 from moma_mission.utils.trajectory import get_timed_path_to_target
 from moma_mission.utils.robot import Robot
 from moma_mission.states.navigation import SingleNavGoalState
-from moma_mission.states.model_fit import ModelFitState
 
 from moma_mission.core import StateRosControl, StateRos
 from moma_mission.utils.transforms import numpy_to_pose_stamped
@@ -291,6 +290,7 @@ class ModelFitValveState(StateRos):
         self.frame_id = None
         self.successful_detections = 0
         self.detections = []
+        self.camera_pose = None
         self.valve_fitter = ValveFitter(k=self.k)
         self.ransac_matcher = RansacMatcher(
             acceptance_ratio=self.acceptance_ratio,
@@ -361,10 +361,13 @@ class ModelFitValveState(StateRos):
             markers.markers.append(marker)
         return markers
 
-    def _model_fit(self, points3d: np.ndarray, frame: str) -> TransformStamped:
+    def _model_fit(self, points3d: np.ndarray) -> TransformStamped:
         valve: ValveModel
         residual, valve = self.valve_fitter.estimate_from_3d_points(
-            points3d, frame, error_threshold=self.error_threshold
+            points3d,
+            self.camera_pose,
+            self.frame_id,
+            error_threshold=self.error_threshold,
         )
         print(f"Fit valve with residual {residual}")
         if valve is None:
@@ -403,12 +406,18 @@ class ModelFitValveState(StateRos):
 
         req = KeypointsPerceptionRequest()
         res = self.perception_srv_client.call(req)
+
+        if len(res.keypoints.poses) != self.k + 1:
+            return False
+
         self.frame_id = res.keypoints.header.frame_id
+        self.camera_pose = res.camera_pose
         camera = Camera()
         camera.set_intrinsics_from_camera_info(res.camera_info)
         camera.set_extrinsics_from_pose(res.camera_pose)
         keypoints2d = np.zeros((len(res.keypoints2d), 2))
         keypoints3d = np.zeros((len(res.keypoints.poses), 3))
+
         for i, (kpt2d, kpt3d) in enumerate(zip(res.keypoints2d, res.keypoints.poses)):
             keypoints2d[i, 0] = kpt2d.x
             keypoints2d[i, 1] = kpt2d.y
@@ -441,6 +450,7 @@ class ModelFitValveState(StateRos):
                 print(f"Fitting to\n{p.T} with shape\n{p.T.shape}")
                 residual, valve_fit = self.valve_fitter.estimate_from_3d_points(
                     p.T,
+                    self.camera_pose,
                     self.frame_id,
                     handle_radius=0.01,
                     error_threshold=self.error_threshold,
@@ -467,7 +477,7 @@ class ModelFitValveState(StateRos):
     def run(self):
         object_pose = TransformStamped()
         if self.dummy:
-            rospy.logwarn("[ModelFitState]: running dummy detection")
+            rospy.logwarn("[ModelFitValveState]: running dummy detection")
             object_pose.header.frame_id = "world"
             object_pose.header.stamp = rospy.get_rostime()
             object_pose.child_frame_id = self._object_name()
@@ -493,36 +503,39 @@ class ModelFitValveState(StateRos):
             # trying to match keypoints and filtering based on best epipolar match
             # keyoints3d is a list [ (num_kpts x 3), (num_kpts x 3), None, ... ] num_observations long
             # and None if the observation was rejected
-            try:
-                success, keypoints2d, keypoints3d = self.ransac_matcher.filter()
-            except:
-                rospy.logerr("Exception while matching and filtering detections.")
-                return "Failure"
+            # try:
+            #     (
+            #         success,
+            #         keypoints2d,
+            #         keypoints3d,
+            #         cameras,
+            #     ) = self.ransac_matcher.filter()
+            # except:
+            #     rospy.logerr("Exception while matching and filtering detections.")
+            #     return "Failure"
 
-            if not success:
-                rospy.logerr("Failed to match and filter detections.")
-                return "Failure"
+            # if not success:
+            #     rospy.logerr("Failed to match and filter detections.")
+            #     return "Failure"
 
             # visualize all the matches
-            valid_observations = [
-                kpts3d for kpts3d in keypoints3d if kpts3d is not None
-            ]
-            for points in valid_observations:
-                rospy.loginfo("Visualizing keypoints matches")
-                self.matches_publisher.publish(
-                    self._markers_from_keypoints(points, self.frame_id)
-                )
-                rospy.sleep(5.0)
+            # valid_observations = [
+            #     kpts3d for kpts3d in keypoints3d if kpts3d is not None
+            # ]
+            # for points in self.detections:
+            #    rospy.loginfo("Visualizing keypoints matches")
+            #    self.matches_publisher.publish(
+            #        self._markers_from_keypoints(points, self.frame_id)
+            #    )
+            #    rospy.sleep(5.0)
 
             # filter only valid and matched observations
-            points = self._filter_3d_observations(
-                valid_observations, method="geometric"
-            )
+            points = self._filter_3d_observations(self.detections, method="geometric")
             if points is None:
                 rospy.logerr("Failed to fit 3d observations.")
                 return "Failure"
 
-            object_pose = self._model_fit(points.T, self.frame_id)
+            object_pose = self._model_fit(points.T)
             if object_pose is None:
                 return "Failure"
             object_pose.header.frame_id = self.frame_id
@@ -586,6 +599,7 @@ class ValveManipulationModelState(StateRos):
         self.poses_publisher = rospy.Publisher(
             poses_topic, PoseArray, queue_size=1, latch=True
         )
+        self.robot_base_frame = self.get_scoped_param("robot_base_frame", None)
 
         path_inverted_topic = self.get_scoped_param(
             "path_inverted_topic", "/valve_path_inverted"
@@ -601,7 +615,19 @@ class ValveManipulationModelState(StateRos):
 
     def run(self):
         valve_model = self.global_context.ctx.valve_model
-        valve_planner = ValveModelPlanner(valve_model)
+        robot_base_pose = None
+        if self.robot_base_frame is not None:
+            robot_base_pose = tf_to_se3(
+                self.tf_buffer.lookup_transform(
+                    self.robot_base_frame,
+                    valve_model.frame,
+                    rospy.Time(0),  # tf at first available time
+                    rospy.Duration(3),
+                )
+            )
+        valve_planner = ValveModelPlanner(
+            valve_model=valve_model, robot_base_pose=robot_base_pose
+        )
         path = valve_planner.get_path(angle_max=self.turning_angle)
         if path is None:
             rospy.logerr("Could not obtain a valid valve manipulation path")

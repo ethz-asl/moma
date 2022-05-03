@@ -53,6 +53,11 @@ class ValveModel:
         self.__v2 = axis_2 / np.linalg.norm(axis_2)
         self.__d = depth
 
+        if depth < 0:
+            rospy.logwarn(
+                "Valve is spawned with negative depth. Please check if this is intended."
+            )
+
         self.marker_pub = rospy.Publisher(
             "/valve_marker", MarkerArray, queue_size=1, latch=True
         )

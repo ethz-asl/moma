@@ -22,6 +22,7 @@ First, clone this repository and its submodules into the `src` folder of a new o
 
 ```bash
 git clone --recurse-submodules git@github.com:ethz-asl/moma.git
+git lfs pull
 ```
 
 Set the environment variable `$CATKIN_WS` to the root of your catkin workspace.

@@ -18,9 +18,9 @@ OPEN_GRIPPER:
 
 CLOSE_GRIPPER:
   default_outcome: None
-  gripper_action_name: /panda/franka_gripper/gripper_action
+  gripper_action_name: /panda/franka_gripper/grasp
   position: 0.0
-  max_effort: 20
+  max_effort: 1.0
   tolerance: 0.1
   timeout: 10.0
 
@@ -115,7 +115,7 @@ OBSERVATION_POSE:
 
 OBSERVATION_APPROACH:
   default_outcome: None
-  duration: 10.0
+  duration: 3.0
   control_frame: tracking_camera_odom
   target_frame: observation
   startlist: ["mpc_controller", "path_passthrough_controller"] #, 'path_admittance_controller' ]
@@ -132,10 +132,11 @@ MODEL_FIT_VALVE:
   feature_matcher_acceptance_ratio: 1000.0
   ransac_min_consensus: 1 #2   # must be > min_successful detections
 
-a:
+PLAN_MODEL_VALVE:
   default_outcome: None
 
   poses_topic: /valve_poses
+  robot_base_frame: panda_link0
   turning_angle_deg: 120.0
 
 PLAN_URDF_VALVE:

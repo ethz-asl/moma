@@ -178,6 +178,18 @@ cd ~/piloting_ws/src/smb_path_planner/smb_navigation/script
 
 The previous command will generate a `map.yaml` and `map.pgm` files in the target folder. The `map.yaml` might contain some `nan` in the origin, set it manually to zero and save.
 
+### Step 4 (optional): Mesh generation for simulation
+
+Generate a mesh out of the `map.pcl` file for simulation in Gazebo.
+As most of the existing mesh generation software doesn't support `.pcd` files very well, run the map through [pcd2txt](https://github.com/jk-ethz/pcd2txt) using `pcd2txt map.pcd -o /outpath`.
+
+Then, open the resulting `map.txt` file with [CloudCompare](https://www.danielgm.net/cc/) and follow [this tutorial](https://ignitionrobotics.org/api/gazebo/4.0/pointcloud.html).
+For reconstructing the lab environment, it was helpful to do a Tools->Clean->SOR filter (# points 6->20) before estimating the normals and generating a mesh.
+
+Alternatively, you can also use [MeshLab](https://www.meshlab.net/).
+Here, the feature Filters->Simplification->Quadric Edge Collapse Decimation is very useful for reducing the size of the final mesh.
+Also, Filters->Cleaning->Remove isolated pieces (wrt diameter) is useful to get rid of faces dangling in mid-air.
+
 ## Localization and Navigation
 
 We localize our robot agains the prerecorded map. For this purpose we use the `smb_slam` package again. It is important in this case, to set the right map on startup. Check the [launch file](launch/navigation.launch) to know how this can be done. The robot will likely visualize with some pose offset with respect to the statically loaded map.
