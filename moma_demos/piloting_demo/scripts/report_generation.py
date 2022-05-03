@@ -484,6 +484,7 @@ class ReportGenerator:
         )
         shutil.make_archive(full_output_path, "zip", self.report_dir)
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generates a report.")
     parser.add_argument("bag_path", help="Path to the bag file")
