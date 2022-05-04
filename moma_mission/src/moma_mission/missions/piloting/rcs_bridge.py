@@ -3,13 +3,18 @@
 import yaml
 import threading
 import tf
+import tf2_ros
+import tf2_geometry_msgs
 
 import rospy
 import numpy as np
 import argparse
 
+from geometry_msgs.msg import Vector3Stamped
 from nav_msgs.msg import Odometry
 from sensor_msgs.msg import BatteryState, Imu, PointCloud2, JointState, Image
+
+from moma_mission.missions.piloting.frames import Frames
 
 from mavsdk_ros.msg import CommandLong, CommandAck, WaypointList, WaypointsAck
 from mavsdk_ros.msg import TextStatus, AlarmStatus, AlarmItem, ChecklistItem
@@ -98,6 +103,10 @@ class RCSBridge:
         self.update_current_waypoint_item_client = None
         self.update_reached_waypoint_item_client = None
 
+        # Buffers
+        self.tf_buffer = None
+        self.tf_listener = None
+
         # Publishers
         self.telemetry_pub = None
         self.status_pub = None
@@ -165,6 +174,10 @@ class RCSBridge:
         return True
 
     def init_ros(self):
+        # Buffers
+        self.tf_buffer = tf2_ros.Buffer(rospy.Duration(10.0))
+        self.tf_listener = tf2_ros.TransformListener(self.tf_buffer)
+
         # Service servers
         self.command_server = rospy.Service("/command", Command, self.command_server_cb)
         self.inspection_server = rospy.Service(
@@ -587,12 +600,32 @@ class RCSBridge:
     ################################
     #  Telemetry
     ###############################
-    def update_telemetry(self, msg):
+    def update_telemetry(self, msg: Odometry):
         """
         Resend msg received over odom topic to gRCS telemetry topic (relay)
         """
-        # need to be map
-        self.telemetry_pub.publish(msg)
+        # Odometry parent frame_id needs to be map, mavlink does not lookup the transform internally
+        try:
+            map_frame = Frames.map_frame
+            transform = self.tf_buffer.lookup_transform(map_frame,
+                                        # source frame:
+                                        msg.header.frame_id,
+                                        # get the tf at the time the pose was valid
+                                        msg.header.stamp)
+            # Note that covariance is not properly transformed
+            msg.header.frame_id = map_frame
+            msg.pose.pose = tf2_geometry_msgs.do_transform_pose(msg.pose, transform).pose
+            twist_linear = Vector3Stamped()
+            twist_linear.vector = msg.twist.twist.linear
+            msg.twist.twist.linear = tf2_geometry_msgs.do_transform_vector3(twist_linear, transform).vector
+            twist_angular = Vector3Stamped()
+            twist_angular.vector = msg.twist.twist.angular
+            msg.twist.twist.angular = tf2_geometry_msgs.do_transform_vector3(twist_angular, transform).vector
+            self.telemetry_pub.publish(msg)
+        except tf.ConnectivityException:
+            rospy.logerr('Telemetry transform to map is not known yet.')
+        except tf.ExtrapolationException:
+            rospy.logerr(3, 'Telemetry could not extrapolate transform. Maybe the gRCS is slow and does not parse messages quickly enough for the tf_buffer to suffice.')
 
     ################################
     # Status
@@ -648,14 +681,14 @@ class RCSBridge:
         alarm.index = 3
         alarm.name = "ODOMETRY"
         alarm.description = "Odometry returning data."
-        AlarmWatchdog(self.alarm_pub, 3, "/base_odom", Odometry)
+        AlarmWatchdog(self.alarm_pub, 3, "/smb/smb_diff_drive/odom", Odometry)
         req.alarms.append(alarm)
 
         alarm = AlarmItem()
         alarm.index = 4
         alarm.name = "TRACKING"
         alarm.description = "Tracking camera data."
-        AlarmWatchdog(self.alarm_pub, 4, "/camera/odom/sample", Odometry)
+        AlarmWatchdog(self.alarm_pub, 4, "/base_odom", Odometry)  # or /camera/odom/sample
         req.alarms.append(alarm)
 
         alarm = AlarmItem()
@@ -669,7 +702,7 @@ class RCSBridge:
         alarm.index = 6
         alarm.name = "CAMERA"
         alarm.description = "Camera image data."
-        AlarmWatchdog(self.alarm_pub, 6, "/hand_eye/color/image_raw", Image)
+        AlarmWatchdog(self.alarm_pub, 6, "/hand_eye/color/image_raw", Image, 4.0)
         req.alarms.append(alarm)
 
         try:
