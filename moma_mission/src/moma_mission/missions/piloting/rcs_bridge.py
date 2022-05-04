@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import yaml
 import threading
+import tf
 
 import rospy
 import numpy as np
@@ -369,6 +370,21 @@ class RCSBridge:
 
             # Fix the waypoints for our robot
             waypoint.z = 0
+
+            explicit_quat = [
+                waypoint.param2,
+                waypoint.param3,
+                waypoint.param4,
+                waypoint.param1,
+            ]
+            roll_rad, pitch_rad, yaw_rad = tf.transformations.euler_from_quaternion(
+                explicit_quat
+            )
+            quaternion = tf.transformations.quaternion_from_euler(0.0, 0.0, yaw_rad)
+            waypoint.param2 = quaternion[0]  # x
+            waypoint.param3 = quaternion[1]  # y
+            waypoint.param4 = quaternion[2]  # z
+            waypoint.param1 = quaternion[3]  # w
 
     def reset_waypoints(self):
         self.waypoint_current_id = -1
