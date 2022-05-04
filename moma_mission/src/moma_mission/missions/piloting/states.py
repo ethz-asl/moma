@@ -4,6 +4,7 @@ import tf2_ros
 from scipy.spatial.transform import Rotation
 from geometry_msgs.msg import PoseStamped, TransformStamped, Pose, PoseArray
 
+from std_msgs.msg import Bool, Float64
 from nav_msgs.msg import Path
 from visualization_msgs.msg import Marker, MarkerArray
 from object_keypoints_ros.srv import KeypointsPerception, KeypointsPerceptionRequest
@@ -569,11 +570,30 @@ class ValveManipulationModelState(StateRos):
             self.get_scoped_param("turning_angle_deg", 45.0)
         )
 
+        self.total_angle = 0
+        angle_topic = self.get_scoped_param("angle_topic", "/valve_angle")
+        self.angle_publisher = rospy.Publisher(
+            angle_topic, Float64, queue_size=1, latch=True
+        )
+        self._publish_angle()
+
         poses_topic = self.get_scoped_param("poses_topic", "/valve_poses")
         self.poses_publisher = rospy.Publisher(
             poses_topic, PoseArray, queue_size=1, latch=True
         )
         self.robot_base_frame = self.get_scoped_param("robot_base_frame", None)
+
+        path_inverted_topic = self.get_scoped_param(
+            "path_inverted_topic", "/valve_path_inverted"
+        )
+        self.path_inverted_publisher = rospy.Publisher(
+            path_inverted_topic, Bool, queue_size=1, latch=True
+        )
+
+    def _publish_angle(self):
+        angle = Float64()
+        angle.data = self.total_angle
+        self.angle_publisher.publish(angle)
 
     def run(self):
         valve_model = self.global_context.ctx.valve_model
@@ -595,7 +615,13 @@ class ValveManipulationModelState(StateRos):
             rospy.logerr("Could not obtain a valid valve manipulation path")
             return "Failure"
 
+        path_inverted = Bool()
+        path_inverted.data = path["inverted"]
+        self.path_inverted_publisher.publish(path_inverted)
         self.poses_publisher.publish(valve_planner.poses_to_ros(path["poses"]))
+
+        self.total_angle += path["angle"]
+        self._publish_angle()
 
         return "Completed"
 
