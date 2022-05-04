@@ -52,6 +52,14 @@ class AlarmWatchdog:
         self.alarm_pub.publish(alarm)
         self.reset()
 
+class AlarmWatchdogBattery(AlarmWatchdog):
+    def check(self, msg: BatteryState):
+        if msg.percentage < 0.2:
+            return AlarmStatus.ERROR
+        elif msg. percentage < 0.3:
+            return AlarmStatus.WARNING
+        return AlarmStatus.OK
+
 
 class RCSBridge:
     """
@@ -619,7 +627,7 @@ class RCSBridge:
         alarm.index = 0
         alarm.name = "BATTERY"
         alarm.description = "Battery condition."
-        AlarmWatchdog(self.alarm_pub, 0, "/smb/base_battery_state", BatteryState)
+        AlarmWatchdogBattery(self.alarm_pub, 0, "/smb/base_battery_state", BatteryState, 2.0)
         req.alarms.append(alarm)
 
         alarm = AlarmItem()
@@ -633,7 +641,7 @@ class RCSBridge:
         alarm.index = 2
         alarm.name = "IMU"
         alarm.description = "IMU returning data."
-        AlarmWatchdog(self.alarm_pub, 2, "/imu0", Imu)
+        AlarmWatchdog(self.alarm_pub, 2, "/versavis/imu", Imu)
         req.alarms.append(alarm)
 
         alarm = AlarmItem()
@@ -647,13 +655,14 @@ class RCSBridge:
         alarm.index = 4
         alarm.name = "TRACKING"
         alarm.description = "Tracking camera data."
+        AlarmWatchdog(self.alarm_pub, 4, "/camera/odom/sample", Odometry)
         req.alarms.append(alarm)
 
         alarm = AlarmItem()
         alarm.index = 5
         alarm.name = "ARM"
         alarm.description = "Robot arm returning data."
-        AlarmWatchdog(self.alarm_pub, 5, "/panda/joint_states", JointState)
+        AlarmWatchdog(self.alarm_pub, 5, "/panda/franka_state_controller/joint_states", JointState)
         req.alarms.append(alarm)
 
         alarm = AlarmItem()
