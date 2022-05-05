@@ -179,7 +179,7 @@ class ReportGenerator:
             "syncId": self.sync_id,
             "uuid": self.robot_uuid,
             "inspectionPlanUuid": self.inspection_plan_uuid,
-            "insepctionTaskUuids": self.inspection_task_uuids,
+            "inspectionTaskUuids": self.inspection_task_uuids,
             "type": self.inspection_type,
             "map": self.map_file,
             "files": self.files,
