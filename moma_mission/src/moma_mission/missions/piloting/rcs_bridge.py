@@ -57,11 +57,12 @@ class AlarmWatchdog:
         self.alarm_pub.publish(alarm)
         self.reset()
 
+
 class AlarmWatchdogBattery(AlarmWatchdog):
     def check(self, msg: BatteryState):
         if msg.percentage < 0.2:
             return AlarmStatus.ERROR
-        elif msg. percentage < 0.3:
+        elif msg.percentage < 0.3:
             return AlarmStatus.WARNING
         return AlarmStatus.OK
 
@@ -607,25 +608,37 @@ class RCSBridge:
         # Odometry parent frame_id needs to be map, mavlink does not lookup the transform internally
         try:
             map_frame = Frames.map_frame
-            transform = self.tf_buffer.lookup_transform(map_frame,
-                                        # source frame:
-                                        msg.header.frame_id,
-                                        # get the tf at the time the pose was valid
-                                        msg.header.stamp)
+            transform = self.tf_buffer.lookup_transform(
+                map_frame,
+                # source frame:
+                msg.header.frame_id,
+                # get the tf at the time the pose was valid
+                # msg.header.stamp  # BUG not working properly
+                rospy.Time(0),
+            )  # But it is also OK, since the TF between map and tracking_camera_odom should be constant
             # Note that covariance is not properly transformed
             msg.header.frame_id = map_frame
-            msg.pose.pose = tf2_geometry_msgs.do_transform_pose(msg.pose, transform).pose
+            msg.pose.pose = tf2_geometry_msgs.do_transform_pose(
+                msg.pose, transform
+            ).pose
             twist_linear = Vector3Stamped()
             twist_linear.vector = msg.twist.twist.linear
-            msg.twist.twist.linear = tf2_geometry_msgs.do_transform_vector3(twist_linear, transform).vector
+            msg.twist.twist.linear = tf2_geometry_msgs.do_transform_vector3(
+                twist_linear, transform
+            ).vector
             twist_angular = Vector3Stamped()
             twist_angular.vector = msg.twist.twist.angular
-            msg.twist.twist.angular = tf2_geometry_msgs.do_transform_vector3(twist_angular, transform).vector
+            msg.twist.twist.angular = tf2_geometry_msgs.do_transform_vector3(
+                twist_angular, transform
+            ).vector
             self.telemetry_pub.publish(msg)
         except tf.ConnectivityException:
-            rospy.logerr('Telemetry transform to map is not known yet.')
+            rospy.logwarn_throttle(3, "Telemetry transform to map is not known yet.")
         except tf.ExtrapolationException:
-            rospy.logerr(3, 'Telemetry could not extrapolate transform. Maybe the gRCS is slow and does not parse messages quickly enough for the tf_buffer to suffice.')
+            rospy.logwarn_throttle(
+                3,
+                "Telemetry could not extrapolate transform. Maybe the gRCS is slow and does not parse messages quickly enough for the tf_buffer to suffice.",
+            )
 
     ################################
     # Status
@@ -660,7 +673,9 @@ class RCSBridge:
         alarm.index = 0
         alarm.name = "BATTERY"
         alarm.description = "Battery condition."
-        AlarmWatchdogBattery(self.alarm_pub, 0, "/smb/base_battery_state", BatteryState, 2.0)
+        AlarmWatchdogBattery(
+            self.alarm_pub, 0, "/smb/base_battery_state", BatteryState, 2.0
+        )
         req.alarms.append(alarm)
 
         alarm = AlarmItem()
@@ -688,14 +703,18 @@ class RCSBridge:
         alarm.index = 4
         alarm.name = "TRACKING"
         alarm.description = "Tracking camera data."
-        AlarmWatchdog(self.alarm_pub, 4, "/base_odom", Odometry)  # or /camera/odom/sample
+        AlarmWatchdog(
+            self.alarm_pub, 4, "/base_odom", Odometry
+        )  # or /camera/odom/sample
         req.alarms.append(alarm)
 
         alarm = AlarmItem()
         alarm.index = 5
         alarm.name = "ARM"
         alarm.description = "Robot arm returning data."
-        AlarmWatchdog(self.alarm_pub, 5, "/panda/franka_state_controller/joint_states", JointState)
+        AlarmWatchdog(
+            self.alarm_pub, 5, "/panda/franka_state_controller/joint_states", JointState
+        )
         req.alarms.append(alarm)
 
         alarm = AlarmItem()
