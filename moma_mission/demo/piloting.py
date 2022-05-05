@@ -48,12 +48,12 @@ try:
             },
         )
 
-        rospy.loginfo("Reach detection hotspot far")
+        rospy.loginfo("Broadcast waypoint")
         state_machine.add(
             "BROADCAST_WAYPOINT",
             WaypointBroadcasterState,
             transitions={
-                "Completed": "DETECTION_DECISION",
+                "Completed": "REACH_DETECTION_HOTSPOT_CLOSE",
                 "Waypoint": "WAYPOINT_FOLLOWING",
                 "Wait": "IDLE",
                 "Failure": "Failure",
