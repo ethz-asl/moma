@@ -206,27 +206,27 @@ class ReportGenerator:
         objects_csv_file = os.path.join(self.report_dir, self.files["objects"])
         with open(objects_csv_file, "w") as f:
             writer = csv.writer(f)
-            writer.writerow(
-                [
-                    "stamp",
-                    "task_uuid",
-                    "obj_ref",
-                    "obj_type",
-                    "p_x",
-                    "p_y",
-                    "p_z",
-                    "q_x",
-                    "q_y",
-                    "q_z",
-                    "q_w",
-                    "rotation_axis_x",
-                    "rotation_axis_y",
-                    "rotation_axis_z",
-                    "obj_info_0",
-                    "obj_info_1",
-                    "obj_info_2",
-                ]
-            )
+            # writer.writerow(
+            #     [
+            #         "stamp",
+            #         "task_uuid",
+            #         "obj_ref",
+            #         "obj_type",
+            #         "p_x",
+            #         "p_y",
+            #         "p_z",
+            #         "q_x",
+            #         "q_y",
+            #         "q_z",
+            #         "q_w",
+            #         "rotation_axis_x",
+            #         "rotation_axis_y",
+            #         "rotation_axis_z",
+            #         "obj_info_0",
+            #         "obj_info_1",
+            #         "obj_info_2",
+            #     ]
+            # )
 
             for t in self.tf_times:
                 # object info
@@ -278,9 +278,9 @@ class ReportGenerator:
         telemetry_csv_file = os.path.join(self.report_dir, self.files["telemetry_data"])
         with open(telemetry_csv_file, "w") as f:
             writer = csv.writer(f)
-            writer.writerow(
-                ["stamp", "task_uuid", "p_x", "p_y", "p_z", "q_x", "q_y", "q_z", "q_w"]
-            )
+            # writer.writerow(
+            #     ["stamp", "task_uuid", "p_x", "p_y", "p_z", "q_x", "q_y", "q_z", "q_w"]
+            # )
             for t in self.tf_times:
                 try:
                     tf_transform = self.tf_tree.lookup_transform_core(
@@ -310,19 +310,19 @@ class ReportGenerator:
         with tqdm(total=odom_msgs_count) as progress_bar:
             with open(telemetry_csv_file, "w") as f:
                 writer = csv.writer(f)
-                writer.writerow(
-                    [
-                        "stamp",
-                        "task_uuid",
-                        "p_x",
-                        "p_y",
-                        "p_z",
-                        "q_x",
-                        "q_y",
-                        "q_z",
-                        "q_w",
-                    ]
-                )
+                # writer.writerow(
+                #     [
+                #         "stamp",
+                #         "task_uuid",
+                #         "p_x",
+                #         "p_y",
+                #         "p_z",
+                #         "q_x",
+                #         "q_y",
+                #         "q_z",
+                #         "q_w",
+                #     ]
+                # )
                 for topic, message, t in self.bag.read_messages(topics=ODOM_TOPIC):
                     translation = [
                         message.pose.pose.position.x,
@@ -352,21 +352,21 @@ class ReportGenerator:
         img_idx = 0
         with open(pictures_csv_file, "w") as f:
             writer = csv.writer(f)
-            writer.writerow(
-                [
-                    "file_name",
-                    "stamp",
-                    "task_uuid",
-                    "cam_pos_x",
-                    "cam_pos_y",
-                    "cam_pos_z",
-                    "cam_rot_x",
-                    "cam_rot_y",
-                    "cam_rot_z",
-                    "cam_rot_w",
-                    "obj_ref",
-                ]
-            )
+            # writer.writerow(
+            #     [
+            #         "file_name",
+            #         "stamp",
+            #         "task_uuid",
+            #         "cam_pos_x",
+            #         "cam_pos_y",
+            #         "cam_pos_z",
+            #         "cam_rot_x",
+            #         "cam_rot_y",
+            #         "cam_rot_z",
+            #         "cam_rot_w",
+            #         "obj_ref",
+            #     ]
+            # )
             for topic, message, t in self.bag.read_messages(topics=IMAGE_TOPIC):
                 if (t.to_sec() - t_prev) > IMAGES_DELTA_TIME:
                     t_prev = t.to_sec()
@@ -419,15 +419,15 @@ class ReportGenerator:
         haptic_csv_file = os.path.join(self.report_dir, self.files["haptic_data"])
         with open(haptic_csv_file, "w") as f:
             writer = csv.writer(f)
-            writer.writerow(
-                [
-                    "stamp",
-                    "task_uuid",
-                    "obj_ref",
-                    "angle",
-                    "torque",
-                ]
-            )
+            # writer.writerow(
+            #     [
+            #         "stamp",
+            #         "task_uuid",
+            #         "obj_ref",
+            #         "angle",
+            #         "torque",
+            #     ]
+            # )
             gripper_closed = False
             object_path_inverted = None
             object_angle = 0.0
