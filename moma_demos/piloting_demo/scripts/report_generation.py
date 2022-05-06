@@ -27,7 +27,7 @@ IMAGE_TOPIC = "/object_keypoints_ros/result_img"
 IMAGES_DELTA_TIME = 5  # take a picture each 10 seconds
 BASE_LINK_FRAME = "base_link"
 ODOM_TOPIC = "/base_odom"
-ROBOT_UUID = "4558a82a-1e3d-4c40-8938-5c9281e57314"
+ROBOT_UUID = "f09df66e-cc30-4e11-92e8-fa2f5d7d19e5"
 CAMERA_FOV = {  # https://www.intelrealsense.com/depth-camera-d435i/
     "horizontal": 69.0,
     "vertical": 42.0,
@@ -73,10 +73,15 @@ class ReportGenerator:
             "%Y-%m-%d_%H-%M-%S"
         )
         self.robot_uuid = ROBOT_UUID
-        self.sync_id = 1667993927
-        self.task_uuid = str(uuid.uuid4())
-        self.inspection_plan_uuid = str(uuid.uuid4())
-        self.inspection_task_uuids = [self.task_uuid]
+        self.sync_id = 1100
+        self.task_uuid = "afcfc5f4-43df-434e-83c2-7a26f559642f"  # str(uuid.uuid4())
+        self.inspection_plan_uuid = (
+            "926f73c3-89b1-4079-b233-ddebfe5e8645"  # str(uuid.uuid4())
+        )
+        self.inspection_task_uuids = [
+            self.task_uuid,
+            "9737ecd7-4432-4df1-b0d7-12bd25422227",
+        ]
         self.inspection_type = "visual"  # visual, contact, TBD
         self.map_file = "map.pcd"
 
