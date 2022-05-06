@@ -2,7 +2,9 @@
 rosbag record --repeat-latched \
 /tf \
 /tf_static \
-/base_odom \
+/plan_uuid \
+/task_uuid \
+/mavsdk_ros/local_position \
 /joint_states \
 /panda/franka_state_controller/F_ext \
 /object_keypoints_ros/result_img \
