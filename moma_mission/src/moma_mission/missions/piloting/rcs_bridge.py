@@ -581,6 +581,13 @@ class RCSBridge:
         hl_action.index = 2
         req.hl_actions.append(hl_action)
 
+        hl_action = HLActionItem()
+        hl_action.command = 24
+        hl_action.description = "Manipulate a valve."
+        hl_action.name = "MANIPULATE_VALVE"
+        hl_action.index = 3
+        req.hl_actions.append(hl_action)
+
         # hl_action = HLActionItem()
         # hl_action.command = 42001
         # hl_action.description = "Go to home position."
