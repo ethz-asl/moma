@@ -7,6 +7,7 @@ import csv
 import numpy as np
 import argparse
 
+import shutil
 import tf2_py as tf2
 import rospy
 import json
@@ -19,16 +20,18 @@ from cv_bridge import CvBridge, CvBridgeError
 from moma_mission.utils.transforms import tf_to_se3
 
 # static configuration
+PLAN_UUID_TOPIC = "/plan_uuid"
+TASK_UUID_TOPIC = "/task_uuid"
 MAP_FRAME = "map"  # For local navigation: "tracking_camera_odom"
 OBJECT_TYPE = "valve"
 OBJECT_FRAME = "valve_wheel_center"
 IMAGE_TOPIC = "/object_keypoints_ros/result_img"
 IMAGES_DELTA_TIME = 5  # take a picture each 10 seconds
 BASE_LINK_FRAME = "base_link"
-ODOM_TOPIC = "/base_odom"
-ROBOT_UUID = "4558a82a-1e3d-4c40-8938-5c9281e57314"
+ODOM_TOPIC = "/mavsdk_ros/local_position"
+ROBOT_UUID = "f09df66e-cc30-4e11-92e8-fa2f5d7d19e5"
 CAMERA_FOV = {  # https://www.intelrealsense.com/depth-camera-d435i/
-    "height": 69.0,
+    "horizontal": 69.0,
     "vertical": 42.0,
 }
 CAMERA_IMAGE_SIZE = {"width": 1280, "height": 720}
@@ -72,10 +75,9 @@ class ReportGenerator:
             "%Y-%m-%d_%H-%M-%S"
         )
         self.robot_uuid = ROBOT_UUID
-        self.sync_id = 1667993927
-        self.task_uuid = str(uuid.uuid4())
-        self.inspection_plan_uuid = str(uuid.uuid4())
-        self.inspection_task_uuids = [str(uuid.uuid4())]
+        self.sync_id = 1100
+        self.plan_uuid = None
+        self.task_uuids = {}
         self.inspection_type = "visual"  # visual, contact, TBD
         self.map_file = "map.pcd"
 
@@ -87,6 +89,7 @@ class ReportGenerator:
         os.makedirs(self.report_dir, exist_ok=True)
 
         self.tf_tree, self.tf_times = self.__init_tf_tree()
+        self.__init_uuids()
 
     def __init_tf_tree(self):
         """Fills up a tf tree from a rosbag"""
@@ -168,6 +171,38 @@ class ReportGenerator:
             sensors.append(sensor_entry)
         return sensors
 
+    def __init_uuids(self):
+        print("[Report Generation]: Reading UUIDs.")
+        for topic, message, t in self.bag.read_messages(
+            topics=[PLAN_UUID_TOPIC, TASK_UUID_TOPIC]
+        ):
+            if topic == PLAN_UUID_TOPIC:
+                if self.plan_uuid is None:
+                    self.plan_uuid = message.data
+                elif self.plan_uuid != message.data:
+                    raise Exception(
+                        "Found multiple differing plan uuids in the same bag file"
+                    )
+
+            if topic == TASK_UUID_TOPIC:
+                if message.data not in self.task_uuids.keys():
+                    # Map task uuids to starting times
+                    self.task_uuids[message.data] = t
+
+    def get_task_uuid(self, time, allow_empty=False):
+        """Get the task uuid for the given time"""
+        matching_task_uuid = None
+        matching_task_uuid_time = -1
+        for task_uuid, task_uuid_time in self.task_uuids.items():
+            if time >= task_uuid_time > matching_task_uuid_time:
+                matching_task_uuid = task_uuid
+                matching_task_uuid_time = task_uuid_time
+
+        if matching_task_uuid is None and not allow_empty:
+            raise Exception(f"No task uuid known at time {time}")
+
+        return matching_task_uuid
+
     def extract_config(self):
         print("[Report Generation]: Writing top level config file.")
         config_file = os.path.join(self.report_dir, self.files["config"])
@@ -177,8 +212,8 @@ class ReportGenerator:
             "endDate": self.endDate,
             "syncId": self.sync_id,
             "uuid": self.robot_uuid,
-            "inspectionPlanUuid": self.inspection_plan_uuid,
-            "insepctionTaskUuids": self.inspection_task_uuids,
+            "inspectionPlanUuid": self.plan_uuid,
+            "inspectionTaskUuids": list(self.task_uuids.keys()),
             "type": self.inspection_type,
             "map": self.map_file,
             "files": self.files,
@@ -200,27 +235,27 @@ class ReportGenerator:
         objects_csv_file = os.path.join(self.report_dir, self.files["objects"])
         with open(objects_csv_file, "w") as f:
             writer = csv.writer(f)
-            writer.writerow(
-                [
-                    "stamp",
-                    "task_uuid",
-                    "obj_ref",
-                    "obj_type",
-                    "p_x",
-                    "p_y",
-                    "p_z",
-                    "q_x",
-                    "q_y",
-                    "q_z",
-                    "q_w",
-                    "rotation_axis_x",
-                    "rotation_axis_y",
-                    "rotation_axis_z",
-                    "obj_info_0",
-                    "obj_info_1",
-                    "obj_info_2",
-                ]
-            )
+            # writer.writerow(
+            #     [
+            #         "stamp",
+            #         "task_uuid",
+            #         "obj_ref",
+            #         "obj_type",
+            #         "p_x",
+            #         "p_y",
+            #         "p_z",
+            #         "q_x",
+            #         "q_y",
+            #         "q_z",
+            #         "q_w",
+            #         "rotation_axis_x",
+            #         "rotation_axis_y",
+            #         "rotation_axis_z",
+            #         "obj_info_0",
+            #         "obj_info_1",
+            #         "obj_info_2",
+            #     ]
+            # )
 
             for t in self.tf_times:
                 # object info
@@ -250,7 +285,7 @@ class ReportGenerator:
                     obj_rotation_axis = obj_se3.rotation[:, 2]
 
                     entry = (
-                        [t.to_sec(), self.task_uuid, obj_ref, obj_type]
+                        [t.to_sec(), self.get_task_uuid(t), obj_ref, obj_type]
                         + obj_position
                         + obj_rotation
                         + list(obj_rotation_axis)
@@ -267,34 +302,34 @@ class ReportGenerator:
                         f"[extract_objects] Skipping time {t} as the object was not localized yet"
                     )
 
-    def extract_telemetry(self):
-        print("[Report Generation]: Extracting telemetry information.")
-        telemetry_csv_file = os.path.join(self.report_dir, self.files["telemetry_data"])
-        with open(telemetry_csv_file, "w") as f:
-            writer = csv.writer(f)
-            writer.writerow(
-                ["stamp", "task_uuid", "p_x", "p_y", "p_z", "q_x", "q_y", "q_z", "q_w"]
-            )
-            for t in self.tf_times:
-                try:
-                    tf_transform = self.tf_tree.lookup_transform_core(
-                        target_frame=MAP_FRAME, source_frame=BASE_LINK_FRAME, time=t
-                    )
-                    translation = [
-                        tf_transform.transform.translation.x,
-                        tf_transform.transform.translation.y,
-                        tf_transform.transform.translation.z,
-                    ]
-                    rotation = [
-                        tf_transform.transform.rotation.x,
-                        tf_transform.transform.rotation.y,
-                        tf_transform.transform.rotation.z,
-                        tf_transform.transform.rotation.w,
-                    ]
-                    entry = [t.to_sec(), self.task_uuid] + translation + rotation
-                    writer.writerow(entry)
-                except Exception as exc:
-                    print(exc)
+    # def extract_telemetry(self):
+    #     print("[Report Generation]: Extracting telemetry information.")
+    #     telemetry_csv_file = os.path.join(self.report_dir, self.files["telemetry_data"])
+    #     with open(telemetry_csv_file, "w") as f:
+    #         writer = csv.writer(f)
+    #         # writer.writerow(
+    #         #     ["stamp", "task_uuid", "p_x", "p_y", "p_z", "q_x", "q_y", "q_z", "q_w"]
+    #         # )
+    #         for t in self.tf_times:
+    #             try:
+    #                 tf_transform = self.tf_tree.lookup_transform_core(
+    #                     target_frame=MAP_FRAME, source_frame=BASE_LINK_FRAME, time=t
+    #                 )
+    #                 translation = [
+    #                     tf_transform.transform.translation.x,
+    #                     tf_transform.transform.translation.y,
+    #                     tf_transform.transform.translation.z,
+    #                 ]
+    #                 rotation = [
+    #                     tf_transform.transform.rotation.x,
+    #                     tf_transform.transform.rotation.y,
+    #                     tf_transform.transform.rotation.z,
+    #                     tf_transform.transform.rotation.w,
+    #                 ]
+    #                 entry = [t.to_sec(), self.get_task_uuid(t)] + translation + rotation
+    #                 writer.writerow(entry)
+    #             except Exception as exc:
+    #                 print(exc)
 
     def extract_odometry(self):
         print("[Report Generation]: Extracting odometry information.")
@@ -304,20 +339,28 @@ class ReportGenerator:
         with tqdm(total=odom_msgs_count) as progress_bar:
             with open(telemetry_csv_file, "w") as f:
                 writer = csv.writer(f)
-                writer.writerow(
-                    [
-                        "stamp",
-                        "task_uuid",
-                        "p_x",
-                        "p_y",
-                        "p_z",
-                        "q_x",
-                        "q_y",
-                        "q_z",
-                        "q_w",
-                    ]
-                )
+                # writer.writerow(
+                #     [
+                #         "stamp",
+                #         "task_uuid",
+                #         "p_x",
+                #         "p_y",
+                #         "p_z",
+                #         "q_x",
+                #         "q_y",
+                #         "q_z",
+                #         "q_w",
+                #     ]
+                # )
                 for topic, message, t in self.bag.read_messages(topics=ODOM_TOPIC):
+                    task_uuid = self.get_task_uuid(t, True)
+                    if task_uuid is None:
+                        rospy.loginfo(
+                            f"Skipping odometry at time {t} as there is no corresponding task running"
+                        )
+                        continue
+                    assert message.header.frame_id == MAP_FRAME
+                    assert message.child_frame_id == BASE_LINK_FRAME
                     translation = [
                         message.pose.pose.position.x,
                         message.pose.pose.position.y,
@@ -329,7 +372,7 @@ class ReportGenerator:
                         message.pose.pose.orientation.z,
                         message.pose.pose.orientation.w,
                     ]
-                    entry = [t.to_sec(), self.task_uuid] + translation + rotation
+                    entry = [t.to_sec(), task_uuid] + translation + rotation
                     writer.writerow(entry)
                     progress_bar.update(1)
 
@@ -346,21 +389,21 @@ class ReportGenerator:
         img_idx = 0
         with open(pictures_csv_file, "w") as f:
             writer = csv.writer(f)
-            writer.writerow(
-                [
-                    "file_name",
-                    "stamp",
-                    "task_uuid",
-                    "cam_pos_x",
-                    "cam_pos_y",
-                    "cam_pos_z",
-                    "cam_rot_x",
-                    "cam_rot_y",
-                    "cam_rot_z",
-                    "cam_rot_w",
-                    "obj_ref",
-                ]
-            )
+            # writer.writerow(
+            #     [
+            #         "file_name",
+            #         "stamp",
+            #         "task_uuid",
+            #         "cam_pos_x",
+            #         "cam_pos_y",
+            #         "cam_pos_z",
+            #         "cam_rot_x",
+            #         "cam_rot_y",
+            #         "cam_rot_z",
+            #         "cam_rot_w",
+            #         "obj_ref",
+            #     ]
+            # )
             for topic, message, t in self.bag.read_messages(topics=IMAGE_TOPIC):
                 if (t.to_sec() - t_prev) > IMAGES_DELTA_TIME:
                     t_prev = t.to_sec()
@@ -394,7 +437,11 @@ class ReportGenerator:
                     obj_ref = 1
 
                     meta = (
-                        ["DSC{:06d}.jpg".format(img_idx), t_prev, self.task_uuid]
+                        [
+                            "DSC{:06d}.jpg".format(img_idx),
+                            t.to_sec(),
+                            self.get_task_uuid(t),
+                        ]
                         + cam_translation
                         + cam_rotation
                         + [obj_ref]
@@ -413,15 +460,15 @@ class ReportGenerator:
         haptic_csv_file = os.path.join(self.report_dir, self.files["haptic_data"])
         with open(haptic_csv_file, "w") as f:
             writer = csv.writer(f)
-            writer.writerow(
-                [
-                    "stamp",
-                    "task_uuid",
-                    "obj_ref",
-                    "angle",
-                    "torque",
-                ]
-            )
+            # writer.writerow(
+            #     [
+            #         "stamp",
+            #         "task_uuid",
+            #         "obj_ref",
+            #         "angle",
+            #         "torque",
+            #     ]
+            # )
             gripper_closed = False
             object_path_inverted = None
             object_angle = 0.0
@@ -451,7 +498,7 @@ class ReportGenerator:
                         torque = -torque if object_path_inverted else torque
 
                     entry = (
-                        [t.to_sec(), self.task_uuid]
+                        [t.to_sec(), self.get_task_uuid(t)]
                         + [obj_ref]
                         + [object_angle]
                         + [torque]
@@ -474,6 +521,15 @@ class ReportGenerator:
         self.extract_odometry()
         self.extract_wrench()
 
+    def compress(self, full_output_path=None):
+        """
+        Compress the report folder. Using the same folder name if no path provided.
+        """
+        full_output_path = (
+            self.report_dir if full_output_path is None else full_output_path
+        )
+        shutil.make_archive(full_output_path, "zip", self.report_dir)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generates a report.")
@@ -489,3 +545,4 @@ if __name__ == "__main__":
         report_base_dir=args.report_base_dir,
     )
     report_generator.run()
+    report_generator.compress()
