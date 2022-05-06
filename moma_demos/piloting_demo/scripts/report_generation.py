@@ -20,13 +20,15 @@ from cv_bridge import CvBridge, CvBridgeError
 from moma_mission.utils.transforms import tf_to_se3
 
 # static configuration
+PLAN_UUID_TOPIC = "/plan_uuid"
+TASK_UUID_TOPIC = "/task_uuid"
 MAP_FRAME = "map"  # For local navigation: "tracking_camera_odom"
 OBJECT_TYPE = "valve"
 OBJECT_FRAME = "valve_wheel_center"
 IMAGE_TOPIC = "/object_keypoints_ros/result_img"
 IMAGES_DELTA_TIME = 5  # take a picture each 10 seconds
 BASE_LINK_FRAME = "base_link"
-ODOM_TOPIC = "/base_odom"
+ODOM_TOPIC = "/mavsdk_ros/local_position"
 ROBOT_UUID = "f09df66e-cc30-4e11-92e8-fa2f5d7d19e5"
 CAMERA_FOV = {  # https://www.intelrealsense.com/depth-camera-d435i/
     "horizontal": 69.0,
@@ -74,14 +76,8 @@ class ReportGenerator:
         )
         self.robot_uuid = ROBOT_UUID
         self.sync_id = 1100
-        self.task_uuid = "afcfc5f4-43df-434e-83c2-7a26f559642f"  # str(uuid.uuid4())
-        self.inspection_plan_uuid = (
-            "926f73c3-89b1-4079-b233-ddebfe5e8645"  # str(uuid.uuid4())
-        )
-        self.inspection_task_uuids = [
-            self.task_uuid,
-            "9737ecd7-4432-4df1-b0d7-12bd25422227",
-        ]
+        self.plan_uuid = None
+        self.task_uuids = {}
         self.inspection_type = "visual"  # visual, contact, TBD
         self.map_file = "map.pcd"
 
@@ -93,6 +89,7 @@ class ReportGenerator:
         os.makedirs(self.report_dir, exist_ok=True)
 
         self.tf_tree, self.tf_times = self.__init_tf_tree()
+        self.__init_uuids()
 
     def __init_tf_tree(self):
         """Fills up a tf tree from a rosbag"""
@@ -174,6 +171,38 @@ class ReportGenerator:
             sensors.append(sensor_entry)
         return sensors
 
+    def __init_uuids(self):
+        print("[Report Generation]: Reading UUIDs.")
+        for topic, message, t in self.bag.read_messages(
+            topics=[PLAN_UUID_TOPIC, TASK_UUID_TOPIC]
+        ):
+            if topic == PLAN_UUID_TOPIC:
+                if self.plan_uuid is None:
+                    self.plan_uuid = message.data
+                elif self.plan_uuid != message.data:
+                    raise Exception(
+                        "Found multiple differing plan uuids in the same bag file"
+                    )
+
+            if topic == TASK_UUID_TOPIC:
+                if message.data not in self.task_uuids.keys():
+                    # Map task uuids to starting times
+                    self.task_uuids[message.data] = t
+
+    def get_task_uuid(self, time, allow_empty=False):
+        """Get the task uuid for the given time"""
+        matching_task_uuid = None
+        matching_task_uuid_time = -1
+        for task_uuid, task_uuid_time in self.task_uuids.items():
+            if time >= task_uuid_time > matching_task_uuid_time:
+                matching_task_uuid = task_uuid
+                matching_task_uuid_time = task_uuid_time
+
+        if matching_task_uuid is None and not allow_empty:
+            raise Exception(f"No task uuid known at time {time}")
+
+        return matching_task_uuid
+
     def extract_config(self):
         print("[Report Generation]: Writing top level config file.")
         config_file = os.path.join(self.report_dir, self.files["config"])
@@ -183,8 +212,8 @@ class ReportGenerator:
             "endDate": self.endDate,
             "syncId": self.sync_id,
             "uuid": self.robot_uuid,
-            "inspectionPlanUuid": self.inspection_plan_uuid,
-            "inspectionTaskUuids": self.inspection_task_uuids,
+            "inspectionPlanUuid": self.plan_uuid,
+            "inspectionTaskUuids": list(self.task_uuids.keys()),
             "type": self.inspection_type,
             "map": self.map_file,
             "files": self.files,
@@ -256,7 +285,7 @@ class ReportGenerator:
                     obj_rotation_axis = obj_se3.rotation[:, 2]
 
                     entry = (
-                        [t.to_sec(), self.task_uuid, obj_ref, obj_type]
+                        [t.to_sec(), self.get_task_uuid(t), obj_ref, obj_type]
                         + obj_position
                         + obj_rotation
                         + list(obj_rotation_axis)
@@ -273,34 +302,34 @@ class ReportGenerator:
                         f"[extract_objects] Skipping time {t} as the object was not localized yet"
                     )
 
-    def extract_telemetry(self):
-        print("[Report Generation]: Extracting telemetry information.")
-        telemetry_csv_file = os.path.join(self.report_dir, self.files["telemetry_data"])
-        with open(telemetry_csv_file, "w") as f:
-            writer = csv.writer(f)
-            # writer.writerow(
-            #     ["stamp", "task_uuid", "p_x", "p_y", "p_z", "q_x", "q_y", "q_z", "q_w"]
-            # )
-            for t in self.tf_times:
-                try:
-                    tf_transform = self.tf_tree.lookup_transform_core(
-                        target_frame=MAP_FRAME, source_frame=BASE_LINK_FRAME, time=t
-                    )
-                    translation = [
-                        tf_transform.transform.translation.x,
-                        tf_transform.transform.translation.y,
-                        tf_transform.transform.translation.z,
-                    ]
-                    rotation = [
-                        tf_transform.transform.rotation.x,
-                        tf_transform.transform.rotation.y,
-                        tf_transform.transform.rotation.z,
-                        tf_transform.transform.rotation.w,
-                    ]
-                    entry = [t.to_sec(), self.task_uuid] + translation + rotation
-                    writer.writerow(entry)
-                except Exception as exc:
-                    print(exc)
+    # def extract_telemetry(self):
+    #     print("[Report Generation]: Extracting telemetry information.")
+    #     telemetry_csv_file = os.path.join(self.report_dir, self.files["telemetry_data"])
+    #     with open(telemetry_csv_file, "w") as f:
+    #         writer = csv.writer(f)
+    #         # writer.writerow(
+    #         #     ["stamp", "task_uuid", "p_x", "p_y", "p_z", "q_x", "q_y", "q_z", "q_w"]
+    #         # )
+    #         for t in self.tf_times:
+    #             try:
+    #                 tf_transform = self.tf_tree.lookup_transform_core(
+    #                     target_frame=MAP_FRAME, source_frame=BASE_LINK_FRAME, time=t
+    #                 )
+    #                 translation = [
+    #                     tf_transform.transform.translation.x,
+    #                     tf_transform.transform.translation.y,
+    #                     tf_transform.transform.translation.z,
+    #                 ]
+    #                 rotation = [
+    #                     tf_transform.transform.rotation.x,
+    #                     tf_transform.transform.rotation.y,
+    #                     tf_transform.transform.rotation.z,
+    #                     tf_transform.transform.rotation.w,
+    #                 ]
+    #                 entry = [t.to_sec(), self.get_task_uuid(t)] + translation + rotation
+    #                 writer.writerow(entry)
+    #             except Exception as exc:
+    #                 print(exc)
 
     def extract_odometry(self):
         print("[Report Generation]: Extracting odometry information.")
@@ -324,6 +353,14 @@ class ReportGenerator:
                 #     ]
                 # )
                 for topic, message, t in self.bag.read_messages(topics=ODOM_TOPIC):
+                    task_uuid = self.get_task_uuid(t, True)
+                    if task_uuid is None:
+                        rospy.loginfo(
+                            f"Skipping odometry at time {t} as there is no corresponding task running"
+                        )
+                        continue
+                    assert message.header.frame_id == MAP_FRAME
+                    assert message.child_frame_id == BASE_LINK_FRAME
                     translation = [
                         message.pose.pose.position.x,
                         message.pose.pose.position.y,
@@ -335,7 +372,7 @@ class ReportGenerator:
                         message.pose.pose.orientation.z,
                         message.pose.pose.orientation.w,
                     ]
-                    entry = [t.to_sec(), self.task_uuid] + translation + rotation
+                    entry = [t.to_sec(), task_uuid] + translation + rotation
                     writer.writerow(entry)
                     progress_bar.update(1)
 
@@ -400,7 +437,11 @@ class ReportGenerator:
                     obj_ref = 1
 
                     meta = (
-                        ["DSC{:06d}.jpg".format(img_idx), t_prev, self.task_uuid]
+                        [
+                            "DSC{:06d}.jpg".format(img_idx),
+                            t.to_sec(),
+                            self.get_task_uuid(t),
+                        ]
                         + cam_translation
                         + cam_rotation
                         + [obj_ref]
@@ -457,7 +498,7 @@ class ReportGenerator:
                         torque = -torque if object_path_inverted else torque
 
                     entry = (
-                        [t.to_sec(), self.task_uuid]
+                        [t.to_sec(), self.get_task_uuid(t)]
                         + [obj_ref]
                         + [object_angle]
                         + [torque]
