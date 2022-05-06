@@ -76,7 +76,7 @@ class ReportGenerator:
         self.sync_id = 1667993927
         self.task_uuid = str(uuid.uuid4())
         self.inspection_plan_uuid = str(uuid.uuid4())
-        self.inspection_task_uuids = [str(uuid.uuid4())]
+        self.inspection_task_uuids = [self.task_uuid]
         self.inspection_type = "visual"  # visual, contact, TBD
         self.map_file = "map.pcd"
 
