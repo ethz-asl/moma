@@ -88,13 +88,13 @@ class ReportGenerator:
         print("[Report Generation]: Creating folder structure.")
         os.makedirs(self.report_dir, exist_ok=True)
 
-        self.tf_tree, self.tf_times = self.__init_tf_tree()
+        self.__init_tf_tree()
         self.__init_uuids()
 
     def __init_tf_tree(self):
         """Fills up a tf tree from a rosbag"""
         print("[Report Generation]: Reading tf info...")
-        tf_tree = tf2.BufferCore(rospy.Duration(360000.0))
+        self.tf_tree = tf2.BufferCore(rospy.Duration(360000.0))
         tf_topics = ["/tf", "/tf_static"]
         tf_msgs_count = self.bag.get_message_count(tf_topics)
         print(
@@ -103,17 +103,28 @@ class ReportGenerator:
             )
         )
 
-        tf_times = []
+        self.tf_times = []
+        self.object_times = []
         with tqdm(total=tf_msgs_count) as progress_bar:
             for topic, message, t in self.bag.read_messages(topics=tf_topics):
-                tf_times.append(t)
+                self.tf_times.append(t)
+                if (
+                    len(
+                        [
+                            tf
+                            for tf in message.transforms
+                            if tf.child_frame_id == OBJECT_FRAME
+                        ]
+                    )
+                    > 0
+                ):
+                    self.object_times.append(t)
                 for tf_message in message.transforms:
                     if topic == "/tf_static":
-                        tf_tree.set_transform_static(tf_message, topic)
+                        self.tf_tree.set_transform_static(tf_message, topic)
                     else:
-                        tf_tree.set_transform(tf_message, topic)
+                        self.tf_tree.set_transform(tf_message, topic)
             progress_bar.update(1)
-        return tf_tree, tf_times
 
     # Utilities
     @property
@@ -192,7 +203,7 @@ class ReportGenerator:
     def get_task_uuid(self, time, allow_empty=False):
         """Get the task uuid for the given time"""
         matching_task_uuid = None
-        matching_task_uuid_time = -1
+        matching_task_uuid_time = rospy.Time(0)
         for task_uuid, task_uuid_time in self.task_uuids.items():
             if time >= task_uuid_time > matching_task_uuid_time:
                 matching_task_uuid = task_uuid
@@ -257,7 +268,9 @@ class ReportGenerator:
             #     ]
             # )
 
-            for t in self.tf_times:
+            # BUG read only at object_times
+            # If we read all tf_times, the object appears already at the beginning of the bag (where it was not even detected)
+            for t in self.object_times:
                 # object info
                 obj_ref = 1
                 obj_type = OBJECT_TYPE
@@ -265,8 +278,8 @@ class ReportGenerator:
 
                 try:
                     obj_transform = self.tf_tree.lookup_transform_core(
-                        target_frame=OBJECT_FRAME,
-                        source_frame=MAP_FRAME,
+                        target_frame=MAP_FRAME,
+                        source_frame=OBJECT_FRAME,
                         time=t,
                     )
                     obj_se3 = tf_to_se3(obj_transform)
@@ -481,6 +494,13 @@ class ReportGenerator:
                 ]
             ):
                 if topic == WRENCH_TOPIC:
+                    task_uuid = self.get_task_uuid(t, True)
+                    if task_uuid is None:
+                        rospy.loginfo(
+                            f"Skipping wrench measurement at time {t} as there is no corresponding task running"
+                        )
+                        continue
+
                     obj_ref = 1
 
                     torque = 0.0
@@ -498,10 +518,7 @@ class ReportGenerator:
                         torque = -torque if object_path_inverted else torque
 
                     entry = (
-                        [t.to_sec(), self.get_task_uuid(t)]
-                        + [obj_ref]
-                        + [object_angle]
-                        + [torque]
+                        [t.to_sec(), task_uuid] + [obj_ref] + [object_angle] + [torque]
                     )
                     writer.writerow(entry)
                 if topic == JOINT_STATES_TOPIC:
