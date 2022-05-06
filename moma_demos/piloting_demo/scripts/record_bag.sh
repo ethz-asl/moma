@@ -2,6 +2,8 @@
 rosbag record --repeat-latched \
 /tf \
 /tf_static \
+/plan_uuid \
+/task_uuid \
 /base_odom \
 /joint_states \
 /panda/franka_state_controller/F_ext \

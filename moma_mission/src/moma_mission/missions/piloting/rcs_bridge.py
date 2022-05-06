@@ -10,6 +10,7 @@ import rospy
 import numpy as np
 import argparse
 
+from std_msgs.msg import String
 from geometry_msgs.msg import Vector3Stamped
 from nav_msgs.msg import Odometry
 from sensor_msgs.msg import BatteryState, Imu, PointCloud2, JointState, Image
@@ -113,6 +114,9 @@ class RCSBridge:
         self.status_pub = None
         self.alarm_pub = None
 
+        self.plan_uuid_pub = None
+        self.task_uuid_pub = None
+
         # Subscribers
         self.odom_sub = None
 
@@ -214,6 +218,12 @@ class RCSBridge:
         )
         self.alarm_pub = rospy.Publisher(
             "/mavsdk_ros/alarm_status", AlarmStatus, queue_size=1
+        )
+        self.plan_uuid_pub = rospy.Publisher(
+            "/plan_uuid", String, queue_size=1, latch=True
+        )
+        self.task_uuid_pub = rospy.Publisher(
+            "/task_uuid", String, queue_size=1, latch=True
         )
 
         # Subscribers
@@ -355,6 +365,10 @@ class RCSBridge:
         response = WaypointsAck()
         response.data = 0
 
+        plan_uuid = String()
+        plan_uuid.data = req.info.plan_uuid
+        self.plan_uuid_pub.publish(plan_uuid)
+
         self.fix_waypoints()
         self.upload_waypoints()
         return response
@@ -451,6 +465,10 @@ class RCSBridge:
 
         if not self.waypoint_current.autocontinue:
             self.stopped = True
+
+        task_uuid = String()
+        task_uuid.data = self.waypoint_current.task_uuid
+        self.task_uuid_pub.publish(task_uuid)
 
         self.upload_current_waypoint()
         rospy.loginfo(f"Current waypoint is {self.waypoint_current}.")
