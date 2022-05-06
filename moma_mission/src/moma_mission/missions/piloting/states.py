@@ -53,7 +53,12 @@ class Idle(StateRos):
         StateRos.__init__(
             self,
             ns=ns,
-            outcomes=["ExecuteInspectionPlan", "ExecuteDummyPlan", "Failure"],
+            outcomes=[
+                "ExecuteInspectionPlan",
+                "ExecuteDummyPlan",
+                "ManipulateValve",
+                "Failure",
+            ],
         )
 
     def run(self):
@@ -70,6 +75,9 @@ class Idle(StateRos):
             command, info = gRCS.get_current_hl_command()
             if command == "TAKE_PHOTO":
                 rospy.loginfo("Taking a photo")
+            elif command == "MANIPULATE_VALVE":
+                rospy.loginfo("Manipulating valve")
+                return "ManipulateValve"
             elif command is not None:
                 rospy.logerr(f"Command {command} not understood by the state machine")
             rospy.sleep(1.0)

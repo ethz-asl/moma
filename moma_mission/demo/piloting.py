@@ -44,6 +44,7 @@ try:
             transitions={
                 "ExecuteInspectionPlan": "BROADCAST_WAYPOINT",
                 "ExecuteDummyPlan": "REACH_DETECTION_HOTSPOT_FAR",
+                "ManipulateValve": "DETECTION_DECISION",
                 "Failure": "Failure",
             },
         )
