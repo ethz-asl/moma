@@ -29,7 +29,7 @@ BASE_LINK_FRAME = "base_link"
 ODOM_TOPIC = "/base_odom"
 ROBOT_UUID = "4558a82a-1e3d-4c40-8938-5c9281e57314"
 CAMERA_FOV = {  # https://www.intelrealsense.com/depth-camera-d435i/
-    "height": 69.0,
+    "horizontal": 69.0,
     "vertical": 42.0,
 }
 CAMERA_IMAGE_SIZE = {"width": 1280, "height": 720}
