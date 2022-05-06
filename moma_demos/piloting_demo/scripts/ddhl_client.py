@@ -52,8 +52,12 @@ if __name__ == "__main__":
     parser.add_argument(
         "-i", "--input", help="full path to the report folder", required=True
     )
-    parser.add_argument("-u", "--user", help="username", required=False)
-    parser.add_argument("-p", "--password", help="password", required=False)
+    parser.add_argument(
+        "-u", "--user", help="username", required=False, default="julian.keller"
+    )
+    parser.add_argument(
+        "-p", "--password", help="password", required=False, default="piloting"
+    )
     args = parser.parse_args()
 
     if not args.user:
