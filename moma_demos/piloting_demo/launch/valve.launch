@@ -4,10 +4,25 @@
   <arg name="x"   default="0.71"/>
   <arg name="y"   default="0.017"/>
   <arg name="z"   default="0.426"/>
+  <arg name="roll"    default="0.0"/>
+  <arg name="pitch"   default="0.0"/>
+  <arg name="yaw"     default="0.0"/>
 
-  <param name="valve_description" command="$(find xacro)/xacro $(find piloting_demo)/urdf/valve.urdf.xacro pitch:=0 yaw:=0.0 x:=$(arg x) y:=$(arg y) z:=$(arg z)"/>
-
+  <param name="valve_description" command="$(find xacro)/xacro $(find piloting_demo)/urdf/valve.urdf.xacro sim:=$(arg sim) pitch:=0 yaw:=0.0 x:=$(arg x) y:=$(arg y) z:=$(arg z)"/>
   <node name="spawn_valve" pkg="gazebo_ros" type="spawn_model" args="-param valve_description -urdf -model valve" output="screen" if="$(arg sim)"/>
+
+  <!-- <node name="spawn_valve" pkg="moma_gazebo" type="gazebo_smart_spawner.py" output="screen">
+    <param name="robot_name" value="superpanda"/>
+    <param name="robot_link" value="base_link"/>
+    <param name="fixed_link" value="map"/>
+    <param name="asset_name" value="valve"/>
+    <param name="asset_xacro_file" value="$(find piloting_demo)/urdf/valve.urdf.xacro"/>
+    <param name="asset_xacro_argument" value=""/>
+    <rosparam subst_value="True">
+     fix_position: [$(arg x), $(arg y), $(arg z)]
+     fix_rpy: [$(arg roll), $(arg pitch), $(arg yaw)]
+    </rosparam>
+  </node> -->
 
   <node name="valve_robot_state_publisher"  type="robot_state_publisher"  pkg="robot_state_publisher">
     <remap from="robot_description" to="valve_description"/>

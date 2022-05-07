@@ -1,18 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <robot name="valve_model" xmlns:xacro="http://www.ros.org/wiki/xacro">
-   <xacro:arg name="x"      default="1.2"/>
-   <xacro:arg name="y"      default="0.0"/>
-   <xacro:arg name="z"      default="0.5"/>
-   <xacro:arg name="roll"   default="0.0"/>
-   <xacro:arg name="pitch"  default="0.0"/>
-   <xacro:arg name="yaw"    default="0.0"/>
+    <xacro:arg name="sim"    default="false"/>
+    <xacro:arg name="x"      default="1.2"/>
+    <xacro:arg name="y"      default="0.0"/>
+    <xacro:arg name="z"      default="0.5"/>
+    <xacro:arg name="roll"   default="0.0"/>
+    <xacro:arg name="pitch"  default="0.0"/>
+    <xacro:arg name="yaw"    default="0.0"/>
 
-   <link name="map">
-   </link>
+    <xacro:if value="$(arg sim)">
+        <!-- In sim, any static object needs to be anchored at world. Luckily, world and map align in sim -->
+        <xacro:property name="root_frame" value="world"/>
+    </xacro:if>
+    <xacro:unless value="$(arg sim)">
+        <xacro:property name="root_frame" value="map"/>
+    </xacro:unless>
+
+    <link name="${root_frame}">
+    </link>
 
     <joint name="valve_base_joint" type="fixed">
       <origin xyz="$(arg x) $(arg y) $(arg z)" rpy="0 $(arg pitch) $(arg yaw)"/>
-      <parent link="map"/>
+      <parent link="${root_frame}"/>
       <child link="valve_gt"/>
     </joint>
 
