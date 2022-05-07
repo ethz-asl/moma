@@ -106,7 +106,7 @@ jobs:
         run: |
           export DISPLAY=:99
           sudo Xvfb -ac :99 -screen 0 1280x1024x24 > /dev/null 2>&1 &
-          docker run -t --network host -e DISPLAY -v /tmp/.X11-unix ${{ secrets.PILOTING_DOCKERHUB_USERNAME }}/noetic-dev:${{github.event.number}} rostest piloting_demo mission.test
+          docker run -t --network host -e DISPLAY -v /tmp/.X11-unix ${{ secrets.PILOTING_DOCKERHUB_USERNAME }}/noetic-dev:${{github.event.number}} /bin/bash -c "rostest piloting_demo mission.test || (rostest --text piloting_demo mission.test && false)"
 
 #  test:
 #    needs: build
