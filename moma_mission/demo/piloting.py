@@ -192,7 +192,7 @@ except Exception as exc:
 rospy.loginfo("\n\nRunning the mission state machine!\n\n")
 outcome = state_machine.execute()
 rospy.loginfo("Mission plan terminated with outcome {}.".format(outcome))
-if outcome != "Completed":
+if outcome != "Success":
     sys.exit(1)
 sys.exit(0)
 
