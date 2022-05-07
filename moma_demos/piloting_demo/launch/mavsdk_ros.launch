@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<launch>
+   <arg name="config_file_path" default="$(find piloting_demo)/config/gcs/mavsdk_ros_config.yaml"/>
+
+   <!-- Similar to the original file, but with respawn=true -->
+   <node name="mavsdk_ros" pkg="mavsdk_ros" type="mavsdk_ros_node" respawn="true" output="screen">
+      <rosparam command="load" file="$(arg config_file_path)"/>
+   </node>
+</launch>
