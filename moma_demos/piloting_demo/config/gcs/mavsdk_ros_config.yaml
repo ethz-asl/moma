@@ -8,3 +8,4 @@ local_port: 14541
 local_component_id: 25
 sensor_components_ids:
   - 35
+  - 45

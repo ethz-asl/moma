@@ -1,24 +1,25 @@
-target_system_id: 31
-target_ip: "127.0.0.1"
-target_port: 14540
+# target_system_id: 2
+# target_ip: "127.0.0.1"
+# target_port: 14540
 
-local_system_id: 30
-local_ip: "127.0.0.1"
-local_port: 14541
+# local_system_id: 1
+# local_ip: "127.0.0.1"
+# local_port: 14541
+# local_component_id: 25
+# sensor_components_ids:
+#     - 35
+#     - 45
+
+# Integration week
+
+target_system_id: 30
+target_ip: "10.0.0.100"
+target_port: 14543
+
+local_system_id: 50
+local_ip: "10.0.0.140"
+local_port: 14543
 local_component_id: 25
 sensor_components_ids:
   - 35
   - 45
-# Integration week
-
-#target_system_id: 30
-#target_ip: "10.0.0.100"
-#target_port: 14543
-#
-#local_system_id: 50
-#local_ip: "10.0.0.140"
-#local_port: 14543
-#local_component_id: 25
-#sensor_components_ids:
-#  - 35
-#  - 45
