@@ -138,19 +138,20 @@ class RCSBridge:
         self.telemetry_msg = Odometry()
 
         # Waypoints from the inspection plan
-        self.waypoint_current_id = -1
+        self.waypoint_requested_id = 0
+        self.waypoint_active_id = None
         self.waypoints: WaypointList = None
-        self.reset_waypoints()
 
         # High-level actions
         self.hl_actions = []
 
         # Flags
-        self.stopped = False
+        self.paused = True
         self.current_hl_command = None
         self.alarms_uploaded = False
 
         self.reset_current_hl_command()
+        self.reset_waypoints()
 
     def init_all(self):
         if not self.read_params():
@@ -327,11 +328,19 @@ class RCSBridge:
 
     @property
     def is_continuable(self):
-        return self.is_waypoints_available and not self.stopped
+        return (
+            self.is_waypoints_available
+            and not self.paused
+            and self.waypoint_requested_id < len(self.waypoints.items)
+        )
 
     @property
-    def waypoint_current(self) -> WaypointItem:
-        return self.waypoints.items[self.waypoint_current_id]
+    def waypoint_requested(self) -> WaypointItem:
+        return self.waypoints.items[self.waypoint_requested_id]
+
+    @property
+    def waypoint_active(self) -> WaypointItem:
+        return self.waypoints.items[self.waypoint_active_id]
 
     def read_waypoints_from_file(self, file):
         """
@@ -435,23 +444,27 @@ class RCSBridge:
             waypoint.param1 = quaternion[3]  # w
 
     def reset_waypoints(self):
-        self.waypoint_current_id = -1
+        self.waypoint_requested_id = 0
+        self.waypoint_active_id = None
         self.waypoints = None
+        self.paused = True
 
     def download_current_waypoint_cb(self, msg):
         rospy.loginfo(f"Received request to set current waypoint to {msg.data}.")
-        self.waypoint_current_id = msg.data - 1
+        self.waypoint_requested_id = msg.data
+        self.paused = False
 
     def upload_current_waypoint(self):
-        """Send the current waypoint"""
+        """Send the requested waypoint and mark it as active internally"""
         req = UpdateSeqWaypointItemRequest()
-        req.item_seq = self.waypoint_current_id
+        req.item_seq = self.waypoint_requested_id
         self.update_current_waypoint_item_client.call(req)
+        self.waypoint_active_id = self.waypoint_requested_id
 
     def upload_reached_waypoint(self):
-        """Mark the current waypoint as reached"""
+        """Mark the active waypoint as reached"""
         req = UpdateSeqWaypointItemRequest()
-        req.item_seq = self.waypoint_current_id
+        req.item_seq = self.waypoint_active_id
         self.update_reached_waypoint_item_client.call(req)
 
     def get_next_waypoint(self):
@@ -459,32 +472,38 @@ class RCSBridge:
             rospy.logwarn("No waypoints found. Can't return next waypoint.")
             return None
 
-        if self.waypoint_current_id >= 0:
-            self.upload_reached_waypoint()
-
-        if self.stopped:
-            rospy.logwarn("Mission is stopped. Can't return next waypoint.")
-            return "Wait"
-
-        # advance to next
-        rospy.loginfo("Advancing to next waypoint.")
-        self.waypoint_current_id += 1
-
-        if self.waypoint_current_id == len(self.waypoints.items):
-            rospy.loginfo("All waypoints reached. Inspection completed.")
-            self.reset_waypoints()
-            return None
-
-        if not self.waypoint_current.autocontinue:
-            self.stopped = True
+        assert self.is_continuable
 
         task_uuid = String()
-        task_uuid.data = self.waypoint_current.task_uuid
+        task_uuid.data = self.waypoint_requested.task_uuid
         self.task_uuid_pub.publish(task_uuid)
 
         self.upload_current_waypoint()
-        rospy.loginfo(f"Current waypoint is {self.waypoint_current}.")
-        return self.waypoint_current
+        rospy.loginfo(f"Current waypoint is {self.waypoint_requested}.")
+        return self.waypoint_requested
+
+    def set_waypoint_reached(self):
+        rospy.loginfo("Successfully reached waypoint.")
+        self.upload_reached_waypoint()
+
+        if not self.waypoint_requested.autocontinue:
+            self.paused = True
+        paused = self.paused
+
+        # advance to next if no other waypoint was requested in the meantime
+        if self.waypoint_requested_id == self.waypoint_active_id:
+            self.waypoint_requested_id += 1
+
+        # No more active waypoint
+        self.waypoint_active_id = None
+
+        if self.waypoint_requested_id == len(self.waypoints.items):
+            rospy.loginfo("All waypoints reached. Inspection completed.")
+            # self.reset_waypoints()
+            if not paused:
+                return "Completed"
+
+        return "Next"
 
     def print_inspection(self):
         if not self.is_waypoints_available:
@@ -525,12 +544,12 @@ class RCSBridge:
 
         if any(req.info.command == hl_action.command for hl_action in self.hl_actions):
             command = self.get_hl_command_name(req.info)
-            if command == "STOP":
-                rospy.loginfo("Stopping mission on request.")
-                self.stopped = True
-            elif command == "CONTINUE":
+            if command == "PAUSE_CONTINUE" and req.info.param1 == 0:
+                rospy.loginfo("Pausing mission on request.")
+                self.paused = True
+            elif command == "PAUSE_CONTINUE" and req.info.param1 == 1:
                 rospy.loginfo("Continuing mission on request.")
-                self.stopped = False
+                self.paused = False
             else:
                 # Let the state machine handle the command
                 rospy.loginfo("Command will be handled by state machine later on.")
@@ -555,6 +574,8 @@ class RCSBridge:
 
             # Uploading does not make sense since there is no plan and sync id for the homing operation
             # self.upload_waypoints()
+
+            self.paused = False
         else:
             rospy.logerr("Unknown command id")
             response.result = 1
@@ -571,33 +592,26 @@ class RCSBridge:
         req = SetUploadHLActionRequest()
 
         hl_action = HLActionItem()
-        hl_action.command = (
-            21  # !!! We need to use a valid enum from the mavlink library
-        )
-        hl_action.description = "Stop the ongoing robot mission."
-        hl_action.name = "STOP"
+        # !!! We need to use a valid enum from the mavlink library
+        # https://mavlink.io/en/messages/common.html#MAV_CMD_DO_PAUSE_CONTINUE
+        hl_action.command = 193
+        hl_action.description = "Hold the current position or continue."
+        hl_action.name = "PAUSE_CONTINUE"
         hl_action.index = 0
-        req.hl_actions.append(hl_action)
-
-        hl_action = HLActionItem()
-        hl_action.command = 22
-        hl_action.description = "Continue with next waypoint."
-        hl_action.name = "CONTINUE"
-        hl_action.index = 1
         req.hl_actions.append(hl_action)
 
         hl_action = HLActionItem()
         hl_action.command = 23
         hl_action.description = "Take a photo at the current location."
         hl_action.name = "TAKE_PHOTO"
-        hl_action.index = 2
+        hl_action.index = 1
         req.hl_actions.append(hl_action)
 
         hl_action = HLActionItem()
         hl_action.command = 24
         hl_action.description = "Manipulate a valve."
         hl_action.name = "MANIPULATE_VALVE"
-        hl_action.index = 3
+        hl_action.index = 2
         req.hl_actions.append(hl_action)
 
         # hl_action = HLActionItem()

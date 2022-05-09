@@ -82,7 +82,7 @@ REACH_DETECTION_HOTSPOT_CLOSE:
   stoplist: ["mpc_controller", "joint_space_controller"]
   manager_namespace: panda
 
-BROADCAST_WAYPOINT:
+WAYPOINT_BROADCAST:
   default_outcome: None
 
 WAYPOINT_FOLLOWING:
@@ -100,6 +100,9 @@ WAYPOINT_FOLLOWING:
   timeout: 10000.0
   tolerance_m: 0.30
   tolerance_deg: 50
+
+WAYPOINT_REACHED:
+  default_outcome: None
 
 DETECTION_DECISION:
   default_outcome: Completed
