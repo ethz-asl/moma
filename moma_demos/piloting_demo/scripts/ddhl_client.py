@@ -1,6 +1,7 @@
+#!/usr/bin/python3
+
 import os
 
-import prompt_toolkit
 import rospy
 import requests
 import argparse
