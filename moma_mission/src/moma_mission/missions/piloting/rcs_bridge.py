@@ -37,6 +37,9 @@ class AlarmWatchdog:
         self.index = index
         self.timeout = timeout
         self.timer = None
+        self.status = AlarmStatus.OK
+        self.warns_count = 0
+        self.errors_count = 0
         self.reset()
 
     def reset(self):
@@ -52,9 +55,18 @@ class AlarmWatchdog:
         self.alarm(self.check(msg))
 
     def alarm(self, status=AlarmStatus.ERROR):
+        if self.status == AlarmStatus.OK:
+            if status == AlarmStatus.WARNING:
+                self.warns_count += 1
+            elif status == AlarmStatus.ERROR:
+                self.errors_count += 1
+        self.status = status
+
         alarm = AlarmStatus()
         alarm.index = self.index
-        alarm.status = status
+        alarm.status = self.status
+        alarm.warns_count = self.warns_count
+        alarm.errors_count = self.errors_count
         self.alarm_pub.publish(alarm)
         self.reset()
 
