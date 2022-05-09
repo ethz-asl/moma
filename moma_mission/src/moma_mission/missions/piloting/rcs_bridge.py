@@ -10,7 +10,7 @@ import rospy
 import numpy as np
 import argparse
 
-from std_msgs.msg import String
+from std_msgs.msg import String, Float64MultiArray
 from geometry_msgs.msg import Vector3Stamped
 from nav_msgs.msg import Odometry
 from sensor_msgs.msg import BatteryState, Imu, PointCloud2, JointState, Image
@@ -761,18 +761,25 @@ class RCSBridge:
 
         alarm = AlarmItem()
         alarm.index = 5
-        alarm.name = "ARM"
-        alarm.description = "Robot arm returning data."
-        AlarmWatchdog(
-            self.alarm_pub, 5, "/panda/franka_state_controller/joint_states", JointState
-        )
+        alarm.name = "MOTORS"
+        alarm.description = "Motor data."
+        AlarmWatchdog(self.alarm_pub, 5, "/wheelSpeeds", Float64MultiArray)
         req.alarms.append(alarm)
 
         alarm = AlarmItem()
         alarm.index = 6
+        alarm.name = "ARM"
+        alarm.description = "Robot arm returning data."
+        AlarmWatchdog(
+            self.alarm_pub, 6, "/panda/franka_state_controller/joint_states", JointState
+        )
+        req.alarms.append(alarm)
+
+        alarm = AlarmItem()
+        alarm.index = 7
         alarm.name = "CAMERA"
         alarm.description = "Camera image data."
-        AlarmWatchdog(self.alarm_pub, 6, "/hand_eye/color/image_raw", Image, 4.0)
+        AlarmWatchdog(self.alarm_pub, 7, "/hand_eye/color/image_raw", Image, 4.0)
         req.alarms.append(alarm)
 
         try:
