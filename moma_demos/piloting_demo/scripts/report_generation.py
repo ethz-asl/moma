@@ -60,6 +60,7 @@ OBJECT_ANGLE_TOPIC = "/valve_angle"
 JOINT_STATES_TOPIC = "/joint_states"
 JOINT_FINGER_NAME = "panda_finger_joint1"
 GRIPPER_OPEN_THRESHOLD = 0.03
+DATE_FORMAT = "%Y_%m_%d-%H_%M_%S"
 
 
 class ReportGenerator:
@@ -69,10 +70,10 @@ class ReportGenerator:
         self.bag = rosbag.Bag(bag_path, mode="r")
 
         self.startDate = datetime.fromtimestamp(self.bag.get_start_time()).strftime(
-            "%Y-%m-%d_%H-%M-%S"
+            DATE_FORMAT
         )
         self.endDate = datetime.fromtimestamp(self.bag.get_end_time()).strftime(
-            "%Y-%m-%d_%H-%M-%S"
+            DATE_FORMAT
         )
         self.robot_uuid = ROBOT_UUID
         self.sync_id = 1100
