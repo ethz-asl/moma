@@ -7,7 +7,10 @@ from moma_mission.missions.piloting.sequences import *
 from moma_mission.states.observation import FOVSamplerState
 from moma_mission.states.transform_visitor import TransformVisitorState
 from moma_mission.states.path_visitor import PathVisitorState
-from moma_mission.states.waypoint_broadcaster import WaypointBroadcasterState
+from moma_mission.states.waypoint_bridge import (
+    WaypointBroadcasterState,
+    WaypointReachedState,
+)
 
 
 # Init ros
@@ -42,7 +45,7 @@ try:
             "IDLE",
             Idle,
             transitions={
-                "ExecuteInspectionPlan": "BROADCAST_WAYPOINT",
+                "ExecuteInspectionPlan": "WAYPOINT_BROADCAST",
                 "ExecuteDummyPlan": "REACH_DETECTION_HOTSPOT_FAR",
                 "ManipulateValve": "DETECTION_DECISION",
                 "Failure": "Failure",
@@ -51,12 +54,10 @@ try:
 
         rospy.loginfo("Broadcast waypoint")
         state_machine.add(
-            "BROADCAST_WAYPOINT",
+            "WAYPOINT_BROADCAST",
             WaypointBroadcasterState,
             transitions={
-                "Completed": "REACH_DETECTION_HOTSPOT_CLOSE",
-                "Waypoint": "WAYPOINT_FOLLOWING",
-                "Wait": "IDLE",
+                "Completed": "WAYPOINT_FOLLOWING",
                 "Failure": "Failure",
             },
         )
@@ -83,7 +84,18 @@ try:
             "WAYPOINT_FOLLOWING",
             NavigationState,
             transitions={
-                "Completed": "IDLE",
+                "Completed": "WAYPOINT_REACHED",
+                "Failure": "Failure",
+            },
+        )
+
+        rospy.loginfo("Waypoint reached")
+        state_machine.add(
+            "WAYPOINT_REACHED",
+            WaypointReachedState,
+            transitions={
+                "Next": "IDLE",
+                "Completed": "REACH_DETECTION_HOTSPOT_CLOSE",
                 "Failure": "Failure",
             },
         )

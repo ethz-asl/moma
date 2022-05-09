@@ -11,7 +11,7 @@ class WaypointBroadcasterState(StateRos):
     Broadcast waypoints from the gRCS inspection plan as ROS transforms
     """
 
-    def __init__(self, ns, outcomes=["Completed", "Waypoint", "Wait", "Failure"]):
+    def __init__(self, ns, outcomes=["Completed", "Failure"]):
         StateRos.__init__(self, ns=ns, outcomes=outcomes)
         self.waypoint_pose_broadcaster = tf2_ros.StaticTransformBroadcaster()
         self.map_frame = self.get_scoped_param("map_frame", Frames.map_frame)
@@ -20,11 +20,6 @@ class WaypointBroadcasterState(StateRos):
     def run(self):
         gRCS = self.global_context.ctx.gRCS
         waypoint = gRCS.get_next_waypoint()
-
-        if waypoint is None:
-            return "Completed"
-        if waypoint == "Wait":
-            return "Wait"
 
         waypoint_pose = TransformStamped()
         waypoint_pose.header.frame_id = self.map_frame
@@ -40,4 +35,13 @@ class WaypointBroadcasterState(StateRos):
 
         self.waypoint_pose_broadcaster.sendTransform(waypoint_pose)
         rospy.sleep(2.0)
-        return "Waypoint"
+        return "Completed"
+
+
+class WaypointReachedState(StateRos):
+    def __init__(self, ns, outcomes=["Completed", "Next", "Failure"]):
+        StateRos.__init__(self, ns=ns, outcomes=outcomes)
+
+    def run(self):
+        gRCS = self.global_context.ctx.gRCS
+        return gRCS.set_waypoint_reached()
