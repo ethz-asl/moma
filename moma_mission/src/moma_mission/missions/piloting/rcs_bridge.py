@@ -10,7 +10,7 @@ import rospy
 import numpy as np
 import argparse
 
-from std_msgs.msg import String, Float64MultiArray
+from std_msgs.msg import String, Float64MultiArray, UInt32
 from geometry_msgs.msg import Vector3Stamped
 from nav_msgs.msg import Odometry
 from sensor_msgs.msg import BatteryState, Imu, PointCloud2, JointState, Image
@@ -128,6 +128,7 @@ class RCSBridge:
 
         self.plan_uuid_pub = None
         self.task_uuid_pub = None
+        self.sync_id_pub = None
 
         # Subscribers
         self.odom_sub = None
@@ -238,6 +239,7 @@ class RCSBridge:
         self.task_uuid_pub = rospy.Publisher(
             "/task_uuid", String, queue_size=1, latch=True
         )
+        self.sync_id_pub = rospy.Publisher("/sync_id", UInt32, queue_size=1, latch=True)
 
         # Subscribers
         self.odom_sub = rospy.Subscriber(
@@ -389,6 +391,9 @@ class RCSBridge:
         plan_uuid = String()
         plan_uuid.data = req.info.plan_uuid
         self.plan_uuid_pub.publish(plan_uuid)
+        sync_id = UInt32()
+        sync_id.data = req.info.sync_id
+        self.sync_id_pub.publish(sync_id)
 
         self.fix_waypoints()
         self.upload_waypoints()
