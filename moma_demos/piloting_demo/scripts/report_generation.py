@@ -51,7 +51,7 @@ SENSORS_LIST = {
     "realsense_d435i": [
         "RealSense D435i Depth Camera",
         "47255b80-561e-41b6-bbef-2916da6426e6",
-        "hand_eye_color_optical_frame",
+        "hand_eye_color_frame",
     ],
 }
 CAMERA_UUID = SENSORS_LIST["realsense_d435i"][1]
