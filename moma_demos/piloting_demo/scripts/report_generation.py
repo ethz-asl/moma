@@ -22,6 +22,7 @@ from moma_mission.utils.transforms import tf_to_se3
 # static configuration
 PLAN_UUID_TOPIC = "/plan_uuid"
 TASK_UUID_TOPIC = "/task_uuid"
+SYNC_ID_TOPIC = "/sync_id"
 MAP_FRAME = "map"  # For local navigation: "tracking_camera_odom"
 OBJECT_TYPE = "valve"
 OBJECT_FRAME = "valve_wheel_center"
@@ -76,9 +77,9 @@ class ReportGenerator:
             DATE_FORMAT
         )
         self.robot_uuid = ROBOT_UUID
-        self.sync_id = 1100
         self.plan_uuid = None
         self.task_uuids = {}
+        self.sync_id = None
         self.inspection_type = "visual"  # visual, contact, TBD
         self.map_file = "map.pcd"
 
@@ -186,7 +187,7 @@ class ReportGenerator:
     def __init_uuids(self):
         print("[Report Generation]: Reading UUIDs.")
         for topic, message, t in self.bag.read_messages(
-            topics=[PLAN_UUID_TOPIC, TASK_UUID_TOPIC]
+            topics=[PLAN_UUID_TOPIC, TASK_UUID_TOPIC, SYNC_ID_TOPIC]
         ):
             if topic == PLAN_UUID_TOPIC:
                 if self.plan_uuid is None:
@@ -200,6 +201,14 @@ class ReportGenerator:
                 if message.data not in self.task_uuids.keys():
                     # Map task uuids to starting times
                     self.task_uuids[message.data] = t
+
+            if topic == SYNC_ID_TOPIC:
+                if self.sync_id is None:
+                    self.sync_id = message.data
+                elif self.sync_id != message.data:
+                    raise Exception(
+                        "Found multiple differing sync ids in the same bag file"
+                    )
 
     def get_task_uuid(self, time, allow_empty=False):
         """Get the task uuid for the given time"""
