@@ -437,7 +437,9 @@ class ReportGenerator:
                     try:
                         tf_transform = self.tf_tree.lookup_transform_core(
                             target_frame=MAP_FRAME,
-                            source_frame=message.header.frame_id,
+                            source_frame=message.header.frame_id.replace(
+                                "_optical", ""
+                            ),
                             time=t,
                         )
                         cam_translation = [
