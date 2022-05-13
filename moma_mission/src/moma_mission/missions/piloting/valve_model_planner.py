@@ -97,12 +97,19 @@ class ValveModelPlanner:
         z_score = np.dot(z_axis, np.array([0, 0, -1]))
 
         # Avoid entangled robot configurations by considering the robot base heading
+        x_score = self._get_grasp_heading_score(grasp)
+
+        return z_score + x_score
+
+    def _get_grasp_heading_score(self, grasp):
+        """
+        Get a score for a particular grasping pose considering the heading w.r.t. the robot base
+        """
         x_score = 0
         if self.robot_base_heading is not None:
             x_axis = R.from_quat(grasp["orientation"]).as_matrix()[:, 0]
             x_score = np.dot(x_axis, self.robot_base_heading)
-
-        return z_score + x_score
+        return x_score
 
     def _get_valid_paths(
         self, grasps_start, grasps, angle_max=2 * np.pi, inverted=False
@@ -218,6 +225,22 @@ class ValveModelPlanner:
         rospy.logdebug_throttle(1.0, "Path with highest score is chosen")
         return max(valid_paths, key=lambda path: path["score"])
 
+    def get_path_approach_poses(self, path):
+        """
+        Get the optimal approaching poses for a given path, such that the robot heading is optimized,
+        avoiding entangled configurations
+        """
+        best_pose = max(
+            path["poses"], key=lambda pose: self._get_grasp_heading_score(pose)
+        )
+        best_pose_index = path["poses"].index(best_pose)
+        approach_poses = path["poses"][best_pose_index::-1]
+        # Better do the offset in the path_visitor
+        # approach_poses = copy.deepcopy(path["poses"][best_pose_index::-1])
+        # for pose in approach_poses:
+        #     pose["position"][2] += z_offset
+        return approach_poses
+
     def poses_to_ros(self, poses):
         posesa = PoseArray()
         posesa.header.frame_id = self.valve_model.frame
@@ -238,10 +261,30 @@ class ValveModelPlanner:
 if __name__ == "__main__":
     rospy.init_node("valve_planner_test")
 
-    poses_pub = rospy.Publisher("/plan", PoseArray, queue_size=1)
+    poses_pub = rospy.Publisher("/plan", PoseArray, queue_size=1, latch=True)
+    approach_poses_pub = rospy.Publisher(
+        "/plan_approach", PoseArray, queue_size=1, latch=True
+    )
+
+    # Robot mockup
+    import tf2_ros
+    from geometry_msgs.msg import TransformStamped
+    from moma_mission.utils.transforms import tf_to_se3
+
+    robot_pose_broadcaster = tf2_ros.StaticTransformBroadcaster()
+    robot_pose = TransformStamped()
+    robot_pose.header.stamp = rospy.Time.now()
+    robot_pose.header.frame_id = "map"
+    robot_pose.child_frame_id = "robot"
+    robot_pose.transform.translation.x = 0.5
+    robot_pose.transform.translation.y = 1.0
+    robot_pose.transform.translation.z = 0.0
+    robot_pose.transform.rotation.w = 1.0
+    robot_pose_broadcaster.sendTransform(robot_pose)
+    rospy.loginfo("Publishing mockup robot pose")
 
     valve_model = ValveModel(center=[0.5, 0.5, 0.5], depth=0.1)
-    valve_planner = ValveModelPlanner(valve_model)
+    valve_planner = ValveModelPlanner(valve_model, tf_to_se3(robot_pose))
 
     # valve_model.transform(pitch_deg=45)
     # valve_model.turn(45)
@@ -265,5 +308,9 @@ if __name__ == "__main__":
 
         poses_ros = valve_planner.poses_to_ros(grasps)
         poses_pub.publish(poses_ros)
+
+        approach_poses = valve_planner.get_path_approach_poses(path)
+        approach_poses_ros = valve_planner.poses_to_ros(approach_poses)
+        approach_poses_pub.publish(approach_poses_ros)
 
         # rospy.sleep(0.02)
