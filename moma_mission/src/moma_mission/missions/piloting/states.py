@@ -588,8 +588,14 @@ class ValveManipulationModelState(StateRos):
         )
 
         poses_topic = self.get_scoped_param("poses_topic", "/valve_poses")
+        approach_poses_topic = self.get_scoped_param(
+            "approach_poses_topic", "/valve_approach_poses"
+        )
         self.poses_publisher = rospy.Publisher(
             poses_topic, PoseArray, queue_size=1, latch=True
+        )
+        self.approach_poses_publisher = rospy.Publisher(
+            approach_poses_topic, PoseArray, queue_size=1, latch=True
         )
         self.robot_base_frame = self.get_scoped_param("robot_base_frame", None)
 
@@ -614,6 +620,9 @@ class ValveManipulationModelState(StateRos):
             return "Failure"
 
         self.poses_publisher.publish(valve_planner.poses_to_ros(path["poses"]))
+        self.approach_poses_publisher.publish(
+            valve_planner.poses_to_ros(valve_planner.get_path_approach_poses(path))
+        )
 
         return "Completed"
 
