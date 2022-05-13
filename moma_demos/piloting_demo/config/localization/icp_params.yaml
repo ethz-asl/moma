@@ -5,7 +5,7 @@ icp_localization:
     z: 0.0
     roll: 0.0 #rpy in deg
     pitch: 0.0
-    yaw: 60.0
+    yaw: 90.0
   imu_data_topic: "/versavis/imu" #"/sensors/imu" #
   odometry_data_topic: "/camera/odom/sample" #"/camera/odom/sample" "/msf_core/odometry" #
   num_accumulated_range_data: 1
