@@ -20,6 +20,6 @@ class TestPilotingMission(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    import rostest
+    import rosunit
 
-    rostest.rosrun(PKG, "test_piloting_mission", TestPilotingMission)
+    rosunit.unitrun(PKG, "test_piloting_mission", TestPilotingMission)
