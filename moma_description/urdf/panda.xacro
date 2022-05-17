@@ -1,10 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="panda">
-  <xacro:macro name="panda" params="connected_to:='' rpy:='0 0 0' xyz:='0 0 0' use_fixed_realsense:=false
+  <xacro:macro name="panda" params="connected_to:='' rpy:='0 0 0' xyz:='0 0 0' sim:=false use_fixed_realsense:=false
     tool:='panda_hand' wrist_camera_name:='wrist_camera'">
 
     <!-- panda arm  -->
-    <xacro:include filename="$(find franka_description)/robots/panda_arm.xacro"/>
+    <!--xacro:if value="${sim}"-->
+        <xacro:include filename="$(find franka_description)/robots/panda_gazebo.xacro"/>
+    <!--/xacro:if>
+    <xacro:unless value="${sim}">
+        <xacro:include filename="$(find franka_description)/robots/panda_arm.xacro"/>
+    </xacro:unless-->
     <xacro:panda_arm connected_to="${connected_to}" rpy="${rpy}" xyz="${xyz}"/>
 
     <!-- no tool frame -->
