@@ -2,11 +2,11 @@
 # Namespaces mirror (optionally) the state for better readability
 
 SETUP:
-  default_outcome: Completed
-  waypoints_file_path: $(find moma_mission)/config/state_machine/piloting_waypoints.yaml
+  default_outcome: None
+  #waypoints_file_path: $(find moma_mission)/config/state_machine/piloting_waypoints.yaml
 
 IDLE:
-  default_outcome: ExecuteManipulationPlan
+  default_outcome: None
 
 OPEN_GRIPPER:
   default_outcome: None
@@ -82,12 +82,16 @@ REACH_DETECTION_HOTSPOT_CLOSE:
   stoplist: ["mpc_controller", "joint_space_controller"]
   manager_namespace: panda
 
+WAYPOINT_BROADCAST:
+  default_outcome: None
+
 WAYPOINT_FOLLOWING:
   default_outcome: None
   goal_action_topic: /move_base
+  target_frame: waypoint
   goal_pose_topic: /move_base_simple/goal
   base_pose_topic: /base_pose_measured
-  base_odometry_topic: /camera/odom/sample
+  base_odometry_topic: /base_odom
 
   manager_namespace: smb
   startlist: ["smb_diff_drive"]
@@ -96,6 +100,9 @@ WAYPOINT_FOLLOWING:
   timeout: 10000.0
   tolerance_m: 0.30
   tolerance_deg: 50
+
+WAYPOINT_REACHED:
+  default_outcome: None
 
 DETECTION_DECISION:
   default_outcome: Completed
