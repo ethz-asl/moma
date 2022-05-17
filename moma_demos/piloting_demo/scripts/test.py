@@ -1,12 +1,18 @@
 #!/usr/bin/env python
 PKG = "piloting_demo"
+import os
 import unittest
 import rospy
+import rospkg
 import subprocess
 
 
 class TestPilotingMission(unittest.TestCase):
     def test_state_machine(self):
+        moma_mission_path = rospkg.RosPack().get_path("moma_mission")
+        os.system(
+            f"perl -i -0777 -pe 's/(IDLE:.*?default_outcome: )None/\\1ExecuteDummyPlan/s' {moma_mission_path}/config/state_machine/piloting.yaml"
+        )
         rospy.sleep(120)  # Wait for environment
         p = subprocess.Popen(
             ["roslaunch", "piloting_demo", "mission.launch", "sim:=true"],
