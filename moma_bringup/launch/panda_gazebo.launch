@@ -46,6 +46,7 @@
                   gazebo:=true
                   hand:=$(arg use_gripper)
                   arm_id:=$(arg arm_id)
+                  fixed_to_world:=true
                   xyz:='$(arg x) $(arg y) $(arg z)'
                   rpy:='$(arg roll) $(arg pitch) $(arg yaw)'
                   use_nominal_extrinsics:=true">
