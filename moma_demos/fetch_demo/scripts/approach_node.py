@@ -210,14 +210,14 @@ class ApproachActionServer(MovingActionServer):
     def _convert_m_to_px(self, position_m):
         position_px_unrounded = (position_m - self.map_origin) / self.map_resolution
         position_px_rounded = position_px_unrounded.astype(np.int32)
-        position_px_rounded_flipped = np.flip(position_px_rounded, axis=0)
+        position_px_rounded_flipped = np.flip(position_px_rounded, axis=0) 
         return position_px_rounded_flipped
 
     def _convert_px_to_m(self, position_px_flipped):
         position_px = np.flip(position_px_flipped, axis=0)
         return position_px * self.map_resolution + self.map_origin
 
-    def _construct_robot_mask(self):
+    def _construct_robot_mask(self):##################################################### have no idea about this??????????????????????
         """
             This function is currently not in use. Would be useful if we want to check in the
             future whether the robot actually can be positioned there collision free.

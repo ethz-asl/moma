@@ -1,0 +1,14 @@
+local_costmap:
+   global_frame: map
+   robot_base_frame: base_link
+   update_frequency: 20.0
+   publish_frequency: 5.0
+   width: 10.0
+   height: 10.0
+   resolution: 0.02 #Note that its fine for the resolution of this grid to be different than the resolution of your static map, but most of the time we tend to set them equally. 
+   static_map: true #whether or not the costmap should initialize itself based on a map served by the map_server. If you aren't using an existing map or map server, set the static_map parameter to false. 
+   rolling_window: true #true means that the costmap will remain centered around the robot as the robot moves through the world.
+   plugins:
+   - {name: static_layer, type: "costmap_2d::StaticLayer"}
+   - {name: obstacles_layer, type: "costmap_2d::ObstacleLayer"}
+  

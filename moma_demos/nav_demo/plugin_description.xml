@@ -1,0 +1,17 @@
+<library path="lib/libgrasp_demo">
+    <class name="control_gui/ButtonPanel"
+	type="control_gui::ButtonPanel"
+	base_class_type="rviz::Panel">
+	<description>
+	    Buttons to send scan, plan and execute grasp actions.
+	</description>
+    </class>
+    <class name="control_gui/SemanticButtonPanel"
+	type="control_gui::SemanticButtonPanel"
+	base_class_type="rviz::Panel">
+	<description>
+	    Buttons to select which instance of an object to grasp.
+	</description>
+    </class>
+</library>
+

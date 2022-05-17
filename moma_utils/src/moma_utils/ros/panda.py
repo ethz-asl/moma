@@ -23,6 +23,7 @@ class PandaArmClient:
         self._init_state_callbacks()
         rospy.loginfo("Panda arm ready")
 
+    #### this should also be modified
     def get_state(self):
         q = np.asarray(self._joint_state_msg.position[:7])
         dq = np.asarray(self._joint_state_msg.velocity[:7])
@@ -104,15 +105,15 @@ class PandaGripperClient:
         self.stop_client.wait_for_result(timeout=rospy.Duration(2.0))
 
     def read(self):
-        return self._joint_state_msg.position[7] + self._joint_state_msg.position[8]
+        return self._joint_state_msg.position[-2] + self._joint_state_msg.position[-1]
 
     def _init_state_callback(self):
         rospy.Subscriber("joint_states", JointState, self._joint_state_cb)
-
+        
     def _joint_state_cb(self, msg):
         self._joint_state_msg = msg
 
-    def _init_action_clients(self, ns="franka_gripper/"):
+    def _init_action_clients(self, ns="/panda/franka_gripper/"):
         self.move_client = actionlib.SimpleActionClient(ns + "move", MoveAction)
         self.grasp_client = actionlib.SimpleActionClient(ns + "grasp", GraspAction)
         self.stop_client = actionlib.SimpleActionClient(ns + "stop", StopAction)

@@ -8,12 +8,16 @@
     <gazebo>
       <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
         <robotNamespace>${robot_ns}</robotNamespace>
-        <robotParam>mobile_base/robot_description</robotParam>
-        <robotDescription>mobile_base/robot_description</robotDescription>
+        <!-- <robotNamespace>/</robotNamespace> -->
+        <!-- <robotParam>mobile_base/robot_description</robotParam>
+        <robotDescription>mobile_base/robot_description</robotDescription> -->
+        <robotParam>robot_description</robotParam>
+        <robotDescription>robot_description</robotDescription>
       </plugin>
 
       <plugin name="ridgeback_ros_force_based_move" filename="libridgeback_ros_force_based_move.so">
-        <robotNamespace>${robot_ns}</robotNamespace>
+        <!-- <robotNamespace>${robot_ns}</robotNamespace> -->
+        <robotNamespace>/</robotNamespace>
         <commandTopic>cmd_vel</commandTopic>
         <odometryTopic>odom</odometryTopic>
         <odometryFrame>odom</odometryFrame>
@@ -28,7 +32,8 @@
       </plugin>
 
       <plugin name="imu_controller" filename="libhector_gazebo_ros_imu.so">
-        <robotNamespace>${robot_ns}</robotNamespace>
+        <!-- <robotNamespace>${robot_ns}</robotNamespace> -->
+        <robotNamespace>/</robotNamespace>
         <updateRate>50.0</updateRate>
         <bodyName>imu_link</bodyName>
         <topicName>imu/data</topicName>
