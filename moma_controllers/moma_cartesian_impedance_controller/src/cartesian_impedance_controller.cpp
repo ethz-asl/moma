@@ -115,7 +115,7 @@ bool CartesianImpedanceController::init_common_interfaces(hardware_interface::Ro
 bool CartesianImpedanceController::init_hardware_interfaces(hardware_interface::RobotHW* hw) {
   auto* model_interface = hw->get<franka_hw::FrankaModelInterface>();
   if (model_interface == nullptr) {
-    ROS_ERROR_STREAM("CartesianImpedanceController: Error getting model interface from hardware");
+    ROS_WARN_STREAM("CartesianImpedanceController: Error getting model interface from hardware");
     return false;
   }
   try {

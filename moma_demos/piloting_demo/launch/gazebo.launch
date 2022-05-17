@@ -12,7 +12,7 @@
   <env name="GAZEBO_MODEL_PATH" value="$(optenv GAZEBO_MODEL_PATH):$(find moma_gazebo)/models:$(find piloting_demo)/models"/>
 
   <!-- send the robot XML to param server -->
-  <param name="robot_description" command="$(find xacro)/xacro $(find moma_description)/urdf/superpanda.urdf.xacro use_nominal_extrinsics:=true use_fixed_realsense:=$(arg use_fixed_realsense)
+  <param name="robot_description" command="$(find xacro)/xacro $(find moma_description)/urdf/superpanda.urdf.xacro sim:=true use_nominal_extrinsics:=true use_fixed_realsense:=$(arg use_fixed_realsense)
     control_mode:=$(arg control_mode) tool:=$(arg tool)"/>
 
   <!-- Allow interoperability between sim and real robot (we cannot change topic name on sim gripper controller plugin) -->

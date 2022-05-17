@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<launch>
+  <include file="$(find piloting_demo)/launch/sim.launch">
+    <arg name="gui" value="false" />
+    <arg name="rviz" value="false" />
+  </include>
+
+  <test test-name="piloting_mission" pkg="piloting_demo" type="test.py" time-limit="1800.0"/>
+</launch>

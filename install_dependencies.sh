@@ -129,6 +129,7 @@ install_control() {
 }
 
 install_piloting() {
+  pip3 install -r ${CATKIN_WS}/src/moma/moma_mission/requirements.txt
   install_mavsdk
   install_object_keypoints
   info "Piloting dependencies installation successful"
@@ -136,6 +137,7 @@ install_piloting() {
 
 install_system_deps() {
 sudo --preserve-env=DEBIAN_FRONTEND apt-get install \
+  git git-lfs \
 	ros-$ROS_DISTRO-ros-control \
 	ros-$ROS_DISTRO-ros-controllers \
 	ros-$ROS_DISTRO-gazebo-ros-pkgs \
@@ -149,6 +151,8 @@ sudo --preserve-env=DEBIAN_FRONTEND apt-get install \
 	ros-$ROS_DISTRO-py-trees-ros \
 	ros-$ROS_DISTRO-rqt-py-trees \
 	ros-$ROS_DISTRO-libfranka \
+	ros-$ROS_DISTRO-franka-ros \
+	ros-$ROS_DISTRO-franka-description \
 	ros-$ROS_DISTRO-joint-state-publisher-gui \
 	ros-$ROS_DISTRO-ddynamic-reconfigure \
 	ros-$ROS_DISTRO-lms1xx \
