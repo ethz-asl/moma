@@ -8,6 +8,7 @@ from moma_mission.missions.piloting.states import *
 from moma_mission.missions.piloting.sequences import *
 from moma_mission.states.observation import FOVSamplerState
 from moma_mission.states.transform_visitor import TransformVisitorState
+from moma_mission.states.transform_recorder import TransformRecorderState
 from moma_mission.states.path_visitor import PathVisitorState
 
 
@@ -152,7 +153,24 @@ try:
         state_machine.add(
             "MANIPULATE_VALVE",
             PathVisitorState,
-            transitions={"Completed": "OPEN_GRIPPER", "Failure": "OPEN_GRIPPER"},
+            transitions={
+                "Completed": "STORE_FINAL_POSE",
+                "Failure": "STORE_FINAL_POSE",
+            },
+        )
+
+        rospy.loginfo("Store final pose")
+        state_machine.add(
+            "STORE_FINAL_POSE",
+            TransformRecorderState,
+            transitions={"Completed": "APPROACH_FINAL_POSE", "Failure": "Failure"},
+        )
+
+        rospy.loginfo("Approach final pose")
+        state_machine.add(
+            "APPROACH_FINAL_POSE",
+            TransformVisitorState,
+            transitions={"Completed": "OPEN_GRIPPER", "Failure": "Failure"},
         )
 
         rospy.loginfo("Open gripper")
@@ -165,7 +183,7 @@ try:
         rospy.loginfo("Backoff valve")
         state_machine.add(
             "BACKOFF_VALVE",
-            PathVisitorState,
+            TransformVisitorState,
             transitions={"Completed": "HOMING_FINAL", "Failure": "Failure"},
         )
 
