@@ -1,13 +1,13 @@
-#! /usr/bin/python
+#!/usr/bin/python3
 
 from cmath import inf
 import os
 import cv2
-import sys
 import csv
+import numpy as np
+import argparse
 
-from cv2 import CV_16S
-from nbformat import write
+import shutil
 import tf2_py as tf2
 import rospy
 import json
@@ -16,291 +16,562 @@ import rosbag
 from tqdm import tqdm
 from datetime import datetime
 from cv_bridge import CvBridge, CvBridgeError
-from sensor_msgs.msg import Image
-from geometry_msgs.msg import Vector3, Quaternion
+
+from moma_mission.utils.transforms import tf_to_se3
 
 # static configuration
-print("[Report Generation]: Parsing static configuration")
-ROOT_DIR = "/home/giuseppe/storage"
-BAG = "/home/giuseppe/storage/bags/2022-02-15/2022-02-15-13-17-11_smb_sensors.bag"
-MAP_FRAME = "tracking_camera_odom"
-IMAGE_TOPIC = "/versavis/cam0/image_raw_throttle"
-BASE_LINK = "base_link"
-ODOM_TOPIC = "/camera/odom/sample"
-CAMERA_UUID = str(uuid.uuid4())
-SENSORS_LIST = {
-    "rslidar": ["16 Beans Lidar Sensor", str(uuid.uuid4())],
-    "realsense_t265": ["Realsense Tracking Camera", str(uuid.uuid4())],
-    "imu": ["XSense Imu", str(uuid.uuid4())],
+PLAN_UUID_TOPIC = "/plan_uuid"
+TASK_UUID_TOPIC = "/task_uuid"
+SYNC_ID_TOPIC = "/sync_id"
+MAP_FRAME = "map"  # For local navigation: "tracking_camera_odom"
+OBJECT_TYPE = "valve"
+OBJECT_FRAME = "valve_wheel_center"
+IMAGE_TOPIC = "/object_keypoints_ros/result_img"
+IMAGES_DELTA_TIME = 5  # take a picture each 10 seconds
+BASE_LINK_FRAME = "base_link"
+ODOM_TOPIC = "/mavsdk_ros/local_position"
+ROBOT_UUID = "f09df66e-cc30-4e11-92e8-fa2f5d7d19e5"
+CAMERA_FOV = {  # https://www.intelrealsense.com/depth-camera-d435i/
+    "horizontal": 69.0,
+    "vertical": 42.0,
 }
+CAMERA_IMAGE_SIZE = {"width": 1280, "height": 720}
+SENSORS_LIST = {
+    "rslidar": [
+        "16 Beans Lidar Sensor",
+        "148ddf1c-da28-4d33-b85b-d3ddc445e58a",
+        "rslidar",
+    ],
+    "realsense_t265": [
+        "Realsense Tracking Camera",
+        "8de3129f-7a0c-4f84-8a34-77f0a1eebd31",
+        "realsense_t265",
+    ],
+    "imu": ["XSense Imu", "4902be61-2dfe-4140-b3c5-ed9a49e32a91", "imu"],
+    "realsense_d435i": [
+        "RealSense D435i Depth Camera",
+        "47255b80-561e-41b6-bbef-2916da6426e6",
+        "hand_eye_color_frame",
+    ],
+}
+CAMERA_UUID = SENSORS_LIST["realsense_d435i"][1]
+WRENCH_TOPIC = "/panda/franka_state_controller/F_ext"
+OBJECT_PATH_INVERTED_TOPIC = "/valve_path_inverted"
+OBJECT_ANGLE_TOPIC = "/valve_angle"
+JOINT_STATES_TOPIC = "/joint_states"
+JOINT_FINGER_NAME = "panda_finger_joint1"
+GRIPPER_OPEN_THRESHOLD = 0.03
+DATE_FORMAT = "%Y_%m_%d-%H_%M_%S"
 
 
-startDate = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-endDate = startDate
-robot_uuid = str(uuid.uuid4())
-sync_id = 1667993927
-task_uuid = str(uuid.uuid4())
-inspection_plan_uuid = str(uuid.uuid4())
-inspection_task_uuids = [str(uuid.uuid4())]
-inspection_type = "visual"  # visual, contact, TBD
-map_file = "map.pcd"
+class ReportGenerator:
+    def __init__(self, bag_path, report_base_dir):
+        # open the bag
+        print("[Report Generation]: Opening rosbag at {}".format(bag_path))
+        self.bag = rosbag.Bag(bag_path, mode="r")
 
+        self.startDate = datetime.fromtimestamp(self.bag.get_start_time()).strftime(
+            DATE_FORMAT
+        )
+        self.endDate = datetime.fromtimestamp(self.bag.get_end_time()).strftime(
+            DATE_FORMAT
+        )
+        self.robot_uuid = ROBOT_UUID
+        self.plan_uuid = None
+        self.task_uuids = {}
+        self.sync_id = None
+        self.inspection_type = "visual"  # visual, contact, TBD
+        self.map_file = "map.pcd"
 
-# Utilities
-def get_files():
-    return {
-        "pictures_metadata": "pictures_metadata.csv",
-        "pictures_folder": "pictures",
-        "telemetry_data": "localization_telemetry.csv",
-        "haptic_data": "haptic_sensing.csv",
-    }
+        self.report_dir = os.path.join(
+            report_base_dir, self.startDate + "_inspection_plan"
+        )
 
+        print("[Report Generation]: Creating folder structure.")
+        os.makedirs(self.report_dir, exist_ok=True)
 
-def get_tf_tree(bag: rosbag.Bag):
-    """Fills up a tf tree from a rosbag"""
-    tf_tree = tf2.BufferCore(rospy.Duration(360000.0))
-    tf_topics = ["/tf", "/tf_static"]
-    tf_msgs_count = bag.get_message_count(tf_topics)
-    print(
-        "[Report Generation]:  Reading {} transforms from the bag".format(tf_msgs_count)
-    )
+        self.__init_tf_tree()
+        self.__init_uuids()
 
-    times = []
-    with tqdm(total=tf_msgs_count) as progress_bar:
-        for topic, message, t in bag.read_messages(topics=tf_topics):
-            times.append(t)
-            for tf_message in message.transforms:
-                if topic == "/tf_static":
-                    tf_tree.set_transform_static(tf_message, topic)
-                else:
-                    tf_tree.set_transform(tf_message, topic)
-        progress_bar.update(1)
-    return tf_tree, times
+    def __init_tf_tree(self):
+        """Fills up a tf tree from a rosbag"""
+        print("[Report Generation]: Reading tf info...")
+        self.tf_tree = tf2.BufferCore(rospy.Duration(360000.0))
+        tf_topics = ["/tf", "/tf_static"]
+        tf_msgs_count = self.bag.get_message_count(tf_topics)
+        print(
+            "[Report Generation]: Reading {} transforms from the bag".format(
+                tf_msgs_count
+            )
+        )
 
+        self.tf_times = []
+        self.object_times = []
+        with tqdm(total=tf_msgs_count) as progress_bar:
+            for topic, message, t in self.bag.read_messages(topics=tf_topics):
+                self.tf_times.append(t)
+                if (
+                    len(
+                        [
+                            tf
+                            for tf in message.transforms
+                            if tf.child_frame_id == OBJECT_FRAME
+                        ]
+                    )
+                    > 0
+                ):
+                    self.object_times.append(t)
+                for tf_message in message.transforms:
+                    if topic == "/tf_static":
+                        self.tf_tree.set_transform_static(tf_message, topic)
+                    else:
+                        self.tf_tree.set_transform(tf_message, topic)
+            progress_bar.update(1)
 
-def get_sensors():
-    sensors = []
-    for sensor_frame, sensor_info in SENSORS_LIST.items():
-        sensor_entry = {}
-        sensor_entry["name"] = sensor_frame
-        sensor_entry["uuid"] = sensor_info[1]
-        sensor_entry["description"] = sensor_info[0]
-        sensor_entry["tf"] = {
-            "translation": {"x": 0.0, "y": 0.0, "z": 0.0},
-            "rotation": {"x": 0.0, "y": 0.0, "z": 0.0, "w": 0.0},
+    # Utilities
+    @property
+    def files(self):
+        return {
+            "config": "config.json",
+            "pictures_metadata": "pictures_metadata.csv",
+            "pictures_folder": "pictures",
+            "telemetry_data": "localization_telemetry.csv",
+            "haptic_data": "haptic_sensing.csv",
+            "objects": "objects.csv",
         }
-        try:
-            tf_transform = tf_tree.lookup_transform_core(
-                target_frame=BASE_LINK, source_frame=sensor_frame, time=rospy.Time(0)
-            )
-            sensor_entry["tf"]["translation"][
-                "x"
-            ] = tf_transform.transform.translation.x
-            sensor_entry["tf"]["translation"][
-                "y"
-            ] = tf_transform.transform.translation.y
-            sensor_entry["tf"]["translation"][
-                "z"
-            ] = tf_transform.transform.translation.z
-            sensor_entry["tf"]["rotation"]["x"] = tf_transform.transform.rotation.x
-            sensor_entry["tf"]["rotation"]["y"] = tf_transform.transform.rotation.y
-            sensor_entry["tf"]["rotation"]["z"] = tf_transform.transform.rotation.z
-            sensor_entry["tf"]["rotation"]["w"] = tf_transform.transform.rotation.w
-        except Exception as exc:
-            print(exc)
-            print(
-                "[Report Generation]: Failed to get transform from {} to {}".format(
-                    sensor_frame, BASE_LINK
-                )
-            )
-        sensors.append(sensor_entry)
-    return sensors
 
-
-def extract_telemetry(bag: rosbag.Bag, root_dir):
-    telemetry_csv_file = os.path.join(root_dir, "localization_telemetry.csv")
-    with open(telemetry_csv_file, "w") as f:
-        writer = csv.writer(f)
-        for t in times:
+    def get_sensors(self):
+        sensors = []
+        for sensor_name, (
+            sensor_description,
+            sensor_uuid,
+            sensor_frame,
+        ) in SENSORS_LIST.items():
+            sensor_entry = {}
+            sensor_entry["name"] = sensor_name
+            sensor_entry["uuid"] = sensor_uuid
+            sensor_entry["description"] = sensor_description
+            sensor_entry["tf"] = {
+                "translation": {"x": 0.0, "y": 0.0, "z": 0.0},
+                "rotation": {"x": 0.0, "y": 0.0, "z": 0.0, "w": 0.0},
+            }
             try:
-                tf_transform = tf_tree.lookup_transform_core(
-                    target_frame=MAP_FRAME, source_frame=BASE_LINK, time=t
+                tf_transform = self.tf_tree.lookup_transform_core(
+                    target_frame=BASE_LINK_FRAME,
+                    source_frame=sensor_frame,
+                    time=rospy.Time(0),
                 )
-                translation = [
-                    tf_transform.transform.translation.x,
-                    tf_transform.transform.translation.y,
-                    tf_transform.transform.translation.z,
-                ]
-                rotation = [
-                    tf_transform.transform.rotation.x,
-                    tf_transform.transform.rotation.y,
-                    tf_transform.transform.rotation.z,
-                    tf_transform.transform.rotation.w,
-                ]
-                entry = [t.to_sec(), task_uuid] + translation + rotation
-                writer.writerow(entry)
+                sensor_entry["tf"]["translation"][
+                    "x"
+                ] = tf_transform.transform.translation.x
+                sensor_entry["tf"]["translation"][
+                    "y"
+                ] = tf_transform.transform.translation.y
+                sensor_entry["tf"]["translation"][
+                    "z"
+                ] = tf_transform.transform.translation.z
+                sensor_entry["tf"]["rotation"]["x"] = tf_transform.transform.rotation.x
+                sensor_entry["tf"]["rotation"]["y"] = tf_transform.transform.rotation.y
+                sensor_entry["tf"]["rotation"]["z"] = tf_transform.transform.rotation.z
+                sensor_entry["tf"]["rotation"]["w"] = tf_transform.transform.rotation.w
             except Exception as exc:
                 print(exc)
+                print(
+                    "[Report Generation]: Failed to get transform from {} to {}".format(
+                        sensor_frame, BASE_LINK_FRAME
+                    )
+                )
+            sensors.append(sensor_entry)
+        return sensors
 
+    def __init_uuids(self):
+        print("[Report Generation]: Reading UUIDs.")
+        for topic, message, t in self.bag.read_messages(
+            topics=[PLAN_UUID_TOPIC, TASK_UUID_TOPIC, SYNC_ID_TOPIC]
+        ):
+            if topic == PLAN_UUID_TOPIC:
+                if self.plan_uuid is None:
+                    self.plan_uuid = message.data
+                elif self.plan_uuid != message.data:
+                    raise Exception(
+                        "Found multiple differing plan uuids in the same bag file"
+                    )
 
-def extract_odometry(bag: rosbag.Bag, root_dir):
-    telemetry_csv_file = os.path.join(root_dir, "localization_telemetry.csv")
-    odom_msgs_count = bag.get_message_count(ODOM_TOPIC)
+            if topic == TASK_UUID_TOPIC:
+                if message.data not in self.task_uuids.keys():
+                    # Map task uuids to starting times
+                    self.task_uuids[message.data] = t
 
-    with tqdm(total=odom_msgs_count) as progress_bar:
-        with open(telemetry_csv_file, "w") as f:
+            if topic == SYNC_ID_TOPIC:
+                if self.sync_id is None:
+                    self.sync_id = message.data
+                elif self.sync_id != message.data:
+                    raise Exception(
+                        "Found multiple differing sync ids in the same bag file"
+                    )
+
+    def get_task_uuid(self, time, allow_empty=False):
+        """Get the task uuid for the given time"""
+        matching_task_uuid = None
+        matching_task_uuid_time = rospy.Time(0)
+        for task_uuid, task_uuid_time in self.task_uuids.items():
+            if time >= task_uuid_time > matching_task_uuid_time:
+                matching_task_uuid = task_uuid
+                matching_task_uuid_time = task_uuid_time
+
+        if matching_task_uuid is None and not allow_empty:
+            raise Exception(f"No task uuid known at time {time}")
+
+        return matching_task_uuid
+
+    def extract_config(self):
+        print("[Report Generation]: Writing top level config file.")
+        config_file = os.path.join(self.report_dir, self.files["config"])
+
+        report_config = {
+            "startDate": self.startDate,
+            "endDate": self.endDate,
+            "syncId": self.sync_id,
+            "uuid": self.robot_uuid,
+            "inspectionPlanUuid": self.plan_uuid,
+            "inspectionTaskUuids": list(self.task_uuids.keys()),
+            "type": self.inspection_type,
+            "map": self.map_file,
+            "files": self.files,
+            "sensors": self.get_sensors(),
+            "pictures": {
+                "folder": "pictures",
+                "sensor_uuid": CAMERA_UUID,
+                "format": "jpg",
+                "size": CAMERA_IMAGE_SIZE,
+                "fov": CAMERA_FOV,
+            },
+        }
+
+        with open(config_file, "w") as outfile:
+            json.dump(report_config, outfile, indent=2)
+
+    def extract_objects(self):
+        print("[Report Generation]: Extracting object information.")
+        objects_csv_file = os.path.join(self.report_dir, self.files["objects"])
+        with open(objects_csv_file, "w") as f:
             writer = csv.writer(f)
-            for topic, message, t in bag.read_messages(topics=ODOM_TOPIC):
-                translation = [
-                    message.pose.pose.position.x,
-                    message.pose.pose.position.y,
-                    message.pose.pose.position.z,
-                ]
-                rotation = [
-                    message.pose.pose.orientation.x,
-                    message.pose.pose.orientation.y,
-                    message.pose.pose.orientation.z,
-                    message.pose.pose.orientation.w,
-                ]
-                entry = [t.to_sec(), task_uuid] + translation + rotation
-                writer.writerow(entry)
-                progress_bar.update(1)
+            # writer.writerow(
+            #     [
+            #         "stamp",
+            #         "task_uuid",
+            #         "obj_ref",
+            #         "obj_type",
+            #         "p_x",
+            #         "p_y",
+            #         "p_z",
+            #         "q_x",
+            #         "q_y",
+            #         "q_z",
+            #         "q_w",
+            #         "rotation_axis_x",
+            #         "rotation_axis_y",
+            #         "rotation_axis_z",
+            #         "obj_info_0",
+            #         "obj_info_1",
+            #         "obj_info_2",
+            #     ]
+            # )
 
-
-def extract_pictures(bag: rosbag.Bag, root_dir):
-    bridge = CvBridge()
-    images_delta_time = 5  # take a picture each 10 seconds
-    t_prev = -inf
-    img_idx = 0
-    pictures_csv_file = os.path.join(root_dir, "pictures_metadata.csv")
-    with open(pictures_csv_file, "w") as f:
-        writer = csv.writer(f)
-        for topic, message, t in bag.read_messages(topics=IMAGE_TOPIC):
-            if (t.to_sec() - t_prev) > images_delta_time:
-                t_prev = t.to_sec()
-
-                cam_translation = [0.0, 0.0, 0.0]
-                cam_rotation = [0.0, 0.0, 0.0, 1.0]
+            # BUG read only at object_times
+            # If we read all tf_times, the object appears already at the beginning of the bag (where it was not even detected)
+            for t in self.object_times:
+                # object info
+                obj_ref = 1
+                obj_type = OBJECT_TYPE
+                obj_info = [0.0, 0.0, 0.0]
 
                 try:
-                    tf_transform = tf_tree.lookup_transform_core(
-                        target_frame="odom",
-                        source_frame=message.header.frame_id,
-                        time=rospy.Time(0),
+                    obj_transform = self.tf_tree.lookup_transform_core(
+                        target_frame=MAP_FRAME,
+                        source_frame=OBJECT_FRAME,
+                        time=t,
                     )
-                    cam_translation = [
-                        tf_transform.transform.translation.x,
-                        tf_transform.transform.translation.y,
-                        tf_transform.transform.translation.z,
+                    obj_se3 = tf_to_se3(obj_transform)
+
+                    obj_position = [
+                        obj_transform.transform.translation.x,
+                        obj_transform.transform.translation.y,
+                        obj_transform.transform.translation.z,
                     ]
-                    cam_rotation = [
-                        tf_transform.transform.rotation.x,
-                        tf_transform.transform.rotation.y,
-                        tf_transform.transform.rotation.z,
-                        tf_transform.transform.rotation.w,
+                    obj_rotation = [
+                        obj_transform.transform.rotation.x,
+                        obj_transform.transform.rotation.y,
+                        obj_transform.transform.rotation.z,
+                        obj_transform.transform.rotation.w,
                     ]
-                except Exception as exc:
-                    pass
+                    obj_rotation_axis = obj_se3.rotation[:, 2]
 
-                # object info
-                obj_type = ["none"]
-                obj_position = [0.0, 0.0, 0.0]
-                obj_rotation = [0.0, 0.0, 0.0, 1.0]
-                obj_info = [0.0, 0.0, 0.0]
-                meta = (
-                    ["DSC{:06d}.jpg".format(img_idx), t_prev, task_uuid]
-                    + cam_translation
-                    + cam_rotation
-                    + obj_type
-                    + obj_position
-                    + obj_rotation
-                    + obj_info
-                )
-                writer.writerow(meta)
-                img_idx += 1
+                    entry = (
+                        [t.to_sec(), self.get_task_uuid(t), obj_ref, obj_type]
+                        + obj_position
+                        + obj_rotation
+                        + list(obj_rotation_axis)
+                        + obj_info
+                    )
+                    writer.writerow(entry)
+                    break
+                except tf2.ExtrapolationException:
+                    print(
+                        f"[extract_objects] Skipping time {t} as there is no valid tf"
+                    )
+                except tf2.LookupException:
+                    print(
+                        f"[extract_objects] Skipping time {t} as the object was not localized yet"
+                    )
 
-                # Save the image as well
-                cv2_img = bridge.imgmsg_to_cv2(message, "rgb8")
-                cv2.imwrite(os.path.join(root_dir, "pictures", meta[0]), cv2_img)
+    # def extract_telemetry(self):
+    #     print("[Report Generation]: Extracting telemetry information.")
+    #     telemetry_csv_file = os.path.join(self.report_dir, self.files["telemetry_data"])
+    #     with open(telemetry_csv_file, "w") as f:
+    #         writer = csv.writer(f)
+    #         # writer.writerow(
+    #         #     ["stamp", "task_uuid", "p_x", "p_y", "p_z", "q_x", "q_y", "q_z", "q_w"]
+    #         # )
+    #         for t in self.tf_times:
+    #             try:
+    #                 tf_transform = self.tf_tree.lookup_transform_core(
+    #                     target_frame=MAP_FRAME, source_frame=BASE_LINK_FRAME, time=t
+    #                 )
+    #                 translation = [
+    #                     tf_transform.transform.translation.x,
+    #                     tf_transform.transform.translation.y,
+    #                     tf_transform.transform.translation.z,
+    #                 ]
+    #                 rotation = [
+    #                     tf_transform.transform.rotation.x,
+    #                     tf_transform.transform.rotation.y,
+    #                     tf_transform.transform.rotation.z,
+    #                     tf_transform.transform.rotation.w,
+    #                 ]
+    #                 entry = [t.to_sec(), self.get_task_uuid(t)] + translation + rotation
+    #                 writer.writerow(entry)
+    #             except Exception as exc:
+    #                 print(exc)
+
+    def extract_odometry(self):
+        print("[Report Generation]: Extracting odometry information.")
+        telemetry_csv_file = os.path.join(self.report_dir, self.files["telemetry_data"])
+        odom_msgs_count = self.bag.get_message_count(ODOM_TOPIC)
+
+        with tqdm(total=odom_msgs_count) as progress_bar:
+            with open(telemetry_csv_file, "w") as f:
+                writer = csv.writer(f)
+                # writer.writerow(
+                #     [
+                #         "stamp",
+                #         "task_uuid",
+                #         "p_x",
+                #         "p_y",
+                #         "p_z",
+                #         "q_x",
+                #         "q_y",
+                #         "q_z",
+                #         "q_w",
+                #     ]
+                # )
+                for topic, message, t in self.bag.read_messages(topics=ODOM_TOPIC):
+                    task_uuid = self.get_task_uuid(t, True)
+                    if task_uuid is None:
+                        rospy.loginfo(
+                            f"Skipping odometry at time {t} as there is no corresponding task running"
+                        )
+                        continue
+                    assert message.header.frame_id == MAP_FRAME
+                    assert message.child_frame_id == BASE_LINK_FRAME
+                    translation = [
+                        message.pose.pose.position.x,
+                        message.pose.pose.position.y,
+                        message.pose.pose.position.z,
+                    ]
+                    rotation = [
+                        message.pose.pose.orientation.x,
+                        message.pose.pose.orientation.y,
+                        message.pose.pose.orientation.z,
+                        message.pose.pose.orientation.w,
+                    ]
+                    entry = [t.to_sec(), task_uuid] + translation + rotation
+                    writer.writerow(entry)
+                    progress_bar.update(1)
+
+    def extract_pictures(self):
+        print("[Report Generation]: Extracting pictures and saving metadata.")
+        pictures_folder = os.path.join(self.report_dir, self.files["pictures_folder"])
+        pictures_csv_file = os.path.join(
+            self.report_dir, self.files["pictures_metadata"]
+        )
+        os.makedirs(pictures_folder, exist_ok=True)
+
+        bridge = CvBridge()
+        t_prev = -inf
+        img_idx = 0
+        with open(pictures_csv_file, "w") as f:
+            writer = csv.writer(f)
+            # writer.writerow(
+            #     [
+            #         "file_name",
+            #         "stamp",
+            #         "task_uuid",
+            #         "cam_pos_x",
+            #         "cam_pos_y",
+            #         "cam_pos_z",
+            #         "cam_rot_x",
+            #         "cam_rot_y",
+            #         "cam_rot_z",
+            #         "cam_rot_w",
+            #         "obj_ref",
+            #     ]
+            # )
+            for topic, message, t in self.bag.read_messages(topics=IMAGE_TOPIC):
+                if (t.to_sec() - t_prev) > IMAGES_DELTA_TIME:
+                    t_prev = t.to_sec()
+
+                    cam_translation = [0.0, 0.0, 0.0]
+                    cam_rotation = [0.0, 0.0, 0.0, 1.0]
+
+                    try:
+                        tf_transform = self.tf_tree.lookup_transform_core(
+                            target_frame=MAP_FRAME,
+                            source_frame=message.header.frame_id.replace(
+                                "_optical", ""
+                            ),
+                            time=t,
+                        )
+                        cam_translation = [
+                            tf_transform.transform.translation.x,
+                            tf_transform.transform.translation.y,
+                            tf_transform.transform.translation.z,
+                        ]
+                        cam_rotation = [
+                            tf_transform.transform.rotation.x,
+                            tf_transform.transform.rotation.y,
+                            tf_transform.transform.rotation.z,
+                            tf_transform.transform.rotation.w,
+                        ]
+                    except tf2.LookupException:
+                        print(
+                            f"[extract_pictures] At time {t} the camera was not localized yet"
+                        )
+
+                    # object info
+                    obj_ref = 1
+
+                    meta = (
+                        [
+                            "DSC{:06d}.jpg".format(img_idx),
+                            t.to_sec(),
+                            self.get_task_uuid(t),
+                        ]
+                        + cam_translation
+                        + cam_rotation
+                        + [obj_ref]
+                    )
+                    writer.writerow(meta)
+                    img_idx += 1
+
+                    # Save the image as well
+                    cv2_img = bridge.imgmsg_to_cv2(message, "rgb8")
+                    cv2.imwrite(
+                        os.path.join(self.report_dir, "pictures", meta[0]), cv2_img
+                    )
+
+    def extract_wrench(self):
+        print("[Report Generation]: Extracting haptic wrench information.")
+        haptic_csv_file = os.path.join(self.report_dir, self.files["haptic_data"])
+        with open(haptic_csv_file, "w") as f:
+            writer = csv.writer(f)
+            # writer.writerow(
+            #     [
+            #         "stamp",
+            #         "task_uuid",
+            #         "obj_ref",
+            #         "angle",
+            #         "torque",
+            #     ]
+            # )
+            gripper_closed = False
+            object_path_inverted = None
+            object_angle = 0.0
+            for topic, msg, t in self.bag.read_messages(
+                topics=[
+                    WRENCH_TOPIC,
+                    JOINT_STATES_TOPIC,
+                    OBJECT_PATH_INVERTED_TOPIC,
+                    OBJECT_ANGLE_TOPIC,
+                ]
+            ):
+                if topic == WRENCH_TOPIC:
+                    task_uuid = self.get_task_uuid(t, True)
+                    if task_uuid is None:
+                        rospy.loginfo(
+                            f"Skipping wrench measurement at time {t} as there is no corresponding task running"
+                        )
+                        continue
+
+                    obj_ref = 1
+
+                    torque = 0.0
+                    if gripper_closed:
+                        T_v_ee = tf_to_se3(
+                            self.tf_tree.lookup_transform_core(
+                                target_frame=OBJECT_FRAME,
+                                source_frame=msg.header.frame_id,
+                                time=t,
+                            )
+                        )
+
+                        assert object_path_inverted is not None
+                        torque = msg.wrench.force.x * np.linalg.norm(T_v_ee.translation)
+                        torque = -torque if object_path_inverted else torque
+
+                    entry = (
+                        [t.to_sec(), task_uuid] + [obj_ref] + [object_angle] + [torque]
+                    )
+                    writer.writerow(entry)
+                if topic == JOINT_STATES_TOPIC:
+                    finger_joint = msg.name.index(JOINT_FINGER_NAME)
+                    finger_state = msg.position[finger_joint]
+                    gripper_closed = finger_state < GRIPPER_OPEN_THRESHOLD
+                if topic == OBJECT_PATH_INVERTED_TOPIC:
+                    object_path_inverted = msg.data
+                if topic == OBJECT_ANGLE_TOPIC:
+                    object_angle = msg.data
+
+    def run(self):
+        self.extract_config()
+        self.extract_objects()
+        self.extract_pictures()
+        # extract_telemetry(bag, report_dir) this uses tf, available when localizing against map
+        self.extract_odometry()
+        self.extract_wrench()
+
+    def compress(self, full_output_path=None):
+        """
+        Compress the report folder. Using the same folder name if no path provided.
+        """
+        full_output_path = (
+            self.report_dir if full_output_path is None else full_output_path
+        )
+        shutil.make_archive(full_output_path, "zip", self.report_dir)
 
 
-def extract_wrench(bag: rosbag.Bag, root_dir):
-    haptic_csv_file = os.path.join(root_dir, "haptic_sensing.csv")
-    with open(haptic_csv_file, "w") as f:
-        writer = csv.writer(f)
-        # just placeholder implementation to have a sequence of rows with reasonable timestamps
-        # and create a stuf file structure
-        idx = 0
-        for _, _, t in bag.read_messages():
-            if idx < 100:
-                obj_position = [0.0, 0.0, 0.0]
-                rotation_axis = [0.0, 0.0, 1.0]
-                angle = [0.0]
-                torque = [0.0]
-                entry = (
-                    [t.to_sec(), task_uuid]
-                    + obj_position
-                    + rotation_axis
-                    + angle
-                    + torque
-                )
-                writer.writerow(entry)
-                idx += 1
-            else:
-                break
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Generates a report.")
+    parser.add_argument("bag_path", help="Path to the bag file")
+    parser.add_argument(
+        "report_base_dir", help="Directory in which the report should be stored"
+    )
+    args = parser.parse_args()
 
-
-# open the bag
-print("[Report Generation]: Opening rosbag at {}".format(BAG))
-if not os.path.isfile(BAG):
-    print("No file {} was found".format(BAG))
-    sys.exit(0)
-bag = rosbag.Bag(BAG, mode="r")
-
-# fill the tf tree to retrieve transforms
-print("[Report Generation]: Reading tf info...")
-tf_tree, times = get_tf_tree(bag)
-
-report_config = {
-    "startDate": startDate,
-    "endDate": endDate,
-    "syncId": sync_id,
-    "uuid": robot_uuid,
-    "inspectionPlanUuid": inspection_plan_uuid,
-    "insepctionTaskUuids": inspection_task_uuids,
-    "type": inspection_type,
-    "map": map_file,
-    "files": get_files(),
-    "sensors": get_sensors(),
-    "pictures": {
-        "folder": "pictures",
-        "sensor_uuid": CAMERA_UUID,
-        "format": "jpg",
-        "size": {"width": 1280, "height": 720},
-        "fov": {  # https://www.intelrealsense.com/depth-camera-d435i/
-            "height": 69.0,
-            "vertical": 42.0,
-        },
-    },
-}
-
-print("[Report Generation]: Creating folder structure.")
-report_dir = os.path.join(ROOT_DIR, startDate + "_inspection_plan")
-os.makedirs(report_dir, exist_ok=True)
-
-print("[Report Generation]: Writing top level config file.")
-config_file = os.path.join(report_dir, "config.json")
-with open(config_file, "w") as outfile:
-    json.dump(report_config, outfile, indent=2)
-
-print("[Report Generation]: Extracting pictures and saving metadata.")
-pictures_folder = os.path.join(report_dir, "pictures")
-os.makedirs(pictures_folder, exist_ok=True)
-extract_pictures(bag, report_dir)
-
-print("[Report Generation]: Extracting telemetry information.")
-# extract_telemetry(bag, report_dir) this uses tf, available when localizing against map
-extract_odometry(bag, report_dir)
-
-print("[Report Generation]: Extracting haptic information.")
-extract_wrench(bag, report_dir)
+    print("[Report Generation]: Generating sample report")
+    report_generator = ReportGenerator(
+        bag_path=args.bag_path,
+        report_base_dir=args.report_base_dir,
+    )
+    report_generator.run()
+    report_generator.compress()

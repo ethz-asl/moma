@@ -9,24 +9,49 @@
     <license>TODO</license>
 
     <buildtool_depend>catkin</buildtool_depend>
-    <!-- <exec_depend>franka_hw</exec_depend>
+    <build_depend>rostest</build_depend>
+
+    <!-- franka dependencies -->
+    <!-- <exec_depend>franka_hw</exec_depend> -->
     <exec_depend>franka_description</exec_depend>
     <exec_depend>franka_ros</exec_depend>
-    <exec_depend>franka_control</exec_depend> -->
-    <!-- <exec_depend>panda_mpc</exec_depend> -->
-    <!-- <exec_depend>path_admittance_controller</exec_depend> -->
-    <!-- <exec_depend>moma_joint_space_controller</exec_depend> -->
-    <!-- <exec_depend>moma_sensor_tools</exec_depend>
-    <exec_depend>moma_mission</exec_depend>
+    <exec_depend>franka_control</exec_depend>
+
+    <!-- controller dependencies -->
+    <exec_depend>panda_mpc</exec_depend>
+    <exec_depend>path_passthrough_controller</exec_depend>
+    <exec_depend>path_admittance_controller</exec_depend>
+    <exec_depend>moma_joint_space_controller</exec_depend>
+    <exec_depend>moma_cartesian_impedance_controller</exec_depend>
     <exec_depend>moma_robot</exec_depend>
-    <exec_depend>odometry_conversion</exec_depend> -->
+
+    <!-- perception dependencies -->
+    <exec_depend>moma_sensor_tools</exec_depend>
+    <exec_depend>object_keypoints_ros</exec_depend>
+    <exec_depend>realsense2_camera</exec_depend>
+    <exec_depend>realsense2_description</exec_depend>
 
     <!-- piloting dependencies -->
+    <exec_depend>moma_mission</exec_depend>
     <exec_depend>mavsdk_ros</exec_depend>
 
+    <!-- ros dependencies -->
+    <exec_depend>controller_manager</exec_depend>
+    <exec_depend>robot_state_publisher</exec_depend>
+    <exec_depend>rviz</exec_depend>
+    <exec_depend>xacro</exec_depend>
+
+    <!-- sim dependencies -->
+    <exec_depend>gazebo_ros</exec_depend>
+    <exec_depend>moma_gazebo</exec_depend>
+
     <!-- smb dependencies -->
-    <!-- <exec_depend>smb_control</exec_depend> -->
-    <!-- <exec_depend>smb_description</exec_depend> -->
-    <!-- <exec_depend>smb_gazebo</exec_depend> -->
-    <!-- <exec_depend>smb_path_planner</exec_depend> -->
+    <exec_depend>smb_control</exec_depend>
+    <exec_depend>smb_description</exec_depend>
+    <exec_depend>smb_gazebo</exec_depend>
+    <exec_depend>smb_navigation</exec_depend>
+    <exec_depend>smb_path_planner</exec_depend>
+    <exec_depend>smb_slam</exec_depend>
+    <exec_depend>odometry_conversion</exec_depend>
+
 </package>

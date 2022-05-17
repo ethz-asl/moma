@@ -1,3 +1,9 @@
+#!/bin/bash
+export DEBIAN_FRONTEND=noninteractive
+
+# source ROS
+source /opt/ros/$ROS_DISTRO/setup.bash
+
 #DISTRIB_RELEASE=$(lsb_release -sr)
 . /etc/lsb-release
 
@@ -47,6 +53,7 @@ EOF
 
 install_pinocchio() {
   echo "Installing pinocchio"
+  source ~/.moma_bashrc
 
   mkdir -p ~/git
   git clone git@github.com:stack-of-tasks/pinocchio.git ~/git/pinocchio
@@ -85,6 +92,34 @@ EOF
 }
 
 
+install_mavsdk() {
+  mkdir -p ~/git
+  git clone https://github.com/fada-catec/piloting-mavsdk ~/git/piloting-mavsdk
+  cd ~/git/piloting-mavsdk
+  mkdir install
+  mkdir build && cd build
+  cmake .. -DCMAKE_INSTALL_PREFIX=${HOME}/git/piloting-mavsdk/install
+  make -j4
+  make install
+
+  cat << EOF >> ~/.moma_bashrc
+export LD_LIBRARY_PATH=${HOME}/git/piloting-mavsdk/install/lib:\$LD_LIBRARY_PATH
+export CMAKE_PREFIX_PATH=${HOME}/git/piloting-mavsdk/install:\$CMAKE_PREFIX_PATH
+EOF
+}
+
+
+install_object_keypoints() {
+  mkdir -p ~/git
+  git clone git@github.com:ethz-asl/object_keypoints.git -b monocular_fix ~/git/object_keypoints
+  cd ~/git/object_keypoints
+  pip3 install -r requirements.txt
+  pip3 install -e .
+  cd perception/corner_net_lite/core/models/py_utils/_cpools
+  python3 setup.py install --user
+}
+
+
 install_control() {
   #ROBOTPKG_NAMES=("robotpkg-octomap" "robotpkg-hpp-fcl")
   #dpkg -s "${ROBOTPKG_NAMES[@]}" >/dev/null 2>&1 || install_robotpkg
@@ -93,8 +128,16 @@ install_control() {
   info "Control dependencies installation successful"
 }
 
+install_piloting() {
+  pip3 install -r ${CATKIN_WS}/src/moma/moma_mission/requirements.txt
+  install_mavsdk
+  install_object_keypoints
+  info "Piloting dependencies installation successful"
+}
+
 install_system_deps() {
-sudo apt-get install \
+sudo --preserve-env=DEBIAN_FRONTEND apt-get install \
+  git git-lfs \
 	ros-$ROS_DISTRO-ros-control \
 	ros-$ROS_DISTRO-ros-controllers \
 	ros-$ROS_DISTRO-gazebo-ros-pkgs \
@@ -108,14 +151,15 @@ sudo apt-get install \
 	ros-$ROS_DISTRO-py-trees-ros \
 	ros-$ROS_DISTRO-rqt-py-trees \
 	ros-$ROS_DISTRO-libfranka \
+	ros-$ROS_DISTRO-franka-ros \
+	ros-$ROS_DISTRO-franka-description \
 	ros-$ROS_DISTRO-joint-state-publisher-gui \
 	ros-$ROS_DISTRO-ddynamic-reconfigure \
 	ros-$ROS_DISTRO-lms1xx \
 	ros-$ROS_DISTRO-interactive-marker-twist-server \
   ros-$ROS_DISTRO-plotjuggler-ros \
   ros-$ROS_DISTRO-jsk-rviz-plugins \
-  ros-$ROS_DISTRO-map-server \
-	qtbase5-dev -y || fail "Error installing system dependencies"
+	qtbase5-dev -qq || fail "Error installing system dependencies"
 }
 
 
@@ -123,13 +167,15 @@ install_external() {
 	vcs import --recursive --input moma/moma_core.repos || fail "Error importing dependencies"
 }
 
-usage="$(basename "$0") [-h] [-c --control] -- moma stack installation script\n
+usage="$(basename "$0") [-h] [-c --control] [-p --piloting] -- moma stack installation script\n
 where:\n
     -h  show this help text\n
-    -c  install control dependencies (required to build custom controllers)\n"
+    -c  install control dependencies (required to build custom controllers)\n
+    -p  install piloting dependencies (required to build piloting demo)\n"
 
 POSITIONAL=()
 INSTALL_CONTROL_DEPS=false
+INSTALL_PILOTING_DEPS=false
 while [[ $# -gt 0 ]]; do
   key="$1"
 
@@ -142,6 +188,10 @@ while [[ $# -gt 0 ]]; do
       INSTALL_CONTROL_DEPS=true
       shift # past argument
       ;;
+    -p|--piloting)
+      INSTALL_PILOTING_DEPS=true
+      shift # past argument
+      ;;
     *)    # unknown option
       POSITIONAL+=("$1") # save it in an array for later
       shift # past argument
@@ -152,6 +202,7 @@ done
 set -- "${POSITIONAL[@]}" # restore positional parameters
 
 info "Installing control dependencies  = ${INSTALL_CONTROL_DEPS}"
+info "Installing piloting dependencies  = ${INSTALL_PILOTING_DEPS}"
 
 
 if [ "$DISTRIB_RELEASE" == "20.04" ] && [ "$ROS_DISTRO" == "noetic" ]; then
@@ -175,11 +226,17 @@ then
   info "Installing control dependencies"
   install_control
 fi
+if $INSTALL_PILOTING_DEPS
+then
+  info "Installing piloting dependencies"
+  install_piloting
+fi
 
 info "Sourcing moma workspace"
-echo "source ${CATKIN_WS}/devel/setup.bash" >> ~/.moma_bashrc
+echo "source ${CATKIN_WS}/devel/setup.bash || true" >> ~/.moma_bashrc
 source ~/.moma_bashrc
 
+cd ${CATKIN_WS}
 catkin config --cmake-args -DCMAKE_BUILD_TYPE=RelWithDebInfo || fail
 info "Installation complete"
 info "Now you can build moma packages"

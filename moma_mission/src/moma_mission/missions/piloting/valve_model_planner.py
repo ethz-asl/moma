@@ -10,20 +10,33 @@ from moma_mission.missions.piloting.valve_fitting import ValveModel
 class ValveModelPlanner:
     """
     Generate graps and paths given a valve model
+
+    @param robot_base_pose: pose of the robot base, should be in the same frame as valve_model
     """
 
-    def __init__(self, valve_model=ValveModel()):
+    def __init__(self, valve_model=ValveModel(), robot_base_pose=None):
         self.valve_model = valve_model
+        self.robot_base_heading = None
 
-    def _get_all_grasping_poses(self, samples=100):
+        if robot_base_pose is not None:
+            # assert robot_base_pose.header.frame_id == valve_model.frame
+            # self.robot_base_heading = robot_base_pose.rotation[:, 0]  # trivial approach
+            self.robot_base_heading = valve_model.center - robot_base_pose.translation
+            self.robot_base_heading /= np.linalg.norm(self.robot_base_heading)
+
+    def _get_all_grasping_poses(self, inverted=False, samples=100):
         """
         Get all potential grasping poses
+
+        @param inverted: whether the gripper heading should be inverted
         """
         thetas = [i * 2 * np.pi / samples for i in range(samples)]
         points = [self.valve_model.get_point_on_wheel(theta) for theta in thetas]
 
         zdes = np.array([0.0, 0.0, -1.0])
         xs = [self.valve_model.get_tangent_on_wheel(theta) for theta in thetas]
+        if inverted:
+            xs = [-x for x in xs]
         zs = [zdes - np.dot(zdes, x) * x for x in xs]
         zs = [z / np.linalg.norm(z) for z in zs]
         ys = [np.cross(z, x) for x, z in zip(xs, zs)]
@@ -81,9 +94,26 @@ class ValveModelPlanner:
         Get a score for a particular grasping pose - the higher the better
         """
         z_axis = R.from_quat(grasp["orientation"]).as_matrix()[:, 2]
-        return np.dot(z_axis, np.array([0, 0, -1]))
+        z_score = np.dot(z_axis, np.array([0, 0, -1]))
 
-    def _get_valid_paths(self, grasps_start, grasps, angle_max=2 * np.pi):
+        # Avoid entangled robot configurations by considering the robot base heading
+        x_score = self._get_grasp_heading_score(grasp)
+
+        return z_score + x_score
+
+    def _get_grasp_heading_score(self, grasp):
+        """
+        Get a score for a particular grasping pose considering the heading w.r.t. the robot base
+        """
+        x_score = 0
+        if self.robot_base_heading is not None:
+            x_axis = R.from_quat(grasp["orientation"]).as_matrix()[:, 0]
+            x_score = np.dot(x_axis, self.robot_base_heading)
+        return x_score
+
+    def _get_valid_paths(
+        self, grasps_start, grasps, angle_max=2 * np.pi, inverted=False
+    ):
         """
         Get a list of valid paths
 
@@ -129,11 +159,18 @@ class ValveModelPlanner:
             # Thus it is important to average the final score
             # Note that the angle is always positive, independent of turning direction
             # to simplify evaluation and avoid taking abs() in comparisons
-            paths.append({"angle": angle, "score": score / len(poses), "poses": poses})
+            paths.append(
+                {
+                    "angle": angle,
+                    "score": score / len(poses),
+                    "inverted": inverted,
+                    "poses": poses,
+                }
+            )
 
         return paths
 
-    def get_path(self, angle_max=2 * np.pi):
+    def _get_all_valid_paths(self, angle_max, inverted=False):
         """
         Given a maximum angle that we want to achieve withing a single manipulation step
         extract a path with the following properties
@@ -141,17 +178,36 @@ class ValveModelPlanner:
         2. all the poses along the path points toward the center (if possible)
         3. all poses along the path are continuous
         4. the path meets the turning angle (otherwise, use longest available one)
-        5. prefer motion with a high score (if possible)
 
         @param angle_max: maximum turning angle (sign determines turning direction)
+        @param inverted: whether the gripper heading should be inverted
         """
-
-        grasps = self._get_all_grasping_poses()
+        grasps = self._get_all_grasping_poses(inverted=inverted)
         grasps = filter(self._is_radial_grasp, grasps)
         grasps = list(filter(self._is_non_singular_grasp, grasps))
         grasps_start = filter(self._is_non_obstructed_grasp, grasps)
 
-        all_paths = self._get_valid_paths(grasps_start, grasps, angle_max)
+        paths = self._get_valid_paths(
+            grasps_start=grasps_start,
+            grasps=grasps,
+            angle_max=angle_max,
+            inverted=inverted,
+        )
+        return paths
+
+    def get_path(self, angle_max=2 * np.pi):
+        """
+        Given a maximum angle that we want to achieve withing a single manipulation step
+        extract a path with the following properties
+        1. [...] see description of _get_all_valid_paths
+        2. prefer motion with a high score (if possible)
+
+        @param angle_max: maximum turning angle (sign determines turning direction)
+        """
+
+        all_paths = self._get_all_valid_paths(angle_max=angle_max, inverted=False)
+        if self.robot_base_heading is not None:
+            all_paths += self._get_all_valid_paths(angle_max=angle_max, inverted=True)
         valid_paths = [path for path in all_paths if path["angle"] >= abs(angle_max)]
 
         if len(all_paths) == 0:
@@ -168,6 +224,22 @@ class ValveModelPlanner:
         # Otherwise choose path with highest score
         rospy.logdebug_throttle(1.0, "Path with highest score is chosen")
         return max(valid_paths, key=lambda path: path["score"])
+
+    def get_path_approach_poses(self, path):
+        """
+        Get the optimal approaching poses for a given path, such that the robot heading is optimized,
+        avoiding entangled configurations
+        """
+        best_pose = max(
+            path["poses"], key=lambda pose: self._get_grasp_heading_score(pose)
+        )
+        best_pose_index = path["poses"].index(best_pose)
+        approach_poses = path["poses"][best_pose_index::-1]
+        # Better do the offset in the path_visitor
+        # approach_poses = copy.deepcopy(path["poses"][best_pose_index::-1])
+        # for pose in approach_poses:
+        #     pose["position"][2] += z_offset
+        return approach_poses
 
     def poses_to_ros(self, poses):
         posesa = PoseArray()
@@ -189,10 +261,30 @@ class ValveModelPlanner:
 if __name__ == "__main__":
     rospy.init_node("valve_planner_test")
 
-    poses_pub = rospy.Publisher("/plan", PoseArray, queue_size=1)
+    poses_pub = rospy.Publisher("/plan", PoseArray, queue_size=1, latch=True)
+    approach_poses_pub = rospy.Publisher(
+        "/plan_approach", PoseArray, queue_size=1, latch=True
+    )
+
+    # Robot mockup
+    import tf2_ros
+    from geometry_msgs.msg import TransformStamped
+    from moma_mission.utils.transforms import tf_to_se3
+
+    robot_pose_broadcaster = tf2_ros.StaticTransformBroadcaster()
+    robot_pose = TransformStamped()
+    robot_pose.header.stamp = rospy.Time.now()
+    robot_pose.header.frame_id = "map"
+    robot_pose.child_frame_id = "robot"
+    robot_pose.transform.translation.x = 0.5
+    robot_pose.transform.translation.y = 1.0
+    robot_pose.transform.translation.z = 0.0
+    robot_pose.transform.rotation.w = 1.0
+    robot_pose_broadcaster.sendTransform(robot_pose)
+    rospy.loginfo("Publishing mockup robot pose")
 
     valve_model = ValveModel(center=[0.5, 0.5, 0.5], depth=0.1)
-    valve_planner = ValvePlanner(valve_model)
+    valve_planner = ValveModelPlanner(valve_model, tf_to_se3(robot_pose))
 
     # valve_model.transform(pitch_deg=45)
     # valve_model.turn(45)
@@ -217,4 +309,8 @@ if __name__ == "__main__":
         poses_ros = valve_planner.poses_to_ros(grasps)
         poses_pub.publish(poses_ros)
 
-        rospy.sleep(0.02)
+        approach_poses = valve_planner.get_path_approach_poses(path)
+        approach_poses_ros = valve_planner.poses_to_ros(approach_poses)
+        approach_poses_pub.publish(approach_poses_ros)
+
+        # rospy.sleep(0.02)

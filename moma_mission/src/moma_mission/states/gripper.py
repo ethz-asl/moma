@@ -83,7 +83,7 @@ class GripperAction(StateRos):
         self.position = self.get_scoped_param("position")
         self.max_effort = self.get_scoped_param("max_effort")
         self.tolerance = self.get_scoped_param("tolerance")
-        self.server_timeout = self.get_scoped_param("timeout")
+        self.server_timeout = self.get_scoped_param("timeout", 35.0)
 
         self.gripper_goal = None
         self.gripper_action_name = self.get_scoped_param("gripper_action_name")

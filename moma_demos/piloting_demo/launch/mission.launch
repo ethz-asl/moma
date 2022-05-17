@@ -20,7 +20,7 @@
   <node pkg="tf2_ros"
         type="static_transform_publisher"
         name="hotspot_far_broadcaster"
-        args="-1 -1 0 0.79 0 0 valve_gt hotspot_far" />
+        args="-1 -2 0 0.79 0 0 valve_gt hotspot_far" />
 
   <node pkg="tf2_ros"
           type="static_transform_publisher"
@@ -30,7 +30,7 @@
   <!-- mission state machine -->
   <rosparam command="load" file="$(find moma_mission)/config/state_machine/piloting.yaml" subst_value="true"/>
   <rosparam command="load" file="$(find moma_mission)/config/state_machine/piloting_frames.yaml"/>
-  <node pkg="moma_mission" type="piloting.py" name="piloting_demo" output="screen">
+  <node pkg="moma_mission" type="piloting.py" name="piloting_demo" output="screen" required="true">
     <param name="telemetry_odom_topic" value="/camera/odom/sample"/>
   </node>
 </launch>

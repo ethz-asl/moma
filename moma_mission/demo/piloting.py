@@ -195,6 +195,9 @@ except Exception as exc:
 rospy.loginfo("\n\nRunning the mission state machine!\n\n")
 outcome = state_machine.execute()
 rospy.loginfo("Mission plan terminated with outcome {}.".format(outcome))
+if outcome != "Success":
+    sys.exit(1)
+sys.exit(0)
 
 # Wait for ctrl-c to stop the application
 # introspection_server.stop()

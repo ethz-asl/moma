@@ -20,3 +20,109 @@ jobs:
         run: |
           pip install pre-commit
           pre-commit run --all-files
+
+  deps:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+        with:
+          submodules: "recursive"
+
+      - name: Get changed base dependencies
+        id: changed-files
+        uses: tj-actions/changed-files@v18.6
+        with:
+          files: |
+            Dockerfile
+            moma_core.repos
+            moma_piloting.repos
+            install_dependencies.sh
+            **/requirements.txt
+
+      - name: Early exit - Image up to date
+        if: steps.changed-files.outputs.any_changed == 'false'
+        run: echo "No image to be built"
+
+      - name: Set up Docker Buildx
+        if: steps.changed-files.outputs.any_changed == 'true'
+        uses: docker/setup-buildx-action@v1
+
+      - name: Login to DockerHub
+        if: steps.changed-files.outputs.any_changed == 'true'
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.PILOTING_DOCKERHUB_USERNAME }}
+          password: ${{ secrets.PILOTING_DOCKERHUB_TOKEN }}
+
+      - name: Get deps and push
+        if: steps.changed-files.outputs.any_changed == 'true'
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          builder: ${{ steps.buildx.outputs.name }}
+          cache-from: type=registry,ref=${{ secrets.PILOTING_DOCKERHUB_USERNAME }}/noetic-deps:buildcache
+          cache-to: type=registry,ref=${{ secrets.PILOTING_DOCKERHUB_USERNAME }}/noetic-deps:buildcache,mode=max
+          push: true
+          target: deps
+          tags: ${{ secrets.PILOTING_DOCKERHUB_USERNAME }}/noetic-deps:${{github.event.number}}
+
+  build:
+    needs: deps
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+        with:
+          submodules: "recursive"
+          lfs: true
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.PILOTING_DOCKERHUB_USERNAME }}
+          password: ${{ secrets.PILOTING_DOCKERHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          builder: ${{ steps.buildx.outputs.name }}
+          cache-from: type=registry,ref=${{ secrets.PILOTING_DOCKERHUB_USERNAME }}/noetic-deps:buildcache
+          cache-to: type=registry,ref=${{ secrets.PILOTING_DOCKERHUB_USERNAME }}/noetic-deps:buildcache,mode=max
+          push: true
+          target: build
+          tags: ${{ secrets.PILOTING_DOCKERHUB_USERNAME }}/noetic-dev:${{github.event.number}}
+
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run docker test
+        run: |
+          export DISPLAY=:99
+          sudo Xvfb -ac :99 -screen 0 1280x1024x24 > /dev/null 2>&1 &
+          docker run -t --network host -e DISPLAY -v /tmp/.X11-unix ${{ secrets.PILOTING_DOCKERHUB_USERNAME }}/noetic-dev:${{github.event.number}} /bin/bash -c "rostest piloting_demo mission.test || (rostest --text piloting_demo mission.test && false)"
+
+#  test:
+#    needs: build
+#    runs-on: ubuntu-latest
+#    container:
+#      image: piloting/noetic-dev:latest
+#      options: --user root
+#    steps:
+#      - run: /ros_entrypoint.sh rostest piloting_demo mission.test
+
+#  test:
+#    needs: build
+#    runs-on: ubuntu-latest
+#
+#    steps:
+#      - name: Run tests
+#        uses: docker://piloting/noetic-dev:latest
+#        with:
+#          args: rostest piloting_demo mission.test
