@@ -67,6 +67,8 @@ class PathVisitorState(StateRosControl):
         self.poses = msg
 
     def run(self):
+        # Wait for poses callback to be triggered in case of latching
+        rospy.sleep(2.0)
         if self.poses is None:
             rospy.logerr(f"No poses received yet, can't publish path")
             return "Failure"
