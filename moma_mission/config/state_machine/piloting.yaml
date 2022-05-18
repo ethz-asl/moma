@@ -206,7 +206,7 @@ MANIPULATE_VALVE:
 
 STORE_FINAL_POSE:
   default_outcome: None
-  target_frame: panda_ee
+  target_frame: tool_frame
   control_frame: tracking_camera_odom
   store_frame: final_pose
 
