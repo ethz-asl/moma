@@ -3,6 +3,7 @@ import numpy as np
 import tf
 import pinocchio as pin
 
+from geometry_msgs.msg import PoseStamped
 from nav_msgs.msg import Path
 
 from moma_mission.core import StateRosControl
@@ -21,13 +22,21 @@ class TransformVisitorState(StateRosControl):
         self.timeout = self.get_scoped_param(
             "timeout", 2 * self.duration if self.duration > 0 else 30.0
         )
+        self.mode = self.get_scoped_param("mode", "path")  # "path", "pose"
         self.allow_flip = self.get_scoped_param("allow_flip", False)
         self.linear_tolerance = self.get_scoped_param("linear_tolerance", 0.02)
         self.angular_tolerance = self.get_scoped_param("angular_tolerance", 0.1)
 
-        self.path_publisher = rospy.Publisher(
-            self.get_scoped_param("path_topic", "/desired_path"), Path, queue_size=1
-        )
+        if self.mode == "pose":
+            self.pose_publisher = rospy.Publisher(
+                self.get_scoped_param("pose_topic", "/desired_pose"),
+                PoseStamped,
+                queue_size=1,
+            )
+        elif self.mode == "path":
+            self.path_publisher = rospy.Publisher(
+                self.get_scoped_param("path_topic", "/desired_path"), Path, queue_size=1
+            )
 
     def run(self):
         controller_switched = self.do_switch()
@@ -36,7 +45,7 @@ class TransformVisitorState(StateRosControl):
 
         path = Path()
         path.header.frame_id = self.control_frame
-        if self.duration > 0:
+        if self.duration > 0 and self.mode == "path":
             # Add the current position to the path,
             # such that the path motion velocity is respected,
             # which is not the case for a singleton path
@@ -65,7 +74,11 @@ class TransformVisitorState(StateRosControl):
         )
         path.poses.append(pose_stamped)
 
-        self.path_publisher.publish(path)
+        if self.mode == "path":
+            self.path_publisher.publish(path)
+        elif self.mode == "pose":
+            self.pose_publisher.publish(path.poses[-1])
+
         if not self.wait_until_reached(
             self.ee_frame,
             path.poses[-1],

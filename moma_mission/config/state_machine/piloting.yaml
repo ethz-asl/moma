@@ -204,22 +204,31 @@ MANIPULATE_VALVE:
 
   poses_topic: /valve_poses
 
+STORE_FINAL_POSE:
+  default_outcome: None
+  target_frame: tool_frame
+  control_frame: tracking_camera_odom
+  store_frame: final_pose
+
+APPROACH_FINAL_POSE:
+  default_outcome: None
+  target_frame: final_pose
+  control_frame: panda_link0
+  mode: pose
+  pose_topic: "/panda/cartesian_impedance_controller/equilibrium_pose"
+  startlist: ["cartesian_impedance_controller"]
+  stoplist: []
+  manager_namespace: panda
+
 BACKOFF_VALVE:
   default_outcome: None
-  mode: pose
+  target_frame: final_pose
   control_frame: panda_link0
+  mode: pose
   pose_topic: "/panda/cartesian_impedance_controller/equilibrium_pose"
   manager_namespace: panda
   startlist: ["cartesian_impedance_controller"]
-  stoplist:
-    [
-      "mpc_controller",
-      "mpc_wholebody_controller",
-      "joint_space_controller",
-      "path_passthrough_controller",
-    ]
-  duration: 10.0
+  stoplist: []
 
-  poses_topic: /valve_poses
+  duration: 10.0
   offset: [0, 0, -0.1]
-  section: "last"

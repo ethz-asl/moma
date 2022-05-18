@@ -1,1 +1,2 @@
 easydict==1.9
+scipy==1.7.3

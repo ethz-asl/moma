@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 import rospy
 from actionlib.simple_action_client import SimpleActionClient
 from actionlib.simple_action_server import SimpleActionServer
