@@ -1,0 +1,3 @@
+FROM catecupia/piloting_grcs
+COPY jfloor_white_sparsified.pcd /root/jfloor_white.pcd
+RUN rm /root/jfloor_white.bin

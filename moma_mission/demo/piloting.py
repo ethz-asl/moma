@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 import sys
 import rospy
-import smach
-import smach_ros
 from moma_mission.core.state_ros import *
 from moma_mission.missions.piloting.states import *
 from moma_mission.missions.piloting.sequences import *
@@ -10,6 +8,10 @@ from moma_mission.states.observation import FOVSamplerState
 from moma_mission.states.transform_visitor import TransformVisitorState
 from moma_mission.states.transform_recorder import TransformRecorderState
 from moma_mission.states.path_visitor import PathVisitorState
+from moma_mission.states.waypoint_bridge import (
+    WaypointBroadcasterState,
+    WaypointReachedState,
+)
 
 
 # Init ros
@@ -44,8 +46,19 @@ try:
             "IDLE",
             Idle,
             transitions={
-                "ExecuteInspectionPlan": "WAYPOINT_FOLLOWING",
-                "ExecuteManipulationPlan": "REACH_DETECTION_HOTSPOT_FAR",
+                "ExecuteInspectionPlan": "WAYPOINT_BROADCAST",
+                "ExecuteDummyPlan": "REACH_DETECTION_HOTSPOT_FAR",
+                "ManipulateValve": "DETECTION_DECISION",
+                "Failure": "Failure",
+            },
+        )
+
+        rospy.loginfo("Broadcast waypoint")
+        state_machine.add(
+            "WAYPOINT_BROADCAST",
+            WaypointBroadcasterState,
+            transitions={
+                "Completed": "WAYPOINT_FOLLOWING",
                 "Failure": "Failure",
             },
         )
@@ -70,11 +83,21 @@ try:
         rospy.loginfo("Waypoint following")
         state_machine.add(
             "WAYPOINT_FOLLOWING",
-            WaypointNavigationState,
+            NavigationState,
             transitions={
-                "Completed": "Success",
+                "Completed": "WAYPOINT_REACHED",
                 "Failure": "Failure",
-                "NextWaypoint": "WAYPOINT_FOLLOWING",
+            },
+        )
+
+        rospy.loginfo("Waypoint reached")
+        state_machine.add(
+            "WAYPOINT_REACHED",
+            WaypointReachedState,
+            transitions={
+                "Next": "IDLE",
+                "Completed": "REACH_DETECTION_HOTSPOT_CLOSE",
+                "Failure": "Failure",
             },
         )
 
