@@ -11,8 +11,8 @@
   <!-- valve model -->
   <include file="$(find piloting_demo)/launch/valve.launch">
     <arg name="sim" value="$(arg sim)"/>
-    <arg name="x" value="2.5"/>
-    <arg name="y" value="2.5"/>
+    <arg name="x" value="2.0"/>
+    <arg name="y" value="2.0"/>
     <!-- arg name="z" value="0"/-->
   </include>
 

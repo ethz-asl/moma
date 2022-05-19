@@ -263,7 +263,7 @@ class ModelFitValveState(StateRos):
         self.dummy_position = self.get_scoped_param("dummy_position")
         self.dummy_orientation = self.get_scoped_param("dummy_orientation")
 
-        self.k = 3  # TODO move to params or constants
+        self.num_spokes = self.get_scoped_param("num_spokes")
         self.error_threshold = self.get_scoped_param("error_threshold")
         self.min_successful_detections = self.get_scoped_param(
             "min_successful_detections"
@@ -281,7 +281,7 @@ class ModelFitValveState(StateRos):
         self.successful_detections = 0
         self.detections = []
         self.camera_pose = None
-        self.valve_fitter = ValveFitter(k=self.k)
+        self.valve_fitter = ValveFitter(num_spokes=self.num_spokes)
         self.ransac_matcher = RansacMatcher(
             acceptance_ratio=self.acceptance_ratio,
             min_consensus=self.min_consensus,
@@ -397,7 +397,7 @@ class ModelFitValveState(StateRos):
         req = KeypointsPerceptionRequest()
         res = self.perception_srv_client.call(req)
 
-        if len(res.keypoints.poses) != self.k + 1:
+        if len(res.keypoints.poses) != self.num_spokes + 1:
             return False
 
         self.frame_id = res.keypoints.header.frame_id
