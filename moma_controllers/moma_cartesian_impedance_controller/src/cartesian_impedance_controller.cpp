@@ -373,7 +373,11 @@ void CartesianImpedanceController::update(const ros::Time& /*time*/,
   error.tail(3) << -transform.linear() * error.tail(3);
   // ROS_INFO_STREAM_THROTTLE(1.0, "error=" << error.transpose());
 
-  error_integrator_ += params_.cartesian_stiffness_i_ * error;
+  error_integrator_.head(3) += orientation * params_.cartesian_stiffness_i_.topLeftCorner(3, 3) *
+                               orientation.inverse() * error.head(3);
+  error_integrator_.tail(3) += orientation *
+                               params_.cartesian_stiffness_i_.bottomRightCorner(3, 3) *
+                               orientation.inverse() * error.tail(3);
   error_integrator_ = error_integrator_.cwiseMin(params_.windup_limit_);
   error_integrator_ = error_integrator_.cwiseMax(-params_.windup_limit_);
 
@@ -488,10 +492,12 @@ void CartesianImpedanceController::complianceParamCallback(
       << config.rotational_stiffness * Eigen::Matrix3d::Identity();
 
   new_params_.cartesian_stiffness_i_.setIdentity();
-  new_params_.cartesian_stiffness_i_.topLeftCorner(3, 3)
-      << config.translational_stiffness_i * Eigen::Matrix3d::Identity();
-  new_params_.cartesian_stiffness_i_.bottomRightCorner(3, 3)
-      << config.rotational_stiffness_i * Eigen::Matrix3d::Identity();
+  new_params_.cartesian_stiffness_i_(0, 0) = config.translational_stiffness_i_x;
+  new_params_.cartesian_stiffness_i_(1, 1) = config.translational_stiffness_i_y;
+  new_params_.cartesian_stiffness_i_(2, 2) = config.translational_stiffness_i_z;
+  new_params_.cartesian_stiffness_i_(3, 3) = config.rotational_stiffness_i_x;
+  new_params_.cartesian_stiffness_i_(4, 4) = config.rotational_stiffness_i_y;
+  new_params_.cartesian_stiffness_i_(5, 5) = config.rotational_stiffness_i_z;
   new_params_.windup_limit_.setZero();
   new_params_.windup_limit_.head(3) = config.translational_windup_limit * Eigen::Vector3d::Ones();
   new_params_.windup_limit_.tail(3) = config.rotational_windup_limit * Eigen::Vector3d::Ones();
