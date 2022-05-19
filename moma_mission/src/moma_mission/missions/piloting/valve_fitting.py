@@ -205,8 +205,8 @@ class Camera:
 
 
 class ValveFitter:
-    def __init__(self, k) -> None:
-        self.k = k
+    def __init__(self, num_spokes) -> None:
+        self.num_spokes = num_spokes
         self.observations = []
 
     def add_observation(self, camera, keypoints, weights):
@@ -269,9 +269,9 @@ class ValveFitter:
         return p_3d[:3, :]
 
     def _pnp(self, radius_hypotesis):
-        points_3d = np.zeros((self.k + 1, 3))
-        for i in range(self.k):
-            theta = 2 * i * np.pi / self.k
+        points_3d = np.zeros((self.num_spokes + 1, 3))
+        for i in range(self.num_spokes):
+            theta = 2 * i * np.pi / self.num_spokes
             points_3d[i + 1, :] = radius_hypotesis * np.array([1.0, 0.0, 0.0]) * np.cos(
                 theta
             ) + radius_hypotesis * np.array([0.0, 1.0, 0.0]) * np.sin(theta)
@@ -297,7 +297,9 @@ class ValveFitter:
         v2 = T_cam_valve[:3, 1]
 
         r = radius_hypotesis
-        return ValveModel(center=c, radius=r, axis_1=v1, axis_2=v2, num_spokes=self.k)
+        return ValveModel(
+            center=c, radius=r, axis_1=v1, axis_2=v2, num_spokes=self.num_spokes
+        )
 
     def residual_fun(self, x):
         v1 = x[3:6]
@@ -308,8 +310,8 @@ class ValveFitter:
 
         C = to_homogeneous(x[:3])
         P = []
-        for i in range(self.k):
-            theta = 2 * i * np.pi / self.k
+        for i in range(self.num_spokes):
+            theta = 2 * i * np.pi / self.num_spokes
             P.append(
                 C[:3] + delta * n + r * v1 * np.cos(theta) + r * v2 * np.sin(theta)
             )
@@ -318,16 +320,18 @@ class ValveFitter:
         residual = 0.0
         for cam, kpts, w in self.observations:
             proj_c_hom = cam.K @ cam.T[:3, :] @ C
-            proj_p_hom = [cam.K @ cam.T[:3, :] @ P[i] for i in range(self.k)]
+            proj_p_hom = [cam.K @ cam.T[:3, :] @ P[i] for i in range(self.num_spokes)]
 
             proj_c = proj_c_hom[:2] / proj_c_hom[2]
-            proj_p = [proj_p_hom[i][:2] / proj_p_hom[i][2] for i in range(self.k)]
+            proj_p = [
+                proj_p_hom[i][:2] / proj_p_hom[i][2] for i in range(self.num_spokes)
+            ]
 
             residual += w[0] * np.linalg.norm(proj_c - kpts[0, :])
             residual += sum(
                 [
                     w[i + 1] * np.linalg.norm(proj_p[i] - kpts[i + 1, :])
-                    for i in range(self.k)
+                    for i in range(self.num_spokes)
                 ]
             )
         return residual
@@ -467,7 +471,12 @@ radius = {x[10]}
         delta = x[9]
         r = x[10]
         return ValveModel(
-            center=c, radius=r, axis_1=v1, axis_2=v2, num_spokes=self.k, depth=delta
+            center=c,
+            radius=r,
+            axis_1=v1,
+            axis_2=v2,
+            num_spokes=self.num_spokes,
+            depth=delta,
         )
 
 
