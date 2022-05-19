@@ -16,13 +16,21 @@ class TestPilotingMission(unittest.TestCase):
         os.system(
             f"perl -i -0777 -pe 's/(IDLE:.*?default_outcome: ).*?\n/\\1ExecuteDummyPlan\n/s' {moma_mission_path}/config/state_machine/piloting.yaml"
         )
-        rospy.sleep(120)  # Wait for environment
+        rospy.sleep(20)  # Wait for environment
         p = subprocess.Popen(
             ["roslaunch", "piloting_demo", "mission.launch", "sim:=true"],
+            stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
         err = str(p.stderr.read())
+        out = str(p.stdout.read())
         p.communicate()
+        # Since the rostest framework doesn't handle stdout well (--text option)
+        # we write it to file
+        with open("/tmp/piloting_mission.log", "w") as file:
+            file.write(out.replace("\\n", "\n").replace("\\t", "\t"))
+        with open("/tmp/piloting_mission.err", "w") as file:
+            file.write(err.replace("\\n", "\n").replace("\\t", "\t"))
         self.assertEquals("exit code" in err, False)
         # https://github.com/ros/ros_comm/issues/919
         self.assertEquals(p.returncode, 0)
