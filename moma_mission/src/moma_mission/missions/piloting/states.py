@@ -615,8 +615,8 @@ class ValveManipulationModelState(StateRos):
         if self.robot_base_frame is not None:
             robot_base_pose = tf_to_se3(
                 self.tf_buffer.lookup_transform(
-                    self.robot_base_frame,
                     valve_model.frame,
+                    self.robot_base_frame,
                     rospy.Time(0),  # tf at first available time
                     rospy.Duration(3),
                 )
