@@ -5,5 +5,10 @@
     <arg name="rviz" value="false" />
   </include>
 
+  <include file="$(find piloting_demo)/launch/mission.launch">
+    <arg name="sim" value="true"/>
+    <arg name="delay" value="20"/>
+  </include>
+
   <test test-name="piloting_mission" pkg="piloting_demo" type="test.py" time-limit="1800.0"/>
 </launch>

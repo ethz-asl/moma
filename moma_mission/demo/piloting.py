@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import sys
 import rospy
+from std_msgs.msg import Int8
 from moma_mission.core.state_ros import *
 from moma_mission.missions.piloting.states import *
 from moma_mission.missions.piloting.sequences import *
@@ -21,6 +22,9 @@ rospy.init_node("piloting_demo")
 Valve.init_from_ros()
 Frames.init_from_ros()
 Frames.print_summary()
+
+# Init test result feedback
+result_pub = rospy.Publisher("/piloting_mission", Int8, queue_size=1, latch=True)
 
 # Build the state machine
 state_machine = StateMachineRos(outcomes=["Success", "Failure"])
@@ -233,8 +237,14 @@ except Exception as exc:
 rospy.loginfo("\n\nRunning the mission state machine!\n\n")
 outcome = state_machine.execute()
 rospy.loginfo("Mission plan terminated with outcome {}.".format(outcome))
+result = Int8()
 if outcome != "Success":
+    result.data = 1
+    result_pub.publish(result)
+    rospy.sleep(10)
     sys.exit(1)
+result.data = 0
+result_pub.publish(result)
 sys.exit(0)
 
 # Wait for ctrl-c to stop the application

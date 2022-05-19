@@ -5,6 +5,7 @@ import unittest
 import rospy
 import rospkg
 import subprocess
+from std_msgs.msg import Int8
 
 
 class TestPilotingMission(unittest.TestCase):
@@ -16,19 +17,24 @@ class TestPilotingMission(unittest.TestCase):
         os.system(
             f"perl -i -0777 -pe 's/(IDLE:.*?default_outcome: ).*?\n/\\1ExecuteDummyPlan\n/s' {moma_mission_path}/config/state_machine/piloting.yaml"
         )
-        rospy.sleep(120)  # Wait for environment
-        p = subprocess.Popen(
-            ["roslaunch", "piloting_demo", "mission.launch", "sim:=true"],
-            stderr=subprocess.PIPE,
-        )
-        err = str(p.stderr.read())
-        p.communicate()
-        self.assertEquals("exit code" in err, False)
-        # https://github.com/ros/ros_comm/issues/919
-        self.assertEquals(p.returncode, 0)
+        result = rospy.wait_for_message("/piloting_mission", Int8)
+        self.assertEquals(result, 0)
+
+        # rospy.sleep(120)  # Wait for environment
+        # p = subprocess.Popen(
+        #     ["roslaunch", "piloting_demo", "mission.launch", "sim:=true"],
+        #     stderr=subprocess.PIPE,
+        # )
+        # err = str(p.stderr.read())
+        # p.communicate()
+        # self.assertEquals("exit code" in err, False)
+        # # https://github.com/ros/ros_comm/issues/919
+        # self.assertEquals(p.returncode, 0)
 
 
 if __name__ == "__main__":
     import rostest
+
+    rospy.init_node("piloting_demo_test")
 
     rostest.rosrun(PKG, "test_piloting_mission", TestPilotingMission)

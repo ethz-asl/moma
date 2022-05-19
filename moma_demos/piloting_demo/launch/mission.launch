@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
 <launch>
   <arg name="sim" default="false"/>
+  <arg name="delay" default="0"/>
 
   <!-- Load joint controller to publish the joint state under object namespace -->
   <group ns="valve" if="$(arg sim)">
@@ -30,7 +31,7 @@
   <!-- mission state machine -->
   <rosparam command="load" file="$(find moma_mission)/config/state_machine/piloting.yaml" subst_value="true"/>
   <rosparam command="load" file="$(find moma_mission)/config/state_machine/piloting_frames.yaml"/>
-  <node pkg="moma_mission" type="piloting.py" name="piloting_demo" output="screen" required="true">
+  <node pkg="moma_mission" type="piloting.py" name="piloting_demo" output="screen" required="true" launch-prefix="bash -c 'sleep $(arg delay); $0 $@' ">
     <param name="telemetry_odom_topic" value="/base_odom"/>
   </node>
 </launch>
