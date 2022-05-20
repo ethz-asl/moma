@@ -16,9 +16,6 @@ class TestPilotingMission(unittest.TestCase):
         os.system(
             f"perl -i -0777 -pe 's/(IDLE:.*?default_outcome: ).*?\n/\\1ExecuteDummyPlan\n/s' {moma_mission_path}/config/state_machine/piloting.yaml"
         )
-        os.system(
-            f"perl -i -0777 -pe 's/(MODEL_FIT_VALVE:.*?num_spokes: ).*?\n/${{1}}3\n/s' {moma_mission_path}/config/state_machine/piloting.yaml"
-        )
         rospy.sleep(120)  # Wait for environment
         p = subprocess.Popen(
             ["roslaunch", "piloting_demo", "mission.launch", "sim:=true"],
