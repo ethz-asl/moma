@@ -67,7 +67,8 @@ REACH_DETECTION_HOTSPOT_FAR:
 
   manager_namespace: smb
   startlist: ["smb_diff_drive"]
-  stoplist: ["mpc_controller", "mpc_wholebody_controller"]
+  stopmap:
+    panda: ["mpc_controller", "mpc_wholebody_controller"]
 
   timeout: 10000.0
   tolerance_m: 0.30
@@ -79,6 +80,8 @@ REACH_DETECTION_HOTSPOT_CLOSE:
   control_frame: tracking_camera_odom
   target_frame: hotspot_close
   startlist: ["mpc_wholebody_controller", "path_passthrough_controller"]
+  startmap:
+    smb: ["smb_diff_drive"]
   stoplist: ["mpc_controller", "joint_space_controller"]
   manager_namespace: panda
 
@@ -95,7 +98,8 @@ WAYPOINT_FOLLOWING:
 
   manager_namespace: smb
   startlist: ["smb_diff_drive"]
-  stoplist: ["mpc_controller", "mpc_wholebody_controller"]
+  stopmap:
+    panda: ["mpc_controller", "mpc_wholebody_controller"]
 
   timeout: 10000.0
   tolerance_m: 0.30
