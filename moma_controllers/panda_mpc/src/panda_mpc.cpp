@@ -42,8 +42,7 @@ bool PandaMpcController::init(hardware_interface::RobotHW* robot_hw, ros::NodeHa
   velocity_current_ = Eigen::VectorXd::Zero(ocs2::mobile_manipulator::STATE_DIM(armInputDim_));
   ROS_INFO("[PandaMpc::init] robot model successfully initialized");
 
-  mpc_controller_ = std::unique_ptr<moma_controllers::MpcController<armInputDim_>>(
-      new moma_controllers::MpcController<armInputDim_>(controller_nh));
+  mpc_controller_ = std::make_unique<moma_controllers::MpcController<armInputDim_>>(controller_nh);
   if (!mpc_controller_->init()) {
     ROS_ERROR("Failed to initialize the MPC controller");
     return false;
