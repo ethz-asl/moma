@@ -131,6 +131,7 @@ OBSERVATION_APPROACH:
 
 MODEL_FIT_VALVE:
   default_outcome: None
+  num_spokes: 5
   dummy: false
   dummy_position: [0.8, 0.0, 0.5]
   dummy_orientation: [0.0, 0.707, 0.0, 0.707]
