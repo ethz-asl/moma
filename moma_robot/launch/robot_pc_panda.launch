@@ -30,6 +30,8 @@
         <param name="robot_ip" value="$(arg robot_ip)" />
       </node>
 
+      <node name="panda_autorecovery" pkg="moma_robot" type="panda_autorecovery.py" output="screen"/>
+
       <!-- Launch franka gripper -->
       <include file="$(find franka_gripper)/launch/franka_gripper.launch" if="$(arg load_gripper)">
          <arg name="robot_ip" value="$(arg robot_ip)" />

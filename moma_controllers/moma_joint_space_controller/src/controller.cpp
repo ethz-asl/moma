@@ -277,7 +277,7 @@ void JointSpaceController::execute_callback(const moma_msgs::JointGoalConstPtr& 
   while (ros::ok()) {
     // check that preempt has not been requested by the client
     if (action_server_->isPreemptRequested()) {
-      ROS_INFO("JointTrajectoryController preempted");
+      ROS_INFO("JointSpaceController preempted");
       action_server_->setPreempted();
       trajectory_available_ = false;
       return;
@@ -286,7 +286,7 @@ void JointSpaceController::execute_callback(const moma_msgs::JointGoalConstPtr& 
     if (success_) {
       result.success = true;
       action_server_->setSucceeded(result);
-      ROS_INFO("[JointTrajectoryController::execute_callback]: Goal reached.");
+      ROS_INFO("[JointSpaceController::execute_callback]: Goal reached.");
       trajectory_available_ = false;
 
       // freeze robot

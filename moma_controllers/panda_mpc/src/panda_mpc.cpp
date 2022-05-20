@@ -40,11 +40,11 @@ bool PandaMpcController::init(hardware_interface::RobotHW* robot_hw, ros::NodeHa
 
   position_current_ = Eigen::VectorXd::Zero(ocs2::mobile_manipulator::STATE_DIM(armInputDim_));
   velocity_current_ = Eigen::VectorXd::Zero(ocs2::mobile_manipulator::STATE_DIM(armInputDim_));
-  ROS_INFO("[PandaMpc::init] robot model successfully initialized");
+  ROS_INFO("[PandaMpcController::init] robot model successfully initialized");
 
   mpc_controller_ = std::make_unique<moma_controllers::MpcController<armInputDim_>>(controller_nh);
   if (!mpc_controller_->init()) {
-    ROS_ERROR("Failed to initialize the MPC controller");
+    ROS_ERROR("[PandaMpcController::init] Failed to initialize the MPC controller");
     return false;
   }
 
@@ -52,46 +52,46 @@ bool PandaMpcController::init(hardware_interface::RobotHW* robot_hw, ros::NodeHa
     odom_sub_ = node_handle.subscribe(odom_topic_, 1, &PandaMpcController::odom_callback, this);
   }
 
-  ROS_INFO("Controller successfully initialized!");
+  ROS_INFO("[PandaMpcController::init] Controller successfully initialized!");
   started_ = false;
   return true;
 }
 
 bool PandaMpcController::init_parameters(ros::NodeHandle& node_handle) {
   if (!node_handle.getParam("simulation", sim_)) {
-    ROS_ERROR("PandaMpcController: Could not read parameter simulation");
+    ROS_ERROR("[PandaMpcController] Could not read parameter simulation");
     return false;
   }
 
   /*if (!node_handle.getParam("world_frame", world_frame_)) {
-    ROS_ERROR("PandaMpcController: Could not read parameter world_frame");
+    ROS_ERROR("[PandaMpcController] Could not read parameter world_frame");
     return false;
   }
 
   if (!node_handle.getParam("base_link", base_link_)) {
-    ROS_ERROR("PandaMpcController: Could not read parameter base_link");
+    ROS_ERROR("[PandaMpcController] Could not read parameter base_link");
     return false;
   }*/
 
   if (!node_handle.getParam("arm_id", arm_id_)) {
-    ROS_ERROR("PandaMpcController: Could not read parameter arm_id");
+    ROS_ERROR("[PandaMpcController] Could not read parameter arm_id");
     return false;
   }
 
   if (!node_handle.getParam("joint_names", joint_names_) || joint_names_.size() != armInputDim_) {
     ROS_ERROR(
-        "PandaMpcController: Invalid or no joint_names parameters "
+        "[PandaMpcController] Invalid or no joint_names parameters "
         "provided, aborting "
         "controller init!");
     return false;
   }
 
   if (!node_handle.getParam("odom_topic", odom_topic_)) {
-    ROS_WARN("PandaMpcController: Could not read parameter odom_topic, ignoring");
+    ROS_WARN("[PandaMpcController] Could not read parameter odom_topic, ignoring");
   }
 
   if (!node_handle.getParam("command_base_topic", command_base_topic_)) {
-    ROS_WARN("PandaMpcController: Could not read parameter command_base_topic, ignoring");
+    ROS_WARN("[PandaMpcController] Could not read parameter command_base_topic, ignoring");
   } else {
     command_base_pub_ = node_handle.advertise<geometry_msgs::Twist>(command_base_topic_, 1);
   }
@@ -106,12 +106,12 @@ bool PandaMpcController::init_parameters(ros::NodeHandle& node_handle) {
   }
 
   if (!node_handle.getParam("coriolis_factor", coriolis_factor_)) {
-    ROS_INFO_STREAM("PandaMpcController: coriolis_factor not found. Defaulting to "
+    ROS_INFO_STREAM("[PandaMpcController] coriolis_factor not found. Defaulting to "
                     << coriolis_factor_);
   }
 
   if (!node_handle.getParam("measurement_trust_factor", measurement_trust_factor_)) {
-    ROS_INFO_STREAM("PandaMpcController: measurement_trust_factor not found. Defaulting to "
+    ROS_INFO_STREAM("[PandaMpcController] measurement_trust_factor not found. Defaulting to "
                     << measurement_trust_factor_);
   }
 
@@ -126,7 +126,7 @@ bool PandaMpcController::init_common_interfaces(hardware_interface::RobotHW* rob
   auto* effort_joint_interface = robot_hw->get<hardware_interface::EffortJointInterface>();
   if (effort_joint_interface == nullptr) {
     ROS_ERROR_STREAM(
-        "PandaMpcController: Error getting effort joint interface from "
+        "[PandaMpcController] Error getting effort joint interface from "
         "hardware");
     return false;
   }
@@ -134,7 +134,7 @@ bool PandaMpcController::init_common_interfaces(hardware_interface::RobotHW* rob
     try {
       joint_handles_.push_back(effort_joint_interface->getHandle(joint_names_[i]));
     } catch (const hardware_interface::HardwareInterfaceException& ex) {
-      ROS_ERROR_STREAM("PandaMpcController: Exception getting joint handles: " << ex.what());
+      ROS_ERROR_STREAM("[PandaMpcController] Exception getting joint handles: " << ex.what());
       return false;
     }
   }
@@ -150,7 +150,7 @@ bool PandaMpcController::init_franka_interfaces(hardware_interface::RobotHW* rob
   // Model interface: returns kino-dynamic properties of the manipulator
   auto* model_interface = robot_hw->get<franka_hw::FrankaModelInterface>();
   if (model_interface == nullptr) {
-    ROS_ERROR_STREAM("PandaMpcController: Error getting model interface from hardware");
+    ROS_ERROR_STREAM("[PandaMpcController] Error getting model interface from hardware");
     return false;
   }
   try {
@@ -158,7 +158,7 @@ bool PandaMpcController::init_franka_interfaces(hardware_interface::RobotHW* rob
         model_interface->getHandle(arm_id_ + "_model"));
   } catch (hardware_interface::HardwareInterfaceException& ex) {
     ROS_ERROR_STREAM(
-        "PandaMpcController: Exception getting model handle from "
+        "[PandaMpcController] Exception getting model handle from "
         "interface: "
         << ex.what());
     return false;
@@ -167,7 +167,7 @@ bool PandaMpcController::init_franka_interfaces(hardware_interface::RobotHW* rob
   // Get state interface.
   auto* state_interface = robot_hw->get<franka_hw::FrankaStateInterface>();
   if (state_interface == nullptr) {
-    ROS_ERROR_STREAM("PandaMpcController: Error getting state interface from hardware");
+    ROS_ERROR_STREAM("[PandaMpcController] Error getting state interface from hardware");
     return false;
   }
   try {
@@ -175,7 +175,7 @@ bool PandaMpcController::init_franka_interfaces(hardware_interface::RobotHW* rob
         state_interface->getHandle(arm_id_ + "_robot"));
   } catch (hardware_interface::HardwareInterfaceException& ex) {
     ROS_ERROR_STREAM(
-        "PandaMpcController: Exception getting state handle from "
+        "[PandaMpcController] Exception getting state handle from "
         "interface: "
         << ex.what());
     return false;

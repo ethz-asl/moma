@@ -461,7 +461,10 @@ class ControllerManager(Plugin):
     def _stop_controller(self, name):
         strict = SwitchControllerRequest.STRICT
         req = SwitchControllerRequest(
-            start_controllers=[], stop_controllers=[name], strictness=strict
+            start_controllers=[],
+            stop_controllers=[name],
+            strictness=strict,
+            start_asap=True,
         )
         self._switch_srv.call(req)
 
@@ -471,6 +474,7 @@ class ControllerManager(Plugin):
             start_controllers=[ctrl.name for ctrl in start_ctrls],
             stop_controllers=[ctrl.name for ctrl in stop_ctrls],
             strictness=strict,
+            start_asap=True,
         )
         self._switch_srv.call(req)
 
