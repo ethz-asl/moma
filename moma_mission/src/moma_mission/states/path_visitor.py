@@ -52,20 +52,23 @@ class PathVisitorState(StateRosControl):
             queue_size=1,
         )
 
-        self.pose_publisher = rospy.Publisher(
-            self.get_scoped_param("pose_topic", "/desired_pose"),
-            PoseStamped,
-            queue_size=1,
-        )
-
-        self.path_publisher = rospy.Publisher(
-            self.get_scoped_param("path_topic", "/desired_path"), Path, queue_size=1
-        )
+        if self.mode == "pose":
+            self.pose_publisher = rospy.Publisher(
+                self.get_scoped_param("pose_topic", "/desired_pose"),
+                PoseStamped,
+                queue_size=1,
+            )
+        elif self.mode == "path":
+            self.path_publisher = rospy.Publisher(
+                self.get_scoped_param("path_topic", "/desired_path"), Path, queue_size=1
+            )
 
     def _poses_msg(self, msg: PoseArray):
         self.poses = msg
 
     def run(self):
+        # Wait for poses callback to be triggered in case of latching
+        rospy.sleep(2.0)
         if self.poses is None:
             rospy.logerr(f"No poses received yet, can't publish path")
             return "Failure"

@@ -1,7 +1,6 @@
 import rospy
 import numpy as np
 import tf2_ros
-from typing import List
 from scipy.spatial.transform import Rotation
 from geometry_msgs.msg import PoseStamped, TransformStamped, Pose, PoseArray
 
@@ -33,36 +32,15 @@ from moma_mission.missions.piloting.trajectory import ValveTrajectoryGenerator
 from moma_mission.missions.piloting.rcs_bridge import RCSBridge
 
 
-gRCS = RCSBridge()
-
-
 class SetUp(StateRos):
     def __init__(self, ns):
         StateRos.__init__(self, ns=ns)
-        self.waypoints_file = self.get_scoped_param("waypoints_file_path")
 
     def run(self):
-        global gRCS
-        if not gRCS.read_params():
-            rospy.logerr("Failed to read gRCS params")
-            return "Failure"
-
-        if not gRCS.init_ros():
-            rospy.logerr("Failed to initialize RCSBridge ros")
-            return "Failure"
-
-        if not gRCS.read_waypoints_from_file(self.waypoints_file):
-            rospy.logerr("Failed to read waypoints from file")
-            return "Failure"
-
-        if not gRCS.upload_waypoints():
-            rospy.logerr("Failed to upload waypoints.")
-            return "Failure"
-
-        if not gRCS.upload_hl_action():
-            rospy.logerr("Failed to upload high level actions")
-            return "Failure"
-        return "Completed"
+        self.set_context("gRCS", RCSBridge())
+        gRCS = self.global_context.ctx.gRCS
+        init_state = gRCS.init_all()
+        return "Completed" if init_state else "Failure"
 
 
 class Idle(StateRos):
@@ -75,24 +53,36 @@ class Idle(StateRos):
         StateRos.__init__(
             self,
             ns=ns,
-            outcomes=["ExecuteInspectionPlan", "ExecuteManipulationPlan", "Failure"],
+            outcomes=[
+                "ExecuteInspectionPlan",
+                "ExecuteDummyPlan",
+                "ManipulateValve",
+                "Failure",
+            ],
         )
 
     def run(self):
+        gRCS = self.global_context.ctx.gRCS
         while True:
-            command_id, command = gRCS.get_current_hl_command()
-            if command_id == 0:
-                return "ExecuteManipulationPlan"
-            elif command_id == 1:
-                rospy.loginfo(
-                    "Received high level command {}: {}".format(command_id, command)
-                )
-                return "ExecuteInspectionPlan"
-            elif command_id == 2:
-                return "Failure"
+            if gRCS.is_waypoints_available:
+                if gRCS.is_continuable:
+                    return "ExecuteInspectionPlan"
+                else:
+                    rospy.loginfo(
+                        "Waiting for continuation request until reaching next waypoint"
+                    )
+
+            command, info = gRCS.get_current_hl_command()
+            if command == "TAKE_PHOTO":
+                rospy.loginfo("Taking a photo")
+            elif command == "MANIPULATE_VALVE":
+                rospy.loginfo("Manipulating valve")
+                return "ManipulateValve"
+            elif command is not None:
+                rospy.logerr(f"Command {command} not understood by the state machine")
             rospy.sleep(1.0)
             rospy.loginfo_throttle(
-                3.0, "In [IDLE] state... Waiting from gRCS commands."
+                3.0, "In [IDLE] state... Waiting for commands from gRCS."
             )
 
 
@@ -273,7 +263,7 @@ class ModelFitValveState(StateRos):
         self.dummy_position = self.get_scoped_param("dummy_position")
         self.dummy_orientation = self.get_scoped_param("dummy_orientation")
 
-        self.k = 3  # TODO move to params or constants
+        self.num_spokes = self.get_scoped_param("num_spokes")
         self.error_threshold = self.get_scoped_param("error_threshold")
         self.min_successful_detections = self.get_scoped_param(
             "min_successful_detections"
@@ -291,7 +281,7 @@ class ModelFitValveState(StateRos):
         self.successful_detections = 0
         self.detections = []
         self.camera_pose = None
-        self.valve_fitter = ValveFitter(k=self.k)
+        self.valve_fitter = ValveFitter(num_spokes=self.num_spokes)
         self.ransac_matcher = RansacMatcher(
             acceptance_ratio=self.acceptance_ratio,
             min_consensus=self.min_consensus,
@@ -407,7 +397,7 @@ class ModelFitValveState(StateRos):
         req = KeypointsPerceptionRequest()
         res = self.perception_srv_client.call(req)
 
-        if len(res.keypoints.poses) != self.k + 1:
+        if len(res.keypoints.poses) != self.num_spokes + 1:
             return False
 
         self.frame_id = res.keypoints.header.frame_id
@@ -625,8 +615,8 @@ class ValveManipulationModelState(StateRos):
         if self.robot_base_frame is not None:
             robot_base_pose = tf_to_se3(
                 self.tf_buffer.lookup_transform(
-                    self.robot_base_frame,
                     valve_model.frame,
+                    self.robot_base_frame,
                     rospy.Time(0),  # tf at first available time
                     rospy.Duration(3),
                 )

@@ -146,7 +146,7 @@ bool CartesianImpedanceController::init_hardware_interfaces(hardware_interface::
 
 void CartesianImpedanceController::init_compliance_param_server(ros::NodeHandle& node_handle) {
   dynamic_reconfigure_node_ =
-      ros::NodeHandle(node_handle.getNamespace() + "dynamic_reconfigure_param_node");
+      ros::NodeHandle(node_handle.getNamespace() + "/dynamic_reconfigure_param_node");
 
   dynamic_server_param_ = std::make_unique<dynamic_reconfigure::Server<compliance_param_cfg>>(
       dynamic_reconfigure_node_);
@@ -373,7 +373,16 @@ void CartesianImpedanceController::update(const ros::Time& /*time*/,
   error.tail(3) << -transform.linear() * error.tail(3);
   // ROS_INFO_STREAM_THROTTLE(1.0, "error=" << error.transpose());
 
-  error_integrator_ += params_.cartesian_stiffness_i_ * error;
+  Vector6d error_prop;
+  error_prop.head(3) = orientation_d_ * params_.cartesian_stiffness_.topLeftCorner(3, 3) *
+                       orientation_d_.inverse() * error.head(3);
+  error_prop.tail(3) = orientation_d_ * params_.cartesian_stiffness_.bottomRightCorner(3, 3) *
+                       orientation_d_.inverse() * error.tail(3);
+  error_integrator_.head(3) += orientation_d_ * params_.cartesian_stiffness_i_.topLeftCorner(3, 3) *
+                               orientation_d_.inverse() * error.head(3);
+  error_integrator_.tail(3) += orientation_d_ *
+                               params_.cartesian_stiffness_i_.bottomRightCorner(3, 3) *
+                               orientation_d_.inverse() * error.tail(3);
   error_integrator_ = error_integrator_.cwiseMin(params_.windup_limit_);
   error_integrator_ = error_integrator_.cwiseMax(-params_.windup_limit_);
 
@@ -389,8 +398,8 @@ void CartesianImpedanceController::update(const ros::Time& /*time*/,
   Eigen::MatrixXd jacobian_transpose_pinv;
   pseudoInverse(jacobian.transpose(), jacobian_transpose_pinv);
 
-  Vector6d targetWrench = -params_.cartesian_stiffness_ * error - error_integrator_ -
-                          params_.cartesian_damping_ * (jacobian * qd_);
+  Vector6d targetWrench =
+      -error_prop - error_integrator_ - params_.cartesian_damping_ * (jacobian * qd_);
 
   if (targetWrench.head(3).norm() > params_.forceLimit_) {
     targetWrench.head(3) = targetWrench.head(3) / targetWrench.head(3).norm() * params_.forceLimit_;
@@ -482,28 +491,33 @@ Eigen::Matrix<double, 7, 1> CartesianImpedanceController::saturateTorqueRate(
 void CartesianImpedanceController::complianceParamCallback(
     moma_cartesian_impedance_controller::compliance_paramConfig& config, uint32_t /*level*/) {
   new_params_.cartesian_stiffness_.setIdentity();
-  new_params_.cartesian_stiffness_.topLeftCorner(3, 3)
-      << config.translational_stiffness * Eigen::Matrix3d::Identity();
-  new_params_.cartesian_stiffness_.bottomRightCorner(3, 3)
-      << config.rotational_stiffness * Eigen::Matrix3d::Identity();
+  new_params_.cartesian_stiffness_(0, 0) = config.translational_stiffness_x;
+  new_params_.cartesian_stiffness_(1, 1) = config.translational_stiffness_y;
+  new_params_.cartesian_stiffness_(2, 2) = config.translational_stiffness_z;
+  new_params_.cartesian_stiffness_(3, 3) = config.rotational_stiffness_x;
+  new_params_.cartesian_stiffness_(4, 4) = config.rotational_stiffness_y;
+  new_params_.cartesian_stiffness_(5, 5) = config.rotational_stiffness_z;
 
   new_params_.cartesian_stiffness_i_.setIdentity();
-  new_params_.cartesian_stiffness_i_.topLeftCorner(3, 3)
-      << config.translational_stiffness_i * Eigen::Matrix3d::Identity();
-  new_params_.cartesian_stiffness_i_.bottomRightCorner(3, 3)
-      << config.rotational_stiffness_i * Eigen::Matrix3d::Identity();
+  new_params_.cartesian_stiffness_i_(0, 0) = config.translational_stiffness_i_x;
+  new_params_.cartesian_stiffness_i_(1, 1) = config.translational_stiffness_i_y;
+  new_params_.cartesian_stiffness_i_(2, 2) = config.translational_stiffness_i_z;
+  new_params_.cartesian_stiffness_i_(3, 3) = config.rotational_stiffness_i_x;
+  new_params_.cartesian_stiffness_i_(4, 4) = config.rotational_stiffness_i_y;
+  new_params_.cartesian_stiffness_i_(5, 5) = config.rotational_stiffness_i_z;
   new_params_.windup_limit_.setZero();
   new_params_.windup_limit_.head(3) = config.translational_windup_limit * Eigen::Vector3d::Ones();
   new_params_.windup_limit_.tail(3) = config.rotational_windup_limit * Eigen::Vector3d::Ones();
 
   new_params_.cartesian_damping_.setIdentity();
   // Damping ratio = 1
-  new_params_.cartesian_damping_.topLeftCorner(3, 3) << 2.0 * sqrt(config.translational_stiffness) *
-                                                            Eigen::Matrix3d::Identity() *
-                                                            config.translational_damping_ratio;
+  Matrix6d damped;
+  damped.setIdentity();
+  damped.diagonal() = 2.0 * new_params_.cartesian_stiffness_.diagonal().cwiseSqrt();
+  new_params_.cartesian_damping_.topLeftCorner(3, 3)
+      << damped.topLeftCorner(3, 3) * config.translational_damping_ratio;
   new_params_.cartesian_damping_.bottomRightCorner(3, 3)
-      << 2.0 * sqrt(config.rotational_stiffness) * Eigen::Matrix3d::Identity() *
-             config.rotational_damping_ratio;
+      << damped.bottomRightCorner(3, 3) * config.rotational_damping_ratio;
   new_params_.nullspace_stiffness_ = config.nullspace_stiffness;
   new_params_.resetIntegratorThreshold_ = config.reset_integrator_threshold;
   new_params_.forceLimit_ = config.max_force;

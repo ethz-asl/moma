@@ -1,14 +1,17 @@
 #!/usr/bin/env python
 import sys
 import rospy
-import smach
-import smach_ros
 from moma_mission.core.state_ros import *
 from moma_mission.missions.piloting.states import *
 from moma_mission.missions.piloting.sequences import *
 from moma_mission.states.observation import FOVSamplerState
 from moma_mission.states.transform_visitor import TransformVisitorState
+from moma_mission.states.transform_recorder import TransformRecorderState
 from moma_mission.states.path_visitor import PathVisitorState
+from moma_mission.states.waypoint_bridge import (
+    WaypointBroadcasterState,
+    WaypointReachedState,
+)
 
 
 # Init ros
@@ -43,8 +46,19 @@ try:
             "IDLE",
             Idle,
             transitions={
-                "ExecuteInspectionPlan": "WAYPOINT_FOLLOWING",
-                "ExecuteManipulationPlan": "REACH_DETECTION_HOTSPOT_FAR",
+                "ExecuteInspectionPlan": "WAYPOINT_BROADCAST",
+                "ExecuteDummyPlan": "REACH_DETECTION_HOTSPOT_FAR",
+                "ManipulateValve": "DETECTION_DECISION",
+                "Failure": "Failure",
+            },
+        )
+
+        rospy.loginfo("Broadcast waypoint")
+        state_machine.add(
+            "WAYPOINT_BROADCAST",
+            WaypointBroadcasterState,
+            transitions={
+                "Completed": "WAYPOINT_FOLLOWING",
                 "Failure": "Failure",
             },
         )
@@ -72,11 +86,21 @@ try:
         rospy.loginfo("Waypoint following")
         state_machine.add(
             "WAYPOINT_FOLLOWING",
-            WaypointNavigationState,
+            NavigationState,
             transitions={
-                "Completed": "Success",
+                "Completed": "WAYPOINT_REACHED",
                 "Failure": "Failure",
-                "NextWaypoint": "WAYPOINT_FOLLOWING",
+            },
+        )
+
+        rospy.loginfo("Waypoint reached")
+        state_machine.add(
+            "WAYPOINT_REACHED",
+            WaypointReachedState,
+            transitions={
+                "Next": "IDLE",
+                "Completed": "REACH_DETECTION_HOTSPOT_CLOSE",
+                "Failure": "Failure",
             },
         )
 
@@ -155,7 +179,24 @@ try:
         state_machine.add(
             "MANIPULATE_VALVE",
             PathVisitorState,
-            transitions={"Completed": "OPEN_GRIPPER", "Failure": "OPEN_GRIPPER"},
+            transitions={
+                "Completed": "STORE_FINAL_POSE",
+                "Failure": "STORE_FINAL_POSE",
+            },
+        )
+
+        rospy.loginfo("Store final pose")
+        state_machine.add(
+            "STORE_FINAL_POSE",
+            TransformRecorderState,
+            transitions={"Completed": "APPROACH_FINAL_POSE", "Failure": "Failure"},
+        )
+
+        rospy.loginfo("Approach final pose")
+        state_machine.add(
+            "APPROACH_FINAL_POSE",
+            TransformVisitorState,
+            transitions={"Completed": "OPEN_GRIPPER", "Failure": "Failure"},
         )
 
         rospy.loginfo("Open gripper")
@@ -168,7 +209,7 @@ try:
         rospy.loginfo("Backoff valve")
         state_machine.add(
             "BACKOFF_VALVE",
-            PathVisitorState,
+            TransformVisitorState,
             transitions={"Completed": "HOMING_FINAL", "Failure": "Failure"},
         )
 

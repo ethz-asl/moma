@@ -11,8 +11,8 @@
   <!-- valve model -->
   <include file="$(find piloting_demo)/launch/valve.launch">
     <arg name="sim" value="$(arg sim)"/>
-    <arg name="x" value="2.5"/>
-    <arg name="y" value="2.5"/>
+    <arg name="x" value="2.0"/>
+    <arg name="y" value="2.0"/>
     <!-- arg name="z" value="0"/-->
   </include>
 
@@ -31,6 +31,6 @@
   <rosparam command="load" file="$(find moma_mission)/config/state_machine/piloting.yaml" subst_value="true"/>
   <rosparam command="load" file="$(find moma_mission)/config/state_machine/piloting_frames.yaml"/>
   <node pkg="moma_mission" type="piloting.py" name="piloting_demo" output="screen" required="true">
-    <param name="telemetry_odom_topic" value="/camera/odom/sample"/>
+    <param name="telemetry_odom_topic" value="/base_odom"/>
   </node>
 </launch>
