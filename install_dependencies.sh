@@ -28,6 +28,13 @@ install_ci() {
   cd ..
 }
 
+install_local_python_preference() {
+  # Prefer locally installed python packages over global ones for development
+  cat << EOF >> ~/.moma_bashrc
+export PYTHONPATH=$HOME/.local/lib/python3.8/site-packages:\$PYTHONPATH
+EOF
+}
+
 install_robotpkg() {
   echo "Installing robotpkg libraries"
 
@@ -234,6 +241,7 @@ fi
 
 info "Sourcing moma workspace"
 echo "source ${CATKIN_WS}/devel/setup.bash || true" >> ~/.moma_bashrc
+install_local_python_preference
 source ~/.moma_bashrc
 
 cd ${CATKIN_WS}
