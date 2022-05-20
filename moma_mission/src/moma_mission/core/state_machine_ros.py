@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import rospy
 import smach
@@ -12,15 +12,19 @@ class StateMachineRos(smach.StateMachine):
             self, outcomes=outcomes, input_keys=input_keys, output_keys=output_keys
         )
 
-    def add(self, label, state, transitions=None, remapping=None):
+    def add(self, label, state, transitions=None, remapping=None, constants=None):
         if isinstance(state, (StateMachineRos, smach.StateMachine)):
-            super(StateMachineRos, self).add(label, state, transitions, remapping)
+            super(StateMachineRos, self).add(
+                label, state, transitions, remapping, constants
+            )
         elif issubclass(state, StateRos):
             super(StateMachineRos, self).add(
-                label, state(ns=label), transitions, remapping
+                label, state(ns=label), transitions, remapping, constants
             )
         else:
-            super(StateMachineRos, self).add(label, state, transitions, remapping)
+            super(StateMachineRos, self).add(
+                label, state, transitions, remapping, constants
+            )
 
 
 if __name__ == "__main__":

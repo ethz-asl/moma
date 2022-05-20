@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import smach
 import rospy
+from rospy.client import _unspecified
 import tf2_ros
 import easydict as edict
 import pinocchio as pin
@@ -35,7 +36,9 @@ class StateRos(smach.State):
         self.global_context = global_context
 
         # parse optional default outcome
-        self.default_outcome = self.get_scoped_param("default_outcome", safe=True)
+        self.default_outcome = self.get_scoped_param(
+            "default_outcome", "None", safe=True
+        )
         if self.default_outcome not in outcomes + ["None"]:
             raise NameError(
                 "Default outcome must be one of {}".format(outcomes + ["None"])
@@ -55,7 +58,7 @@ class StateRos(smach.State):
         self.tf_buffer = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener(self.tf_buffer)
 
-    def get_scoped_param(self, param_name, default=None, safe=True):
+    def get_scoped_param(self, param_name, default=_unspecified, safe=True):
         """
         Get the parameter namespaced under the state name
         e.g get_scoped_param('/my_param') --> looks for '/state_name/my_param'
@@ -69,20 +72,20 @@ class StateRos(smach.State):
         if safe:
             return (
                 ros.get_param_safe(named_param)
-                if default is None
+                if default == _unspecified
                 else ros.get_param_safe(named_param, default)
             )
         else:
             if rospy.has_param(named_param):
                 return (
                     rospy.get_param(named_param)
-                    if default is None
+                    if default == _unspecified
                     else rospy.get_param(named_param, default)
                 )
             else:
                 return None
 
-    def execute(self, ud):
+    def execute(self, userdata):
         if self.default_outcome:
             rospy.loginfo(
                 "{state} ==> {outcome} (using default outcome)".format(
@@ -91,10 +94,16 @@ class StateRos(smach.State):
             )
             return self.default_outcome
 
-        return self.run()
+        return self.run_with_userdata(userdata)
 
     def run(self):
         raise NotImplementedError("run must be implemented by the inheriting state")
+
+    def run_with_userdata(self, userdata):
+        """
+        Can be overridden
+        """
+        return self.run()
 
     def set_context(self, key, data, overwrite=False):
         """
@@ -181,6 +190,11 @@ class StateRos(smach.State):
                     return False
 
             rate.sleep()
+
+
+class StateRosDummy(StateRos):
+    def run(self):
+        return "Completed"
 
 
 if __name__ == "__main__":

@@ -108,8 +108,9 @@ try:
         rospy.loginfo("Detection decision")
         state_machine.add(
             "DETECTION_DECISION",
-            StateRos,
+            StateRosDummy,
             transitions={"Completed": "OBSERVATION_POSE", "Failure": "PLAN_URDF_VALVE"},
+            constants={"get_next_pose": False, "continue_valve_fitting": False},
         )
 
         rospy.loginfo("Observation pose")
@@ -132,9 +133,19 @@ try:
             ModelFitValveState,
             transitions={
                 "Completed": "PLAN_MODEL_VALVE",
-                "Failure": "Failure",
-                "NextDetection": "OBSERVATION_POSE",
+                "Failure": "IDLE",
+                "NextDetection": "CONTINUE_VALVE_FITTING",
             },
+        )
+
+        state_machine.add(
+            "CONTINUE_VALVE_FITTING",
+            StateRosDummy,
+            transitions={
+                "Completed": "OBSERVATION_POSE",
+                "Failure": "Failure",
+            },
+            constants={"get_next_pose": True, "continue_valve_fitting": True},
         )
 
         rospy.loginfo("Plan model valve")
@@ -155,7 +166,7 @@ try:
         state_machine.add(
             "APPROACH_VALVE",
             PathVisitorState,
-            transitions={"Completed": "GRASP_VALVE", "Failure": "Failure"},
+            transitions={"Completed": "GRASP_VALVE", "Failure": "DETECTION_DECISION"},
         )
 
         rospy.loginfo("Grasp valve")
