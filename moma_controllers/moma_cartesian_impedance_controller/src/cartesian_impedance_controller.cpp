@@ -20,51 +20,54 @@
 namespace moma_controllers {
 bool CartesianImpedanceController::init_params(ros::NodeHandle& node_handle) {
   if (!node_handle.getParam("arm_id", arm_id_)) {
-    ROS_ERROR_STREAM("CartesianImpedanceController: Could not read parameter arm_id");
+    ROS_ERROR_STREAM("[CartesianImpedanceController] Could not read parameter arm_id");
     return false;
   }
   if (!node_handle.getParam("joint_names", joint_names_) || joint_names_.size() != 7) {
     ROS_ERROR(
-        "CartesianImpedanceController: Invalid or no joint_names parameters provided, "
+        "[CartesianImpedanceController] Invalid or no joint_names parameters provided, "
         "aborting controller init!");
     return false;
   }
 
   if (!node_handle.getParam("filter_params", filter_params_)) {
-    ROS_WARN_STREAM("parameter \"filter_params\" is not set. Default to " << filter_params_);
+    ROS_WARN_STREAM(
+        "[CartesianImpedanceController] Parameter \"filter_params\" is not set. Default to "
+        << filter_params_);
   }
 
   std::vector<double> lower_limit;
   if (!node_handle.getParam("lower_limit", lower_limit) || lower_limit.size() != 7) {
-    ROS_ERROR_STREAM("Failed to get lower_limit or invalid param");
+    ROS_ERROR_STREAM("[CartesianImpedanceController] Failed to get lower_limit or invalid param");
     return false;
   }
 
   std::vector<double> upper_limit;
   if (!node_handle.getParam("upper_limit", upper_limit) || upper_limit.size() != 7) {
-    ROS_ERROR_STREAM("Failed to get upper_limit or invalid param");
+    ROS_ERROR_STREAM("[CartesianImpedanceController] Failed to get upper_limit or invalid param");
     return false;
   }
 
   if (!node_handle.getParam("safety_margin", safety_margin_) || safety_margin_ < 0) {
-    ROS_ERROR_STREAM("Failed to get safety margin or invalid param.");
+    ROS_ERROR_STREAM(
+        "[CartesianImpedanceController] Failed to get safety margin or invalid param.");
     return false;
   }
 
   std::vector<double> q_nullspace{};
   if (!node_handle.getParam("q_nullspace", q_nullspace) || q_nullspace.size() != 7) {
-    ROS_ERROR_STREAM("Failed to get q nullspace or invalid param.");
+    ROS_ERROR_STREAM("[CartesianImpedanceController] Failed to get q nullspace or invalid param.");
     return false;
   }
 
   std::vector<double> limits_gains{};
   if (!node_handle.getParam("limits_gains", limits_gains) || limits_gains.size() != 7) {
-    ROS_ERROR_STREAM("Failed to get limits_gains or invalid param.");
+    ROS_ERROR_STREAM("[CartesianImpedanceController] Failed to get limits_gains or invalid param.");
     return false;
   }
 
   if (!node_handle.getParam("tool_link", target_frame_id_) || target_frame_id_.empty()) {
-    ROS_ERROR_STREAM("Failed to get tool_link or invalid param.");
+    ROS_ERROR_STREAM("[CartesianImpedanceController] Failed to get tool_link or invalid param.");
     return false;
   }
 
@@ -74,14 +77,14 @@ bool CartesianImpedanceController::init_params(ros::NodeHandle& node_handle) {
     limits_gains_(i) = limits_gains[i];
   }
 
-  ROS_INFO("All parameters successfully initialized.");
+  ROS_INFO("[CartesianImpedanceController] All parameters successfully initialized.");
   return true;
 }
 
 bool CartesianImpedanceController::init_model(ros::NodeHandle& node_handle) {
   if (sim_) {
     if (!node_handle.getParam("/arm_description", arm_description_) || arm_description_.empty()) {
-      ROS_ERROR_STREAM("Failed to get /robot_description");
+      ROS_ERROR_STREAM("[CartesianImpedanceController] Failed to get /robot_description");
       return false;
     }
 
@@ -94,53 +97,55 @@ bool CartesianImpedanceController::init_model(ros::NodeHandle& node_handle) {
     qd_.setZero(7);
   }
 
-  ROS_INFO("Model successfully initialized.");
+  ROS_INFO("[CartesianImpedanceController] Model successfully initialized.");
   return true;
 }
 
 bool CartesianImpedanceController::init_common_interfaces(hardware_interface::RobotHW* hw) {
   auto command_interface = hw->get<hardware_interface::EffortJointInterface>();
   if (command_interface == nullptr) {
-    ROS_ERROR_STREAM("CartesianImpedanceController: Can't get EffortJointInterface");
+    ROS_ERROR_STREAM("[CartesianImpedanceController] Can't get EffortJointInterface");
     return false;
   }
 
   for (size_t i = 0; i < 7; i++) {
     joint_handles_.push_back(command_interface->getHandle(joint_names_[i]));
   }
-  ROS_INFO("All common interfaces successfully initialized.");
+  ROS_INFO("[CartesianImpedanceController] All common interfaces successfully initialized.");
   return true;
 }
 
 bool CartesianImpedanceController::init_hardware_interfaces(hardware_interface::RobotHW* hw) {
   auto* model_interface = hw->get<franka_hw::FrankaModelInterface>();
   if (model_interface == nullptr) {
-    ROS_WARN_STREAM("CartesianImpedanceController: Error getting model interface from hardware");
+    ROS_WARN_STREAM("[CartesianImpedanceController] Error getting model interface from hardware");
     return false;
   }
   try {
     model_handle_ = std::make_unique<franka_hw::FrankaModelHandle>(
         model_interface->getHandle(arm_id_ + "_model"));
   } catch (hardware_interface::HardwareInterfaceException& ex) {
-    ROS_ERROR_STREAM("CartesianImpedanceController: Exception getting model handle from interface: "
-                     << ex.what());
+    ROS_ERROR_STREAM(
+        "[CartesianImpedanceController] Exception getting model handle from interface: "
+        << ex.what());
     return false;
   }
 
   auto* state_interface = hw->get<franka_hw::FrankaStateInterface>();
   if (state_interface == nullptr) {
-    ROS_ERROR_STREAM("CartesianImpedanceController: Error getting state interface from hardware");
+    ROS_ERROR_STREAM("[CartesianImpedanceController] Error getting state interface from hardware");
     return false;
   }
   try {
     state_handle_ = std::make_unique<franka_hw::FrankaStateHandle>(
         state_interface->getHandle(arm_id_ + "_robot"));
   } catch (hardware_interface::HardwareInterfaceException& ex) {
-    ROS_ERROR_STREAM("CartesianImpedanceController: Exception getting state handle from interface: "
-                     << ex.what());
+    ROS_ERROR_STREAM(
+        "[CartesianImpedanceController] Exception getting state handle from interface: "
+        << ex.what());
     return false;
   }
-  ROS_INFO("Hardware interfaces successfully initialized.");
+  ROS_INFO("[CartesianImpedanceController] Hardware interfaces successfully initialized.");
   return true;
 }
 
@@ -153,7 +158,7 @@ void CartesianImpedanceController::init_compliance_param_server(ros::NodeHandle&
 
   dynamic_server_param_->setCallback(
       boost::bind(&CartesianImpedanceController::complianceParamCallback, this, _1, _2));
-  ROS_INFO("Impedance params server successfully initialized.");
+  ROS_INFO("[CartesianImpedanceController] Impedance params server successfully initialized.");
 }
 
 void CartesianImpedanceController::init_ros_sub_pub(ros::NodeHandle& node_handle) {
@@ -234,7 +239,9 @@ void CartesianImpedanceController::init_ros_sub_pub(ros::NodeHandle& node_handle
         trackingErrorPub_.publish(error);
         integratorWrenchPub_.publish(integratorWrench);
       });
-  ROS_INFO("All ros subscribers and publishers successfully initialized.");
+  ROS_INFO(
+      "[CartesianImpedanceController] All ros subscribers and publishers successfully "
+      "initialized.");
 }
 
 void CartesianImpedanceController::init_reference() {
@@ -243,7 +250,7 @@ void CartesianImpedanceController::init_reference() {
   position_d_target_.setZero();
   orientation_d_target_.coeffs() << 0.0, 0.0, 0.0, 1.0;
   error_integrator_.setZero();
-  ROS_INFO("Reference successfully initialized.");
+  ROS_INFO("[CartesianImpedanceController] Reference successfully initialized.");
 }
 
 bool CartesianImpedanceController::init(hardware_interface::RobotHW* robot_hw,
@@ -270,14 +277,16 @@ bool CartesianImpedanceController::init(hardware_interface::RobotHW* robot_hw,
     tf_tool_ee =
         buffer.lookupTransform(target_frame_id_, ee_frame_id_, ros::Time(0), ros::Duration(3.0));
     tf::transformMsgToEigen(tf_tool_ee.transform, T_tool_ee_);
-    ROS_INFO_STREAM("Relative transfor end effector to tool frame is\n" << T_tool_ee_.matrix());
+    ROS_INFO_STREAM(
+        "[CartesianImpedanceController] Relative transform from end effector to tool frame is\n"
+        << T_tool_ee_.matrix());
   } catch (tf2::TransformException& ex) {
     ROS_WARN(ex.what());
     return false;
   }
 
   initialized_ = true;
-  ROS_INFO("Controller successfully initialized.");
+  ROS_INFO("[CartesianImpedanceController] Controller successfully initialized.");
   return true;
 }
 
@@ -292,7 +301,7 @@ void CartesianImpedanceController::read_state() {
 void CartesianImpedanceController::starting(const ros::Time& /*time*/) {
   // set intial target
   read_state();
-  ROS_INFO_STREAM("Start joints: " << q_.transpose());
+  ROS_INFO_STREAM("[CartesianImpedanceController] Start joints: " << q_.transpose());
   Eigen::Affine3d initial_transform;
 
   if (sim_) {
@@ -302,7 +311,8 @@ void CartesianImpedanceController::starting(const ros::Time& /*time*/) {
   } else {
     franka::RobotState initial_state = state_handle_->getRobotState();
     initial_transform = Eigen::Affine3d(Eigen::Matrix4d::Map(initial_state.O_T_EE.data()));
-    ROS_INFO_STREAM("Initial transform is:\n" << initial_transform.matrix());
+    ROS_INFO_STREAM("[CartesianImpedanceController] Initial transform is:\n"
+                    << initial_transform.matrix());
   }
 
   // set equilibrium point to current state
@@ -311,7 +321,8 @@ void CartesianImpedanceController::starting(const ros::Time& /*time*/) {
   position_d_target_ = initial_transform.translation();
   orientation_d_target_ = Eigen::Quaterniond(initial_transform.linear());
 
-  ROS_INFO_STREAM("position desired is: " << position_d_.transpose());
+  ROS_INFO_STREAM(
+      "[CartesianImpedanceController] Desired position is: " << position_d_.transpose());
 
   // set nullspace equilibrium configuration to initial q
   q_d_nullspace_ = q_.head<7>();
@@ -522,7 +533,7 @@ void CartesianImpedanceController::complianceParamCallback(
   new_params_.resetIntegratorThreshold_ = config.reset_integrator_threshold;
   new_params_.forceLimit_ = config.max_force;
   new_params_.torqueLimit_ = config.max_torque;
-  ROS_INFO_STREAM("New params: \n" << new_params_);
+  ROS_INFO_STREAM("[CartesianImpedanceController] New params: \n" << new_params_);
 }
 
 void CartesianImpedanceController::equilibriumPoseCallback(
@@ -531,8 +542,8 @@ void CartesianImpedanceController::equilibriumPoseCallback(
   tf::poseMsgToEigen(msg->pose, T_base_tool);
   Eigen::Affine3d T_base_ee = T_base_tool * T_tool_ee_;
 
-  ROS_INFO_STREAM("Received new target:\n " << T_base_tool.matrix());
-  ROS_INFO_STREAM("Actual target is:\n " << T_base_ee.matrix());
+  ROS_INFO_STREAM("[CartesianImpedanceController] Received new target:\n " << T_base_tool.matrix());
+  ROS_INFO_STREAM("[CartesianImpedanceController] Actual target is:\n " << T_base_ee.matrix());
 
   // clang-format off
   std::lock_guard<std::mutex> position_d_target_mutex_lock(position_and_orientation_d_target_mutex_);
