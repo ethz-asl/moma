@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import smach
 import rospy
 from rospy.client import _unspecified
