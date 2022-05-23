@@ -31,7 +31,7 @@ install_ci() {
 install_local_python_preference() {
   # Prefer locally installed python packages over global ones for development
   cat << EOF >> ~/.moma_bashrc
-export PYTHONPATH=$HOME/.local/lib/python3.8/site-packages:\$PYTHONPATH
+export PYTHONPATH=$(python3 -m site --user-site):\$PYTHONPATH
 EOF
 }
 
