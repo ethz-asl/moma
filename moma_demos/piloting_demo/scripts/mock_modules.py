@@ -1,23 +1,22 @@
 #!/usr/bin/env python
-
-import rospy
 import actionlib
-import tf2_ros
+import rospy
 import tf2_geometry_msgs
-from nav_msgs.msg import Path
-from sensor_msgs.msg import JointState
-from geometry_msgs.msg import PoseStamped, TransformStamped
-
-from control_msgs.msg import GripperCommandAction, GripperCommandResult
-from moma_msgs.msg import JointAction, JointActionResult
-from controller_manager_msgs.srv import (
-    SwitchController as SwitchRosController,
-    ListControllers,
-)
+import tf2_ros
+from control_msgs.msg import GripperCommandAction
+from control_msgs.msg import GripperCommandResult
+from controller_manager_msgs.srv import ListControllers
+from controller_manager_msgs.srv import ListControllersResponse
+from controller_manager_msgs.srv import SwitchController as SwitchRosController
 from controller_manager_msgs.srv import (
     SwitchControllerResponse as SwitchRosControllerResponse,
 )
-from controller_manager_msgs.srv import ListControllersResponse
+from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import TransformStamped
+from moma_msgs.msg import JointAction
+from moma_msgs.msg import JointActionResult
+from nav_msgs.msg import Path
+from sensor_msgs.msg import JointState
 
 
 def gripper_goal_callback(req):

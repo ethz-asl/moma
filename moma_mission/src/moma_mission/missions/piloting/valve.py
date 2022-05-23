@@ -1,5 +1,5 @@
-import rospy
 import numpy as np
+import rospy
 from moma_mission.missions.piloting.frames import Frames
 from moma_mission.utils.rotation import CompatibleRotation as R
 from moma_mission.utils.transforms import numpy_to_pose_stamped

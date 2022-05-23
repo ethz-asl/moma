@@ -1,15 +1,14 @@
-import rospy
 import actionlib
+import rospy
+from control_msgs.msg import GripperCommandAction
+from control_msgs.msg import GripperCommandGoal
+from control_msgs.msg import GripperCommandResult
+from franka_gripper.msg import GraspAction
+from franka_gripper.msg import GraspGoal
+from franka_gripper.msg import GraspResult
+from moma_mission.core import StateRos
 from sensor_msgs.msg import JointState
 from std_msgs.msg import Float64
-from control_msgs.msg import (
-    GripperCommandAction,
-    GripperCommandGoal,
-    GripperCommandResult,
-)
-from franka_gripper.msg import GraspAction, GraspGoal, GraspResult
-
-from moma_mission.core import StateRos
 
 
 class GripperPositionControlState(StateRos):

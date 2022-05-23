@@ -1,13 +1,11 @@
-import rospy
 import numpy as np
-import tf
 import pinocchio as pin
-
+import rospy
+import tf
 from geometry_msgs.msg import PoseStamped
-from nav_msgs.msg import Path
-
 from moma_mission.core import StateRosControl
 from moma_mission.utils.transforms import *
+from nav_msgs.msg import Path
 
 
 class TransformVisitorState(StateRosControl):

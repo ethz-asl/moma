@@ -1,33 +1,51 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import yaml
-import threading
-import tf
-import tf2_ros
-import tf2_geometry_msgs
-
-import rospy
-import numpy as np
 import argparse
+import threading
 
-from std_msgs.msg import String, Float64MultiArray, UInt32
+import numpy as np
+import rospy
+import tf
+import tf2_geometry_msgs
+import tf2_ros
+import yaml
 from geometry_msgs.msg import Vector3Stamped
-from nav_msgs.msg import Odometry
-from sensor_msgs.msg import BatteryState, Imu, PointCloud2, JointState, Image
-
+from mavsdk_ros.msg import AlarmItem
+from mavsdk_ros.msg import AlarmStatus
+from mavsdk_ros.msg import ChecklistItem
+from mavsdk_ros.msg import CommandAck
+from mavsdk_ros.msg import CommandLong
+from mavsdk_ros.msg import HLActionItem
+from mavsdk_ros.msg import TextStatus
+from mavsdk_ros.msg import WaypointItem
+from mavsdk_ros.msg import WaypointList
+from mavsdk_ros.msg import WaypointsAck
+from mavsdk_ros.srv import Command
+from mavsdk_ros.srv import CommandRequest
+from mavsdk_ros.srv import CommandResponse
+from mavsdk_ros.srv import InspectionPlan
+from mavsdk_ros.srv import InspectionPlanRequest
+from mavsdk_ros.srv import SetUploadAlarm
+from mavsdk_ros.srv import SetUploadAlarmRequest
+from mavsdk_ros.srv import SetUploadChecklist
+from mavsdk_ros.srv import SetUploadChecklistRequest
+from mavsdk_ros.srv import SetUploadHLAction
+from mavsdk_ros.srv import SetUploadHLActionRequest
+from mavsdk_ros.srv import SetUploadWaypointList
+from mavsdk_ros.srv import SetUploadWaypointListRequest
+from mavsdk_ros.srv import UpdateSeqWaypointItem
+from mavsdk_ros.srv import UpdateSeqWaypointItemRequest
 from moma_mission.missions.piloting.frames import Frames
-
-from mavsdk_ros.msg import CommandLong, CommandAck, WaypointList, WaypointsAck
-from mavsdk_ros.msg import TextStatus, AlarmStatus, AlarmItem, ChecklistItem
-from mavsdk_ros.msg import HLActionItem, WaypointItem
-from mavsdk_ros.srv import Command, CommandRequest, CommandResponse
-from mavsdk_ros.srv import InspectionPlan, InspectionPlanRequest
-from mavsdk_ros.srv import SetUploadAlarm, SetUploadAlarmRequest
-from mavsdk_ros.srv import SetUploadChecklist, SetUploadChecklistRequest
-from mavsdk_ros.srv import UpdateSeqWaypointItem, UpdateSeqWaypointItemRequest
-from mavsdk_ros.srv import SetUploadWaypointList, SetUploadWaypointListRequest
-from mavsdk_ros.srv import SetUploadHLAction, SetUploadHLActionRequest
+from nav_msgs.msg import Odometry
+from sensor_msgs.msg import BatteryState
+from sensor_msgs.msg import Image
+from sensor_msgs.msg import Imu
+from sensor_msgs.msg import JointState
+from sensor_msgs.msg import PointCloud2
+from std_msgs.msg import Float64MultiArray
+from std_msgs.msg import String
 from std_msgs.msg import UInt16
+from std_msgs.msg import UInt32
 
 
 class AlarmWatchdog:

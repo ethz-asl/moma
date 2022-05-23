@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-
-import rospy
 import actionlib
+import rospy
 from actionlib_msgs.msg import GoalStatus
-
-from moma_msgs.msg import JointAction, JointGoal
-from moma_mission.core import StateRos, StateRosControl
-from moma_mission.utils.ros import switch_ros_controller
+from moma_mission.core import StateRos
+from moma_mission.core import StateRosControl
 from moma_mission.utils.moveit import MoveItPlanner
+from moma_mission.utils.ros import switch_ros_controller
+from moma_msgs.msg import JointAction
+from moma_msgs.msg import JointGoal
 
 
 class RosControlPoseReaching(StateRos):

@@ -1,16 +1,14 @@
 #!/usr/bin/env python3
-
 """
 Johnson & Johnson Project Demo
 A medical autoinjector perception and pickup task
 """
-
 import rospy
 import smach_ros
 from moma_mission.core import StateMachineRos
-from moma_mission.states.observation import SphericalSamplerState
-from moma_mission.states.model_fit_autoinjector import ModelFitAutoinjectorState
 from moma_mission.states.gripper import GripperControl
+from moma_mission.states.model_fit_autoinjector import ModelFitAutoinjectorState
+from moma_mission.states.observation import SphericalSamplerState
 from moma_mission.states.transform_visitor import TransformVisitorState
 
 rospy.init_node("johnson")

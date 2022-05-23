@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-
 import argparse
+
 import open3d as o3d
 
 

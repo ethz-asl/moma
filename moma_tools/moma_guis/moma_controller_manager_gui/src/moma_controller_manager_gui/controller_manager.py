@@ -24,43 +24,33 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-
 import os
+
 import rospkg
 import rospy
-
-from python_qt_binding import loadUi
-from python_qt_binding.QtCore import (
-    QAbstractTableModel,
-    QModelIndex,
-    Qt,
-    QTimer,
-    QVariant,
-    Signal,
-)
-from python_qt_binding.QtWidgets import (
-    QWidget,
-    QFormLayout,
-    QHeaderView,
-    QMenu,
-    QStyledItemDelegate,
-)
-from python_qt_binding.QtGui import (
-    QCursor,
-    QFont,
-    QIcon,
-    QStandardItem,
-    QStandardItemModel,
-)
-from qt_gui.plugin import Plugin
-
 from controller_manager_msgs.msg import ControllerState
 from controller_manager_msgs.srv import *
-from controller_manager_msgs.utils import (
-    ControllerLister,
-    ControllerManagerLister,
-    get_rosparam_controller_names,
-)
+from controller_manager_msgs.utils import ControllerLister
+from controller_manager_msgs.utils import ControllerManagerLister
+from controller_manager_msgs.utils import get_rosparam_controller_names
+from python_qt_binding import loadUi
+from python_qt_binding.QtCore import QAbstractTableModel
+from python_qt_binding.QtCore import QModelIndex
+from python_qt_binding.QtCore import Qt
+from python_qt_binding.QtCore import QTimer
+from python_qt_binding.QtCore import QVariant
+from python_qt_binding.QtCore import Signal
+from python_qt_binding.QtGui import QCursor
+from python_qt_binding.QtGui import QFont
+from python_qt_binding.QtGui import QIcon
+from python_qt_binding.QtGui import QStandardItem
+from python_qt_binding.QtGui import QStandardItemModel
+from python_qt_binding.QtWidgets import QFormLayout
+from python_qt_binding.QtWidgets import QHeaderView
+from python_qt_binding.QtWidgets import QMenu
+from python_qt_binding.QtWidgets import QStyledItemDelegate
+from python_qt_binding.QtWidgets import QWidget
+from qt_gui.plugin import Plugin
 
 from .update_combo import update_combo
 

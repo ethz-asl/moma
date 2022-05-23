@@ -1,25 +1,21 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
-
-import rospy
-import numpy as np
 from copy import deepcopy
 
+import cv2
 import matplotlib.pyplot as plt
+import numpy as np
+import rospy
+from geometry_msgs.msg import Pose
 from matplotlib.patches import Patch
+from moma_mission.missions.piloting.valve_model import ValveModel
 from mpl_toolkits import mplot3d
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
-
-from scipy.spatial.transform import Rotation as R
-from scipy.optimize import NonlinearConstraint, LinearConstraint
+from scipy.optimize import LinearConstraint
 from scipy.optimize import minimize
-
+from scipy.optimize import NonlinearConstraint
+from scipy.spatial.transform import Rotation as R
 from sensor_msgs.msg import CameraInfo
-from geometry_msgs.msg import Pose
-from moma_mission.missions.piloting.valve_model import ValveModel
-
-import cv2
 
 # Functions from @Mateen Ulhaq and @karlo
 

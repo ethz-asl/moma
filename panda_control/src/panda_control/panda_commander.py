@@ -1,13 +1,11 @@
 import actionlib
-from control_msgs.msg import (
-    GripperCommand,
-    GripperCommandAction,
-    GripperCommandGoal,
-)
 import moveit_commander
+import rospy
+from control_msgs.msg import GripperCommand
+from control_msgs.msg import GripperCommandAction
+from control_msgs.msg import GripperCommandGoal
 from moveit_commander.conversions import list_to_pose
 from moveit_msgs.msg import MoveGroupAction
-import rospy
 
 
 class PandaCommander(object):

@@ -1,5 +1,5 @@
-import rospy
 import pinocchio as pin
+import rospy
 
 
 class Robot:

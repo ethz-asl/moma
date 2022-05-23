@@ -1,15 +1,18 @@
-import rospy
-import tf2_ros
 import numpy as np
 import pinocchio as pin
-from geometry_msgs.msg import PoseStamped, TransformStamped, PoseArray, Pose
-from nav_msgs.msg import Path
-
+import rospy
+import tf2_ros
+from geometry_msgs.msg import Pose
+from geometry_msgs.msg import PoseArray
+from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import TransformStamped
 from moma_mission.missions.piloting.frames import Frames
 from moma_mission.missions.piloting.valve import Valve
-from moma_mission.utils.transforms import se3_to_pose_ros, tf_to_se3
-from moma_mission.utils.rotation import CompatibleRotation as R
 from moma_mission.missions.piloting.valve_fitting import ValveModel
+from moma_mission.utils.rotation import CompatibleRotation as R
+from moma_mission.utils.transforms import se3_to_pose_ros
+from moma_mission.utils.transforms import tf_to_se3
+from nav_msgs.msg import Path
 
 
 class ValveTrajectoryGenerator(object):

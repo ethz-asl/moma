@@ -1,11 +1,11 @@
 #!/usr/bin/env python
-import tf2_ros
-import tf2_geometry_msgs
+from copy import deepcopy
 
 import rospy
-from copy import deepcopy
-from nav_msgs.msg import Path
+import tf2_geometry_msgs
+import tf2_ros
 from geometry_msgs.msg import PoseStamped
+from nav_msgs.msg import Path
 
 if __name__ == "__main__":
     rospy.init_node("demo_path")

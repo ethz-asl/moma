@@ -1,27 +1,27 @@
 #!/usr/bin/env python3
-
 import os
-import rospy
-import rospkg
+
 import rosparam
+import rospkg
+import rospy
 import yaml
-
-from qt_gui.plugin import Plugin
-from python_qt_binding import loadUi
-from python_qt_binding.QtWidgets import (
-    QWidget,
-    QMenu,
-    QInputDialog,
-    QHBoxLayout,
-    QPushButton,
-    QSlider,
-    QLabel,
-)
-from python_qt_binding.QtCore import Qt, QObject, Signal, QTimer, QSize
-from python_qt_binding.QtGui import QStandardItemModel, QStandardItem
-
 from controller_manager_msgs.utils import ControllerLister
-
+from python_qt_binding import loadUi
+from python_qt_binding.QtCore import QObject
+from python_qt_binding.QtCore import QSize
+from python_qt_binding.QtCore import Qt
+from python_qt_binding.QtCore import QTimer
+from python_qt_binding.QtCore import Signal
+from python_qt_binding.QtGui import QStandardItem
+from python_qt_binding.QtGui import QStandardItemModel
+from python_qt_binding.QtWidgets import QHBoxLayout
+from python_qt_binding.QtWidgets import QInputDialog
+from python_qt_binding.QtWidgets import QLabel
+from python_qt_binding.QtWidgets import QMenu
+from python_qt_binding.QtWidgets import QPushButton
+from python_qt_binding.QtWidgets import QSlider
+from python_qt_binding.QtWidgets import QWidget
+from qt_gui.plugin import Plugin
 from sensor_msgs.msg import JointState
 
 

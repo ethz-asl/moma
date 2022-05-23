@@ -1,10 +1,10 @@
 import numpy as np
 import rospy
-from geometry_msgs.msg import PoseArray, Pose
+from geometry_msgs.msg import Pose
+from geometry_msgs.msg import PoseArray
 from moma_mission.core import StateRos
-
-from moma_mission.utils.transforms import *
 from moma_mission.utils.robot import Robot
+from moma_mission.utils.transforms import *
 
 
 class ValveManipulationUrdfState(StateRos):

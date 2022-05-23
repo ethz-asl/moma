@@ -1,15 +1,14 @@
 #!/usr/bin/env python3
-
+import subprocess
 import sys
-import xacro
 
 import numpy as np
-import subprocess
+import pinocchio as pin
 import rospy
 import tf2_ros
-import pinocchio as pin
-from geometry_msgs.msg import Pose
+import xacro
 from gazebo_msgs.msg import LinkStates
+from geometry_msgs.msg import Pose
 
 
 class TransformListener:

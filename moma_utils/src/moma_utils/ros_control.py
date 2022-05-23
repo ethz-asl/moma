@@ -1,5 +1,5 @@
-from controller_manager_msgs.srv import *
 import rospy
+from controller_manager_msgs.srv import *
 
 
 class ControllerManager(object):

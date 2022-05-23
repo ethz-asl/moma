@@ -1,13 +1,12 @@
-import rospy
 import numpy as np
-import tf
 import pinocchio as pin
-
-from geometry_msgs.msg import PoseArray, PoseStamped
-from nav_msgs.msg import Path
-
+import rospy
+import tf
+from geometry_msgs.msg import PoseArray
+from geometry_msgs.msg import PoseStamped
 from moma_mission.core import StateRosControl
 from moma_mission.utils.transforms import *
+from nav_msgs.msg import Path
 
 
 def _cartesian_dist(pos1, pos2):

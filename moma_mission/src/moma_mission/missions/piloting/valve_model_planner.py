@@ -1,10 +1,10 @@
-import rospy
 import numpy as np
-from geometry_msgs.msg import PoseArray, Pose
-
+import rospy
+from geometry_msgs.msg import Pose
+from geometry_msgs.msg import PoseArray
 from moma_mission.missions.piloting.frames import Frames
-from moma_mission.utils.rotation import CompatibleRotation as R
 from moma_mission.missions.piloting.valve_fitting import ValveModel
+from moma_mission.utils.rotation import CompatibleRotation as R
 
 
 class ValveModelPlanner:

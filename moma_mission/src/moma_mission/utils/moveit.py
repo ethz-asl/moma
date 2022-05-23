@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
-from moveit_msgs.msg import Constraints, OrientationConstraint
-from moveit_msgs.msg import MoveItErrorCodes
 import os
 import sys
+
+import moveit_msgs.msg
 import rospy
+from moveit_msgs.msg import Constraints
+from moveit_msgs.msg import MoveItErrorCodes
+from moveit_msgs.msg import OrientationConstraint
 
 # import moveit_commander  --- it cannot find a library after update on my laptop (giuseppe)
 # not used anyway, commenting everything at the moment
-import moveit_msgs.msg
 
 
 class MoveItPlanner(object):

@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 from typing import List
-import rospy
+
 import actionlib
 import numpy as np
-from franka_msgs.srv import SetEEFrame, SetEEFrameRequest, SetEEFrameResponse
+import rospy
+from franka_msgs.srv import SetEEFrame
+from franka_msgs.srv import SetEEFrameRequest
+from franka_msgs.srv import SetEEFrameResponse
 
 rospy.init_node("set_ee_frame")
 

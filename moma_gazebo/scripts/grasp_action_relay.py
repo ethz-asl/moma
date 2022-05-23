@@ -2,9 +2,11 @@
 import rospy
 from actionlib.simple_action_client import SimpleActionClient
 from actionlib.simple_action_server import SimpleActionServer
-
-from franka_gripper.msg import GraspAction, GraspGoal, GraspResult
-from control_msgs.msg import GripperCommandAction, GripperCommandGoal
+from control_msgs.msg import GripperCommandAction
+from control_msgs.msg import GripperCommandGoal
+from franka_gripper.msg import GraspAction
+from franka_gripper.msg import GraspGoal
+from franka_gripper.msg import GraspResult
 
 
 class GraspRelay:

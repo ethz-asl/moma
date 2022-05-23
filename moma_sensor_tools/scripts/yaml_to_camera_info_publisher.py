@@ -12,6 +12,7 @@ This file just extends that parser into a rosnode.
 """
 import os
 import sys
+
 import rospy
 import yaml
 from sensor_msgs.msg import CameraInfo

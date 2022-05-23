@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 from typing import List
-import rospy
+
 import actionlib
-from franka_msgs.msg import ErrorRecoveryAction, ErrorRecoveryGoal
+import rospy
+from franka_msgs.msg import ErrorRecoveryAction
+from franka_msgs.msg import ErrorRecoveryGoal
 
 rospy.init_node("error_recovery")
 

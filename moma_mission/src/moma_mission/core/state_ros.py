@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
-import smach
-import rospy
-import tf2_ros
-import easydict as edict
-import pinocchio as pin
 from os.path import join
 
+import easydict as edict
+import pinocchio as pin
+import rospy
+import smach
+import tf2_ros
 from moma_mission.utils import ros
-from moma_mission.utils.transforms import tf_to_se3, pose_to_se3
+from moma_mission.utils.transforms import pose_to_se3
+from moma_mission.utils.transforms import tf_to_se3
 
 
 class StateMachineContext(object):

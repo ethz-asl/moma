@@ -1,11 +1,10 @@
 #!/usr/bin/python3
-
-import os
-
-import rospy
-import requests
 import argparse
+import os
 from getpass import getpass
+
+import requests
+import rospy
 
 
 class DDDHL_Client:

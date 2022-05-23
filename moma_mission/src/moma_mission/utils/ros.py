@@ -1,12 +1,12 @@
 import os
 import sys
+
 import rospy
-from controller_manager_msgs.srv import SwitchController, SwitchControllerRequest
-from controller_manager_msgs.srv import (
-    ListControllers,
-    ListControllersRequest,
-    ListControllersResponse,
-)
+from controller_manager_msgs.srv import ListControllers
+from controller_manager_msgs.srv import ListControllersRequest
+from controller_manager_msgs.srv import ListControllersResponse
+from controller_manager_msgs.srv import SwitchController
+from controller_manager_msgs.srv import SwitchControllerRequest
 
 
 def get_param_safe(param_name, default=None):

@@ -1,20 +1,18 @@
 import copy
-import rospy
-import tf2_ros
+
 import numpy as np
 import pinocchio as pin
-from nav_msgs.msg import Path
+import rospy
+import tf2_ros
 from geometry_msgs.msg import PoseStamped
-
 from moma_mission.missions.piloting.frames import Frames
 from moma_mission.missions.piloting.valve import Valve
 from moma_mission.utils.rotation import CompatibleRotation as R
-from moma_mission.utils.transforms import (
-    se3_to_pose_ros,
-    pose_to_se3,
-    numpy_to_pose_stamped,
-    tf_to_se3,
-)
+from moma_mission.utils.transforms import numpy_to_pose_stamped
+from moma_mission.utils.transforms import pose_to_se3
+from moma_mission.utils.transforms import se3_to_pose_ros
+from moma_mission.utils.transforms import tf_to_se3
+from nav_msgs.msg import Path
 
 
 def project_to_plane(plane_origin, plane_normal, p, in_plane=False):

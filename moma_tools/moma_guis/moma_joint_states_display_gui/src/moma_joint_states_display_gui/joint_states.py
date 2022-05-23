@@ -1,16 +1,17 @@
 #!/usr/bin/env python3
-
 import os
-import rospy
-import rospkg
 import time
 
-from qt_gui.plugin import Plugin
+import rospkg
+import rospy
 from python_qt_binding import loadUi
-from python_qt_binding.QtCore import Qt, QObject, Signal
+from python_qt_binding.QtCore import QObject
+from python_qt_binding.QtCore import Qt
+from python_qt_binding.QtCore import Signal
 from python_qt_binding.QtGui import QColor
-from python_qt_binding.QtWidgets import QWidget, QTableWidgetItem
-
+from python_qt_binding.QtWidgets import QTableWidgetItem
+from python_qt_binding.QtWidgets import QWidget
+from qt_gui.plugin import Plugin
 from sensor_msgs.msg import JointState
 
 

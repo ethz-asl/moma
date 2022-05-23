@@ -1,8 +1,6 @@
 import unittest
 
 import rospy
-
-
 from panda_control.panda_commander import PandaCommander
 
 

@@ -1,6 +1,5 @@
 import rospy
 from franka_msgs.msg import ErrorRecoveryActionGoal
-
 from moma_mission.core import StateRosControl
 
 

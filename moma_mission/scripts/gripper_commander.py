@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 from __future__ import print_function
 
+from time import sleep
+
 import rospy
 from robotiq_2f_gripper_control.msg import _Robotiq2FGripper_robot_output as outputMsg
 from sensor_msgs.msg import JointState
-from time import sleep
 
 
 def jointStateToString(msg):

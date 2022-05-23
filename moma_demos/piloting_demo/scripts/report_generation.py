@@ -1,23 +1,22 @@
 #!/usr/bin/python3
-
-from cmath import inf
-import os
-import cv2
-import csv
-import numpy as np
 import argparse
-
-import shutil
-import tf2_py as tf2
-import rospy
+import csv
 import json
+import os
+import shutil
 import uuid
-import rosbag
-from tqdm import tqdm
+from cmath import inf
 from datetime import datetime
-from cv_bridge import CvBridge, CvBridgeError
 
+import cv2
+import numpy as np
+import rosbag
+import rospy
+import tf2_py as tf2
+from cv_bridge import CvBridge
+from cv_bridge import CvBridgeError
 from moma_mission.utils.transforms import tf_to_se3
+from tqdm import tqdm
 
 # static configuration
 PLAN_UUID_TOPIC = "/plan_uuid"

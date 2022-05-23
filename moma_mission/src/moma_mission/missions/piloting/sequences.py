@@ -2,10 +2,11 @@
 import rospy
 import smach
 import smach_ros
-
-from moma_mission.core import StateMachineRos, StateRos
+from moma_mission.core import StateMachineRos
+from moma_mission.core import StateRos
 from moma_mission.missions.piloting.states import *
-from moma_mission.states.gripper import GripperControl, GripperGrasp
+from moma_mission.states.gripper import GripperControl
+from moma_mission.states.gripper import GripperGrasp
 from moma_mission.states.manipulation import JointsConfigurationAction
 
 

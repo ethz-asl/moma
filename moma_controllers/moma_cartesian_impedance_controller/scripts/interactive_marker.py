@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 import sys
+
 import rospy
 import tf2_ros
-
+from geometry_msgs.msg import PoseStamped
 from interactive_markers.interactive_marker_server import InteractiveMarkerServer
 from interactive_markers.menu_handler import MenuHandler
-from visualization_msgs.msg import InteractiveMarker, InteractiveMarkerControl, Marker
-from geometry_msgs.msg import PoseStamped
 from nav_msgs.msg import Path
+from visualization_msgs.msg import InteractiveMarker
+from visualization_msgs.msg import InteractiveMarkerControl
+from visualization_msgs.msg import Marker
 
 int_marker = InteractiveMarker()
 menu_handler = MenuHandler()

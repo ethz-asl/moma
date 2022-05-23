@@ -1,11 +1,10 @@
-from numpy import newaxis
 import rospy
 import tf2_ros
-from nav_msgs.msg import Path
 from geometry_msgs.msg import TransformStamped
-
-from moma_mission.utils.transforms import *
 from moma_mission.utils.robot import Robot
+from moma_mission.utils.transforms import *
+from nav_msgs.msg import Path
+from numpy import newaxis
 
 
 class Door:

@@ -1,8 +1,8 @@
 import numpy as np
 import rospy
-from nav_msgs.msg import Path
 from moma_mission.core import StateRosControl
 from moma_mission.missions.door_opening.door import Door
+from nav_msgs.msg import Path
 
 
 class DoorManipulation(StateRosControl):

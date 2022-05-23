@@ -1,7 +1,6 @@
 """Small script to follow a trajectory to collect a rosbag for hand-eye calibration
 between the realsense and Yumi.
 """
-
 import sys
 
 import moveit_commander

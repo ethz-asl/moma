@@ -1,17 +1,15 @@
 #!/usr/bin/env python
-
 """
 Christmas 2021 Demo
 A simple door opening task, given a known grasp preset
 """
-
 import rospy
 import smach
 import smach_ros
 from moma_mission.core import StateMachineRos
+from moma_mission.missions.door_opening.states import DoorManipulation
 from moma_mission.states.gripper import GripperControl
 from moma_mission.states.manipulation import JointsConfigurationAction
-from moma_mission.missions.door_opening.states import DoorManipulation
 
 rospy.init_node("christmas_demo")
 

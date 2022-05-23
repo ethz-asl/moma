@@ -1,5 +1,5 @@
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 
 mu = 1e-2  # 1e-2 #100.0
 delta = 1e-2  # 0.01 #0.01 #0.001

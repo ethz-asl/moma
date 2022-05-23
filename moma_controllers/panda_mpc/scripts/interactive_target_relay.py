@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 import rospy
-from ocs2_msgs.msg import mpc_target_trajectories
-from nav_msgs.msg import Path
 from geometry_msgs.msg import PoseStamped
+from nav_msgs.msg import Path
+from ocs2_msgs.msg import mpc_target_trajectories
 
 
 def callback(msg):

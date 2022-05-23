@@ -1,10 +1,9 @@
-import rospy
 import os
-from rocoma_msgs.srv import (
-    SwitchController,
-    SwitchControllerRequest,
-    SwitchControllerResponse,
-)
+
+import rospy
+from rocoma_msgs.srv import SwitchController
+from rocoma_msgs.srv import SwitchControllerRequest
+from rocoma_msgs.srv import SwitchControllerResponse
 
 
 def switch_roco_controller(controller_name, ns=""):

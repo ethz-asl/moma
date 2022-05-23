@@ -1,9 +1,9 @@
 #!/usr/bin/env python
-
 import math
+
 import rospy
-from nav_msgs.msg import Path
 from moma_mission.missions.door_opening.door import Door
+from nav_msgs.msg import Path
 
 # Need to have the door state publisher running as well
 rospy.init_node("door_calibration")
