@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 from moveit_msgs.msg import Constraints, OrientationConstraint
 from moveit_msgs.msg import MoveItErrorCodes
 import os
