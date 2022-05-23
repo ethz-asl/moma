@@ -16,6 +16,7 @@ repos:
     rev: v4.1.0
     hooks:
       - id: check-added-large-files # prevents giant files from being committed.
+      - id: check-ast # simply checks whether the files parse as valid python.
       - id: check-case-conflict # checks for files that would conflict in case-insensitive filesystems.
       - id: check-merge-conflict # checks for files that contain merge conflict strings.
       - id: check-yaml # checks yaml files for parseable syntax.
@@ -42,12 +43,6 @@ repos:
     rev: v3.1.0
     hooks:
       - id: reorder-python-imports
-
-  # is the code valid python
-  - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v3.2.0
-    hooks:
-      - id: check-ast
 
   - repo: https://github.com/pocc/pre-commit-hooks
     rev: v1.3.5
