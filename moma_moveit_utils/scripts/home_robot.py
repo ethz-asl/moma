@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import rospy
 from std_srvs.srv import Empty
 from moma_moveit_utils import MoveItPlanner
