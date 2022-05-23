@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Copyright (C) 2013, Georgia Tech
 # Copyright (C) 2015, PAL Robotics S.L.
 #
