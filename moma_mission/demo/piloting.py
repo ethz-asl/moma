@@ -31,12 +31,12 @@ try:
         state_machine.add(
             "SETUP",
             SetUp,
-            transitions={"Completed": "HOME_ROBOT_START", "Failure": "Failure"},
+            transitions={"Completed": "HOMING_START", "Failure": "Failure"},
         )
 
-        rospy.loginfo("Home robot start")
+        rospy.loginfo("Homing start")
         state_machine.add(
-            "HOME_ROBOT_START",
+            "HOMING_START",
             homing_sequence_factory(),
             transitions={"Success": "IDLE", "Failure": "Failure"},
         )
@@ -68,7 +68,17 @@ try:
             "REACH_DETECTION_HOTSPOT_FAR",
             NavigationState,
             transitions={
-                "Completed": "REACH_DETECTION_HOTSPOT_CLOSE",
+                "Completed": "REACH_DETECTION_HOTSPOT_MEDIUM",
+                "Failure": "REACH_DETECTION_HOTSPOT_FAR",
+            },
+        )
+
+        rospy.loginfo("Reach detection hotspot medium")
+        state_machine.add(
+            "REACH_DETECTION_HOTSPOT_MEDIUM",
+            NavigationState,
+            transitions={
+                "Completed": "DETECTION_DECISION",
                 "Failure": "REACH_DETECTION_HOTSPOT_FAR",
             },
         )
@@ -224,20 +234,11 @@ try:
             transitions={"Completed": "HOMING_FINAL", "Failure": "Failure"},
         )
 
-        homing_sequence_final = StateMachineRos(outcomes=["Success", "Failure"])
-
-        with homing_sequence_final:
-            rospy.loginfo("Home robot final")
-            homing_sequence_final.add(
-                "HOME_ROBOT_FINAL",
-                JointsConfigurationAction,
-                transitions={"Completed": "Success", "Failure": "Failure"},
-            )
-
+        rospy.loginfo("Homing final")
         state_machine.add(
             "HOMING_FINAL",
-            homing_sequence_final,
-            transitions={"Success": "Success", "Failure": "Failure"},
+            homing_sequence_factory(),
+            transitions={"Success": "IDLE", "Failure": "Failure"},
         )
 except Exception as exc:
     rospy.logerr(exc)

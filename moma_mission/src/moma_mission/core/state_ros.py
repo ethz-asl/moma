@@ -105,7 +105,7 @@ class StateRos(smach.State):
         """
         return self.run()
 
-    def set_context(self, key, data, overwrite=False):
+    def set_context(self, key, data, overwrite=True):
         """
         Set a new data field in the global context accessible to all states which
         are derived from this state

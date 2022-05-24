@@ -40,23 +40,6 @@ HOME_ROBOT:
   joints_configurations:
     - [0, -0.885, 0, -2.1, 0, 1.571, 0.785]
 
-# hack to avoid self collision in the end
-HOME_ROBOT_FINAL:
-  default_outcome: None
-  action_name: /joint_space_controller_server
-  manager_namespace: panda
-  startlist: ["joint_space_controller"]
-  stoplist:
-    [
-      "mpc_controller",
-      "mpc_wholebody_controller",
-      "cartesian_impedance_controller",
-      "path_passthrough_controller",
-      "effort_joint_trajectory_controller",
-    ]
-  joints_configurations:
-    - [-0.65, -0.885, 0, -2.1, 0, 1.571, 0.785]
-
 REACH_DETECTION_HOTSPOT_FAR:
   default_outcome: None
   goal_action_topic: /move_base
@@ -73,6 +56,23 @@ REACH_DETECTION_HOTSPOT_FAR:
   timeout: 10000.0
   tolerance_m: 0.30
   tolerance_deg: 50
+
+REACH_DETECTION_HOTSPOT_MEDIUM:
+  default_outcome: None
+  goal_action_topic: /move_base
+  target_frame: hotspot_medium
+  goal_pose_topic: /move_base_simple/goal
+  base_pose_topic: /base_pose_measured
+  base_odometry_topic: /base_odom
+
+  manager_namespace: smb
+  startlist: ["smb_diff_drive"]
+  stopmap:
+    panda: ["mpc_controller", "mpc_wholebody_controller"]
+
+  timeout: 10000.0
+  tolerance_m: 0.50
+  tolerance_deg: 90
 
 REACH_DETECTION_HOTSPOT_CLOSE:
   default_outcome: None
@@ -175,7 +175,7 @@ APPROACH_VALVE:
   angular_tolerance: 0.1
 
   poses_topic: /valve_approach_poses
-  offset: [0, 0, -0.1]
+  offset: [0, 0, -0.05]
 
 GRASP_VALVE:
   default_outcome: None
@@ -240,5 +240,7 @@ BACKOFF_VALVE:
   startlist: ["cartesian_impedance_controller"]
   stoplist: []
 
-  duration: 10.0
+  duration: 30.0
   offset: [0, 0, -0.1]
+  linear_tolerance: 0.05
+  angular_tolerance: 0.3
