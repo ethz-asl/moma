@@ -132,7 +132,7 @@ class FOVSamplerState(StateRos):
             self.get_scoped_param("lateral_view_angle_deg", 20)
         )
 
-        self.sample_poses = []
+        self.sample_poses = None
         self.num_samples = 1 + 8  # central  + intermediate angles
 
         self.attempts = None
@@ -152,6 +152,7 @@ class FOVSamplerState(StateRos):
         self.camera_info = msg
 
     def _init_sample_poses(self):
+        self.sample_poses = []
         self.sample_pose_array = PoseArray()
         self.attempts = 0
 
@@ -194,6 +195,7 @@ class FOVSamplerState(StateRos):
         if self.attempts < len(self.sample_poses):
             self.pose_broadcaster.sendTransform(self.sample_poses[self.attempts])
             self.attempts += 1
+            rospy.loginfo(f"Pose attempt {self.attempts} / {len(self.sample_poses)}")
             rospy.sleep(2.0)
             return "Completed"
         else:

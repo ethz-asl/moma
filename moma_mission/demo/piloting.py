@@ -117,7 +117,7 @@ try:
         state_machine.add(
             "OBSERVATION_POSE",
             FOVSamplerState,
-            transitions={"Completed": "OBSERVATION_APPROACH", "Failure": "Failure"},
+            transitions={"Completed": "OBSERVATION_APPROACH", "Failure": "IDLE"},
         )
 
         rospy.loginfo("Observation approach")

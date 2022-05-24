@@ -130,7 +130,12 @@ OBSERVATION_APPROACH:
   control_frame: tracking_camera_odom
   target_frame: observation
   startlist: ["mpc_controller", "path_passthrough_controller"] #, 'path_admittance_controller' ]
-  stoplist: ["mpc_wholebody_controller", "joint_space_controller"]
+  stoplist:
+    [
+      "mpc_wholebody_controller",
+      "cartesian_impedance_controller",
+      "joint_space_controller",
+    ]
   manager_namespace: panda
 
 MODEL_FIT_VALVE:
