@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import sys
 import rospy
+import argparse
 from moma_mission.core.state_ros import *
 from moma_mission.missions.piloting.states import *
 from moma_mission.missions.piloting.sequences import *
@@ -22,23 +23,40 @@ Valve.init_from_ros()
 Frames.init_from_ros()
 Frames.print_summary()
 
+# Parse args
+arg_parser = argparse.ArgumentParser()
+arg_parser.add_argument(
+    "--standalone",
+    help="Test state machine without gRCS integration",
+    default=False,
+    required=False,
+)
+args, unknown = arg_parser.parse_known_args()
+standalone = args.standalone
+
 # Build the state machine
 state_machine = StateMachineRos(outcomes=["Success", "Failure"])
 
+rospy.loginfo(f"Running in {'standalone' if standalone else 'gRCS'} mode")
+
 try:
     with state_machine:
-        rospy.loginfo("Setup")
-        state_machine.add(
-            "SETUP",
-            SetUp,
-            transitions={"Completed": "HOMING_START", "Failure": "Failure"},
-        )
+        if not standalone:
+            rospy.loginfo("Setup")
+            state_machine.add(
+                "SETUP",
+                SetUp,
+                transitions={"Completed": "HOMING_START", "Failure": "Failure"},
+            )
 
         rospy.loginfo("Homing start")
         state_machine.add(
             "HOMING_START",
             homing_sequence_factory(),
-            transitions={"Success": "IDLE", "Failure": "Failure"},
+            transitions={
+                "Success": "IDLE" if not standalone else "REACH_DETECTION_HOTSPOT_FAR",
+                "Failure": "Failure",
+            },
         )
 
         rospy.loginfo("Idle")
@@ -238,7 +256,10 @@ try:
         state_machine.add(
             "HOMING_FINAL",
             homing_sequence_factory(),
-            transitions={"Success": "IDLE", "Failure": "Failure"},
+            transitions={
+                "Success": "IDLE" if not standalone else "Success",
+                "Failure": "Failure",
+            },
         )
 except Exception as exc:
     rospy.logerr(exc)
