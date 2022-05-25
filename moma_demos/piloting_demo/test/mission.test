@@ -5,5 +5,5 @@
     <arg name="rviz" value="false" />
   </include>
 
-  <test test-name="piloting_mission" pkg="piloting_demo" type="test.py" time-limit="1800.0"/>
+  <test test-name="piloting_mission" pkg="piloting_demo" type="test.py" time-limit="3600.0"/>
 </launch>
