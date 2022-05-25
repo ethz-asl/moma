@@ -250,7 +250,10 @@ class ModelFitValveState(StateRos):
 
     def __init__(self, ns):
         StateRos.__init__(
-            self, ns=ns, outcomes=["Completed", "NextDetection", "Failure"]
+            self,
+            ns=ns,
+            outcomes=["Completed", "NextDetection", "Failure"],
+            input_keys=["continue_valve_fitting"],
         )
         self.object_pose_broadcaster = tf2_ros.StaticTransformBroadcaster()
         self.perception_srv_client = rospy.ServiceProxy(
@@ -278,8 +281,8 @@ class ModelFitValveState(StateRos):
             )
 
         self.frame_id = None
-        self.successful_detections = 0
-        self.detections = []
+        self.successful_detections = None
+        self.detections = None
         self.camera_pose = None
         self.valve_fitter = ValveFitter(num_spokes=self.num_spokes)
         self.ransac_matcher = RansacMatcher(
@@ -290,6 +293,10 @@ class ModelFitValveState(StateRos):
         self.matches_publisher = rospy.Publisher(
             "/matched_keypoints", MarkerArray, queue_size=1
         )
+
+    def init(self):
+        self.successful_detections = 0
+        self.detections = []
 
     def _object_name(self) -> str:
         return Frames.valve_frame
@@ -464,7 +471,10 @@ class ModelFitValveState(StateRos):
         else:
             raise NameError(f"Unrecognized method {method}")
 
-    def run(self):
+    def run_with_userdata(self, userdata):
+        if not userdata.continue_valve_fitting:
+            self.init()
+
         object_pose = TransformStamped()
         if self.dummy:
             rospy.logwarn("[ModelFitValveState]: running dummy detection")

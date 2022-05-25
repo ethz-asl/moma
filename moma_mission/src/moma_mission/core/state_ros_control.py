@@ -8,8 +8,16 @@ class StateRosControl(StateRos):
     Switch and send target poses to the controller manager
     """
 
-    def __init__(self, ns, outcomes=["Completed", "Failure"]):
-        StateRos.__init__(self, ns=ns, outcomes=outcomes)
+    def __init__(
+        self, ns, outcomes=["Completed", "Failure"], input_keys=[], output_keys=[]
+    ):
+        StateRos.__init__(
+            self,
+            ns=ns,
+            outcomes=outcomes,
+            input_keys=input_keys,
+            output_keys=output_keys,
+        )
 
         # The lists are assumed to be in the same namespace as the "manager_namespace"
         self.startlist = self.get_scoped_param("startlist", [])

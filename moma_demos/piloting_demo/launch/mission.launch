@@ -1,6 +1,9 @@
 <?xml version="1.0"?>
 <launch>
   <arg name="sim" default="false"/>
+  <arg name="standalone" default="false"/>
+  <arg name="standalone_arg" default="--standalone" if="$(arg standalone)"/>
+  <arg name="standalone_arg" default="" unless="$(arg standalone)"/>
 
   <!-- Load joint controller to publish the joint state under object namespace -->
   <group ns="valve" if="$(arg sim)">
@@ -20,7 +23,12 @@
   <node pkg="tf2_ros"
         type="static_transform_publisher"
         name="hotspot_far_broadcaster"
-        args="-1 -2 0 0.79 0 0 valve_gt hotspot_far" />
+        args="-1.5 -1.5 0 0.79 0 0 valve_gt hotspot_far" />
+
+  <node pkg="tf2_ros"
+          type="static_transform_publisher"
+          name="hotspot_medium_broadcaster"
+          args="-0.4 -0.4 0 0.79 0 0 valve_gt hotspot_medium" />
 
   <node pkg="tf2_ros"
           type="static_transform_publisher"
@@ -30,7 +38,8 @@
   <!-- mission state machine -->
   <rosparam command="load" file="$(find moma_mission)/config/state_machine/piloting.yaml" subst_value="true"/>
   <rosparam command="load" file="$(find moma_mission)/config/state_machine/piloting_frames.yaml"/>
-  <node pkg="moma_mission" type="piloting.py" name="piloting_demo" output="screen" required="true">
+  <rosparam param="MODEL_FIT_VALVE/num_spokes" if="$(arg sim)">3</rosparam>
+  <node pkg="moma_mission" type="piloting.py" args="$(arg standalone_arg)" name="piloting_demo" output="screen" required="true">
     <param name="telemetry_odom_topic" value="/base_odom"/>
   </node>
 </launch>

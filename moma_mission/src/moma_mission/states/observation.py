@@ -89,7 +89,7 @@ class SphericalSamplerState(StateRos):
 class FOVSamplerState(StateRos):
     """
     Computes an observation point of view, that given a known object size (in terms of bounding box)
-    and known camera intrinsics, makes sure that the object is in the field of view and camera is pointig
+    and known camera intrinsics, makes sure that the object is in the field of view and camera is pointing
     at the object.
     Assuming the camera Z is pointing to the object, the minimum conservative distance to keep the object in the field of
     view is s * focal_distance / image_width. We approximate the numerator with max(kx * f, ky * f) and the denominator with
@@ -97,7 +97,7 @@ class FOVSamplerState(StateRos):
     """
 
     def __init__(self, ns, outcomes=["Completed", "Failure"]):
-        StateRos.__init__(self, ns=ns, outcomes=outcomes)
+        StateRos.__init__(self, ns=ns, outcomes=outcomes, input_keys=["get_next_pose"])
 
         # the name of the observation tf published
         self.sample_name = self.get_scoped_param("sample_name", "observation")
@@ -132,14 +132,13 @@ class FOVSamplerState(StateRos):
             self.get_scoped_param("lateral_view_angle_deg", 20)
         )
 
-        self.sample_poses = []
+        self.sample_poses = None
         self.num_samples = 1 + 8  # central  + intermediate angles
 
-        self.attempts = 0
-        self.first_run = True
+        self.attempts = None
 
         self.camera_info = None
-        self.sample_pose_array = PoseArray()
+        self.sample_pose_array = None
 
         self.camera_info_sub = rospy.Subscriber(
             self.camera_info_topic, CameraInfo, self._camera_info_cb
@@ -153,6 +152,10 @@ class FOVSamplerState(StateRos):
         self.camera_info = msg
 
     def _init_sample_poses(self):
+        self.sample_poses = []
+        self.sample_pose_array = PoseArray()
+        self.attempts = 0
+
         w = np.min([self.camera_info.height, self.camera_info.width])
         f = np.max([self.camera_info.K[0], self.camera_info.K[4]])
         d = self.object_size * f / (w * self.image_fill_ratio)
@@ -179,19 +182,20 @@ class FOVSamplerState(StateRos):
         self.pose_array_pub.publish(self.sample_pose_array)
         rospy.sleep(1.0)
 
-    def run(self):
+    def run_with_userdata(self, userdata):
         if not self.camera_info:
             rospy.logerr(
                 "No camera_info message received on {}".format(self.camera_info_topic)
             )
             return "Failure"
 
-        if self.first_run:
+        if not userdata.get_next_pose:
             self._init_sample_poses()
 
-        if self.attempts < self.num_samples:
+        if self.attempts < len(self.sample_poses):
             self.pose_broadcaster.sendTransform(self.sample_poses[self.attempts])
             self.attempts += 1
+            rospy.loginfo(f"Pose attempt {self.attempts} / {len(self.sample_poses)}")
             rospy.sleep(2.0)
             return "Completed"
         else:

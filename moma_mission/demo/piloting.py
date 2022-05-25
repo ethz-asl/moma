@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import sys
 import rospy
+import argparse
 from moma_mission.core.state_ros import *
 from moma_mission.missions.piloting.states import *
 from moma_mission.missions.piloting.sequences import *
@@ -22,23 +23,40 @@ Valve.init_from_ros()
 Frames.init_from_ros()
 Frames.print_summary()
 
+# Parse args
+arg_parser = argparse.ArgumentParser()
+arg_parser.add_argument(
+    "--standalone",
+    help="Test state machine without gRCS integration",
+    default=False,
+    required=False,
+)
+args, unknown = arg_parser.parse_known_args()
+standalone = args.standalone
+
 # Build the state machine
 state_machine = StateMachineRos(outcomes=["Success", "Failure"])
 
+rospy.loginfo(f"Running in {'standalone' if standalone else 'gRCS'} mode")
+
 try:
     with state_machine:
-        rospy.loginfo("Setup")
-        state_machine.add(
-            "SETUP",
-            SetUp,
-            transitions={"Completed": "HOME_ROBOT_START", "Failure": "Failure"},
-        )
+        if not standalone:
+            rospy.loginfo("Setup")
+            state_machine.add(
+                "SETUP",
+                SetUp,
+                transitions={"Completed": "HOMING_START", "Failure": "Failure"},
+            )
 
-        rospy.loginfo("Home robot start")
+        rospy.loginfo("Homing start")
         state_machine.add(
-            "HOME_ROBOT_START",
+            "HOMING_START",
             homing_sequence_factory(),
-            transitions={"Success": "IDLE", "Failure": "Failure"},
+            transitions={
+                "Success": "IDLE" if not standalone else "REACH_DETECTION_HOTSPOT_FAR",
+                "Failure": "Failure",
+            },
         )
 
         rospy.loginfo("Idle")
@@ -68,7 +86,17 @@ try:
             "REACH_DETECTION_HOTSPOT_FAR",
             NavigationState,
             transitions={
-                "Completed": "REACH_DETECTION_HOTSPOT_CLOSE",
+                "Completed": "REACH_DETECTION_HOTSPOT_MEDIUM",
+                "Failure": "REACH_DETECTION_HOTSPOT_FAR",
+            },
+        )
+
+        rospy.loginfo("Reach detection hotspot medium")
+        state_machine.add(
+            "REACH_DETECTION_HOTSPOT_MEDIUM",
+            NavigationState,
+            transitions={
+                "Completed": "DETECTION_DECISION",
                 "Failure": "REACH_DETECTION_HOTSPOT_FAR",
             },
         )
@@ -108,15 +136,16 @@ try:
         rospy.loginfo("Detection decision")
         state_machine.add(
             "DETECTION_DECISION",
-            StateRos,
+            StateRosDummy,
             transitions={"Completed": "OBSERVATION_POSE", "Failure": "PLAN_URDF_VALVE"},
+            constants={"get_next_pose": False, "continue_valve_fitting": False},
         )
 
         rospy.loginfo("Observation pose")
         state_machine.add(
             "OBSERVATION_POSE",
             FOVSamplerState,
-            transitions={"Completed": "OBSERVATION_APPROACH", "Failure": "Failure"},
+            transitions={"Completed": "OBSERVATION_APPROACH", "Failure": "IDLE"},
         )
 
         rospy.loginfo("Observation approach")
@@ -132,9 +161,19 @@ try:
             ModelFitValveState,
             transitions={
                 "Completed": "PLAN_MODEL_VALVE",
-                "Failure": "Failure",
-                "NextDetection": "OBSERVATION_POSE",
+                "Failure": "IDLE",
+                "NextDetection": "CONTINUE_VALVE_FITTING",
             },
+        )
+
+        state_machine.add(
+            "CONTINUE_VALVE_FITTING",
+            StateRosDummy,
+            transitions={
+                "Completed": "OBSERVATION_POSE",
+                "Failure": "Failure",
+            },
+            constants={"get_next_pose": True, "continue_valve_fitting": True},
         )
 
         rospy.loginfo("Plan model valve")
@@ -155,7 +194,7 @@ try:
         state_machine.add(
             "APPROACH_VALVE",
             PathVisitorState,
-            transitions={"Completed": "GRASP_VALVE", "Failure": "Failure"},
+            transitions={"Completed": "GRASP_VALVE", "Failure": "DETECTION_DECISION"},
         )
 
         rospy.loginfo("Grasp valve")
@@ -213,20 +252,14 @@ try:
             transitions={"Completed": "HOMING_FINAL", "Failure": "Failure"},
         )
 
-        homing_sequence_final = StateMachineRos(outcomes=["Success", "Failure"])
-
-        with homing_sequence_final:
-            rospy.loginfo("Home robot final")
-            homing_sequence_final.add(
-                "HOME_ROBOT_FINAL",
-                JointsConfigurationAction,
-                transitions={"Completed": "Success", "Failure": "Failure"},
-            )
-
+        rospy.loginfo("Homing final")
         state_machine.add(
             "HOMING_FINAL",
-            homing_sequence_final,
-            transitions={"Success": "Success", "Failure": "Failure"},
+            homing_sequence_factory(),
+            transitions={
+                "Success": "IDLE" if not standalone else "Success",
+                "Failure": "Failure",
+            },
         )
 except Exception as exc:
     rospy.logerr(exc)
