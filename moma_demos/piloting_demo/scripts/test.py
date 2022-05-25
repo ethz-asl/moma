@@ -18,7 +18,13 @@ class TestPilotingMission(unittest.TestCase):
         # )
         rospy.sleep(120)  # Wait for environment
         p = subprocess.Popen(
-            ["roslaunch", "piloting_demo", "mission.launch", "sim:=true"],
+            [
+                "roslaunch",
+                "piloting_demo",
+                "mission.launch",
+                "sim:=true",
+                "standalone:=true",
+            ],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
