@@ -90,6 +90,8 @@ class ReportGenerator:
         print("[Report Generation]: Creating folder structure.")
         os.makedirs(self.report_dir, exist_ok=True)
 
+        self.objects = None
+
         self.__init_tf_tree()
         self.__init_uuids()
 
@@ -107,6 +109,7 @@ class ReportGenerator:
 
         self.tf_times = []
         self.object_times = []
+        previous_object_time = rospy.Time(0)
         with tqdm(total=tf_msgs_count) as progress_bar:
             for topic, message, t in self.bag.read_messages(topics=tf_topics):
                 self.tf_times.append(t)
@@ -120,7 +123,14 @@ class ReportGenerator:
                     )
                     > 0
                 ):
-                    self.object_times.append(t)
+                    # BUG the static transform for the same object may appear multiple times in the tf_msgs
+                    if t - previous_object_time > rospy.Duration(1):
+                        self.object_times.append(t)
+                        previous_object_time = t
+                    else:
+                        print(
+                            f"[Report Generation]: Skipping object at time {t} as it is likely a duplicate"
+                        )
                 for tf_message in message.transforms:
                     if topic == "/tf_static":
                         self.tf_tree.set_transform_static(tf_message, topic)
@@ -224,6 +234,37 @@ class ReportGenerator:
 
         return matching_task_uuid
 
+    def get_obj_ref(self, time, allow_empty=False):
+        """Get the obj ref for the given time"""
+        matching_obj_ref = None
+        matching_obj_time = rospy.Time(0)
+        for obj_ref, obj in self.objects.items():
+            if time >= obj["time"] > matching_obj_time:
+                matching_obj_ref = obj_ref
+                matching_obj_time = obj["time"]
+
+        if matching_obj_ref is None:
+            if allow_empty:
+                return None
+            else:
+                raise Exception(f"No object ref known at time {time}")
+
+        # Check that object was already detected at the time
+        # and that it is not the object from the previous task
+        # we are returning here
+        if (
+            self.get_task_uuid(matching_obj_time, allow_empty)
+            != self.objects[matching_obj_ref]["task_uuid"]
+        ):
+            if allow_empty:
+                return None
+            else:
+                raise Exception(
+                    f"Object known at time {time} is still a dangling leftover from the previous task, no object known yet that corresponds to the current task"
+                )
+
+        return matching_obj_ref
+
     def extract_config(self):
         print("[Report Generation]: Writing top level config file.")
         config_file = os.path.join(self.report_dir, self.files["config"])
@@ -278,11 +319,14 @@ class ReportGenerator:
             #     ]
             # )
 
+            self.objects = {}
+
             # BUG read only at object_times
             # If we read all tf_times, the object appears already at the beginning of the bag (where it was not even detected)
+            obj_ref = 0
             for t in self.object_times:
                 # object info
-                obj_ref = 1
+                obj_ref += 1
                 obj_type = OBJECT_TYPE
                 obj_info = [0.0, 0.0, 0.0]
 
@@ -307,15 +351,16 @@ class ReportGenerator:
                     ]
                     obj_rotation_axis = obj_se3.rotation[:, 2]
 
+                    task_uuid = self.get_task_uuid(t)
                     entry = (
-                        [t.to_sec(), self.get_task_uuid(t), obj_ref, obj_type]
+                        [t.to_sec(), task_uuid, obj_ref, obj_type]
                         + obj_position
                         + obj_rotation
                         + list(obj_rotation_axis)
                         + obj_info
                     )
                     writer.writerow(entry)
-                    break
+                    self.objects[obj_ref] = {"time": t, "task_uuid": task_uuid}
                 except tf2.ExtrapolationException:
                     print(
                         f"[extract_objects] Skipping time {t} as there is no valid tf"
@@ -459,7 +504,9 @@ class ReportGenerator:
                         )
 
                     # object info
-                    obj_ref = 1
+                    obj_ref = self.get_obj_ref(
+                        t
+                    )  # TODO It can also be a manually taken image with 0 obj_ref
 
                     meta = (
                         [
@@ -513,9 +560,8 @@ class ReportGenerator:
                         )
                         continue
 
-                    obj_ref = 1
+                    obj_ref = self.get_obj_ref(t)
 
-                    torque = 0.0
                     if gripper_closed:
                         T_v_ee = tf_to_se3(
                             self.tf_tree.lookup_transform_core(
@@ -529,10 +575,13 @@ class ReportGenerator:
                         torque = msg.wrench.force.x * np.linalg.norm(T_v_ee.translation)
                         torque = -torque if object_path_inverted else torque
 
-                    entry = (
-                        [t.to_sec(), task_uuid] + [obj_ref] + [object_angle] + [torque]
-                    )
-                    writer.writerow(entry)
+                        entry = (
+                            [t.to_sec(), task_uuid]
+                            + [obj_ref]
+                            + [object_angle]
+                            + [torque]
+                        )
+                        writer.writerow(entry)
                 if topic == JOINT_STATES_TOPIC:
                     finger_joint = msg.name.index(JOINT_FINGER_NAME)
                     finger_state = msg.position[finger_joint]
