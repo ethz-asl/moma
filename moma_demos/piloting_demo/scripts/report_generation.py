@@ -26,8 +26,9 @@ SYNC_ID_TOPIC = "/sync_id"
 MAP_FRAME = "map"  # For local navigation: "tracking_camera_odom"
 OBJECT_TYPE = "valve"
 OBJECT_FRAME = "valve_wheel_center"
-IMAGE_TOPIC = "/object_keypoints_ros/result_img"
-IMAGES_DELTA_TIME = 5  # take a picture each 10 seconds
+OBJECT_IMAGE_TOPIC = "/object_keypoints_ros/result_img"
+IMAGE_TOPIC = "/image"
+IMAGES_DELTA_TIME = 0  # take a picture every ... seconds
 BASE_LINK_FRAME = "base_link"
 ODOM_TOPIC = "/mavsdk_ros/local_position"
 ROBOT_UUID = "f09df66e-cc30-4e11-92e8-fa2f5d7d19e5"
@@ -472,7 +473,9 @@ class ReportGenerator:
             #         "obj_ref",
             #     ]
             # )
-            for topic, message, t in self.bag.read_messages(topics=IMAGE_TOPIC):
+            for topic, message, t in self.bag.read_messages(
+                topics=[IMAGE_TOPIC, OBJECT_IMAGE_TOPIC]
+            ):
                 if (t.to_sec() - t_prev) > IMAGES_DELTA_TIME:
                     t_prev = t.to_sec()
 
@@ -504,9 +507,7 @@ class ReportGenerator:
                         )
 
                     # object info
-                    obj_ref = self.get_obj_ref(
-                        t
-                    )  # TODO It can also be a manually taken image with 0 obj_ref
+                    obj_ref = self.get_obj_ref(t) if topic == OBJECT_IMAGE_TOPIC else 0
 
                     meta = (
                         [
