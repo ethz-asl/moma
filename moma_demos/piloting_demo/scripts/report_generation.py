@@ -561,6 +561,11 @@ class ReportGenerator:
 
                     # Save the image as well
                     cv2_img = bridge.imgmsg_to_cv2(message, "rgb8")
+                    # Enforce the image size to match the metadata in config
+                    cv2_img = cv2.resize(
+                        cv2_img,
+                        (CAMERA_IMAGE_SIZE["width"], CAMERA_IMAGE_SIZE["height"]),
+                    )
                     cv2.imwrite(
                         os.path.join(self.report_dir, "pictures", meta[0]), cv2_img
                     )
