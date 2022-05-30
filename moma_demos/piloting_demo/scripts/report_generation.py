@@ -135,7 +135,7 @@ class ReportGenerator:
                         previous_object_time = t
                     else:
                         print(
-                            f"[Report Generation]: Skipping object at time {t} as it is likely a duplicate of {previous_object_time}"
+                            f"[Report Generation]: Skipping object at time {t} as it is likely a duplicate of time {previous_object_time}"
                         )
                 for tf_message in message.transforms:
                     if topic == "/tf_static":
