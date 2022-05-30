@@ -1,13 +1,13 @@
 repositories:
   ocs2:
     type: git
-    url: git@github.com:grizzi/ocs2.git
-    version: main
+    url: git@github.com:ethz-asl/ocs2.git
+    version: 4b78c4825deb8b2efc992fdbeef6fdb1fcca2345
 
   object_keypoints_ros:
     type: git
     url: git@github.com:ethz-asl/object_keypoints_ros.git
-    version: monocular_fix
+    version: ecd3544bf3fecd135784a9f594ef2b300990a8c3
 
   compslam:
     type: git
