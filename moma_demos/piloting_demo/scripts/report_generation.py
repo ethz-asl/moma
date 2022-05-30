@@ -235,12 +235,20 @@ class ReportGenerator:
 
         return matching_task_uuid
 
-    def get_obj_ref(self, time, allow_empty=False):
-        """Get the obj ref for the given time"""
+    def get_obj_ref(self, time, allow_empty=False, next=False):
+        """
+        Get the object ref for the given time or before, but within the same task_uuid as the given time
+
+        :param next: Get the next object ref after the given time, but within the same task_uuid as the given time
+        """
         matching_obj_ref = None
-        matching_obj_time = rospy.Time(0)
+        matching_obj_time = (
+            rospy.Time(0) if not next else rospy.Time(self.bag.get_end_time())
+        )
         for obj_ref, obj in self.objects.items():
-            if time >= obj["time"] > matching_obj_time:
+            if (not next and (time >= obj["time"] > matching_obj_time)) or (
+                next and (time <= obj["time"] < matching_obj_time)
+            ):
                 matching_obj_ref = obj_ref
                 matching_obj_time = obj["time"]
 
@@ -254,7 +262,7 @@ class ReportGenerator:
         # and that it is not the object from the previous task
         # we are returning here
         if (
-            self.get_task_uuid(matching_obj_time, allow_empty)
+            self.get_task_uuid(time, allow_empty)
             != self.objects[matching_obj_ref]["task_uuid"]
         ):
             if allow_empty:
@@ -455,7 +463,6 @@ class ReportGenerator:
 
         bridge = CvBridge()
         t_prev = -inf
-        img_idx = 0
         with open(pictures_csv_file, "w") as f:
             writer = csv.writer(f)
             # writer.writerow(
@@ -473,11 +480,44 @@ class ReportGenerator:
             #         "obj_ref",
             #     ]
             # )
+            img_idx = 0
             for topic, message, t in self.bag.read_messages(
                 topics=[IMAGE_TOPIC, OBJECT_IMAGE_TOPIC]
             ):
                 if (t.to_sec() - t_prev) > IMAGES_DELTA_TIME:
                     t_prev = t.to_sec()
+
+                    obj_ref = 0
+                    if topic == OBJECT_IMAGE_TOPIC:
+                        # Get the corresponding object of this image
+                        # Note that it might also be a different object due to a failed perception
+                        # This is why we take into account only the very last image before a successful perception
+                        obj_ref = self.get_obj_ref(t, allow_empty=True, next=True)
+                        # A failed perception at the end of the task
+                        if obj_ref is None:
+                            continue
+
+                        # Keep only the last matching image for the given object
+                        found_another_matching_image = False
+                        for i, (_, _, inner_t) in enumerate(
+                            self.bag.read_messages(
+                                topics=OBJECT_IMAGE_TOPIC,
+                                start_time=t,
+                            )
+                        ):
+                            # Skip outer message (duplicate)
+                            if i == 0:
+                                continue
+                            # Note that get_obj_ref also ensures that the object is within the same task_uuid
+                            if (
+                                self.get_obj_ref(inner_t, allow_empty=True, next=True)
+                                == obj_ref
+                            ):
+                                found_another_matching_image = True
+                                break
+                        # If we found another matching image, it will be considered during the next iteration
+                        if found_another_matching_image:
+                            continue
 
                     cam_translation = [0.0, 0.0, 0.0]
                     cam_rotation = [0.0, 0.0, 0.0, 1.0]
@@ -505,9 +545,6 @@ class ReportGenerator:
                         print(
                             f"[extract_pictures] At time {t} the camera was not localized yet"
                         )
-
-                    # object info
-                    obj_ref = self.get_obj_ref(t) if topic == OBJECT_IMAGE_TOPIC else 0
 
                     meta = (
                         [
@@ -561,9 +598,9 @@ class ReportGenerator:
                         )
                         continue
 
-                    obj_ref = self.get_obj_ref(t)
-
                     if gripper_closed:
+                        obj_ref = self.get_obj_ref(t)
+
                         T_v_ee = tf_to_se3(
                             self.tf_tree.lookup_transform_core(
                                 target_frame=OBJECT_FRAME,
