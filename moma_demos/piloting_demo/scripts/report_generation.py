@@ -78,7 +78,7 @@ class ReportGenerator:
         )
         self.robot_uuid = ROBOT_UUID
         self.plan_uuid = None
-        self.task_uuids = {}
+        self.task_uuids = None
         self.sync_id = None
         self.inspection_type = "visual"  # visual, contact, TBD
         self.map_file = "map.pcd"
@@ -202,6 +202,8 @@ class ReportGenerator:
 
     def __init_uuids(self):
         print("[Report Generation]: Reading UUIDs.")
+        self.task_uuids = {}
+
         for topic, message, t in self.bag.read_messages(
             topics=[PLAN_UUID_TOPIC, TASK_UUID_TOPIC, SYNC_ID_TOPIC]
         ):
