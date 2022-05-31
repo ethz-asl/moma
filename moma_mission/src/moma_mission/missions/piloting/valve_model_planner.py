@@ -163,7 +163,7 @@ class ValveModelPlanner:
                 {
                     "angle": angle,
                     "score": score / len(poses),
-                    "inverted": inverted,
+                    "inverted": inverted if step > 0 else not inverted,
                     "poses": poses,
                 }
             )
