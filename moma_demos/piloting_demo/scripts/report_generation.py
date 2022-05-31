@@ -24,10 +24,10 @@ PLAN_UUID_TOPIC = "/plan_uuid"
 TASK_UUID_TOPIC = "/task_uuid"
 SYNC_ID_TOPIC = "/sync_id"
 MAP_FRAME = "map"  # For local navigation: "tracking_camera_odom"
-OBJECT_TYPE = "valve"
-OBJECT_FRAME = "valve_wheel_center"
-IMAGE_TOPIC = "/object_keypoints_ros/result_img"
-IMAGES_DELTA_TIME = 5  # take a picture each 10 seconds
+VALVE_IMAGE_TOPIC = "/object_keypoints_ros/result_img"
+OBJECTS = {"valve_wheel_center": "valve"}  # Frame-to-object mapping
+IMAGE_TOPIC = "/image"
+IMAGES_DELTA_TIME = 0  # take a picture every ... seconds
 BASE_LINK_FRAME = "base_link"
 ODOM_TOPIC = "/mavsdk_ros/local_position"
 ROBOT_UUID = "f09df66e-cc30-4e11-92e8-fa2f5d7d19e5"
@@ -78,7 +78,7 @@ class ReportGenerator:
         )
         self.robot_uuid = ROBOT_UUID
         self.plan_uuid = None
-        self.task_uuids = {}
+        self.task_uuids = None
         self.sync_id = None
         self.inspection_type = "visual"  # visual, contact, TBD
         self.map_file = "map.pcd"
@@ -90,8 +90,10 @@ class ReportGenerator:
         print("[Report Generation]: Creating folder structure.")
         os.makedirs(self.report_dir, exist_ok=True)
 
-        self.__init_tf_tree()
+        self.objects = None
+
         self.__init_uuids()
+        self.__init_tf_tree()
 
     def __init_tf_tree(self):
         """Fills up a tf tree from a rosbag"""
@@ -106,21 +108,35 @@ class ReportGenerator:
         )
 
         self.tf_times = []
-        self.object_times = []
+        self.objects = {}
+        previous_object_time = rospy.Time(0)
+        obj_ref = 0
         with tqdm(total=tf_msgs_count) as progress_bar:
             for topic, message, t in self.bag.read_messages(topics=tf_topics):
                 self.tf_times.append(t)
-                if (
-                    len(
-                        [
-                            tf
-                            for tf in message.transforms
-                            if tf.child_frame_id == OBJECT_FRAME
-                        ]
-                    )
-                    > 0
-                ):
-                    self.object_times.append(t)
+                transforms = [
+                    tf
+                    for tf in message.transforms
+                    if tf.child_frame_id in OBJECTS.keys()
+                ]
+                if len(transforms) > 0:
+                    # BUG the static transform for the same object may appear multiple times in the tf_msgs
+                    if t - previous_object_time > rospy.Duration(1):
+                        assert len(transforms) == 1
+                        object_frame = transforms[0].child_frame_id
+                        object_type = OBJECTS[object_frame]
+                        obj_ref += 1
+                        self.objects[obj_ref] = {
+                            "time": t,
+                            "type": object_type,
+                            "frame": object_frame,
+                            "task_uuid": self.get_task_uuid(t),
+                        }
+                        previous_object_time = t
+                    else:
+                        print(
+                            f"[Report Generation]: Skipping object at time {t} as it is likely a duplicate of time {previous_object_time}"
+                        )
                 for tf_message in message.transforms:
                     if topic == "/tf_static":
                         self.tf_tree.set_transform_static(tf_message, topic)
@@ -186,6 +202,8 @@ class ReportGenerator:
 
     def __init_uuids(self):
         print("[Report Generation]: Reading UUIDs.")
+        self.task_uuids = {}
+
         for topic, message, t in self.bag.read_messages(
             topics=[PLAN_UUID_TOPIC, TASK_UUID_TOPIC, SYNC_ID_TOPIC]
         ):
@@ -223,6 +241,45 @@ class ReportGenerator:
             raise Exception(f"No task uuid known at time {time}")
 
         return matching_task_uuid
+
+    def get_obj_ref(self, time, allow_empty=False, next=False):
+        """
+        Get the object ref for the given time or before, but within the same task_uuid as the given time
+
+        :param next: Get the next object ref after the given time, but within the same task_uuid as the given time
+        """
+        matching_obj_ref = None
+        matching_obj_time = (
+            rospy.Time(0) if not next else rospy.Time(self.bag.get_end_time())
+        )
+        for obj_ref, obj in self.objects.items():
+            if (not next and (time >= obj["time"] > matching_obj_time)) or (
+                next and (time <= obj["time"] < matching_obj_time)
+            ):
+                matching_obj_ref = obj_ref
+                matching_obj_time = obj["time"]
+
+        if matching_obj_ref is None:
+            if allow_empty:
+                return None
+            else:
+                raise Exception(f"No object ref known at time {time}")
+
+        # Check that object was already detected at the time
+        # and that it is not the object from the previous task
+        # we are returning here
+        if (
+            self.get_task_uuid(time, allow_empty)
+            != self.objects[matching_obj_ref]["task_uuid"]
+        ):
+            if allow_empty:
+                return None
+            else:
+                raise Exception(
+                    f"Object known at time {time} is still a dangling leftover from the previous task, no object known yet that corresponds to the current task"
+                )
+
+        return matching_obj_ref
 
     def extract_config(self):
         print("[Report Generation]: Writing top level config file.")
@@ -280,17 +337,15 @@ class ReportGenerator:
 
             # BUG read only at object_times
             # If we read all tf_times, the object appears already at the beginning of the bag (where it was not even detected)
-            for t in self.object_times:
+            for obj_ref, object in self.objects.items():
                 # object info
-                obj_ref = 1
-                obj_type = OBJECT_TYPE
                 obj_info = [0.0, 0.0, 0.0]
 
                 try:
                     obj_transform = self.tf_tree.lookup_transform_core(
                         target_frame=MAP_FRAME,
-                        source_frame=OBJECT_FRAME,
-                        time=t,
+                        source_frame=object["frame"],
+                        time=object["time"],
                     )
                     obj_se3 = tf_to_se3(obj_transform)
 
@@ -308,21 +363,25 @@ class ReportGenerator:
                     obj_rotation_axis = obj_se3.rotation[:, 2]
 
                     entry = (
-                        [t.to_sec(), self.get_task_uuid(t), obj_ref, obj_type]
+                        [
+                            object["time"].to_sec(),
+                            object["task_uuid"],
+                            obj_ref,
+                            object["type"],
+                        ]
                         + obj_position
                         + obj_rotation
                         + list(obj_rotation_axis)
                         + obj_info
                     )
                     writer.writerow(entry)
-                    break
                 except tf2.ExtrapolationException:
                     print(
-                        f"[extract_objects] Skipping time {t} as there is no valid tf"
+                        f"[extract_objects] Skipping time {object['time']} as there is no valid tf"
                     )
                 except tf2.LookupException:
                     print(
-                        f"[extract_objects] Skipping time {t} as the object was not localized yet"
+                        f"[extract_objects] Skipping time {object['time']} as the object was not localized yet"
                     )
 
     # def extract_telemetry(self):
@@ -409,7 +468,6 @@ class ReportGenerator:
 
         bridge = CvBridge()
         t_prev = -inf
-        img_idx = 0
         with open(pictures_csv_file, "w") as f:
             writer = csv.writer(f)
             # writer.writerow(
@@ -427,9 +485,44 @@ class ReportGenerator:
             #         "obj_ref",
             #     ]
             # )
-            for topic, message, t in self.bag.read_messages(topics=IMAGE_TOPIC):
+            img_idx = 0
+            for topic, message, t in self.bag.read_messages(
+                topics=[IMAGE_TOPIC, VALVE_IMAGE_TOPIC]
+            ):
                 if (t.to_sec() - t_prev) > IMAGES_DELTA_TIME:
                     t_prev = t.to_sec()
+
+                    obj_ref = 0
+                    if topic == VALVE_IMAGE_TOPIC:
+                        # Get the corresponding object of this image
+                        # Note that it might also be a different object due to a failed perception
+                        # This is why we take into account only the very last image before a successful perception
+                        obj_ref = self.get_obj_ref(t, allow_empty=True, next=True)
+                        # A failed perception at the end of the task
+                        if obj_ref is None:
+                            continue
+
+                        # Keep only the last matching image for the given object
+                        found_another_matching_image = False
+                        for i, (_, _, inner_t) in enumerate(
+                            self.bag.read_messages(
+                                topics=VALVE_IMAGE_TOPIC,
+                                start_time=t,
+                            )
+                        ):
+                            # Skip outer message (duplicate)
+                            if i == 0:
+                                continue
+                            # Note that get_obj_ref also ensures that the object is within the same task_uuid
+                            if (
+                                self.get_obj_ref(inner_t, allow_empty=True, next=True)
+                                == obj_ref
+                            ):
+                                found_another_matching_image = True
+                                break
+                        # If we found another matching image, it will be considered during the next iteration
+                        if found_another_matching_image:
+                            continue
 
                     cam_translation = [0.0, 0.0, 0.0]
                     cam_rotation = [0.0, 0.0, 0.0, 1.0]
@@ -458,9 +551,6 @@ class ReportGenerator:
                             f"[extract_pictures] At time {t} the camera was not localized yet"
                         )
 
-                    # object info
-                    obj_ref = 1
-
                     meta = (
                         [
                             "DSC{:06d}.jpg".format(img_idx),
@@ -476,6 +566,11 @@ class ReportGenerator:
 
                     # Save the image as well
                     cv2_img = bridge.imgmsg_to_cv2(message, "rgb8")
+                    # Enforce the image size to match the metadata in config
+                    cv2_img = cv2.resize(
+                        cv2_img,
+                        (CAMERA_IMAGE_SIZE["width"], CAMERA_IMAGE_SIZE["height"]),
+                    )
                     cv2.imwrite(
                         os.path.join(self.report_dir, "pictures", meta[0]), cv2_img
                     )
@@ -513,13 +608,12 @@ class ReportGenerator:
                         )
                         continue
 
-                    obj_ref = 1
-
-                    torque = 0.0
                     if gripper_closed:
+                        obj_ref = self.get_obj_ref(t)
+
                         T_v_ee = tf_to_se3(
                             self.tf_tree.lookup_transform_core(
-                                target_frame=OBJECT_FRAME,
+                                target_frame=self.objects[obj_ref]["frame"],
                                 source_frame=msg.header.frame_id,
                                 time=t,
                             )
@@ -529,10 +623,13 @@ class ReportGenerator:
                         torque = msg.wrench.force.x * np.linalg.norm(T_v_ee.translation)
                         torque = -torque if object_path_inverted else torque
 
-                    entry = (
-                        [t.to_sec(), task_uuid] + [obj_ref] + [object_angle] + [torque]
-                    )
-                    writer.writerow(entry)
+                        entry = (
+                            [t.to_sec(), task_uuid]
+                            + [obj_ref]
+                            + [object_angle]
+                            + [torque]
+                        )
+                        writer.writerow(entry)
                 if topic == JOINT_STATES_TOPIC:
                     finger_joint = msg.name.index(JOINT_FINGER_NAME)
                     finger_state = msg.position[finger_joint]
