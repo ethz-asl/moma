@@ -16,8 +16,8 @@ repositories:
 
   smb_common:
     type: git
-    url: git@github.com:grizzi/smb_common.git
-    version: master
+    url: git@github.com:ethz-asl/smb_common.git
+    version: 41db078d020c18317790b0afa862092583c4782d
 
   robosense_simulator:
     type: git
@@ -27,7 +27,7 @@ repositories:
   smb_path_planner:
     type: git
     url: git@github.com:ethz-asl/smb_path_planner.git
-    version: master
+    version: 4b528b0c4c43fbbd360a420226842df15a983d65
 
   teb_local_planner:
     type: git
