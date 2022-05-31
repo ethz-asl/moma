@@ -647,7 +647,7 @@ class ValveManipulationModelState(StateRos):
             valve_planner.poses_to_ros(valve_planner.get_path_approach_poses(path))
         )
 
-        self.total_angle += path["angle"]
+        self.total_angle += path["angle_signed"]
         self._publish_angle()
 
         return "Completed"

@@ -162,6 +162,7 @@ class ValveModelPlanner:
             paths.append(
                 {
                     "angle": angle,
+                    "angle_signed": angle if step > 0 else -angle,
                     "score": score / len(poses),
                     "inverted": inverted if step > 0 else not inverted,
                     "poses": poses,
