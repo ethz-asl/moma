@@ -66,7 +66,7 @@ try:
             transitions={
                 "ExecuteInspectionPlan": "WAYPOINT_BROADCAST",
                 "ExecuteDummyPlan": "REACH_DETECTION_HOTSPOT_FAR",
-                "ManipulateValve": "DETECTION_DECISION",
+                "ManipulateValve": "VALVE_SEQUENCE",
                 "Failure": "Failure",
             },
         )
@@ -96,7 +96,7 @@ try:
             "REACH_DETECTION_HOTSPOT_MEDIUM",
             NavigationState,
             transitions={
-                "Completed": "DETECTION_DECISION",
+                "Completed": "VALVE_SEQUENCE",
                 "Failure": "REACH_DETECTION_HOTSPOT_FAR",
             },
         )
@@ -106,7 +106,7 @@ try:
             "REACH_DETECTION_HOTSPOT_CLOSE",
             TransformVisitorState,
             transitions={
-                "Completed": "DETECTION_DECISION",
+                "Completed": "VALVE_SEQUENCE",
                 "Failure": "REACH_DETECTION_HOTSPOT_FAR",
             },
         )
@@ -132,135 +132,196 @@ try:
             },
         )
 
-        # Hacky, but avoids to define an almost empty class with additional outcomes
-        rospy.loginfo("Detection decision")
-        state_machine.add(
-            "DETECTION_DECISION",
-            StateRosDummy,
-            transitions={"Completed": "OBSERVATION_POSE", "Failure": "PLAN_URDF_VALVE"},
-            constants={"get_next_pose": False, "continue_valve_fitting": False},
-        )
+        valve_sequence = StateMachineRos(outcomes=["Success", "Failure", "Warning"])
+        with valve_sequence:
+            rospy.loginfo("New valve")
+            valve_sequence.add(
+                "NEW_VALVE",
+                ValveManipulationPrePostState,
+                transitions={
+                    "Completed": "VALVE_ANGLE_CONTROLLER",
+                    "Failure": "Failure",
+                },
+            )
 
-        rospy.loginfo("Observation pose")
-        state_machine.add(
-            "OBSERVATION_POSE",
-            FOVSamplerState,
-            transitions={"Completed": "OBSERVATION_APPROACH", "Failure": "IDLE"},
-        )
+            rospy.loginfo("Valve angle controller")
+            valve_sequence.add(
+                "VALVE_ANGLE_CONTROLLER",
+                ValveAngleControllerState,
+                transitions={
+                    "Completed": "HOMING_FINAL",
+                    "Failure": "DETECTION_DECISION",
+                },
+            )
 
-        rospy.loginfo("Observation approach")
-        state_machine.add(
-            "OBSERVATION_APPROACH",
-            TransformVisitorState,
-            transitions={"Completed": "MODEL_FIT_VALVE", "Failure": "OBSERVATION_POSE"},
-        )
+            # Hacky, but avoids to define an almost empty class with additional outcomes
+            rospy.loginfo("Detection decision")
+            valve_sequence.add(
+                "DETECTION_DECISION",
+                StateRosDummy,
+                transitions={
+                    "Completed": "OBSERVATION_POSE",
+                    "Failure": "PLAN_URDF_VALVE",
+                },
+                constants={"get_next_pose": False, "continue_valve_fitting": False},
+            )
 
-        rospy.loginfo("Model fit valve")
-        state_machine.add(
-            "MODEL_FIT_VALVE",
-            ModelFitValveState,
-            transitions={
-                "Completed": "PLAN_MODEL_VALVE",
-                "Failure": "IDLE",
-                "NextDetection": "CONTINUE_VALVE_FITTING",
-            },
-        )
+            rospy.loginfo("Observation pose")
+            valve_sequence.add(
+                "OBSERVATION_POSE",
+                FOVSamplerState,
+                transitions={"Completed": "OBSERVATION_APPROACH", "Failure": "Warning"},
+            )
 
-        state_machine.add(
-            "CONTINUE_VALVE_FITTING",
-            StateRosDummy,
-            transitions={
-                "Completed": "OBSERVATION_POSE",
-                "Failure": "Failure",
-            },
-            constants={"get_next_pose": True, "continue_valve_fitting": True},
-        )
+            rospy.loginfo("Observation approach")
+            valve_sequence.add(
+                "OBSERVATION_APPROACH",
+                TransformVisitorState,
+                transitions={
+                    "Completed": "MODEL_FIT_VALVE",
+                    "Failure": "OBSERVATION_POSE",
+                },
+                constants={"get_next_pose": True},
+            )
 
-        rospy.loginfo("Plan model valve")
-        state_machine.add(
-            "PLAN_MODEL_VALVE",
-            ValveManipulationModelState,
-            transitions={"Completed": "APPROACH_VALVE", "Failure": "Failure"},
-        )
+            rospy.loginfo("Model fit valve")
+            valve_sequence.add(
+                "MODEL_FIT_VALVE",
+                ModelFitValveState,
+                transitions={
+                    "Completed": "PLAN_MODEL_VALVE",
+                    "Failure": "Warning",
+                    "NextDetection": "CONTINUE_VALVE_FITTING",
+                },
+            )
 
-        rospy.loginfo("Plan urdf valve")
-        state_machine.add(
-            "PLAN_URDF_VALVE",
-            ValveManipulationUrdfState,
-            transitions={"Completed": "APPROACH_VALVE", "Failure": "Failure"},
-        )
+            rospy.loginfo("Continue valve fitting")
+            valve_sequence.add(
+                "CONTINUE_VALVE_FITTING",
+                StateRosDummy,
+                transitions={
+                    "Completed": "OBSERVATION_POSE",
+                    "Failure": "Failure",
+                },
+                constants={"continue_valve_fitting": True},
+            )
 
-        rospy.loginfo("Approach valve")
-        state_machine.add(
-            "APPROACH_VALVE",
-            PathVisitorState,
-            transitions={"Completed": "GRASP_VALVE", "Failure": "DETECTION_DECISION"},
-        )
+            rospy.loginfo("Plan model valve")
+            valve_sequence.add(
+                "PLAN_MODEL_VALVE",
+                ValveManipulationModelState,
+                transitions={"Completed": "APPROACH_VALVE", "Failure": "Failure"},
+            )
 
-        rospy.loginfo("Grasp valve")
-        state_machine.add(
-            "GRASP_VALVE",
-            PathVisitorState,
-            transitions={"Completed": "CLOSE_GRIPPER", "Failure": "DETECTION_DECISION"},
-        )
+            rospy.loginfo("Plan urdf valve")
+            valve_sequence.add(
+                "PLAN_URDF_VALVE",
+                ValveManipulationUrdfState,
+                transitions={"Completed": "APPROACH_VALVE", "Failure": "Failure"},
+            )
 
-        rospy.loginfo("Close gripper")
-        state_machine.add(
-            "CLOSE_GRIPPER",
-            GripperGrasp,
-            transitions={
-                "Completed": "MANIPULATE_VALVE",
-                "Failure": "MANIPULATE_VALVE",
-            },
-        )
+            rospy.loginfo("Approach valve")
+            valve_sequence.add(
+                "APPROACH_VALVE",
+                PathVisitorState,
+                transitions={
+                    "Completed": "GRASP_VALVE",
+                    "Failure": "DETECTION_DECISION",
+                },
+            )
 
-        rospy.loginfo("Manipulate valve")
-        state_machine.add(
-            "MANIPULATE_VALVE",
-            PathVisitorState,
-            transitions={
-                "Completed": "STORE_FINAL_POSE",
-                "Failure": "STORE_FINAL_POSE",
-            },
-        )
+            rospy.loginfo("Grasp valve")
+            valve_sequence.add(
+                "GRASP_VALVE",
+                PathVisitorState,
+                transitions={
+                    "Completed": "CLOSE_GRIPPER",
+                    "Failure": "DETECTION_DECISION",
+                },
+            )
 
-        rospy.loginfo("Store final pose")
-        state_machine.add(
-            "STORE_FINAL_POSE",
-            TransformRecorderState,
-            transitions={"Completed": "APPROACH_FINAL_POSE", "Failure": "Failure"},
-        )
+            rospy.loginfo("Close gripper")
+            valve_sequence.add(
+                "CLOSE_GRIPPER",
+                GripperGrasp,
+                transitions={
+                    "Completed": "MANIPULATE_VALVE",
+                    "Failure": "MANIPULATE_VALVE",
+                },
+            )
 
-        rospy.loginfo("Approach final pose")
-        state_machine.add(
-            "APPROACH_FINAL_POSE",
-            TransformVisitorState,
-            transitions={"Completed": "OPEN_GRIPPER", "Failure": "Failure"},
-        )
+            rospy.loginfo("Manipulate valve")
+            valve_sequence.add(
+                "MANIPULATE_VALVE",
+                PathVisitorState,
+                transitions={
+                    "Completed": "MANIPULATE_VALVE_STEP_COMPLETED",
+                    "Failure": "MANIPULATE_VALVE_STEP_COMPLETED",
+                },
+            )
 
-        rospy.loginfo("Open gripper")
-        state_machine.add(
-            "OPEN_GRIPPER",
-            GripperGrasp,
-            transitions={"Completed": "BACKOFF_VALVE", "Failure": "Failure"},
-        )
+            rospy.loginfo("Valve manipulation step completed")
+            valve_sequence.add(
+                "MANIPULATE_VALVE_STEP_COMPLETED",
+                ValveManipulationPrePostState,
+                transitions={
+                    "Completed": "STORE_FINAL_POSE",
+                    "Failure": "Failure",
+                },
+            )
 
-        rospy.loginfo("Backoff valve")
-        state_machine.add(
-            "BACKOFF_VALVE",
-            TransformVisitorState,
-            transitions={"Completed": "HOMING_FINAL", "Failure": "Failure"},
-        )
+            rospy.loginfo("Store final pose")
+            valve_sequence.add(
+                "STORE_FINAL_POSE",
+                TransformRecorderState,
+                transitions={"Completed": "APPROACH_FINAL_POSE", "Failure": "Failure"},
+            )
 
-        rospy.loginfo("Homing final")
+            rospy.loginfo("Approach final pose")
+            valve_sequence.add(
+                "APPROACH_FINAL_POSE",
+                TransformVisitorState,
+                transitions={"Completed": "OPEN_GRIPPER", "Failure": "Failure"},
+            )
+
+            rospy.loginfo("Open gripper")
+            valve_sequence.add(
+                "OPEN_GRIPPER",
+                GripperGrasp,
+                transitions={"Completed": "BACKOFF_VALVE", "Failure": "Failure"},
+            )
+
+            rospy.loginfo("Backoff valve")
+            valve_sequence.add(
+                "BACKOFF_VALVE",
+                TransformVisitorState,
+                transitions={
+                    "Completed": "VALVE_ANGLE_CONTROLLER",
+                    "Failure": "Failure",
+                },
+            )
+
+            rospy.loginfo("Homing final")
+            state_machine.add(
+                "HOMING_FINAL",
+                homing_sequence_factory(),
+                transitions={
+                    "Success": "Success",
+                    "Failure": "Failure",
+                },
+            )
+
+        rospy.loginfo("Valve sequence")
         state_machine.add(
-            "HOMING_FINAL",
-            homing_sequence_factory(),
+            "VALVE_SEQUENCE",
+            valve_sequence,
             transitions={
                 "Success": "IDLE" if not standalone else "Success",
                 "Failure": "Failure",
+                "Warning": "IDLE" if not standalone else "VALVE_SEQUENCE",
             },
         )
+
 except Exception as exc:
     rospy.logerr(exc)
     sys.exit(0)

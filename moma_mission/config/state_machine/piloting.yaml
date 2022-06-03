@@ -108,6 +108,9 @@ WAYPOINT_FOLLOWING:
 WAYPOINT_REACHED:
   default_outcome: None
 
+NEW_VALVE:
+  post: False
+
 DETECTION_DECISION:
   default_outcome: Completed
 
@@ -155,7 +158,7 @@ PLAN_MODEL_VALVE:
   poses_topic: /valve_poses
   approach_poses_topic: /valve_approach_poses
   robot_base_frame: panda_link0
-  turning_angle_deg: 120.0
+  turning_angle_step_deg: 120.0
 
 PLAN_URDF_VALVE:
   default_outcome: None
@@ -213,6 +216,9 @@ MANIPULATE_VALVE:
     ]
 
   poses_topic: /valve_poses
+
+MANIPULATE_VALVE_STEP_COMPLETED:
+  post: True
 
 STORE_FINAL_POSE:
   default_outcome: None

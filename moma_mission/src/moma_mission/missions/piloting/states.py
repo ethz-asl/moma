@@ -580,20 +580,88 @@ class ValveManipulationUrdfState(StateRos):
         return "Completed"
 
 
-class ValveManipulationModelState(StateRos):
+class ValveManipulationPrePostState(StateRos):
     def __init__(self, ns):
         StateRos.__init__(self, ns=ns)
 
-        self.turning_angle = np.deg2rad(
-            self.get_scoped_param("turning_angle_deg", 45.0)
-        )
-
-        self.total_angle = 0
         angle_topic = self.get_scoped_param("angle_topic", "/valve_angle")
         self.angle_publisher = rospy.Publisher(
             angle_topic, Float64, queue_size=1, latch=True
         )
+        valve_continue_topic = self.get_scoped_param("angle_topic", "/valve_continue")
+        self.valve_continue_publisher = rospy.Publisher(
+            valve_continue_topic, Bool, queue_size=1, latch=True
+        )
+
+    def init(self):
+        self.set_context("valve_total_angle", 0)
         self._publish_angle()
+        self._publish_continue_valve(False)
+
+    def _publish_angle(self):
+        angle = Float64()
+        angle.data = self.global_context.ctx.valve_total_angle
+        self.angle_publisher.publish(angle)
+
+    def _publish_continue_valve(self, do_continue):
+        """
+        Whether the valve manipulation is continued on the same valve as before
+        """
+        valve_continue = Bool()
+        valve_continue.data = do_continue
+        self.valve_continue_publisher.publish(valve_continue)
+
+    def run(self):
+        if not self.get_scoped_param("post"):
+            self.init()
+            return "Completed"
+
+        valve_total_angle = (
+            self.global_context.ctx.valve_total_angle
+            + self.global_context.ctx.valve_angle_step
+        )
+        self.set_context("valve_total_angle", valve_total_angle)
+        self._publish_angle()
+        self._publish_continue_valve(True)
+
+        return "Completed"
+
+
+class ValveAngleControllerState(StateRos):
+    def run(self):
+        if "valve_desired_angle" not in self.global_context.ctx:
+            rospy.loginfo(
+                "Dynamic valve_desired_angle was not found in global context. Falling back to static one."
+            )
+            self.set_context(
+                "valve_desired_angle",
+                np.deg2rad(self.get_scoped_param("desired_angle_deg", 140.0)),
+            )
+        valve_desired_angle = self.global_context.ctx.valve_desired_angle
+        valve_total_angle = self.global_context.ctx.valve_total_angle
+        tolerance = np.deg2rad(self.get_scoped_param("angle_tolerance_deg", 10))
+
+        rospy.loginfo(
+            f"Valve is at angle {np.rad2deg(valve_total_angle)}° and should be at angle {np.rad2deg(valve_desired_angle)}°. Tolerance is {np.rad2deg(tolerance)}°."
+        )
+
+        if (
+            abs(valve_desired_angle) - tolerance
+            <= abs(valve_total_angle)
+            <= abs(valve_desired_angle) + tolerance
+        ):
+            return "Completed"
+
+        return "Failure"
+
+
+class ValveManipulationModelState(StateRos):
+    def __init__(self, ns):
+        StateRos.__init__(self, ns=ns)
+
+        self.turning_angle_step = np.deg2rad(
+            self.get_scoped_param("turning_angle_step_deg", 120.0)
+        )
 
         poses_topic = self.get_scoped_param("poses_topic", "/valve_poses")
         approach_poses_topic = self.get_scoped_param(
@@ -614,11 +682,6 @@ class ValveManipulationModelState(StateRos):
             path_inverted_topic, Bool, queue_size=1, latch=True
         )
 
-    def _publish_angle(self):
-        angle = Float64()
-        angle.data = self.total_angle
-        self.angle_publisher.publish(angle)
-
     def run(self):
         valve_model = self.global_context.ctx.valve_model
         robot_base_pose = None
@@ -634,7 +697,14 @@ class ValveManipulationModelState(StateRos):
         valve_planner = ValveModelPlanner(
             valve_model=valve_model, robot_base_pose=robot_base_pose
         )
-        path = valve_planner.get_path(angle_max=self.turning_angle)
+        turning_angle = (
+            self.global_context.ctx.valve_desired_angle
+            - self.global_context.ctx.valve_total_angle
+        )
+        turning_angle = max(
+            min(turning_angle, self.turning_angle_step), -self.turning_angle_step
+        )
+        path = valve_planner.get_path(angle_max=turning_angle)
         if path is None:
             rospy.logerr("Could not obtain a valid valve manipulation path")
             return "Failure"
@@ -647,8 +717,7 @@ class ValveManipulationModelState(StateRos):
             valve_planner.poses_to_ros(valve_planner.get_path_approach_poses(path))
         )
 
-        self.total_angle += path["angle_signed"]
-        self._publish_angle()
+        self.set_context("valve_angle_step", path["angle_signed"])
 
         return "Completed"
 
