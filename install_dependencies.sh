@@ -101,7 +101,7 @@ EOF
 
 install_mavsdk() {
   mkdir -p ~/git
-  git clone https://github.com/fada-catec/piloting-mavsdk ~/git/piloting-mavsdk
+  git clone --depth 1 --branch v5.0.1 https://github.com/fada-catec/piloting-mavsdk ~/git/piloting-mavsdk
   cd ~/git/piloting-mavsdk
   mkdir install
   mkdir build && cd build

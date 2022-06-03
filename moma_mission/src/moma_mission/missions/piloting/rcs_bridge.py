@@ -606,14 +606,14 @@ class RCSBridge:
         req.hl_actions.append(hl_action)
 
         hl_action = HLActionItem()
-        hl_action.command = 23
+        hl_action.command = 42004
         hl_action.description = "Take a photo at the current location."
         hl_action.name = "TAKE_PHOTO"
         hl_action.index = 1
         req.hl_actions.append(hl_action)
 
         hl_action = HLActionItem()
-        hl_action.command = 24
+        hl_action.command = 42005
         hl_action.description = "Manipulate a valve."
         hl_action.name = "MANIPULATE_VALVE"
         hl_action.index = 2

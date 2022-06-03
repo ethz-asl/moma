@@ -21,6 +21,8 @@ class WaypointBroadcasterState(StateRos):
         gRCS = self.global_context.ctx.gRCS
         waypoint = gRCS.get_next_waypoint()
 
+        # TODO check waypoint.task_type_uuid for valve manipulation ACTION type waypoint
+
         waypoint_pose = TransformStamped()
         waypoint_pose.header.frame_id = self.map_frame
         waypoint_pose.header.stamp = rospy.get_rostime()
