@@ -6,6 +6,7 @@ sudo apt-get install \
 	ros-$ROS_DISTRO-gazebo-ros \
 	ros-$ROS_DISTRO-ridgeback-desktop \
 	ros-$ROS_DISTRO-ridgeback-simulator \
+	ros-$ROS_DISTRO-ridgeback-navigation \
 	ros-$ROS_DISTRO-moveit \
 	ros-$ROS_DISTRO-rosmon \
 	ros-$ROS_DISTRO-pcl-ros \
@@ -25,4 +26,5 @@ sudo apt-get install \
 	ros-$ROS_DISTRO-realsense2-description\
 	ros-$ROS_DISTRO-tf-conversions\
 	ros-$ROS_DISTRO-rviz-visual-tools\
+	ros-$ROS_DISTRO-move-base\
 	qtbase5-dev
