@@ -22,7 +22,8 @@ class MoveItClient:
         self.move_group.set_max_acceleration_scaling_factor(acceleration_scaling)
 
         if isinstance(target, Transform):
-            self.move_group.set_pose_target(to_pose_msg(target))
+            # self.move_group.set_pose_target(to_pose_msg(target))
+            self.move_group.set_pose_target(to_pose_stamped_msg(target,"panda_link0"))
         elif isinstance(target, (list, np.ndarray)):
             self.move_group.set_joint_value_target(target)
         elif isinstance(target, str):
