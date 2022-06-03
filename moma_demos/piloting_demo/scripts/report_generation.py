@@ -56,8 +56,9 @@ SENSORS_LIST = {
 }
 CAMERA_UUID = SENSORS_LIST["realsense_d435i"][1]
 WRENCH_TOPIC = "/panda/franka_state_controller/F_ext"
-OBJECT_PATH_INVERTED_TOPIC = "/valve_path_inverted"
-OBJECT_ANGLE_TOPIC = "/valve_angle"
+VALVE_PATH_INVERTED_TOPIC = "/valve_path_inverted"
+VALVE_CONTINUE_TOPIC = "/valve_continue"
+VALVE_ANGLE_TOPIC = "/valve_angle"
 JOINT_STATES_TOPIC = "/joint_states"
 JOINT_FINGER_NAME = "panda_finger_joint1"
 GRIPPER_OPEN_THRESHOLD = 0.03
@@ -111,8 +112,15 @@ class ReportGenerator:
         self.objects = {}
         previous_object_time = rospy.Time(0)
         obj_ref = 0
+        valve_continue = False
         with tqdm(total=tf_msgs_count) as progress_bar:
-            for topic, message, t in self.bag.read_messages(topics=tf_topics):
+            for topic, message, t in self.bag.read_messages(
+                topics=tf_topics + VALVE_CONTINUE_TOPIC
+            ):
+                if topic == VALVE_CONTINUE_TOPIC:
+                    valve_continue = message.data
+                    continue
+
                 self.tf_times.append(t)
                 transforms = [
                     tf
@@ -125,14 +133,19 @@ class ReportGenerator:
                         assert len(transforms) == 1
                         object_frame = transforms[0].child_frame_id
                         object_type = OBJECTS[object_frame]
-                        obj_ref += 1
-                        self.objects[obj_ref] = {
-                            "time": t,
-                            "type": object_type,
-                            "frame": object_frame,
-                            "task_uuid": self.get_task_uuid(t),
-                        }
-                        previous_object_time = t
+                        if object_type != "valve" or not valve_continue:
+                            obj_ref += 1
+                            self.objects[obj_ref] = {
+                                "time": t,
+                                "type": object_type,
+                                "frame": object_frame,
+                                "task_uuid": self.get_task_uuid(t),
+                            }
+                            previous_object_time = t
+                        else:
+                            print(
+                                f"[Report Generation] Skipping valve detection at time {t} as it is the continued manipulation of the previous valve"
+                            )
                     else:
                         print(
                             f"[Report Generation]: Skipping object at time {t} as it is likely a duplicate of time {previous_object_time}"
@@ -596,8 +609,8 @@ class ReportGenerator:
                 topics=[
                     WRENCH_TOPIC,
                     JOINT_STATES_TOPIC,
-                    OBJECT_PATH_INVERTED_TOPIC,
-                    OBJECT_ANGLE_TOPIC,
+                    VALVE_PATH_INVERTED_TOPIC,
+                    VALVE_ANGLE_TOPIC,
                 ]
             ):
                 if topic == WRENCH_TOPIC:
@@ -634,9 +647,9 @@ class ReportGenerator:
                     finger_joint = msg.name.index(JOINT_FINGER_NAME)
                     finger_state = msg.position[finger_joint]
                     gripper_closed = finger_state < GRIPPER_OPEN_THRESHOLD
-                if topic == OBJECT_PATH_INVERTED_TOPIC:
+                if topic == VALVE_PATH_INVERTED_TOPIC:
                     object_path_inverted = msg.data
-                if topic == OBJECT_ANGLE_TOPIC:
+                if topic == VALVE_ANGLE_TOPIC:
                     object_angle = msg.data
 
     def run(self):
