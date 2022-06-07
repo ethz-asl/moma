@@ -366,9 +366,10 @@ class ModelFitValveState(StateRos):
             self.frame_id,
             error_threshold=self.error_threshold,
         )
-        print(f"Fit valve with residual {residual}")
+        rospy.loginfo(f"Fit valve with residual {residual}")
         if valve is None:
             return None
+        rospy.loginfo(valve)
         self.set_context("valve_model", valve)
 
         rot = np.zeros((3, 3))
@@ -421,9 +422,17 @@ class ModelFitValveState(StateRos):
             keypoints3d[i, 0] = kpt3d.position.x
             keypoints3d[i, 1] = kpt3d.position.y
             keypoints3d[i, 2] = kpt3d.position.z
-        print(f"New detection is\n{keypoints3d}")
+
+        rospy.loginfo(f"New detection is\n{keypoints3d}")
+
+        if np.isnan(keypoints2d).any() or np.isnan(keypoints3d).any():
+            rospy.logerr(
+                "Discarding keypoints perception due to NaN points, likely due to missing depth information"
+            )
+            return False
+
         self.detections.append(keypoints3d)
-        print(f"{len(self.detections)} successful detections")
+        rospy.loginfo(f"{len(self.detections)} successful detections")
         self.ransac_matcher.add_observation(camera, keypoints2d, keypoints3d)
         return True
 
@@ -444,7 +453,7 @@ class ModelFitValveState(StateRos):
             min_residual = np.inf
             points_new = []
             for p in points:
-                print(f"Fitting to\n{p.T} with shape\n{p.T.shape}")
+                rospy.loginfo(f"Fitting to\n{p.T} with shape\n{p.T.shape}")
                 residual, valve_fit = self.valve_fitter.estimate_from_3d_points(
                     p.T,
                     self.camera_pose,
@@ -452,7 +461,7 @@ class ModelFitValveState(StateRos):
                     handle_radius=0.01,
                     error_threshold=self.error_threshold,
                 )
-                print(f"Residual is {residual}")
+                rospy.loginfo(f"Residual is {residual}")
 
                 # if valve_fit is not None:
                 #     points_new.append(p)
@@ -635,11 +644,11 @@ class ValveAngleControllerState(StateRos):
             )
             self.set_context(
                 "valve_desired_angle",
-                np.deg2rad(self.get_scoped_param("desired_angle_deg", 140.0)),
+                np.deg2rad(self.get_scoped_param("turning_angle_deg", 140.0)),
             )
         valve_desired_angle = self.global_context.ctx.valve_desired_angle
         valve_total_angle = self.global_context.ctx.valve_total_angle
-        tolerance = np.deg2rad(self.get_scoped_param("angle_tolerance_deg", 10))
+        tolerance = np.deg2rad(self.get_scoped_param("turning_angle_tolerance_deg", 10))
 
         rospy.loginfo(
             f"Valve is at angle {np.rad2deg(valve_total_angle)}° and should be at angle {np.rad2deg(valve_desired_angle)}°. Tolerance is {np.rad2deg(tolerance)}°."
@@ -660,7 +669,7 @@ class ValveManipulationModelState(StateRos):
         StateRos.__init__(self, ns=ns)
 
         self.turning_angle_step = np.deg2rad(
-            self.get_scoped_param("turning_angle_step_deg", 120.0)
+            self.get_scoped_param("turning_angle_step_deg", 360.0)
         )
 
         poses_topic = self.get_scoped_param("poses_topic", "/valve_poses")
@@ -694,6 +703,7 @@ class ValveManipulationModelState(StateRos):
                     rospy.Duration(3),
                 )
             )
+            rospy.loginfo(f"Robot base pose is {robot_base_pose}")
         valve_planner = ValveModelPlanner(
             valve_model=valve_model, robot_base_pose=robot_base_pose
         )
@@ -703,6 +713,9 @@ class ValveManipulationModelState(StateRos):
         )
         turning_angle = max(
             min(turning_angle, self.turning_angle_step), -self.turning_angle_step
+        )
+        rospy.loginfo(
+            f"Valve is at angle {np.rad2deg(self.global_context.ctx.valve_total_angle)}° and should be at angle {np.rad2deg(self.global_context.ctx.valve_desired_angle)}°. Step size is {np.rad2deg(self.turning_angle_step)}°. Turning valve by {np.rad2deg(turning_angle)}°."
         )
         path = valve_planner.get_path(angle_max=turning_angle)
         if path is None:

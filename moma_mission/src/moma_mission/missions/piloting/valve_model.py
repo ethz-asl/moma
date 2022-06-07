@@ -284,6 +284,8 @@ axis 1 = {self.__v1}
 axis 2 = {self.__v2}
 depth = {self.__d}
 radius = {self.__r}
+spoke_radius = {self.__s}
+num_spokes = {self.__k}
 """
 
 

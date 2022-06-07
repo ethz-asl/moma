@@ -1,6 +1,7 @@
 import rospy
 import tf2_ros
 import tf
+import random
 import numpy as np
 import pinocchio as pin
 from scipy.spatial.transform import Rotation
@@ -132,8 +133,12 @@ class FOVSamplerState(StateRos):
             self.get_scoped_param("lateral_view_angle_deg", 20)
         )
 
+        self.shuffle = self.get_scoped_param("shuffle", False)
+
         self.sample_poses = None
-        self.num_samples = 1 + 8  # central  + intermediate angles
+        self.num_samples = self.get_scoped_param(
+            "num_samples", 1 + 8
+        )  # central + intermediate angles
 
         self.attempts = None
 
@@ -163,10 +168,15 @@ class FOVSamplerState(StateRos):
         T_map_obj = self.get_transform(self.map_frame, self.object_frame)
         T_cam_ctrl = self.get_transform(self.camera_frame, self.controlled_frame)
 
-        thetas = [0.0] + [i * np.pi / 4 for i in range(self.num_samples - 1)]
-        phis = [0.0] + [self.lateral_view_angle] * (self.num_samples - 1)
+        # (theta, phi)
+        poses = [(0.0, 0.0)] + [
+            (i * 2 * np.pi / (self.num_samples - 1), self.lateral_view_angle)
+            for i in range(self.num_samples - 1)
+        ]
+        if self.shuffle:
+            random.shuffle(poses)
 
-        for theta, phi in zip(thetas, phis):
+        for theta, phi in poses:
             T_obj_cam = spherical_to_pose(d, theta, phi, self.heading)
             T_map_cam = T_map_obj.act(T_obj_cam)
             T_map_ctrl = T_map_cam.act(T_cam_ctrl)
@@ -196,7 +206,7 @@ class FOVSamplerState(StateRos):
             self.pose_broadcaster.sendTransform(self.sample_poses[self.attempts])
             self.attempts += 1
             rospy.loginfo(f"Pose attempt {self.attempts} / {len(self.sample_poses)}")
-            rospy.sleep(2.0)
+            rospy.sleep(1.0)
             return "Completed"
         else:
             rospy.logwarn("No more point of views.")

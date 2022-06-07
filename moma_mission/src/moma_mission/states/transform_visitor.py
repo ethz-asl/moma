@@ -20,7 +20,7 @@ class TransformVisitorState(StateRosControl):
         self.angle_z = self.get_scoped_param("angle_z", 0)
         self.duration = self.get_scoped_param("duration", 0.0)
         self.timeout = self.get_scoped_param(
-            "timeout", 2 * self.duration if self.duration > 0 else 30.0
+            "timeout", max(2 * self.duration, 5.0) if self.duration > 0 else 30.0
         )
         self.mode = self.get_scoped_param("mode", "path")  # "path", "pose"
         self.allow_flip = self.get_scoped_param("allow_flip", False)

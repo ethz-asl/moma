@@ -149,7 +149,7 @@ try:
                 "VALVE_ANGLE_CONTROLLER",
                 ValveAngleControllerState,
                 transitions={
-                    "Completed": "HOMING_FINAL",
+                    "Completed": "Success",
                     "Failure": "DETECTION_DECISION",
                 },
             )
@@ -296,7 +296,7 @@ try:
                 "BACKOFF_VALVE",
                 TransformVisitorState,
                 transitions={
-                    "Completed": "VALVE_ANGLE_CONTROLLER",
+                    "Completed": "HOMING_FINAL",
                     "Failure": "Failure",
                 },
             )
@@ -306,7 +306,7 @@ try:
                 "HOMING_FINAL",
                 homing_sequence_factory(),
                 transitions={
-                    "Success": "Success",
+                    "Success": "VALVE_ANGLE_CONTROLLER",
                     "Failure": "Failure",
                 },
             )

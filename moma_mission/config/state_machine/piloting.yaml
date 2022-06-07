@@ -111,6 +111,9 @@ WAYPOINT_REACHED:
 NEW_VALVE:
   post: False
 
+VALVE_ANGLE_CONTROLLER:
+  turning_angle_deg: 360.0
+
 DETECTION_DECISION:
   default_outcome: Completed
 
@@ -123,13 +126,15 @@ OBSERVATION_POSE:
   controlled_frame: tool_frame
   object_size: 0.20
   camera_info_topic: "/camera_info"
+  num_samples: 21
+  shuffle: True
   lateral_view_angle_deg: 10
   image_fill_ratio: 0.5
   heading: [1, 0, 0]
 
 OBSERVATION_APPROACH:
   default_outcome: None
-  duration: 3.0
+  duration: 1.0
   control_frame: tracking_camera_odom
   target_frame: observation
   startlist: ["mpc_controller", "path_passthrough_controller"] #, 'path_admittance_controller' ]
@@ -143,7 +148,7 @@ OBSERVATION_APPROACH:
 
 MODEL_FIT_VALVE:
   default_outcome: None
-  num_spokes: 5
+  num_spokes: 4
   dummy: false
   dummy_position: [0.8, 0.0, 0.5]
   dummy_orientation: [0.0, 0.707, 0.0, 0.707]
@@ -158,7 +163,7 @@ PLAN_MODEL_VALVE:
   poses_topic: /valve_poses
   approach_poses_topic: /valve_approach_poses
   robot_base_frame: panda_link0
-  turning_angle_step_deg: 120.0
+  turning_angle_step_deg: 360.0
 
 PLAN_URDF_VALVE:
   default_outcome: None
@@ -201,8 +206,8 @@ GRASP_VALVE:
 MANIPULATE_VALVE:
   default_outcome: None
   mode: pose
-  linear_speed: 0.01
-  angular_speed: 0.5
+  linear_speed: 0.1
+  angular_speed: 1.0
   control_frame: panda_link0
   pose_topic: "/panda/cartesian_impedance_controller/equilibrium_pose"
   manager_namespace: panda
