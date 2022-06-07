@@ -115,7 +115,7 @@ class ReportGenerator:
         valve_continue = False
         with tqdm(total=tf_msgs_count) as progress_bar:
             for topic, message, t in self.bag.read_messages(
-                topics=tf_topics + VALVE_CONTINUE_TOPIC
+                topics=tf_topics + [VALVE_CONTINUE_TOPIC]
             ):
                 if topic == VALVE_CONTINUE_TOPIC:
                     valve_continue = message.data
