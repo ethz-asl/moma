@@ -24,6 +24,7 @@ class TestPilotingMission(unittest.TestCase):
                 "mission.launch",
                 "sim:=true",
                 "standalone:=true",
+                "turning_angle_deg:=120.0",
             ],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,

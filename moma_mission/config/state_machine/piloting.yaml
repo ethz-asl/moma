@@ -163,7 +163,7 @@ PLAN_MODEL_VALVE:
   poses_topic: /valve_poses
   approach_poses_topic: /valve_approach_poses
   robot_base_frame: panda_link0
-  turning_angle_step_deg: 360.0
+  turning_angle_step_deg: 120.0 # Note that a higher step size than this can result in more entangled trajectories
 
 PLAN_URDF_VALVE:
   default_outcome: None
