@@ -76,7 +76,8 @@ try:
             "WAYPOINT_BROADCAST",
             WaypointBroadcasterState,
             transitions={
-                "Completed": "WAYPOINT_FOLLOWING",
+                "POSE": "WAYPOINT_FOLLOWING",
+                "ACTION_VISUAL": "VALVE_SEQUENCE",
                 "Failure": "Failure",
             },
         )
@@ -127,7 +128,7 @@ try:
             WaypointReachedState,
             transitions={
                 "Next": "IDLE",
-                "Completed": "REACH_DETECTION_HOTSPOT_CLOSE",
+                "Completed": "IDLE",
                 "Failure": "Failure",
             },
         )
@@ -316,9 +317,22 @@ try:
             "VALVE_SEQUENCE",
             valve_sequence,
             transitions={
-                "Success": "IDLE" if not standalone else "Success",
+                "Success": "WAYPOINT_VALVE_REACHED" if not standalone else "Success",
                 "Failure": "Failure",
-                "Warning": "IDLE" if not standalone else "VALVE_SEQUENCE",
+                "Warning": "WAYPOINT_VALVE_REACHED"
+                if not standalone
+                else "VALVE_SEQUENCE",
+            },
+        )
+
+        rospy.loginfo("Waypoint valve reached")
+        state_machine.add(
+            "WAYPOINT_VALVE_REACHED",
+            WaypointReachedState,
+            transitions={
+                "Next": "IDLE",
+                "Completed": "IDLE",
+                "Failure": "IDLE",  # Can happen if the valve manipulation is triggered manually by a high-level action and not by an ACTION waypoint
             },
         )
 

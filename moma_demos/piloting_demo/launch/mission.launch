@@ -14,7 +14,7 @@
   </group>
 
   <!-- valve model -->
-  <include file="$(find piloting_demo)/launch/valve.launch">
+  <include file="$(find piloting_demo)/launch/valve.launch" if="$(arg standalone)">
     <arg name="sim" value="$(arg sim)"/>
     <arg name="x" value="2.0"/>
     <arg name="y" value="2.0"/>
