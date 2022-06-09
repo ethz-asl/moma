@@ -4,6 +4,8 @@
   <arg name="standalone" default="false"/>
   <arg name="standalone_arg" default="--standalone" if="$(arg standalone)"/>
   <arg name="standalone_arg" default="" unless="$(arg standalone)"/>
+  <arg name="static" default="false"/>
+  <arg name="turning_angle_deg" default="false"/>
 
   <!-- Load joint controller to publish the joint state under object namespace -->
   <group ns="valve" if="$(arg sim)">
@@ -35,10 +37,16 @@
           name="hotspot_close_broadcaster"
           args="0.0 0 0.4 0 0 3.14 valve_gt hotspot_close" />
 
-  <!-- mission state machine -->
+  <!-- mission state machine params -->
   <rosparam command="load" file="$(find moma_mission)/config/state_machine/piloting.yaml" subst_value="true"/>
   <rosparam command="load" file="$(find moma_mission)/config/state_machine/piloting_frames.yaml"/>
+  <!-- mission state machine params custom overrides -->
   <rosparam param="MODEL_FIT_VALVE/num_spokes" if="$(arg sim)">3</rosparam>
+  <rosparam param="REACH_DETECTION_HOTSPOT_FAR/default_outcome" if="$(arg static)">Completed</rosparam>
+  <rosparam param="REACH_DETECTION_HOTSPOT_MEDIUM/default_outcome" if="$(arg static)">Completed</rosparam>
+  <rosparam param="REACH_DETECTION_HOTSPOT_CLOSE/default_outcome" if="$(arg static)">Completed</rosparam>
+  <rosparam param="VALVE_ANGLE_CONTROLLER/turning_angle_deg" if="$(eval arg('turning_angle_deg') != False)" subst_value="true">$(arg turning_angle_deg)</rosparam>
+  <!-- mission state machine -->
   <node pkg="moma_mission" type="piloting.py" args="$(arg standalone_arg)" name="piloting_demo" output="screen" required="true">
     <param name="telemetry_odom_topic" value="/base_odom"/>
   </node>
