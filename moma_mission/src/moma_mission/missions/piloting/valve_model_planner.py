@@ -12,11 +12,18 @@ class ValveModelPlanner:
     Generate graps and paths given a valve model
 
     @param robot_base_pose: pose of the robot base, should be in the same frame as valve_model
+    @param safety_distance_factor: Minimum distance from grasp to spokes, scaled by the valve spoke radius
     """
 
-    def __init__(self, valve_model=ValveModel(), robot_base_pose=None):
+    def __init__(
+        self, valve_model=ValveModel(), robot_base_pose=None, safety_distance_factor=-1
+    ):
         self.valve_model = valve_model
         self.robot_base_heading = None
+
+        if safety_distance_factor < 0:
+            safety_distance_factor = 4
+        self.safety_distance = safety_distance_factor * self.valve_model.spoke_radius
 
         if robot_base_pose is not None:
             # assert robot_base_pose.header.frame_id == valve_model.frame
@@ -74,19 +81,15 @@ class ValveModelPlanner:
         z_axis = R.from_quat(grasp["orientation"]).as_matrix()[:, 2]
         return np.dot(z_axis, np.array([0, 0, -1])) > threshold
 
-    def _is_non_obstructed_grasp(self, grasp, safety_distance=-1):
+    def _is_non_obstructed_grasp(self, grasp):
         """
         Check if grasp is non obstructed, for example obstruction by spokes
-
-        :param safety_distance: Minimum distance to spokes
         """
-        if safety_distance < 0:
-            safety_distance = 4 * self.valve_model.spoke_radius
-
         pos = self.valve_model.spokes_positions
         rad = self.valve_model.spoke_radius
         return np.all(
-            (np.linalg.norm(grasp["position"] - pos, axis=1) - rad) > safety_distance
+            (np.linalg.norm(grasp["position"] - pos, axis=1) - rad)
+            > self.safety_distance
         )
 
     def _get_grasp_score(self, grasp):

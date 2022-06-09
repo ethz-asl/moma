@@ -248,7 +248,7 @@ try:
                 PathVisitorState,
                 transitions={
                     "Completed": "CLOSE_GRIPPER",
-                    "Failure": "DETECTION_DECISION",
+                    "Failure": "Failure",  # This is a critical error that needs manual intervention, as we do not know how entangled the robot is with the valve
                 },
             )
 
@@ -309,7 +309,7 @@ try:
                 TransformVisitorState,
                 transitions={
                     "Completed": "HOMING_FINAL",
-                    "Failure": "Failure",
+                    "Failure": "Failure",  # This is a critical error that needs manual intervention, as we do not know how entangled the robot is with the valve
                 },
             )
 

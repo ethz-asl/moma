@@ -24,6 +24,7 @@ def _angular_dist(rot1, rot2):
     return np.arccos(theta)
 
 
+# TODO PathVisitorState and TransformVisitorState are very similar, merge them
 class PathVisitorState(StateRosControl):
     def __init__(self, ns):
         StateRosControl.__init__(self, ns=ns)
@@ -34,10 +35,12 @@ class PathVisitorState(StateRosControl):
         self.target_frame = self.get_scoped_param("target_frame", "object")
         self.offset = self.get_scoped_param("offset", [0, 0, 0])
         self.angle_z = self.get_scoped_param("angle_z", 0)
-        self.duration = self.get_scoped_param("duration", 0.0)
+        self.timeout = self.get_scoped_param("timeout", 0)
         self.timeout_factor = self.get_scoped_param("timeout_factor", 2)
         self.linear_speed = self.get_scoped_param("linear_speed", 0.1)  # m/s
         self.angular_speed = self.get_scoped_param("angular_speed", 0.5)  # rad/s
+        self.linear_tolerance = self.get_scoped_param("linear_tolerance", 0.02)
+        self.angular_tolerance = self.get_scoped_param("angular_tolerance", 0.1)
         self.section = self.get_scoped_param("section", "all")  # "first", "last"
         self.mode = self.get_scoped_param("mode", "path")  # "path", "pose"
         self.poses = None
@@ -186,8 +189,12 @@ class PathVisitorState(StateRosControl):
             self.ee_frame,
             path.poses[-1],
             timeout=max(
-                self.timeout_factor * (t.to_sec() - rospy.get_rostime().to_sec()), 5.0
+                self.timeout,
+                self.timeout_factor * (t.to_sec() - rospy.get_rostime().to_sec()),
+                5.0,
             ),
+            linear_tolerance=self.linear_tolerance,
+            angular_tolerance=self.angular_tolerance,
         ):
             return "Failure"
 

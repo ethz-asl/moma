@@ -41,7 +41,7 @@ def spherical_to_pose(r, theta, phi, heading):
     return T
 
 
-def sample(self, range):
+def sample(range):
     """Utility function to sample uniformely in the given range"""
     return np.random.uniform(range[0], range[1])
 
@@ -120,7 +120,9 @@ class FOVSamplerState(StateRos):
         self.object_size = self.get_scoped_param("object_size", 1.0)
 
         # how big in the image the object should look like. 1.0 means getting the closest to the object
-        self.image_fill_ratio = self.get_scoped_param("image_fill_ratio")
+        self.image_fill_ratio_range = self.get_scoped_param(
+            "image_fill_ratio_range", [1.0, 1.0]
+        )
 
         # needed for FOV computation
         self.camera_info_topic = self.get_scoped_param(
@@ -129,14 +131,11 @@ class FOVSamplerState(StateRos):
         self.heading = self.get_scoped_param("heading", [1, 0, 0])
 
         # how much to look lateraly across all candiate observation poses (it is the phi angle in sperical coords)
-        self.lateral_view_angle = np.deg2rad(
-            self.get_scoped_param("lateral_view_angle_deg", 20)
+        self.lateral_view_angle_range = np.deg2rad(
+            self.get_scoped_param("lateral_view_angle_deg_range", [0, 20])
         )
 
         self.shuffle = self.get_scoped_param("shuffle", False)
-        self.randomize_lateral_view_angle = self.get_scoped_param(
-            "randomize_lateral_view_angle", False
-        )
 
         self.sample_poses = None
         self.num_samples = self.get_scoped_param(
@@ -166,7 +165,6 @@ class FOVSamplerState(StateRos):
 
         w = np.min([self.camera_info.height, self.camera_info.width])
         f = np.max([self.camera_info.K[0], self.camera_info.K[4]])
-        d = self.object_size * f / (w * self.image_fill_ratio)
 
         T_map_obj = self.get_transform(self.map_frame, self.object_frame)
         T_cam_ctrl = self.get_transform(self.camera_frame, self.controlled_frame)
@@ -175,9 +173,7 @@ class FOVSamplerState(StateRos):
         poses = [(0.0, 0.0)] + [
             (
                 i * 2 * np.pi / (self.num_samples - 1),
-                self.lateral_view_angle
-                if not self.randomize_lateral_view_angle
-                else self.lateral_view_angle * random.uniform(0, 1),
+                sample(self.lateral_view_angle_range),
             )
             for i in range(self.num_samples - 1)
         ]
@@ -185,7 +181,16 @@ class FOVSamplerState(StateRos):
             random.shuffle(poses)
 
         for theta, phi in poses:
-            T_obj_cam = spherical_to_pose(d, theta, phi, self.heading)
+            d = self.object_size * f / (w * sample(self.image_fill_ratio_range))
+            heading = (
+                self.heading
+                if self.heading != "random"
+                else np.append(
+                    tf.transformations.unit_vector(tf.transformations.random_vector(2)),
+                    0.0,
+                )
+            )
+            T_obj_cam = spherical_to_pose(d, theta, phi, heading)
             T_map_cam = T_map_obj.act(T_obj_cam)
             T_map_ctrl = T_map_cam.act(T_cam_ctrl)
 

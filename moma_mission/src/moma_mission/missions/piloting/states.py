@@ -294,6 +294,8 @@ class ModelFitValveState(StateRos):
         self.dummy_orientation = self.get_scoped_param("dummy_orientation")
 
         self.num_spokes = self.get_scoped_param("num_spokes")
+        self.spoke_radius = self.get_scoped_param("spoke_radius")
+        self.handle_radius = self.get_scoped_param("handle_radius")
         self.error_threshold = self.get_scoped_param("error_threshold")
         self.min_successful_detections = self.get_scoped_param(
             "min_successful_detections"
@@ -388,12 +390,14 @@ class ModelFitValveState(StateRos):
     def _model_fit(self, points3d: np.ndarray) -> TransformStamped:
         valve: ValveModel
         residual, valve = self.valve_fitter.estimate_from_3d_points(
-            points3d,
-            self.camera_pose,
-            self.frame_id,
+            points_3d=points3d,
+            camera_pose=self.camera_pose,
+            frame=self.frame_id,
+            spoke_radius=self.spoke_radius,
+            handle_radius=self.handle_radius,
             error_threshold=self.error_threshold,
         )
-        rospy.loginfo(f"Fit valve with residual {residual}")
+        rospy.loginfo(f"Finally fit valve with residual {residual}")
         if valve is None:
             return None
         rospy.loginfo(valve)
@@ -482,10 +486,11 @@ class ModelFitValveState(StateRos):
             for p in points:
                 rospy.loginfo(f"Fitting to\n{p.T} with shape\n{p.T.shape}")
                 residual, valve_fit = self.valve_fitter.estimate_from_3d_points(
-                    p.T,
-                    self.camera_pose,
-                    self.frame_id,
-                    handle_radius=0.01,
+                    points_3d=p.T,
+                    camera_pose=self.camera_pose,
+                    frame=self.frame_id,
+                    spoke_radius=self.spoke_radius,
+                    handle_radius=self.handle_radius,
                     error_threshold=self.error_threshold,
                 )
                 rospy.loginfo(f"Residual is {residual}")
@@ -568,8 +573,8 @@ class ModelFitValveState(StateRos):
             # filter only valid and matched observations
             points = self._filter_3d_observations(self.detections, method="geometric")
             if points is None:
-                rospy.logerr("Failed to fit 3d observations.")
-                return "Failure"
+                rospy.logerr("Failed to fit 3d observations, collecting more data.")
+                return "NextDetection"
 
             object_pose = self._model_fit(points.T)
             if object_pose is None:
@@ -698,6 +703,9 @@ class ValveManipulationModelState(StateRos):
         self.turning_angle_step = np.deg2rad(
             self.get_scoped_param("turning_angle_step_deg", 360.0)
         )
+        self.safety_distance_factor = self.get_scoped_param(
+            "safety_distance_factor", -1
+        )
 
         poses_topic = self.get_scoped_param("poses_topic", "/valve_poses")
         approach_poses_topic = self.get_scoped_param(
@@ -732,7 +740,9 @@ class ValveManipulationModelState(StateRos):
             )
             rospy.loginfo(f"Robot base pose is {robot_base_pose}")
         valve_planner = ValveModelPlanner(
-            valve_model=valve_model, robot_base_pose=robot_base_pose
+            valve_model=valve_model,
+            robot_base_pose=robot_base_pose,
+            safety_distance_factor=self.safety_distance_factor,
         )
         turning_angle = (
             self.global_context.ctx.valve_desired_angle
