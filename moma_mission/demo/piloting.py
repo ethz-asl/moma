@@ -161,10 +161,21 @@ try:
                 "DETECTION_DECISION",
                 StateRosDummy,
                 transitions={
-                    "Completed": "OBSERVATION_POSE",
+                    "Completed": "HOMING_DETECTION",
                     "Failure": "PLAN_URDF_VALVE",
                 },
                 constants={"get_next_pose": False, "continue_valve_fitting": False},
+            )
+
+            # On retrying the DETECTION_DECISION, the robot is not homed -> Do it now
+            rospy.loginfo("Homing detection")
+            state_machine.add(
+                "HOMING_DETECTION",
+                homing_sequence_factory(),
+                transitions={
+                    "Success": "OBSERVATION_POSE",
+                    "Failure": "Failure",
+                },
             )
 
             rospy.loginfo("Observation pose")
@@ -330,9 +341,9 @@ try:
             "WAYPOINT_VALVE_REACHED",
             WaypointReachedState,
             transitions={
-                "Next": "IDLE",
-                "Completed": "IDLE",
-                "Failure": "IDLE",  # Can happen if the valve manipulation is triggered manually by a high-level action and not by an ACTION waypoint
+                "Next": "HOMING_START",  # To ensure that the robot is homed even after a "warning" state, we issue another homing command
+                "Completed": "HOMING_START",  # To ensure that the robot is homed even after a "warning" state, we issue another homing command
+                "Failure": "HOMING_START",  # Can happen if the valve manipulation is triggered manually by a high-level action and not by an ACTION waypoint
             },
         )
 

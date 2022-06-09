@@ -134,6 +134,9 @@ class FOVSamplerState(StateRos):
         )
 
         self.shuffle = self.get_scoped_param("shuffle", False)
+        self.randomize_lateral_view_angle = self.get_scoped_param(
+            "randomize_lateral_view_angle", False
+        )
 
         self.sample_poses = None
         self.num_samples = self.get_scoped_param(
@@ -170,7 +173,12 @@ class FOVSamplerState(StateRos):
 
         # (theta, phi)
         poses = [(0.0, 0.0)] + [
-            (i * 2 * np.pi / (self.num_samples - 1), self.lateral_view_angle)
+            (
+                i * 2 * np.pi / (self.num_samples - 1),
+                self.lateral_view_angle
+                if not self.randomize_lateral_view_angle
+                else self.lateral_view_angle * random.uniform(0, 1),
+            )
             for i in range(self.num_samples - 1)
         ]
         if self.shuffle:

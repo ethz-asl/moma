@@ -130,6 +130,7 @@ OBSERVATION_POSE:
   num_samples: 31
   shuffle: True
   lateral_view_angle_deg: 10
+  randomize_lateral_view_angle: True
   image_fill_ratio: 0.5
   heading: [1, 0, 0]
 
@@ -153,7 +154,7 @@ MODEL_FIT_VALVE:
   dummy: false
   dummy_position: [0.8, 0.0, 0.5]
   dummy_orientation: [0.0, 0.707, 0.0, 0.707]
-  error_threshold: 0.03
+  error_threshold: 0.01
   min_successful_detections: 3
   feature_matcher_acceptance_ratio: 1000.0
   ransac_min_consensus: 1 #2   # must be > min_successful detections
@@ -175,11 +176,18 @@ PLAN_URDF_VALVE:
 
 APPROACH_VALVE:
   default_outcome: None
-  mode: path
-  control_frame: tracking_camera_odom
+  mode: pose
+  control_frame: panda_link0
+  pose_topic: "/panda/cartesian_impedance_controller/equilibrium_pose"
   manager_namespace: panda
-  startlist: ["mpc_controller", "path_passthrough_controller"]
-  stoplist: ["mpc_wholebody_controller", "joint_space_controller"]
+  startlist: ["cartesian_impedance_controller"]
+  stoplist:
+    [
+      "mpc_controller",
+      "mpc_wholebody_controller",
+      "joint_space_controller",
+      "path_passthrough_controller",
+    ]
   linear_tolerance: 0.05
   angular_tolerance: 0.1
 

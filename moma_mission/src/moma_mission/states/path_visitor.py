@@ -127,7 +127,50 @@ class PathVisitorState(StateRosControl):
             t += rospy.Duration.from_sec(dt)
             pose_stamped.header.stamp = t
 
-            path.poses.append(pose_stamped)
+            # Interpolation
+            step = 0.1 / max(dt, 1.0)  # More steps depending on time diff
+            assert 0 < step <= 1
+            for alpha in np.arange(0 + step, 1 + step, step):
+                pose_interpolated = PoseStamped()
+                pose_interpolated.header.frame_id = pose_stamped.header.frame_id
+                pose_interpolated.header.stamp = rospy.Time(
+                    path.poses[-1].header.stamp.to_sec() * (1 - alpha)
+                    + pose_stamped.header.stamp.to_sec() * alpha
+                )
+                pose_interpolated.pose.position.x = (
+                    path.poses[-1].pose.position.x * (1 - alpha)
+                    + pose_stamped.pose.position.x * alpha
+                )
+                pose_interpolated.pose.position.y = (
+                    path.poses[-1].pose.position.y * (1 - alpha)
+                    + pose_stamped.pose.position.y * alpha
+                )
+                pose_interpolated.pose.position.z = (
+                    path.poses[-1].pose.position.z * (1 - alpha)
+                    + pose_stamped.pose.position.z * alpha
+                )
+                quat = tf.transformations.quaternion_slerp(
+                    [
+                        path.poses[-1].pose.orientation.x,
+                        path.poses[-1].pose.orientation.y,
+                        path.poses[-1].pose.orientation.z,
+                        path.poses[-1].pose.orientation.w,
+                    ],
+                    [
+                        pose_stamped.pose.orientation.x,
+                        pose_stamped.pose.orientation.y,
+                        pose_stamped.pose.orientation.z,
+                        pose_stamped.pose.orientation.w,
+                    ],
+                    alpha,
+                )
+                pose_interpolated.pose.orientation.x = quat[0]
+                pose_interpolated.pose.orientation.y = quat[1]
+                pose_interpolated.pose.orientation.z = quat[2]
+                pose_interpolated.pose.orientation.w = quat[3]
+                path.poses.append(pose_interpolated)
+
+            # path.poses.append(pose_stamped)
 
         if self.mode == "path":
             self.path_publisher.publish(path)
