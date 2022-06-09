@@ -217,13 +217,13 @@ class ValveModelPlanner:
 
         # If no path meets angle specification, choose longest path
         if len(valid_paths) == 0:
-            rospy.logdebug_throttle(
+            rospy.loginfo_throttle(
                 1.0, "No path meets max angle specification, using longest one"
             )
             return max(all_paths, key=lambda path: path["angle"])
 
         # Otherwise choose path with highest score
-        rospy.logdebug_throttle(1.0, "Path with highest score is chosen")
+        rospy.loginfo_throttle(1.0, "Path with highest score is chosen")
         return max(valid_paths, key=lambda path: path["score"])
 
     def get_path_approach_poses(self, path):
