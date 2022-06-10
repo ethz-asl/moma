@@ -31,8 +31,15 @@ arg_parser.add_argument(
     default=False,
     required=False,
 )
+arg_parser.add_argument(
+    "--sim",
+    help="Test state machine in simulation",
+    default=False,
+    required=False,
+)
 args, unknown = arg_parser.parse_known_args()
 standalone = args.standalone
+sim = args.sim
 
 # Build the state machine
 state_machine = StateMachineRos(outcomes=["Success", "Failure"])
@@ -87,7 +94,9 @@ try:
             "REACH_DETECTION_HOTSPOT_FAR",
             NavigationState,
             transitions={
-                "Completed": "REACH_DETECTION_HOTSPOT_MEDIUM",
+                "Completed": "REACH_DETECTION_HOTSPOT_MEDIUM"
+                if not sim
+                else "REACH_DETECTION_HOTSPOT_CLOSE",
                 "Failure": "REACH_DETECTION_HOTSPOT_FAR",
             },
         )
