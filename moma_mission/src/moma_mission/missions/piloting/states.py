@@ -60,6 +60,9 @@ class Idle(StateRos):
                 "Failure",
             ],
         )
+        self.valve_pose_broadcaster = tf2_ros.StaticTransformBroadcaster()
+        self.map_frame = self.get_scoped_param("map_frame", Frames.map_frame)
+        self.valve_frame = self.get_scoped_param("valve_frame", "valve_gt")
 
     def run(self):
         gRCS = self.global_context.ctx.gRCS
@@ -69,17 +72,41 @@ class Idle(StateRos):
                     return "ExecuteInspectionPlan"
                 else:
                     rospy.loginfo(
-                        "Waiting for continuation request until reaching next waypoint"
+                        "Waiting for continuation request until reaching next waypoint."
                     )
 
             command, info = gRCS.get_current_hl_command()
             if command == "TAKE_PHOTO":
                 rospy.loginfo("Taking a photo")
+            elif command == "PLACE_OBJECT":
+                rospy.loginfo("Placing an object")
             elif command == "MANIPULATE_VALVE":
                 rospy.loginfo("Manipulating valve")
+                desired_angle = info.param1
+                if (info.param1 < 0 and info.param2 < 0) or (
+                    info.param1 > 0 and info.param2 > 0
+                ):
+                    desired_angle = -desired_angle
+                rospy.loginfo(f"Turning valve by angle {desired_angle} rad.")
+                self.set_context("valve_desired_angle", desired_angle)
+
+                valve_pose = TransformStamped()
+                valve_pose.header.frame_id = self.map_frame
+                valve_pose.header.stamp = rospy.get_rostime()
+                valve_pose.transform.translation.x = info.param5
+                valve_pose.transform.translation.y = info.param6
+                valve_pose.transform.translation.z = info.param7
+                valve_pose.transform.rotation.x = 0.0
+                valve_pose.transform.rotation.y = 0.0
+                valve_pose.transform.rotation.z = 0.0
+                valve_pose.transform.rotation.w = 1.0
+                valve_pose.child_frame_id = self.valve_frame
+                self.valve_pose_broadcaster.sendTransform(valve_pose)
+                rospy.sleep(2.0)
+
                 return "ManipulateValve"
             elif command is not None:
-                rospy.logerr(f"Command {command} not understood by the state machine")
+                rospy.logerr(f"Command {command} not understood by the state machine.")
             rospy.sleep(1.0)
             rospy.loginfo_throttle(
                 3.0, "In [IDLE] state... Waiting for commands from gRCS."

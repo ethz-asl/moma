@@ -16,6 +16,10 @@ from nav_msgs.msg import Odometry
 from sensor_msgs.msg import BatteryState, Imu, PointCloud2, JointState, Image
 
 from moma_mission.missions.piloting.frames import Frames
+from moma_mission.states.waypoint_bridge import (
+    TASK_TYPE_POSE_UUID,
+    TASK_TYPE_ACTION_VISUAL_UUID,
+)
 
 from mavsdk_ros.msg import CommandLong, CommandAck, WaypointList, WaypointsAck
 from mavsdk_ros.msg import TextStatus, AlarmStatus, AlarmItem, ChecklistItem
@@ -427,11 +431,19 @@ class RCSBridge:
 
     def fix_waypoints(self):
         for waypoint in self.waypoints.items:
-            # action vs navigation
-            # wp.command of value MAV_CMD_NAV_WAYPOINT_QUATERNION or  MAV_CMD_NAV_INSP_POINT_QUATERNION
+            rospy.loginfo(f"Received waypoint {waypoint}")
 
-            # Fix the waypoints for our robot
-            waypoint.z = 0
+            # action vs navigation
+            # wp.command of value MAV_CMD_NAV_WAYPOINT_QUATERNION or MAV_CMD_NAV_INSP_POINT_QUATERNION
+
+            # Fix the pose waypoints for our robot
+            if waypoint.task_type_uuid == TASK_TYPE_POSE_UUID:
+                waypoint.z = 0
+
+            # TODO Remove this hack as soon as we can adjust height of ACTION waypoints in gRCS
+            if waypoint.task_type_uuid == TASK_TYPE_ACTION_VISUAL_UUID:
+                rospy.logwarn("Applying hack on action waypoint height.")
+                waypoint.z = 0.3
 
             explicit_quat = [
                 waypoint.param2,
@@ -488,6 +500,12 @@ class RCSBridge:
         return self.waypoint_requested
 
     def set_waypoint_reached(self):
+        if self.waypoint_active_id is None:
+            rospy.logerr(
+                "Failed setting waypoint as reached. No waypoint is currently active."
+            )
+            return "Failure"
+
         rospy.loginfo("Successfully reached waypoint.")
         self.upload_reached_waypoint()
 
@@ -606,17 +624,24 @@ class RCSBridge:
         req.hl_actions.append(hl_action)
 
         hl_action = HLActionItem()
-        hl_action.command = 23
+        hl_action.command = 42004
         hl_action.description = "Take a photo at the current location."
         hl_action.name = "TAKE_PHOTO"
         hl_action.index = 1
         req.hl_actions.append(hl_action)
 
         hl_action = HLActionItem()
-        hl_action.command = 24
+        hl_action.command = 42005
         hl_action.description = "Manipulate a valve."
         hl_action.name = "MANIPULATE_VALVE"
         hl_action.index = 2
+        req.hl_actions.append(hl_action)
+
+        hl_action = HLActionItem()
+        hl_action.command = 42007
+        hl_action.description = "Place an object."
+        hl_action.name = "PLACE_OBJECT"
+        hl_action.index = 3
         req.hl_actions.append(hl_action)
 
         # hl_action = HLActionItem()

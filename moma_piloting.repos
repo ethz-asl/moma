@@ -67,4 +67,4 @@ repositories:
   piloting-mavsdk-ros:
     type: git
     url: https://github.com/fada-catec/piloting-mavsdk-ros
-    version: 89ebd1be217ddbd066757c0af02de677c7889fe2
+    version: 238d7355d7d5b71fe3134be7f10a2ff802e89aae

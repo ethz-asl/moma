@@ -87,6 +87,7 @@ REACH_DETECTION_HOTSPOT_CLOSE:
 
 WAYPOINT_BROADCAST:
   default_outcome: None
+  action_visual_waypoint_frame: valve_gt
 
 WAYPOINT_FOLLOWING:
   default_outcome: None
@@ -112,7 +113,7 @@ NEW_VALVE:
   post: False
 
 VALVE_ANGLE_CONTROLLER:
-  turning_angle_deg: 360.0
+  turning_angle_deg: 240.0
 
 DETECTION_DECISION:
   default_outcome: Completed
@@ -126,7 +127,7 @@ OBSERVATION_POSE:
   controlled_frame: tool_frame
   object_size: 0.20
   camera_info_topic: "/camera_info"
-  num_samples: 21
+  num_samples: 31
   shuffle: True
   lateral_view_angle_deg: 10
   image_fill_ratio: 0.5

@@ -1,8 +1,10 @@
 <?xml version="1.0"?>
 <launch>
   <arg name="sim" default="false"/>
+  <arg name="sim_arg" default="--sim True" if="$(arg sim)"/>
+  <arg name="sim_arg" default="" unless="$(arg sim)"/>
   <arg name="standalone" default="false"/>
-  <arg name="standalone_arg" default="--standalone" if="$(arg standalone)"/>
+  <arg name="standalone_arg" default="--standalone True" if="$(arg standalone)"/>
   <arg name="standalone_arg" default="" unless="$(arg standalone)"/>
   <arg name="static" default="false"/>
   <arg name="turning_angle_deg" default="false"/>
@@ -14,7 +16,7 @@
   </group>
 
   <!-- valve model -->
-  <include file="$(find piloting_demo)/launch/valve.launch">
+  <include file="$(find piloting_demo)/launch/valve.launch" if="$(arg standalone)">
     <arg name="sim" value="$(arg sim)"/>
     <arg name="x" value="2.0"/>
     <arg name="y" value="2.0"/>
@@ -47,7 +49,7 @@
   <rosparam param="REACH_DETECTION_HOTSPOT_CLOSE/default_outcome" if="$(arg static)">Completed</rosparam>
   <rosparam param="VALVE_ANGLE_CONTROLLER/turning_angle_deg" if="$(eval arg('turning_angle_deg') != False)" subst_value="true">$(arg turning_angle_deg)</rosparam>
   <!-- mission state machine -->
-  <node pkg="moma_mission" type="piloting.py" args="$(arg standalone_arg)" name="piloting_demo" output="screen" required="true">
+  <node pkg="moma_mission" type="piloting.py" args="$(arg standalone_arg) $(arg sim_arg)" name="piloting_demo" output="screen" required="true">
     <param name="telemetry_odom_topic" value="/base_odom"/>
   </node>
 </launch>
