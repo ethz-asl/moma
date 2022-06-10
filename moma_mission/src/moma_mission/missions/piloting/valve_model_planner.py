@@ -65,7 +65,7 @@ class ValveModelPlanner:
 
     def _is_radial_grasp(self, grasp):
         """
-        Check if grasp is pointing to the center
+        Check if grasp is pointing to the center to avoid that the head of the robot gripper collides with the spokes
         """
         radial = self.valve_model.wheel_center - grasp["position"]
         z_axis = R.from_quat(grasp["orientation"]).as_matrix()[:, 2]
@@ -221,9 +221,15 @@ class ValveModelPlanner:
         # If no path meets angle specification, choose longest path
         if len(valid_paths) == 0:
             rospy.loginfo_throttle(
-                1.0, "No path meets max angle specification, using longest one"
+                1.0,
+                "No path meets max angle specification, using the one with highest score among the longest ones",
             )
-            return max(all_paths, key=lambda path: path["angle"])
+            # The prior sorting for "score" is required to pick the path with the better heading
+            # max(): "If multiple items are maximal, the function returns the first one encountered"
+            return max(
+                sorted(all_paths, key=lambda path: path["score"], reverse=True),
+                key=lambda path: path["angle"],
+            )
 
         # Otherwise choose path with highest score
         rospy.loginfo_throttle(1.0, "Path with highest score is chosen")
@@ -269,6 +275,7 @@ if __name__ == "__main__":
     approach_poses_pub = rospy.Publisher(
         "/plan_approach", PoseArray, queue_size=1, latch=True
     )
+    rospy.sleep(2)
 
     # Robot mockup
     import tf2_ros
