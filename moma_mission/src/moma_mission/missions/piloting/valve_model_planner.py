@@ -222,7 +222,7 @@ class ValveModelPlanner:
         if len(valid_paths) == 0:
             rospy.loginfo_throttle(
                 1.0,
-                "No path meets max angle specification, using the one with highest score among the longest ones",
+                "No path meets max angle specification, falling back to path with highest score among the longest ones",
             )
             # The prior sorting for "score" is required to pick the path with the better heading
             # max(): "If multiple items are maximal, the function returns the first one encountered"
