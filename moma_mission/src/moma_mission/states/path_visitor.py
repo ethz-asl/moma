@@ -24,6 +24,7 @@ def _angular_dist(rot1, rot2):
     return np.arccos(theta)
 
 
+# TODO PathVisitorState and TransformVisitorState are very similar, merge them
 class PathVisitorState(StateRosControl):
     def __init__(self, ns):
         StateRosControl.__init__(self, ns=ns)
@@ -34,10 +35,12 @@ class PathVisitorState(StateRosControl):
         self.target_frame = self.get_scoped_param("target_frame", "object")
         self.offset = self.get_scoped_param("offset", [0, 0, 0])
         self.angle_z = self.get_scoped_param("angle_z", 0)
-        self.duration = self.get_scoped_param("duration", 0.0)
+        self.timeout = self.get_scoped_param("timeout", 0)
         self.timeout_factor = self.get_scoped_param("timeout_factor", 2)
         self.linear_speed = self.get_scoped_param("linear_speed", 0.1)  # m/s
         self.angular_speed = self.get_scoped_param("angular_speed", 0.5)  # rad/s
+        self.linear_tolerance = self.get_scoped_param("linear_tolerance", 0.02)
+        self.angular_tolerance = self.get_scoped_param("angular_tolerance", 0.1)
         self.section = self.get_scoped_param("section", "all")  # "first", "last"
         self.mode = self.get_scoped_param("mode", "path")  # "path", "pose"
         self.poses = None
@@ -127,7 +130,50 @@ class PathVisitorState(StateRosControl):
             t += rospy.Duration.from_sec(dt)
             pose_stamped.header.stamp = t
 
-            path.poses.append(pose_stamped)
+            # Interpolation
+            step = 0.1 / max(dt, 1.0)  # More steps depending on time diff
+            assert 0 < step <= 1
+            for alpha in np.arange(0 + step, 1 + step, step):
+                pose_interpolated = PoseStamped()
+                pose_interpolated.header.frame_id = pose_stamped.header.frame_id
+                pose_interpolated.header.stamp = rospy.Time(
+                    path.poses[-1].header.stamp.to_sec() * (1 - alpha)
+                    + pose_stamped.header.stamp.to_sec() * alpha
+                )
+                pose_interpolated.pose.position.x = (
+                    path.poses[-1].pose.position.x * (1 - alpha)
+                    + pose_stamped.pose.position.x * alpha
+                )
+                pose_interpolated.pose.position.y = (
+                    path.poses[-1].pose.position.y * (1 - alpha)
+                    + pose_stamped.pose.position.y * alpha
+                )
+                pose_interpolated.pose.position.z = (
+                    path.poses[-1].pose.position.z * (1 - alpha)
+                    + pose_stamped.pose.position.z * alpha
+                )
+                quat = tf.transformations.quaternion_slerp(
+                    [
+                        path.poses[-1].pose.orientation.x,
+                        path.poses[-1].pose.orientation.y,
+                        path.poses[-1].pose.orientation.z,
+                        path.poses[-1].pose.orientation.w,
+                    ],
+                    [
+                        pose_stamped.pose.orientation.x,
+                        pose_stamped.pose.orientation.y,
+                        pose_stamped.pose.orientation.z,
+                        pose_stamped.pose.orientation.w,
+                    ],
+                    alpha,
+                )
+                pose_interpolated.pose.orientation.x = quat[0]
+                pose_interpolated.pose.orientation.y = quat[1]
+                pose_interpolated.pose.orientation.z = quat[2]
+                pose_interpolated.pose.orientation.w = quat[3]
+                path.poses.append(pose_interpolated)
+
+            # path.poses.append(pose_stamped)
 
         if self.mode == "path":
             self.path_publisher.publish(path)
@@ -143,8 +189,12 @@ class PathVisitorState(StateRosControl):
             self.ee_frame,
             path.poses[-1],
             timeout=max(
-                self.timeout_factor * (t.to_sec() - rospy.get_rostime().to_sec()), 5.0
+                self.timeout,
+                self.timeout_factor * (t.to_sec() - rospy.get_rostime().to_sec()),
+                5.0,
             ),
+            linear_tolerance=self.linear_tolerance,
+            angular_tolerance=self.angular_tolerance,
         ):
             return "Failure"
 

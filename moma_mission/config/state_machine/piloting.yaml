@@ -129,9 +129,9 @@ OBSERVATION_POSE:
   camera_info_topic: "/camera_info"
   num_samples: 31
   shuffle: True
-  lateral_view_angle_deg: 10
-  image_fill_ratio: 0.5
-  heading: [1, 0, 0]
+  lateral_view_angle_deg_range: [0, 10]
+  image_fill_ratio_range: [0.4, 0.6]
+  heading: random
 
 OBSERVATION_APPROACH:
   default_outcome: None
@@ -150,10 +150,12 @@ OBSERVATION_APPROACH:
 MODEL_FIT_VALVE:
   default_outcome: None
   num_spokes: 4
+  spoke_radius: 0.01
+  handle_radius: 0.01
   dummy: false
   dummy_position: [0.8, 0.0, 0.5]
   dummy_orientation: [0.0, 0.707, 0.0, 0.707]
-  error_threshold: 0.03
+  error_threshold: 0.01
   min_successful_detections: 3
   feature_matcher_acceptance_ratio: 1000.0
   ransac_min_consensus: 1 #2   # must be > min_successful detections
@@ -165,6 +167,7 @@ PLAN_MODEL_VALVE:
   approach_poses_topic: /valve_approach_poses
   robot_base_frame: panda_link0
   turning_angle_step_deg: 120.0 # Note that a higher step size than this can result in more entangled trajectories
+  safety_distance_factor: 6
 
 PLAN_URDF_VALVE:
   default_outcome: None
@@ -175,16 +178,24 @@ PLAN_URDF_VALVE:
 
 APPROACH_VALVE:
   default_outcome: None
-  mode: path
-  control_frame: tracking_camera_odom
+  mode: pose
+  control_frame: panda_link0
+  pose_topic: "/panda/cartesian_impedance_controller/equilibrium_pose"
   manager_namespace: panda
-  startlist: ["mpc_controller", "path_passthrough_controller"]
-  stoplist: ["mpc_wholebody_controller", "joint_space_controller"]
-  linear_tolerance: 0.05
+  startlist: ["cartesian_impedance_controller"]
+  stoplist:
+    [
+      "mpc_controller",
+      "mpc_wholebody_controller",
+      "joint_space_controller",
+      "path_passthrough_controller",
+    ]
+  linear_tolerance: 0.02
   angular_tolerance: 0.1
 
   poses_topic: /valve_approach_poses
   offset: [0, 0, -0.05]
+  timeout: 30.0
 
 GRASP_VALVE:
   default_outcome: None
@@ -200,9 +211,12 @@ GRASP_VALVE:
       "joint_space_controller",
       "path_passthrough_controller",
     ]
+  linear_tolerance: 0.03 # Make it higher than the one in APPROACH_VALVE, such that this state really only fails if there is a severe problem
+  angular_tolerance: 0.15 # Make it higher than the one in APPROACH_VALVE, such that this state really only fails if there is a severe problem
 
   poses_topic: /valve_poses
   section: "first"
+  timeout: 15.0
 
 MANIPULATE_VALVE:
   default_outcome: None

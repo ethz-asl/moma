@@ -10,6 +10,7 @@ from moma_mission.core import StateRosControl
 from moma_mission.utils.transforms import *
 
 
+# TODO TransformVisitorState and PathVisitorState are very similar, merge them
 class TransformVisitorState(StateRosControl):
     def __init__(self, ns):
         StateRosControl.__init__(self, ns=ns)

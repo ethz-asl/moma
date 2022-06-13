@@ -348,7 +348,13 @@ class ValveFitter:
             raise NameError(f"Unknown method {method}")
 
     def estimate_from_3d_points(
-        self, points_3d, camera_pose, frame, handle_radius=0.0, error_threshold=0.003
+        self,
+        points_3d,
+        camera_pose,
+        frame,
+        spoke_radius,
+        handle_radius=0.0,
+        error_threshold=0.003,
     ):
         C = points_3d[:, 0]
 
@@ -395,6 +401,7 @@ class ValveFitter:
                 frame=frame,
                 center=C,
                 radius=r_with_handle,
+                spoke_radius=spoke_radius,
                 axis_1=v1,
                 axis_2=v2,
                 num_spokes=k,
