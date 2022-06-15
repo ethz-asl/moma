@@ -266,7 +266,7 @@ class RCSBridge:
         self.photos_sub = rospy.Subscriber(
             "/hand_eye/color/image_raw",
             Image,
-            self._photo_msg,
+            self.photo_cb,
             queue_size=1,
         )
 
