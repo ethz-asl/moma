@@ -171,7 +171,7 @@ try:
                 StateRosDummy,
                 transitions={
                     "Completed": "HOMING_DETECTION",
-                    "Failure": "PLAN_URDF_VALVE",
+                    "Failure": "PLAN_URDF_VALVE" if standalone else "Failure",
                 },
                 constants={"get_next_pose": False, "continue_valve_fitting": False},
             )
@@ -234,12 +234,14 @@ try:
                 transitions={"Completed": "APPROACH_VALVE", "Failure": "Failure"},
             )
 
-            rospy.loginfo("Plan urdf valve")
-            valve_sequence.add(
-                "PLAN_URDF_VALVE",
-                ValveManipulationUrdfState,
-                transitions={"Completed": "APPROACH_VALVE", "Failure": "Failure"},
-            )
+            # URDF planner only works if valve urdf is published, i. e. in standalone mode
+            if standalone:
+                rospy.loginfo("Plan urdf valve")
+                valve_sequence.add(
+                    "PLAN_URDF_VALVE",
+                    ValveManipulationUrdfState,
+                    transitions={"Completed": "APPROACH_VALVE", "Failure": "Failure"},
+                )
 
             rospy.loginfo("Approach valve")
             valve_sequence.add(
