@@ -11,4 +11,5 @@ rosbag record --repeat-latched \
 /object_keypoints_ros/result_img \
 /valve_continue \
 /valve_path_inverted \
-/valve_angle
+/valve_angle \
+/photos_taken

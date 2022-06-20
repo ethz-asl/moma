@@ -76,12 +76,10 @@ class Idle(StateRos):
                     )
 
             command, info = gRCS.get_current_hl_command()
-            if command == "TAKE_PHOTO":
-                rospy.loginfo("Taking a photo")
-            elif command == "PLACE_OBJECT":
-                rospy.loginfo("Placing an object")
+            if command == "PLACE_OBJECT":
+                rospy.loginfo("Placing an object...")
             elif command == "MANIPULATE_VALVE":
-                rospy.loginfo("Manipulating valve")
+                rospy.loginfo("Manipulating valve...")
                 desired_angle = info.param1
                 if (info.param1 < 0 and info.param2 < 0) or (
                     info.param1 > 0 and info.param2 > 0

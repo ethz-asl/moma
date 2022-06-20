@@ -124,6 +124,7 @@ class RCSBridge:
         # Buffers
         self.tf_buffer = None
         self.tf_listener = None
+        self.current_photo = None
 
         # Publishers
         self.telemetry_pub = None
@@ -133,9 +134,11 @@ class RCSBridge:
         self.plan_uuid_pub = None
         self.task_uuid_pub = None
         self.sync_id_pub = None
+        self.photos_pub = None
 
         # Subscribers
         self.odom_sub = None
+        self.photos_sub = None
 
         # Messages
         self.status_msg = TextStatus()
@@ -244,6 +247,11 @@ class RCSBridge:
             "/task_uuid", String, queue_size=1, latch=True
         )
         self.sync_id_pub = rospy.Publisher("/sync_id", UInt32, queue_size=1, latch=True)
+        self.photos_pub = rospy.Publisher(
+            "/photos_taken",
+            Image,
+            queue_size=1,
+        )
 
         # Subscribers
         self.odom_sub = rospy.Subscriber(
@@ -253,6 +261,12 @@ class RCSBridge:
             "/mavsdk_ros/inspection_set_current",
             UInt16,
             self.download_current_waypoint_cb,
+            queue_size=1,
+        )
+        self.photos_sub = rospy.Subscriber(
+            "/hand_eye/color/image_raw",
+            Image,
+            self.photo_cb,
             queue_size=1,
         )
 
@@ -573,6 +587,14 @@ class RCSBridge:
             elif command == "PAUSE_CONTINUE" and req.info.param1 == 1:
                 rospy.loginfo("Continuing mission on request.")
                 self.paused = False
+            elif command == "TAKE_PHOTO":
+                rospy.loginfo("Taking a photo...")
+                if self.current_photo is None:
+                    rospy.logerr(
+                        "Failure taking a photo, no image data was received yet."
+                    )
+                else:
+                    self.photos_pub.publish(self.current_photo)
             else:
                 # Let the state machine handle the command
                 rospy.loginfo("Command will be handled by state machine later on.")
@@ -678,6 +700,9 @@ class RCSBridge:
             return (None, None)
         self.reset_current_hl_command()
         return self.get_hl_command_name(current_hl_command), current_hl_command
+
+    def photo_cb(self, msg: Image):
+        self.current_photo = msg
 
     ################################
     #  Telemetry
