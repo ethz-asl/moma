@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 
 import rospy
 from smach import StateMachine
@@ -6,6 +6,19 @@ from smach_ros import ServiceState, SimpleActionState
 import std_srvs.srv
 
 from grasp_demo.msg import *
+
+
+def main():
+    rospy.init_node("grasp_demo", log_level=rospy.INFO)
+
+    # Construct the state machine
+    sm = construct_state_machine()
+
+    # Execute SMACH plan
+    sm.execute()
+
+    # Wait for keyboard interrupt
+    rospy.spin()
 
 
 def construct_state_machine():
@@ -25,7 +38,10 @@ def construct_state_machine():
             SimpleActionState(
                 "scan_action", ScanSceneAction, result_slots=["pointcloud_scene"]
             ),
-            transitions={"succeeded": "PLAN_GRASP", "aborted": "RESET",},
+            transitions={
+                "succeeded": "PLAN_GRASP",
+                "aborted": "RESET",
+            },
         )
 
         StateMachine.add(
@@ -36,7 +52,10 @@ def construct_state_machine():
                 goal_slots=["pointcloud_scene"],
                 result_slots=["target_grasp_pose"],
             ),
-            transitions={"succeeded": "EXECUTE_GRASP", "aborted": "RESET",},
+            transitions={
+                "succeeded": "EXECUTE_GRASP",
+                "aborted": "RESET",
+            },
         )
 
         StateMachine.add(
@@ -44,7 +63,10 @@ def construct_state_machine():
             SimpleActionState(
                 "grasp_execution_action", GraspAction, goal_slots=["target_grasp_pose"]
             ),
-            transitions={"succeeded": "DROP_OBJECT", "aborted": "RESET",},
+            transitions={
+                "succeeded": "DROP_OBJECT",
+                "aborted": "RESET",
+            },
         )
 
         StateMachine.add(
@@ -54,19 +76,6 @@ def construct_state_machine():
         )
 
     return sm
-
-
-def main():
-    rospy.init_node("grasp_demo", log_level=rospy.INFO)
-
-    # Construct the state machine
-    sm = construct_state_machine()
-
-    # Execute SMACH plan
-    outcome = sm.execute()
-
-    # Wait for keyboard interrupt
-    rospy.spin()
 
 
 if __name__ == "__main__":
