@@ -88,7 +88,7 @@ class PlanGraspNode(object):
         data = ros_numpy.numpify(map_cloud)
         x, y, z = data["x"], data["y"], data["z"]
         points = np.column_stack((x, y, z)) - self.T_base_task.translation
-        d = (data["distance"] + 0.03) / 2.0 / 0.03  # scale to [0, 1]
+        d = (data["distance"] + 0.03) / 0.06  # scale to [0, 1]
         tsdf_grid = np.zeros((40, 40, 40), dtype=np.float32)
         for idx, point in enumerate(points):
             if np.all(point > 0.0) and np.all(point < 0.3):
@@ -100,6 +100,8 @@ class PlanGraspNode(object):
         rospy.loginfo("Received map cloud")
 
         out = self.vgn.predict(tsdf_grid)
+        self.vis.quality(self.task_frame_id, voxel_size, out.qual)
+
         grasps, scores = select_local_maxima(voxel_size, out, threshold=0.9)
         rospy.loginfo("Detected grasps")
 
