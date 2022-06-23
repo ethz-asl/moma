@@ -55,7 +55,7 @@ class ReconstructSceneNode(object):
 
         self.toggle_integration(SetBoolRequest(data=True))
         for joints in self.scan_joints:
-            self.moveit.goto(joints, velocity_scaling=0.2, acceleration_scaling=0.2)
+            self.moveit.goto(joints, velocity_scaling=0.1, acceleration_scaling=0.2)
         self.toggle_integration(SetBoolRequest(data=False))
 
         msg = self.get_scene_cloud(GetScenePointcloudRequest())
