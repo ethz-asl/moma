@@ -36,6 +36,24 @@ class MoveItClient:
 
         return plan
 
+    def gotoL(self, target, velocity_scaling=0.1, acceleration_scaling=0.1):
+        plan = self.planL(target, velocity_scaling, acceleration_scaling)
+        success = self.execute(plan)
+        return success
+
+    def planL(self, target, velocity_scaling=0.1, acceleration_scaling=0.1):
+        waypoints = [to_pose_msg(target)]
+        plan, _ = self.move_group.compute_cartesian_path(waypoints, 0.01, 0.0)
+        state = self.robot.get_current_state()
+        return self.move_group.retime_trajectory(
+            state,
+            plan,
+            velocity_scaling_factor=velocity_scaling,
+            acceleration_scaling_factor=acceleration_scaling,
+            algorithm="time_optimal_trajectory_generation",
+        )
+
+
     def execute(self, plan):
         success = self.move_group.execute(plan, wait=True)
         self.move_group.stop()

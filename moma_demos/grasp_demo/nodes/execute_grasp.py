@@ -47,7 +47,7 @@ class GraspExecutionAction(object):
         if self.arm.has_error:
             self.arm.recover()
         self.moveit.goto(T_base_pregrasp, self.velocity_scaling)
-        self.moveit.goto(T_base_grasp, self.velocity_scaling)
+        self.moveit.gotoL(T_base_grasp, self.velocity_scaling)
 
         if self.arm.has_error:
             self.arm.recover()
@@ -59,7 +59,7 @@ class GraspExecutionAction(object):
             self.arm.recover()
             return
 
-        self.moveit.goto(T_base_pregrasp, self.velocity_scaling)
+        self.moveit.gotoL(T_base_pregrasp, self.velocity_scaling)
 
         if self.gripper.read() > 0.01:
             rospy.loginfo("Object grasped successfully")
