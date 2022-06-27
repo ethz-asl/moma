@@ -11,6 +11,7 @@ import ros_numpy
 
 from grasp_demo.msg import SelectGraspAction, SelectGraspResult
 from moma_utils.ros.conversions import *
+from vgn.grasp import ParallelJawGrasp
 from vgn.detection import VGN, select_local_maxima
 from vgn.rviz import Visualizer
 from vgn.utils import grid_to_map_cloud
@@ -104,6 +105,7 @@ class PlanGraspNode(object):
         grasp_candidates.header.stamp = rospy.Time.now()
         for grasp in grasps:
             pose_msg = to_pose_msg(self.T_base_task * grasp.pose)
+            pose_msg.position.z -= 0.02  # TODO(mbreyer) Investigate this
             grasp_candidates.poses.append(pose_msg)
         grasp_candidates.header.frame_id = self.base_frame_id
 

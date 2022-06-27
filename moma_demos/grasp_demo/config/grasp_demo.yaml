@@ -1,5 +1,5 @@
 base_frame_id: panda_link0
-ee_grasp_offset_z: -0.066
+ee_grasp_offset_z: -0.04
 scan_joints: 
   - [0.010, -1.479, 0.100, -2.416, 0.089, 1.402, 0.851]
   - [-0.520, -0.796, 0.912, -1.672, 0.091, 1.281, 0.871]
