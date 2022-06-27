@@ -50,12 +50,15 @@ class ReconstructSceneNode(object):
         )
 
     def reconstruct_scene_with_vpp(self, goal):
-        rospy.loginfo("Mapping scene")
         self.reset_map(EmptyRequest())
 
+        self.moveit.goto(self.scan_joints[0], velocity_scaling=0.2)
+        
+        rospy.loginfo("Mapping scene")
         self.toggle_integration(SetBoolRequest(data=True))
-        for joints in self.scan_joints:
-            self.moveit.goto(joints, velocity_scaling=0.4, acceleration_scaling=0.2)
+        rospy.sleep(2.0)
+        for joints in self.scan_joints[1:]:
+            self.moveit.goto(joints, velocity_scaling=0.2)
             rospy.sleep(2.0)
         self.toggle_integration(SetBoolRequest(data=False))
 
