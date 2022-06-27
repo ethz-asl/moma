@@ -53,9 +53,8 @@ class PlanGraspNode(object):
         self.get_map_srv = rospy.ServiceProxy("/gsm_node/get_map", GetMap)
         self.tf_buffer = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener(self.tf_buffer)
-        rospy.sleep(2.0)  # Wait for transforms
         msg = self.tf_buffer.lookup_transform(
-            "panda_link0", "task", rospy.Time(), rospy.Duration(2.0)
+            "panda_link0", "task", rospy.Time(), rospy.Duration(10.0)
         )
         self.T_base_task = from_transform_msg(msg.transform)
 
@@ -76,9 +75,6 @@ class PlanGraspNode(object):
         self.action_server.set_succeeded(result)
 
     def detect_grasps(self):
-        self.vis.clear()
-        self.vis.roi(self.task_frame_id, 0.3)
-
         voxel_size = 0.0075
         map_cloud = self.get_map_srv().map_cloud
         data = ros_numpy.numpify(map_cloud)
@@ -105,7 +101,7 @@ class PlanGraspNode(object):
         grasp_candidates.header.stamp = rospy.Time.now()
         for grasp in grasps:
             pose_msg = to_pose_msg(self.T_base_task * grasp.pose)
-            pose_msg.position.z -= 0.02  # TODO(mbreyer) Investigate this
+            pose_msg.position.z -= 0.025  # TODO(mbreyer) Investigate this
             grasp_candidates.poses.append(pose_msg)
         grasp_candidates.header.frame_id = self.base_frame_id
 

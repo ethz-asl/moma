@@ -4,7 +4,7 @@ from actionlib import SimpleActionServer
 from geometry_msgs.msg import PoseStamped
 import rospy
 
-from grasp_demo.msg import GraspAction, GraspResult
+from grasp_demo.msg import GraspAction
 from moma_utils.ros.conversions import from_pose_msg, to_pose_stamped_msg
 from moma_utils.ros.moveit import MoveItClient
 from moma_utils.ros.panda import PandaArmClient, PandaGripperClient
@@ -59,7 +59,7 @@ class GraspExecutionAction(object):
         rospy.loginfo("Moving to grasp pose")
         target = T_base_grasp * T_grasp_ee_offset
         self.moveit_target_pub.publish(to_pose_stamped_msg(target, self.base_frame))
-        self.moveit.gotoL(target, self.velocity_scaling)
+        self.moveit.goto(target, self.velocity_scaling)
 
         if self.arm.has_error:
             self.action_server.set_aborted()
