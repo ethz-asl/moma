@@ -45,11 +45,6 @@ class PlanGraspNode(object):
             PoseArray,
             queue_size=10,
         )
-        self.selected_grasp_pub = rospy.Publisher(
-            "grasp_pose",
-            PoseStamped,
-            queue_size=10,
-        )
 
     def init_vgn(self):
         model_path = Path(rospy.get_param("moma_demo/vgn/model"))
@@ -156,7 +151,8 @@ class PlanGraspNode(object):
         return selected_grasp_msg
 
     def visualize_selected_grasp(self, selected_grasp):
-        self.selected_grasp_pub.publish(selected_grasp)
+        grasp = ParallelJawGrasp(from_pose_msg(selected_grasp.pose), 0.04)
+        self.vis.grasp(self.base_frame_id, grasp, 1.0)
 
 
 def main():
