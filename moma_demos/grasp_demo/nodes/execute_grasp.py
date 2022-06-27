@@ -50,7 +50,11 @@ class GraspExecutionAction(object):
         rospy.loginfo("Moving to pregrasp pose")
         target = T_base_grasp * Transform.translation([0, 0, -0.05]) * T_grasp_ee_offset
         self.moveit_target_pub.publish(to_pose_stamped_msg(target, self.base_frame))
-        self.moveit.goto(target, self.velocity_scaling)
+        success = self.moveit.goto(target, self.velocity_scaling)
+
+        if not success or self.arm.has_error:
+            self.action_server.set_aborted()
+            return
 
         rospy.loginfo("Moving to grasp pose")
         target = T_base_grasp * T_grasp_ee_offset
@@ -58,20 +62,18 @@ class GraspExecutionAction(object):
         self.moveit.gotoL(target, self.velocity_scaling)
 
         if self.arm.has_error:
-            self.arm.recover()
+            self.action_server.set_aborted()
             return
 
         rospy.loginfo("Attempting grasp")
         self.gripper.grasp()
 
         if self.arm.has_error:
-            self.arm.recover()
+            self.action_server.set_aborted()
             return
 
         rospy.loginfo("Lifting object")
-        target = (
-            Transform.translation([0.0, 0.0, 0.1]) * T_base_grasp * T_grasp_ee_offset
-        )
+        target = Transform.translation([0, 0, 0.1]) * T_base_grasp * T_grasp_ee_offset
         self.moveit_target_pub.publish(to_pose_stamped_msg(target, self.base_frame))
         self.moveit.gotoL(target, self.velocity_scaling)
 
