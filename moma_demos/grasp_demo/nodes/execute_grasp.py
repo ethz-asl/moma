@@ -77,10 +77,12 @@ class GraspExecutionAction(object):
 
         if self.gripper.read() > 0.01:
             rospy.loginfo("Object grasped successfully")
+            self.action_server.set_succeeded()
         else:
             rospy.logwarn("Nothing detected in gripper")
+            self.action_server.set_aborted()
 
-        self.action_server.set_succeeded(GraspResult())
+        
 
 
 if __name__ == "__main__":
