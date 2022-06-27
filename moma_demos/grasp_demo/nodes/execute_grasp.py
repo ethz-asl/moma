@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 
 from actionlib import SimpleActionServer
+from geometry_msgs.msg import PoseStamped
 import rospy
 
 from grasp_demo.msg import GraspAction, GraspResult
-from moma_utils.ros.conversions import from_pose_msg
+from moma_utils.ros.conversions import from_pose_msg, to_pose_stamped_msg
 from moma_utils.ros.moveit import MoveItClient
 from moma_utils.ros.panda import PandaArmClient, PandaGripperClient
 from moma_utils.spatial import Transform
@@ -27,6 +28,8 @@ class GraspExecutionAction(object):
         )
         self.action_server.start()
 
+        self.moveit_target_pub = rospy.Publisher("target", PoseStamped, queue_size=10)
+
         rospy.loginfo("Grasp action server ready")
 
     def load_parameters(self):
@@ -37,34 +40,46 @@ class GraspExecutionAction(object):
     def execute_cb(self, goal):
         rospy.loginfo("Received grasp pose")
         T_base_grasp = from_pose_msg(goal.target_grasp_pose.pose)
-        T_grasp_ee_offset = Transform.translation([0.0, 0.0, -self.ee_grasp_offset_z])
-        T_base_grasp = T_base_grasp * T_grasp_ee_offset
-        T_grasp_pregrasp = Transform.translation([0.0, 0.0, -0.03])
-        T_base_pregrasp = T_base_grasp * T_grasp_pregrasp
 
+        T_grasp_ee_offset = Transform.translation([0.0, 0.0, -self.ee_grasp_offset_z])
+
+        rospy.loginfo("Executing grasp")
         self.gripper.release()
         self.moveit.goto("ready", self.velocity_scaling)
-        if self.arm.has_error:
-            self.arm.recover()
-        self.moveit.goto(T_base_pregrasp, self.velocity_scaling)
-        self.moveit.gotoL(T_base_grasp, self.velocity_scaling)
+
+        rospy.loginfo("Moving to pregrasp pose")
+        target = T_base_grasp * Transform.translation([0, 0, -0.05]) * T_grasp_ee_offset
+        self.moveit_target_pub.publish(to_pose_stamped_msg(target, self.base_frame))
+        self.moveit.goto(target, self.velocity_scaling)
+
+        rospy.loginfo("Moving to grasp pose")
+        target = T_base_grasp * T_grasp_ee_offset
+        self.moveit_target_pub.publish(to_pose_stamped_msg(target, self.base_frame))
+        self.moveit.gotoL(target, self.velocity_scaling)
 
         if self.arm.has_error:
             self.arm.recover()
             return
 
+        rospy.loginfo("Attempting grasp")
         self.gripper.grasp()
 
         if self.arm.has_error:
             self.arm.recover()
             return
 
-        self.moveit.gotoL(T_base_pregrasp, self.velocity_scaling)
+        rospy.loginfo("Lifting object")
+        target = (
+            Transform.translation([0.0, 0.0, 0.1]) * T_base_grasp * T_grasp_ee_offset
+        )
+        self.moveit_target_pub.publish(to_pose_stamped_msg(target, self.base_frame))
+        self.moveit.gotoL(target, self.velocity_scaling)
 
         if self.gripper.read() > 0.01:
             rospy.loginfo("Object grasped successfully")
         else:
             rospy.logwarn("Nothing detected in gripper")
+
         self.action_server.set_succeeded(GraspResult())
 
 
