@@ -82,8 +82,6 @@ class GraspExecutionAction(object):
             rospy.logwarn("Nothing detected in gripper")
             self.action_server.set_aborted()
 
-        
-
 
 if __name__ == "__main__":
     rospy.init_node("grasp_execution_node")
