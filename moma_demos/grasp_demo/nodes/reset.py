@@ -17,39 +17,40 @@ from moma_utils.ros.panda import PandaArmClient, PandaGripperClient
 
 class ResetNode(object):
     def __init__(self):
-        self.static_broadcaster = tf2_ros.StaticTransformBroadcaster()
-        self.arm = PandaArmClient()
-        self.gripper = PandaGripperClient()
-        self.moveit = MoveItClient("panda_arm")
+        self.base_frame_id = rospy.get_param("moma_demo/base_frame_id")
+        self.task_frame_id = rospy.get_param("moma_demo/task_frame_id")
+        self.table_height = rospy.get_param("moma_demo/table_height")
+        self.broadcast_roi()
+        self.init_robot_connection()
         self.vis = Visualizer()
         self.cloud_pub = rospy.Publisher("/gsm_node/cloud", PointCloud2)
-        rospy.sleep(1.0)  # wait for connections to be established
-        self.broadcast_task_frame_transform()
-        self.create_planning_scene()
-
         rospy.Service("reset", Trigger, self.reset)
         rospy.loginfo("Reset service ready")
 
-    def broadcast_task_frame_transform(self):
-        table_height = rospy.get_param("moma_demo/table_height")
-        T_panda_link0_task = Transform.translation([0.25, -0.15, table_height - 0.05])
-        msg = geometry_msgs.msg.TransformStamped()
-        msg.header.stamp = rospy.Time.now()
-        msg.header.frame_id = "panda_link0"
-        msg.child_frame_id = "task"
-        msg.transform = to_transform_msg(T_panda_link0_task)
-        self.static_broadcaster.sendTransform(msg)
+    def broadcast_roi(self):
+        self.static_broadcaster = tf2_ros.StaticTransformBroadcaster()
         rospy.sleep(1.0)
 
-    def create_planning_scene(self):
+        T_base_task = Transform.translation([0.25, -0.15, self.table_height - 0.05])
+
+        msg = geometry_msgs.msg.TransformStamped()
+        msg.header.frame_id = self.base_frame_id
+        msg.child_frame_id = self.task_frame_id
+        msg.transform = to_transform_msg(T_base_task)
+        self.static_broadcaster.sendTransform(msg)
+
+    def init_robot_connection(self):
+        self.arm = PandaArmClient()
+        self.gripper = PandaGripperClient()
+        self.moveit = MoveItClient("panda_arm")
+
+        rospy.sleep(1.0)
+
         # Add a collision box for the table
-        table_height = rospy.get_param("moma_demo/table_height")
-        safety_margin = 0.01
         msg = geometry_msgs.msg.PoseStamped()
-        msg.header.frame_id = "panda_link0"
-        msg.pose.position.x = 0.5
-        msg.pose.position.y = 0.0
-        msg.pose.position.z = table_height - 0.01 + safety_margin
+        msg.header.frame_id = self.base_frame_id
+        msg.pose.position.x = 0.4
+        msg.pose.position.z = self.table_height
         self.moveit.scene.add_box("table", msg, size=(0.6, 0.6, 0.02))
 
     def reset(self, req):
@@ -65,8 +66,8 @@ class ResetNode(object):
 
     def reset_vis(self):
         self.vis.clear()
-        self.vis.roi("task", 0.3)
-        header = Header(frame_id="task")
+        self.vis.roi(self.task_frame_id, 0.3)
+        header = Header(frame_id=self.base_frame_id)
         fields = [
             PointField("x", 0, PointField.FLOAT32, 1),
             PointField("y", 4, PointField.FLOAT32, 1),

@@ -59,7 +59,7 @@ class GraspExecutionAction(object):
         rospy.loginfo("Moving to grasp pose")
         target = T_base_grasp * T_grasp_ee_offset
         self.moveit_target_pub.publish(to_pose_stamped_msg(target, self.base_frame))
-        self.moveit.goto(target, self.velocity_scaling)
+        self.moveit.gotoL(target, self.velocity_scaling)
 
         if self.arm.has_error:
             self.action_server.set_aborted()
