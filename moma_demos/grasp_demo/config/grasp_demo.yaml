@@ -1,6 +1,5 @@
 base_frame_id: panda_link0
-task_frame_id: task
-ee_grasp_offset_z: -0.038
+ee_grasp_offset_z: -0.066
 scan_joints: 
   - [0.010, -1.479, 0.100, -2.416, 0.089, 1.402, 0.851]
   - [-0.520, -0.796, 0.912, -1.672, 0.091, 1.281, 0.871]
@@ -8,7 +7,8 @@ scan_joints:
   - [0.092, -0.626, -0.551, -1.837, 0.165, 1.238, 0.900]
 drop_joints: [-0.329, -0.285, -0.289, -1.878, -0.070, 1.635, 0.801]
 
-table_height: 0.14  # Measured from the base frame specified above
+task_frame_id: task
+table_height: 0.15  # Measured from the base frame specified above
 
 grasp_selection: "auto"  # Choice: manual, auto
 
@@ -16,4 +16,4 @@ arm_velocity_scaling_drop: 0.3
 arm_velocity_scaling_grasp: 0.2
 
 vgn:
-    model: $(find vgn)/assets/models/vgn_conv.pth
+  model: $(find vgn)/assets/models/vgn_conv.pth
