@@ -264,6 +264,22 @@ Visualization Manager:
         Show Robot Visual: false
       Value: false
     - Alpha: 1
+      Axes Length: 0.10000000149011612
+      Axes Radius: 0.009999999776482582
+      Class: rviz/Pose
+      Color: 255; 25; 0
+      Enabled: true
+      Head Length: 0.30000001192092896
+      Head Radius: 0.10000000149011612
+      Name: MoveIt Target
+      Queue Size: 10
+      Shaft Length: 1
+      Shaft Radius: 0.05000000074505806
+      Shape: Axes
+      Topic: /manipulator/target
+      Unreliable: false
+      Value: true
+    - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
         Max Value: 10
@@ -379,22 +395,6 @@ Visualization Manager:
       Use Fixed Frame: true
       Use rainbow: true
       Value: false
-    - Alpha: 1
-      Axes Length: 0.05000000074505806
-      Axes Radius: 0.009999999776482582
-      Class: rviz/Pose
-      Color: 255; 25; 0
-      Enabled: true
-      Head Length: 0.30000001192092896
-      Head Radius: 0.10000000149011612
-      Name: Selected Grasp
-      Queue Size: 10
-      Shaft Length: 1
-      Shaft Radius: 0.05000000074505806
-      Shape: Axes
-      Topic: grasp_pose
-      Unreliable: false
-      Value: true
     - Class: rviz/MarkerArray
       Enabled: true
       Marker Topic: /manipulator/visualization_marker_array
@@ -431,7 +431,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 1.5481371879577637
+      Distance: 1.4710564613342285
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -439,17 +439,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 0.30495432019233704
-        Y: 0.040100835263729095
-        Z: 0.4312371015548706
+        X: 0.24335487186908722
+        Y: 0.08023550361394882
+        Z: 0.39747002720832825
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.0997963398694992
+      Pitch: 0.06979642808437347
       Target Frame: <Fixed Frame>
-      Yaw: 5.1735734939575195
+      Yaw: 5.06354284286499
     Saved: ~
 Window Geometry:
   Displays:
