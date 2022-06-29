@@ -48,27 +48,20 @@ class GraspExecutionAction(object):
         self.moveit.goto("ready", self.velocity_scaling)
 
         rospy.loginfo("Moving to pregrasp pose")
-        target = T_base_grasp * Transform.translation([0, 0, -0.05]) * T_grasp_ee_offset
+        target = T_base_grasp * Transform.translation([0, 0, -0.03]) * T_grasp_ee_offset
         self.moveit_target_pub.publish(to_pose_stamped_msg(target, self.base_frame))
         success = self.moveit.goto(target, self.velocity_scaling)
-
-        if not success or self.arm.has_error:
-            self.action_server.set_aborted()
-            return
 
         rospy.loginfo("Moving to grasp pose")
         target = T_base_grasp * T_grasp_ee_offset
         self.moveit_target_pub.publish(to_pose_stamped_msg(target, self.base_frame))
         self.moveit.gotoL(target, self.velocity_scaling)
-
-        if self.arm.has_error:
-            self.action_server.set_aborted()
-            return
-
+    
         rospy.loginfo("Attempting grasp")
         self.gripper.grasp()
 
         if self.arm.has_error:
+            rospy.loginfo("Robot error. Aborting.")
             self.action_server.set_aborted()
             return
 
