@@ -43,15 +43,10 @@ class MoveItClient:
 
     def planL(self, target, velocity_scaling=0.1, acceleration_scaling=0.1):
         waypoints = [to_pose_msg(target)]
+        self.move_group.set_max_velocity_scaling_factor(velocity_scaling)
+        self.move_group.set_max_acceleration_scaling_factor(acceleration_scaling)
         plan, _ = self.move_group.compute_cartesian_path(waypoints, 0.01, 0.0)
-        state = self.robot.get_current_state()
-        return self.move_group.retime_trajectory(
-            state,
-            plan,
-            velocity_scaling_factor=velocity_scaling,
-            acceleration_scaling_factor=acceleration_scaling,
-            algorithm="time_optimal_trajectory_generation",
-        )
+        return plan
 
 
     def execute(self, plan):
