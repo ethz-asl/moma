@@ -66,9 +66,11 @@ class PandaArmClient:
         self._joint_state_msg = msg
 
     def _robot_state_cb(self, msg):
-        if not self.has_error and msg.robot_mode == 4:
+        if msg.robot_mode == 4:
             self.has_error = True
-            rospy.loginfo("Error detected")
+        else:
+            self.has_error = False
+            # rospy.loginfo("Error detected")
 
 class PandaGripperClient:
     def __init__(self):
