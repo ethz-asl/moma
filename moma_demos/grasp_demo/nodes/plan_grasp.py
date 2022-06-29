@@ -95,13 +95,14 @@ class PlanGraspNode(object):
         self.vis.quality(self.task_frame_id, voxel_size, out.qual)
 
         grasps, scores = select_local_maxima(voxel_size, out, threshold=0.9)
+        self.vis.grasps("task", grasps, scores)
         rospy.loginfo("Detected grasps")
 
         grasp_candidates = PoseArray()
         grasp_candidates.header.stamp = rospy.Time.now()
         for grasp in grasps:
             pose_msg = to_pose_msg(self.T_base_task * grasp.pose)
-            pose_msg.position.z -= 0.025  # TODO(mbreyer) Investigate this
+            pose_msg.position.z -= 0.02  # TODO(mbreyer) Investigate this
             grasp_candidates.poses.append(pose_msg)
         grasp_candidates.header.frame_id = self.base_frame_id
 
