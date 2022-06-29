@@ -71,6 +71,7 @@ class PandaArmClient:
             rospy.loginfo("Error detected")
         for s in Errors.__slots__:
             if getattr(msg.current_errors, s) and not self.has_error:
+                self.has_error = True
                 rospy.logerr('Robot Error Detected')
 
 
