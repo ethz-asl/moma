@@ -102,7 +102,7 @@ class PlanGraspNode(object):
         grasp_candidates.header.stamp = rospy.Time.now()
         for grasp in grasps:
             pose_msg = to_pose_msg(self.T_base_task * grasp.pose)
-            pose_msg.position.z -= 0.02  # TODO(mbreyer) Investigate this
+            pose_msg.position.z -= 0.025  # TODO(mbreyer) Investigate this
             grasp_candidates.poses.append(pose_msg)
         grasp_candidates.header.frame_id = self.base_frame_id
 
