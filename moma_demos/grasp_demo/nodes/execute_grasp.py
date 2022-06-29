@@ -70,7 +70,7 @@ class GraspExecutionAction(object):
         self.moveit_target_pub.publish(to_pose_stamped_msg(target, self.base_frame))
         self.moveit.gotoL(target, self.velocity_scaling)
 
-        if self.gripper.read() > 0.01:
+        if self.gripper.read() > 0.002:
             rospy.loginfo("Object grasped successfully")
             self.action_server.set_succeeded()
         else:
