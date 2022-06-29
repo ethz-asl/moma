@@ -8,7 +8,7 @@ scan_joints:
 drop_joints: [-0.329, -0.285, -0.289, -1.878, -0.070, 1.635, 0.801]
 
 task_frame_id: task
-table_height: 0.15  # Measured from the base frame specified above
+table_height: 0.01  # Measured from the base frame specified above
 
 grasp_selection: "auto"  # Choice: manual, auto
 
