@@ -13,7 +13,7 @@ from franka_gripper.msg import (
     HomingAction,
     HomingGoal,
 )
-from franka_msgs.msg import ErrorRecoveryAction, ErrorRecoveryActionGoal, FrankaState, Errors
+from franka_msgs.msg import ErrorRecoveryAction, ErrorRecoveryActionGoal, FrankaState
 from sensor_msgs.msg import JointState
 
 
@@ -66,14 +66,9 @@ class PandaArmClient:
         self._joint_state_msg = msg
 
     def _robot_state_cb(self, msg):
-        if any(msg.cartesian_collision) and not self.has_error:
+        if not self.has_error and msg.robot_mode == 4:
             self.has_error = True
             rospy.loginfo("Error detected")
-        for s in Errors.__slots__:
-            if getattr(msg.current_errors, s) and not self.has_error:
-                self.has_error = True
-                rospy.logerr('Robot Error Detected')
-
 
 class PandaGripperClient:
     def __init__(self):
