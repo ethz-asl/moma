@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>mobile_manip_demo</name>
+  <version>0.0.0</version>
+  <description>The mobile_manip_demo package</description>
+
+  <maintainer email="fjulian@ethz.ch">Julian Foerster</maintainer>
+  <!-- TODO add Michel and Ken -->
+
+  <!-- One license tag required, multiple allowed, one license per tag -->
+  <!-- Commonly used license strings: -->
+  <!--   BSD, MIT, Boost Software License, GPLv2, GPLv3, LGPLv2.1, LGPLv3 -->
+  <license>TODO</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>std_msgs</depend>
+  <depend>actionlib</depend>
+  <depend>actionlib_msgs</depend>
+  <depend>roscpp</depend>
+  <depend>geometry_msgs</depend>
+  <depend>sensor_msgs</depend>
+
+  <depend>grasp_demo</depend>
+  <depend>moma_utils</depend>
+  <depend>yumi_controllers</depend>
+  <depend>map_server</depend>
+
+  <!-- The export tag contains other, unspecified, tags -->
+  <export>
+    <!-- Other tools can request additional information be placed here -->
+  </export>
+</package>
