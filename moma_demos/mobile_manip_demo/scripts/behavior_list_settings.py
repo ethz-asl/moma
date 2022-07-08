@@ -10,8 +10,8 @@ from mobile_manip_demo import behaviors
 # TODO: decide if it is necessary or if we can use only the behaviors script
 
 
-def get_navgoal_IDs():
-    """Parse the config file and get the IDs for the navigation goals."""
+def get_goal_IDs():
+    """Parse the config file and get the IDs for the goals."""
     return [""]
 
 
@@ -19,19 +19,26 @@ def get_behavior_list() -> bl.BehaviorLists:
     """Return the behavior list."""
     condition_nodes = [
         bl.ParameterizedNode(
-            name="at pos",
-            behavior=behaviors.AtPos,
+            name="rob at pos",
+            behavior=behaviors.RobotAtPose,
             parameters=[
-                bl.NodeParameter(
-                    ["0", "1", "2"], data_type=bl.ParameterTypes.INDEX, placement=0
-                ),
-                bl.NodeParameter(
-                    [],
-                    (0, 0, 0),
-                    (5, 5, 5),
-                    (1, 1, 1),
-                    data_type=bl.ParameterTypes.POSITION,
-                ),
+                bl.NodeParameter(pose_ID, data_type=bl.ParameterTypes.STRING),
+            ],
+            condition=True,
+        ),
+        bl.ParameterizedNode(
+            name="cube at pos",
+            behavior=behaviors.ObjectAtPose,
+            parameters=[
+                bl.NodeParameter(pose_ID, data_type=bl.ParameterTypes.STRING),
+            ],
+            condition=True,
+        ),
+        bl.ParameterizedNode(
+            name="in hand",
+            behavior=behaviors.InHand,
+            parameters=[
+                bl.NodeParameter(obj, data_type=bl.ParameterTypes.STRING),
             ],
             condition=True,
         ),
@@ -42,7 +49,23 @@ def get_behavior_list() -> bl.BehaviorLists:
             name="move",
             behavior=behaviors.Move,
             parameters=[
-                bl.NodeParameter(get_navgoal_IDs(), data_type=bl.ParameterTypes.STRING)
+                bl.NodeParameter(get_goal_IDs(), data_type=bl.ParameterTypes.STRING)
+            ],
+            condition=False,
+        ),
+        bl.ParameterizedNode(
+            name="pick",
+            behavior=behaviors.Pick,
+            parameters=[
+                bl.NodeParameter(get_goal_IDs(), data_type=bl.ParameterTypes.STRING)
+            ],
+            condition=False,
+        ),
+        bl.ParameterizedNode(
+            name="place",
+            behavior=behaviors.Place,
+            parameters=[
+                bl.NodeParameter(get_goal_IDs(), data_type=bl.ParameterTypes.STRING)
             ],
             condition=False,
         ),
