@@ -9,7 +9,7 @@
     <!-- ======== Launch everything ======== -->
 
     <!-- Load parameters -->
-    <rosparam command="load" file="$(find grasp_demo)/config/grasp_demo.yaml" ns="manipulator/moma_demo"/>
+    <rosparam command="load" file="$(find grasp_demo)/config/grasp_demo.yaml" ns="manipulator/moma_demo" subst_value="true"/>
 
     <include file="$(find moma_bringup)/launch/panda_moveit_real_camera.launch">
         <arg name="simulation_mode" value="$(arg simulation_mode)"/>

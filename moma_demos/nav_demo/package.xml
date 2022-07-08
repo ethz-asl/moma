@@ -18,6 +18,8 @@
   <depend>sensor_msgs</depend>
   <depend>move_base_msgs</depend>
   <depend>ridgeback_navigation</depend>
+  <depend>moma_description</depend>
+  <depend>royalpanda_moveit_config</depend>
   <exec_depend>message_runtime</exec_depend>
 
   <export>
