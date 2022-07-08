@@ -111,8 +111,8 @@
   <xacro:include filename="$(find realsense2_description)/urdf/_d435.urdf.xacro" />
   <xacro:include filename="$(find moma_description)/urdf/realsense.gazebo.xacro" />
   <xacro:realsense_gazebo_plugin camera_name="wrist_camera"/>
-  <xacro:property name="panda_link7_camera_bottom_screw_frame_rpy" value="-0.5033 -1.566 2.865" />
-  <xacro:property name="panda_link7_camera_bottom_screw_frame_xyz" value="0.0256 -0.0246 0.1522" />
+  <xacro:property name="panda_link7_camera_bottom_screw_frame_rpy" value="-0.891 -1.562 -3.040" />
+  <xacro:property name="panda_link7_camera_bottom_screw_frame_xyz" value="0.0306 -0.0267  0.1604" />
   <xacro:sensor_d435 parent="panda_link7" name="wrist_camera" use_nominal_extrinsics="${use_nominal_extrinsics}">
     <origin rpy="${panda_link7_camera_bottom_screw_frame_rpy}" xyz="${panda_link7_camera_bottom_screw_frame_xyz}" />
   </xacro:sensor_d435>
