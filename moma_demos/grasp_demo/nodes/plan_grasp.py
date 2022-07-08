@@ -4,7 +4,7 @@ from pathlib import Path
 import numpy as np
 import rospy
 from actionlib import SimpleActionServer
-from geometry_msgs.msg import *
+import geometry_msgs.msg
 import tf
 import tf2_ros
 
@@ -31,7 +31,7 @@ class PlanGraspNode(object):
 
         # Publishers and subscribers
         self.detected_grasps_pub = rospy.Publisher(
-            "grasp_candidates", PoseArray, queue_size=10
+            "grasp_candidates", geometry_msgs.msg.PoseArray, queue_size=10
         )
         self.get_map_srv = rospy.ServiceProxy("/gsm_node/get_map", GetMap)
 
@@ -80,7 +80,9 @@ class PlanGraspNode(object):
         return selected_grasp
 
     def wait_for_user_selection(self, grasp_candidates):
-        clicked_point_msg = rospy.wait_for_message("/clicked_point", PointStamped)
+        clicked_point_msg = rospy.wait_for_message(
+            "/clicked_point", geometry_msgs.msg.PointStamped
+        )
         clicked_point = conv.from_point_msg(clicked_point_msg.point)
         translation, _ = self.listener.lookupTransform(
             "base_link", self.base_frame_id, rospy.Time()
@@ -91,7 +93,7 @@ class PlanGraspNode(object):
             grasp_point = conv.from_pose_msg(pose).translation
             distances.append(np.linalg.norm(clicked_point - grasp_point))
 
-        selected_grasp_msg = PoseStamped()
+        selected_grasp_msg = geometry_msgs.msg.PoseStamped()
         selected_grasp_msg.header.stamp = rospy.Time.now()
         selected_grasp_msg.header.frame_id = self.base_frame_id
         selected_grasp_msg.pose = grasp_candidates.poses[np.argmin(distances)]
@@ -99,7 +101,7 @@ class PlanGraspNode(object):
 
     def select_best_grasp(self, grasps, scores):
         index = np.argmax([p.position.z for p in grasps.poses])
-        selected_grasp_msg = PoseStamped()
+        selected_grasp_msg = geometry_msgs.msg.PoseStamped()
         selected_grasp_msg.header.stamp = rospy.Time.now()
         selected_grasp_msg.header.frame_id = self.base_frame_id
         selected_grasp_msg.pose = grasps.poses[index]
