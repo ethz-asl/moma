@@ -24,16 +24,16 @@ class ReconstructSceneNode(object):
         self.arm = PandaArmClient()
 
         if semantic:
+            self.reset_map = None
+            self.toggle_integration = None
+            self.get_scene_cloud = None
             self.connect_to_gsm_node()
             execute_cb = self.reconstruct_scene_with_vpp
         else:
             raise NotImplementedError
 
         self.action_server = SimpleActionServer(
-            "scan_action",
-            ScanSceneAction,
-            execute_cb=execute_cb,
-            auto_start=False,
+            "scan_action", ScanSceneAction, execute_cb=execute_cb, auto_start=False
         )
         self.action_server.start()
         rospy.loginfo("Scan action server ready")
@@ -53,7 +53,7 @@ class ReconstructSceneNode(object):
         self.reset_map(EmptyRequest())
 
         self.moveit.goto(self.scan_joints[0], velocity_scaling=0.2)
-        
+
         rospy.loginfo("Mapping scene")
         self.toggle_integration(SetBoolRequest(data=True))
         rospy.sleep(2.0)
