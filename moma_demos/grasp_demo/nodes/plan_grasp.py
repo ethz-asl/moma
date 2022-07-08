@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 
 from pathlib import Path
+import numpy as np
+import rospy
 from actionlib import SimpleActionServer
 from geometry_msgs.msg import *
 import tf
 import tf2_ros
 
 from grasp_demo.msg import SelectGraspAction, SelectGraspResult
-from moma_utils.ros.conversions import *
+import moma_utils.ros.conversions as conv
 from moma_utils.grasping import PlanGrasp
 from vpp_msgs.srv import GetMap
 
@@ -19,13 +21,13 @@ class PlanGraspNode(object):
         # Parameters
         model_path = Path(rospy.get_param("moma_demo/vgn/model"))
         self.base_frame_id = rospy.get_param("moma_demo/base_frame_id")
-        self.task_frame_id = rospy.get_param("moma_demo/task_frame_id")
+        task_frame_id = rospy.get_param("moma_demo/task_frame_id")
         self.grasp_selection = rospy.get_param("moma_demo/grasp_selection")
         tf_buffer = tf2_ros.Buffer()
         msg = tf_buffer.lookup_transform(
-            "panda_link0", "task", rospy.Time(), rospy.Duration(10)
+            self.base_frame_id, task_frame_id, rospy.Time(), rospy.Duration(10)
         )
-        self.T_base_task = from_transform_msg(msg.transform)
+        self.T_base_task = conv.from_transform_msg(msg.transform)
 
         # Publishers and subscribers
         self.detected_grasps_pub = rospy.Publisher(
@@ -34,9 +36,7 @@ class PlanGraspNode(object):
         self.get_map_srv = rospy.ServiceProxy("/gsm_node/get_map", GetMap)
 
         # Grasp planner
-        self.grasp_planner = PlanGrasp(
-            model_path, self.base_frame_id, self.task_frame_id
-        )
+        self.grasp_planner = PlanGrasp(model_path, self.base_frame_id, task_frame_id)
 
         self.action_server = SimpleActionServer(
             "grasp_selection_action",
@@ -81,14 +81,14 @@ class PlanGraspNode(object):
 
     def wait_for_user_selection(self, grasp_candidates):
         clicked_point_msg = rospy.wait_for_message("/clicked_point", PointStamped)
-        clicked_point = from_point_msg(clicked_point_msg.point)
+        clicked_point = conv.from_point_msg(clicked_point_msg.point)
         translation, _ = self.listener.lookupTransform(
             "base_link", self.base_frame_id, rospy.Time()
         )
         clicked_point += np.asarray(translation)
         distances = []
         for pose in grasp_candidates.poses:
-            grasp_point = from_pose_msg(pose).translation
+            grasp_point = conv.from_pose_msg(pose).translation
             distances.append(np.linalg.norm(clicked_point - grasp_point))
 
         selected_grasp_msg = PoseStamped()

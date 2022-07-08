@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 
+import numpy as np
+import rospy
 import geometry_msgs.msg
 import ros_numpy
 
-from moma_utils.ros.conversions import *
+import moma_utils.ros.conversions as conv
 from vgn.grasp import ParallelJawGrasp
 from vgn.detection import VGN, select_local_maxima
 from vgn.rviz import Visualizer
@@ -46,7 +48,7 @@ class PlanGrasp(object):
         grasp_candidates = geometry_msgs.msg.PoseArray()
         grasp_candidates.header.stamp = rospy.Time.now()
         for grasp in grasps:
-            pose_msg = to_pose_msg(T_base_task * grasp.pose)
+            pose_msg = conv.to_pose_msg(T_base_task * grasp.pose)
             pose_msg.position.z -= 0.025  # TODO(mbreyer) Investigate this
             grasp_candidates.poses.append(pose_msg)
         grasp_candidates.header.frame_id = self.base_frame_id
@@ -54,5 +56,5 @@ class PlanGrasp(object):
         return grasp_candidates, scores
 
     def visualize_selected_grasp(self, selected_grasp):
-        grasp = ParallelJawGrasp(from_pose_msg(selected_grasp.pose), 0.04)
+        grasp = ParallelJawGrasp(conv.from_pose_msg(selected_grasp.pose), 0.04)
         self.vis.grasp(self.base_frame_id, grasp, 1.0)
