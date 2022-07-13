@@ -1,7 +1,4 @@
 <?xml version="1.0" ?>
 <launch>
-    <!-- Select a robot. Can be "yumi" or "panda". -->
-    <arg name="robot_name" default="panda"/>
-    <!-- Open rviz if desired -->
-    <node type="rviz" name="rviz" pkg="rviz" args="-d $(find grasp_demo)/config/$(arg robot_name)/rviz.rviz" ns="manipulator"/>
+    <node type="rviz" name="rviz" pkg="rviz" args="-d $(find grasp_demo)/config/grasp_demo.rviz" ns="manipulator"/>
 </launch>

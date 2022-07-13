@@ -9,28 +9,10 @@
     <!-- ======== Launch everything ======== -->
 
     <!-- Load parameters -->
-    <rosparam command="load" file="$(find grasp_demo)/config/grasp_demo.yaml" ns="manipulator/moma_demo"/>
+    <rosparam command="load" file="$(find grasp_demo)/config/grasp_demo.yaml" ns="manipulator/moma_demo" subst_value="true"/>
 
-    <!-- Launch camera -->
-    <include file="$(find realsense2_camera)/launch/rs_camera.launch" unless="$(arg simulation_mode)">
-        <arg name="depth_width" value="640"/>
-        <arg name="depth_height" value="480"/>
-        <arg name="depth_fps" value="30"/>
-        <arg name="enable_pointcloud" value="true"/>
-        <arg name="filters" value="temporal"/>
-        <arg name="tf_prefix" value="wrist_camera"/>
-        <arg name="publish_tf" value="true"/>
-    </include>
-
-    <!-- Bringup robot -->
-    <include unless="$(arg simulation_mode)" file="$(find moma_bringup)/launch/panda_moveit_real.launch" ns="manipulator">
-        <arg name="launch_rviz" value="false"/>
-    </include>
-    <include if="$(arg simulation_mode)" file="$(find moma_gazebo)/launch/panda_example.launch">
-        <arg name="rviz" value="false"/>
-        <arg name="world_name" value="$(find moma_gazebo)/worlds/table_top_1.world"/>
-        <arg name="panda_z_position" value="0.8"/>
-        <arg name="use_fixed_realsense" value="true"/>
+    <include file="$(find moma_bringup)/launch/panda_moveit_real_camera.launch">
+        <arg name="simulation_mode" value="$(arg simulation_mode)"/>
     </include>
 
     <!-- Launch action scripts -->

@@ -66,10 +66,11 @@ class PandaArmClient:
         self._joint_state_msg = msg
 
     def _robot_state_cb(self, msg):
-        if not self.has_error and msg.robot_mode == 4:
+        if msg.robot_mode == 4:
             self.has_error = True
-            rospy.loginfo("Error detected")
-
+        else:
+            self.has_error = False
+            # rospy.loginfo("Error detected")
 
 class PandaGripperClient:
     def __init__(self):
@@ -94,9 +95,9 @@ class PandaGripperClient:
         self.grasp_client.send_goal(msg)
         self.grasp_client.wait_for_result(rospy.Duration(2.0))
 
-    def release(self):
+    def release(self, width=0.1):
         rospy.loginfo("Opening gripper")
-        self.move(0.1)
+        self.move(width)
 
     def stop(self):
         msg = StopGoal()

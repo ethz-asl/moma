@@ -9,7 +9,6 @@
   <license>TODO</license>
 
   <buildtool_depend>catkin</buildtool_depend>
-  <buildtool_depend>catkin_simple</buildtool_depend>
 
   <depend>moma_description</depend>
   <depend>panda_moveit_config</depend>

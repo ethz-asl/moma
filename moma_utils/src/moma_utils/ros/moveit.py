@@ -36,6 +36,19 @@ class MoveItClient:
 
         return plan
 
+    def gotoL(self, target, velocity_scaling=0.1, acceleration_scaling=0.1):
+        plan = self.planL(target, velocity_scaling, acceleration_scaling)
+        success = self.execute(plan)
+        return success
+
+    def planL(self, target, velocity_scaling=0.1, acceleration_scaling=0.1):
+        waypoints = [to_pose_msg(target)]
+        self.move_group.set_max_velocity_scaling_factor(velocity_scaling)
+        self.move_group.set_max_acceleration_scaling_factor(acceleration_scaling)
+        plan, _ = self.move_group.compute_cartesian_path(waypoints, 0.01, 0.0)
+        return plan
+
+
     def execute(self, plan):
         success = self.move_group.execute(plan, wait=True)
         self.move_group.stop()
