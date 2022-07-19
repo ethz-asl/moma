@@ -444,6 +444,7 @@ class RCSBridge:
         return True
 
     def fix_waypoints(self):
+        previous_waypoint = None
         for waypoint in self.waypoints.items:
             rospy.loginfo(f"Received waypoint {waypoint}")
 
@@ -468,11 +469,24 @@ class RCSBridge:
             roll_rad, pitch_rad, yaw_rad = tf.transformations.euler_from_quaternion(
                 explicit_quat
             )
+
+            # Hack for getting correct action waypoint heading, since heading is not supported for action types by gRCS
+            if waypoint.task_type_uuid == TASK_TYPE_ACTION_VISUAL_UUID:
+                rospy.loginfo(
+                    "Calculating action waypoint heading based on previous waypoint."
+                )
+                heading = tf.transformations.unit_vector(
+                    [waypoint.x - previous_waypoint.x, waypoint.y - previous_waypoint.y]
+                )
+                yaw_rad = np.arctan2(heading[1], heading[0])
+
             quaternion = tf.transformations.quaternion_from_euler(0.0, 0.0, yaw_rad)
             waypoint.param2 = quaternion[0]  # x
             waypoint.param3 = quaternion[1]  # y
             waypoint.param4 = quaternion[2]  # z
             waypoint.param1 = quaternion[3]  # w
+
+            previous_waypoint = waypoint
 
     def reset_waypoints(self):
         self.waypoint_requested_id = 0

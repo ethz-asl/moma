@@ -127,11 +127,12 @@ OBSERVATION_POSE:
   controlled_frame: tool_frame
   object_size: 0.20
   camera_info_topic: "/camera_info"
-  num_samples: 31
-  shuffle: True
-  lateral_view_angle_deg_range: [0, 10]
+  num_samples: 32
+  theta_range_deg: [-90, 90]
+  phi_range_deg: [10, 30]
   image_fill_ratio_range: [0.4, 0.6]
-  heading: random
+  heading: "range"
+  heading_range_deg: [0, 180]
 
 OBSERVATION_APPROACH:
   default_outcome: None
