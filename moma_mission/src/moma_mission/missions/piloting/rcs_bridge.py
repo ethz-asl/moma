@@ -476,7 +476,7 @@ class RCSBridge:
                     "Calculating action waypoint heading based on previous waypoint."
                 )
                 heading = tf.transformations.unit_vector(
-                    [waypoint.x - previous_waypoint.x, waypoint.y - previous_waypoint.y]
+                    [previous_waypoint.x - waypoint.x, previous_waypoint.y - waypoint.y]
                 )
                 yaw_rad = np.arctan2(heading[1], heading[0])
 
