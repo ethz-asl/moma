@@ -144,7 +144,7 @@ install_piloting() {
 
 install_system_deps() {
 sudo --preserve-env=DEBIAN_FRONTEND apt-get install \
-  git git-lfs \
+  git git-lfs python3-pip python3-vcstool \
 	ros-$ROS_DISTRO-ros-control \
 	ros-$ROS_DISTRO-ros-controllers \
 	ros-$ROS_DISTRO-gazebo-ros-pkgs \
@@ -225,8 +225,8 @@ echo "Starting installation"
 touch ~/.moma_bashrc
 
 
-install_ci
 install_system_deps
+install_ci
 install_external
 if $INSTALL_CONTROL_DEPS
 then
