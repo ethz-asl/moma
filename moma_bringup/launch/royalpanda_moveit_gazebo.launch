@@ -111,7 +111,13 @@
         i: 0.1
         d: 0
     </rosparam>
+
+    <remap from="/ridgeback_velocity_controller/odom" to="/mobile_base/ridgeback_velocity_controller/odom"/>
+
     <include file="$(find ridgeback_control)/launch/control.launch" />
+
+
+    <remap from="/mobile_base/twist_marker_server/cmd_vel" to="/cmd_vel"/>
     <include file="$(find ridgeback_control)/launch/teleop.launch">
       <arg name="joystick" value="$(arg joystick)"/>
     </include>
@@ -123,7 +129,7 @@
       [panda/franka_state_controller/joint_states,
       panda/franka_gripper/joint_states,
       mobile_base/joint_states,
-      mobile_base/odom]
+      mobile_base/ridgeback_velocity_controller/odom]
     </rosparam>
     <param name="rate" value="30"/>
   </node>
