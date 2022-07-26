@@ -31,6 +31,13 @@
                 -J $(arg arm_id)_finger_joint2 0.001"
        />
 
+  <!-- Ridgeback customization -->
+  <arg name="config" default="$(optenv RIDGEBACK_CONFIG dual_hokuyo_lasers)" />
+  <arg name="mobile_base_x"                 default="0"     doc="How far forward to place the base of the robot in [m]?" />
+  <arg name="mobile_base_y"                 default="0"     doc="How far leftwards to place the base of the robot in [m]?" />
+  <arg name="mobile_base_z"                 default="0.1"     doc="How far upwards to place the base of the robot in [m]?" />
+  <arg name="mobile_base_yaw"               default="0"     doc="How much to rotate the base of the robot around its Z-axis in [rad]?" />
+
   <!-- Remap command velocity topic -->
   <remap from="/mobile_base/cmd_vel" to="/cmd_vel"/>
 
@@ -43,8 +50,11 @@
   </include>
 
   <!-- Load robot descriptions -->
+  <!-- Using custom env_run script, because finding it in the ridgeback_description package didn't work   -->
   <param name="robot_description"
-         command="xacro $(find moma_description)/urdf/royalpanda.urdf.xacro
+         command="$(find nav_demo)/config/env_run
+                  $(find ridgeback_description)/urdf/configs/$(arg config)
+                  xacro $(find moma_description)/urdf/royalpanda.urdf.xacro
                   use_nominal_extrinsics:=true"/>
   <param name="robot_description_arm"
          command="xacro $(find moma_description)/urdf/panda.urdf.xacro
@@ -78,7 +88,9 @@
   <arg name="joystick" default="false" />
   <group ns="mobile_base">
     <param name="robot_description"
-       command="xacro $(find moma_description)/urdf/ridgeback.urdf.xacro
+       command="$(find nav_demo)/config/env_run
+                $(find ridgeback_description)/urdf/configs/$(arg config)
+                xacro $(find moma_description)/urdf/ridgeback.urdf.xacro
                 include_control_plugin:=false"/>
 
     <rosparam param="gazebo_ros_control/pid_gains">
@@ -121,14 +133,17 @@
     <arg name="load_robot_description" value="false"/>
   </include>
 
+  <!-- Spawn royalpanda -->
   <arg name="unpause" value="$(eval '' if arg('paused') else '-unpause')" />
   <node name="$(arg arm_id)_model_spawner"
         pkg="gazebo_ros"
         type="spawn_model"
         args="-param robot_description -urdf -model $(arg arm_id) $(arg unpause)
               $(arg initial_joint_positions)
+              -x $(arg mobile_base_x) -y $(arg mobile_base_y) -z $(arg mobile_base_z) -Y $(arg mobile_base_yaw)
               "/>
 
+  <!-- View the robot and set Nav goal in RViz -->
   <node if="$(arg rviz)" name="$(anon rviz)" pkg="rviz" type="rviz" respawn="false" args="-d $(find moma_bringup)/config/royalpanda_moveit.rviz" output="screen">
     <rosparam command="load" file="$(find royalpanda_moveit_config)/config/kinematics.yaml"/>
   </node>
