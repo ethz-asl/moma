@@ -128,11 +128,11 @@ OBSERVATION_POSE:
   object_size: 0.20
   camera_info_topic: "/camera_info"
   num_samples: 32
-  theta_range_deg: [-60, 60] # Don't make this too large (e.g. [-90, 90]) since the head orientation could get flipped when going from one extreme to the other
+  theta_range_deg: [-60, 60]
   phi_range_deg: [10, 45]
   image_fill_ratio_range: [0.4, 0.6]
   heading: "range"
-  heading_range_deg: [0, 180]
+  heading_range_deg: [30, 150] # Don't make this too large (e.g. [0, 180]) since the head orientation could get flipped when going from one extreme to the other
 
 OBSERVATION_APPROACH:
   default_outcome: None

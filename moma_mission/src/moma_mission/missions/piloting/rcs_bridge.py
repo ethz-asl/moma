@@ -456,9 +456,12 @@ class RCSBridge:
                 waypoint.z = 0
 
             # Remove this hack as soon as we can adjust height of ACTION waypoints in gRCS
-            # if waypoint.task_type_uuid == TASK_TYPE_ACTION_VISUAL_UUID:
-            #     rospy.logwarn("Applying hack on action waypoint height.")
-            #     waypoint.z = 0.5
+            if (
+                waypoint.task_type_uuid == TASK_TYPE_ACTION_VISUAL_UUID
+                and waypoint.z < 0.1
+            ):
+                rospy.logwarn("Applying hack on action waypoint height.")
+                waypoint.z = 0.5
 
             explicit_quat = [
                 waypoint.param2,
