@@ -1,11 +1,12 @@
 <?xml version="1.0" ?>
 <launch>
+  <arg name="description" default="superpanda"/>
   <arg name="tool" default="panda_hand"/>
 
   <!-- send the robot XML to param server -->
   <param name="arm_description" command="$(find xacro)/xacro $(find moma_description)/urdf/panda.urdf.xacro
       use_nominal_extrinsics:=true use_fixed_realsense:=false tool:=$(arg tool) control_mode:='Effort' include_gazebo_control:=false"/>
-  <param name="robot_description" command="$(find xacro)/xacro $(find moma_description)/urdf/superpanda.urdf.xacro
+  <param name="robot_description" command="$(find xacro)/xacro $(find moma_description)/urdf/$(arg description).urdf.xacro
     use_nominal_extrinsics:=true use_fixed_realsense:=false tool:=$(arg tool) wrist_camera_name:=dummy"/>
 
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" output="screen"/>

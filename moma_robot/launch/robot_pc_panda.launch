@@ -4,11 +4,13 @@
 
   <!-- Load the robot description -->
   <arg name="simulation" value="false"/>
+  <arg name="description" default="superpanda"/>
   <arg name="tool" default="panda_hand"/>
   <arg name="load_gripper" default="true"  if="$(eval arg('tool') == 'panda_hand')"/>
   <arg name="load_gripper" default="false" unless="$(eval arg('tool') == 'panda_hand')"/>
 
   <include file="$(find moma_robot)/launch/robot_pc_panda_description.launch">
+    <arg name="description" value="$(arg description)" />
     <arg name="tool" value="$(arg tool)" />
   </include>
 
@@ -20,7 +22,7 @@
 
   <!-- OCS2 params -->
   <group ns="ocs2_mpc">
-    <param name="robot_description_ocs2" command="$(find xacro)/xacro $(find moma_description)/urdf/superpanda.urdf.xacro mpc_model:=true use_nominal_extrinsics:=true tool:='none'"/>
+    <param name="robot_description_ocs2" command="$(find xacro)/xacro $(find moma_description)/urdf/$(arg description).urdf.xacro mpc_model:=true use_nominal_extrinsics:=true tool:='none'"/>
     <param name="reference_frame" value="tracking_camera_odom"/>
   </group>
 
