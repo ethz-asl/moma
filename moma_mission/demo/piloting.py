@@ -231,7 +231,7 @@ try:
             valve_sequence.add(
                 "PLAN_MODEL_VALVE",
                 ValveManipulationModelState,
-                transitions={"Completed": "APPROACH_VALVE", "Failure": "Failure"},
+                transitions={"Completed": "APPROACH_HOMING", "Failure": "Failure"},
             )
 
             # URDF planner only works if valve urdf is published, i. e. in standalone mode
@@ -240,8 +240,19 @@ try:
                 valve_sequence.add(
                     "PLAN_URDF_VALVE",
                     ValveManipulationUrdfState,
-                    transitions={"Completed": "APPROACH_VALVE", "Failure": "Failure"},
+                    transitions={"Completed": "APPROACH_HOMING", "Failure": "Failure"},
                 )
+
+            # On retrying the DETECTION_DECISION, the robot is not homed -> Do it now
+            rospy.loginfo("Homing detection")
+            state_machine.add(
+                "APPROACH_HOMING",
+                homing_sequence_factory(),
+                transitions={
+                    "Success": "APPROACH_VALVE",
+                    "Failure": "Failure",
+                },
+            )
 
             rospy.loginfo("Approach valve")
             valve_sequence.add(
