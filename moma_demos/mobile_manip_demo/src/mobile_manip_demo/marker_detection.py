@@ -23,6 +23,8 @@ class MarkerDetectionNode:
         self.tf_listener = tf2_ros.TransformListener(self.tf_buffer)
 
         # Keep track of markers ID with their last known poses
+        # Key is an int representing the ID
+        # Value is a Pose representing the pose of the marker with said ID
         self.known_markers = {}
 
         self.marker_publisher = rospy.Publisher(
@@ -52,7 +54,6 @@ class MarkerDetectionNode:
 
     def __digest_marker_poses(self, current_detection: List[AprilTagDetection]) -> None:
         """Store the detected markers poses to build robot knowledge."""
-
         for i, detection in enumerate(current_detection):
             marker_pose = self.__transform_marker_pose(detection.pose)
             if marker_pose is not None:

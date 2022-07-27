@@ -17,6 +17,9 @@ from gazebo_msgs.msg import ModelStates
 from actionlib import SimpleActionClient
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 
+# Custom actions
+from mobile_manip_demo.grasp import GraspAction
+
 
 # CONDITIONS
 class RobotAtPose:
@@ -201,7 +204,7 @@ class Pick:
 
     def __init__(self) -> None:
         """Initialize ROS nodes."""
-        self.pick_client = SimpleActionClient("pick_client", PickAction)
+        self.pick_client = SimpleActionClient("pick_client", GraspAction)
         self.pick_client.wait_for_server(rospy.Duration(100))
 
     def initialize_pick(self, goal_ID: str) -> None:
