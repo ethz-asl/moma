@@ -16,8 +16,9 @@ class MarkerDetectionNode:
         # Parameters
         frequency = rospy.get_param("detection_frequency", 10.0)
         self.rate = rospy.Rate(frequency)
-        self.reference_frame = rospy.get_param("reference_frame", "/map")
-        self.camera_frame = rospy.get_param("camera_frame", "/camera_link")
+        self.reference_frame = rospy.get_param("reference_frame", "map")
+        # TODO: keep this parameter? it can be retrieved from the header of the apriltag msg
+        self.camera_frame = rospy.get_param("camera_frame", "camera_link")
 
         self.tf_buffer = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener(self.tf_buffer)
@@ -36,7 +37,6 @@ class MarkerDetectionNode:
             detection_list = rospy.wait_for_message(
                 "/tag_detections", AprilTagDetectionArray
             )
-            rospy.loginfo("Received tag detection messages!")
 
             self.__digest_marker_poses(detection_list.detections)
             marker_poses_msg = self.__build_pub_msg()
@@ -57,10 +57,11 @@ class MarkerDetectionNode:
         for i, detection in enumerate(current_detection):
             marker_pose = self.__transform_marker_pose(detection.pose)
             if marker_pose is not None:
-                self.known_markers[detection.id] = marker_pose
+                self.known_markers[detection.id[0]] = marker_pose
 
     def __transform_marker_pose(self, marker_pose: PoseStamped) -> Pose or None:
         """Transform the marker pose in the desired reference frame."""
+        rospy.loginfo(str(self.camera_frame))
         try:
             t = self.tf_buffer.lookup_transform(
                 self.camera_frame,
@@ -72,11 +73,12 @@ class MarkerDetectionNode:
             return None
 
         transformed_pose = self.tf_listener.transformPose(marker_pose, t)
+        rospy.loginfo(str(transformed_pose))
         return transformed_pose.pose
 
 
 def main():
-    rospy.init_node("MarkerDetectionNode")
+    rospy.init_node("marker_detection_node")
     node = MarkerDetectionNode()
 
     try:
