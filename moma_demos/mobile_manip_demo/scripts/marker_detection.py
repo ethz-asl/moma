@@ -3,11 +3,10 @@
 from typing import List
 
 from apriltag_ros.msg import AprilTagDetectionArray, AprilTagDetection
-from geometry_msgs.msg import PoseStamped, Pose
+from geometry_msgs.msg import Pose
 from mobile_manip_demo.msg import MarkerPoses
 import rospy
 import tf2_ros
-import tf2_geometry_msgs
 
 
 class MarkerDetectionNode:
@@ -17,8 +16,6 @@ class MarkerDetectionNode:
         frequency = rospy.get_param("detection_frequency", 10.0)
         self.rate = rospy.Rate(frequency)
         self.reference_frame = rospy.get_param("reference_frame", "map")
-        # TODO: keep this parameter? it can be retrieved from the header of the apriltag msg
-        self.camera_frame = rospy.get_param("camera_frame", "camera_link")
 
         self.tf_buffer = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener(self.tf_buffer)
@@ -47,6 +44,7 @@ class MarkerDetectionNode:
     def __build_pub_msg(self):
         msg = MarkerPoses()
         for key, value in self.known_markers.items():
+            msg.header.frame_id = self.reference_frame
             msg.marker_ids.append(key)
             msg.poses.append(value)
 
@@ -55,26 +53,32 @@ class MarkerDetectionNode:
     def __digest_marker_poses(self, current_detection: List[AprilTagDetection]) -> None:
         """Store the detected markers poses to build robot knowledge."""
         for i, detection in enumerate(current_detection):
-            marker_pose = self.__transform_marker_pose(detection.pose)
+            marker_pose = self.__transform_marker_pose(detection.id[0])
             if marker_pose is not None:
                 self.known_markers[detection.id[0]] = marker_pose
 
-    def __transform_marker_pose(self, marker_pose: PoseStamped) -> Pose or None:
+    def __transform_marker_pose(self, id: int) -> Pose or None:
         """Transform the marker pose in the desired reference frame."""
-        rospy.loginfo(str(self.camera_frame))
         try:
             t = self.tf_buffer.lookup_transform(
-                self.camera_frame,
                 self.reference_frame,
+                "tag_" + str(id),
                 rospy.Time(0),
                 rospy.Duration(5),
             )
         except tf2_ros.LookupException:
             return None
 
-        transformed_pose = self.tf_listener.transformPose(marker_pose, t)
-        rospy.loginfo(str(transformed_pose))
-        return transformed_pose.pose
+        transformed_pose = Pose()
+        transformed_pose.position.x = t.transform.translation.x
+        transformed_pose.position.y = t.transform.translation.y
+        transformed_pose.position.z = t.transform.translation.z
+        transformed_pose.orientation.x = t.transform.rotation.x
+        transformed_pose.orientation.y = t.transform.rotation.y
+        transformed_pose.orientation.z = t.transform.rotation.z
+        transformed_pose.orientation.w = t.transform.rotation.w
+
+        return transformed_pose
 
 
 def main():
