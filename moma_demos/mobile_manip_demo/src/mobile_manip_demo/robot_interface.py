@@ -1,6 +1,6 @@
 """Define ROS bindings for mobile manipulation task."""
 
-from typing import Tuple
+from typing import Any, Tuple
 import rospy
 
 import numpy as np
@@ -144,21 +144,31 @@ class Move:
         self.move_client = SimpleActionClient("move_client", MoveBaseAction)
         self.move_client.wait_for_server(rospy.Duration(100))
 
-    def initialize_navigation(self, goal_ID: str) -> None:
-        """Move the robot to the target pose."""
-        target_goal, ref_frame = get_goal_from_ID(goal_ID)
-        target_pose, target_orientation = target_goal
+    def initialize_navigation(
+        self,
+        goal_pose: Pose = Pose(),
+        ref_frame: str = "map",
+        goal_ID: str = None,
+        goal_register: Any = None,
+    ) -> None:
+        """
+        Move the robot to the target pose.
+
+        Args:
+        ----
+            - goal_pose: if desired, set directly the goal to send.
+            - ref_frame: reference frame for the goal.
+            - goal_ID: a string ID for the goal. If given, also goal_register must be provided.
+            - goal_register: function linking goal_ID to an actual goal expressed as Pose().
+
+        """
+        if goal_ID is not None:
+            target_goal, ref_frame = goal_register(goal_ID)
         # command
         goal_ = MoveBaseGoal()
         goal_.target_pose.header.frame_id = ref_frame
         goal_.target_pose.header.stamp = rospy.Time.now()
-        goal_.target_pose.pose.position.x = target_pose[0]
-        goal_.target_pose.pose.position.y = target_pose[1]
-        goal_.target_pose.pose.position.z = target_pose[2]
-        goal_.target_pose.pose.orientation.x = target_orientation[0]
-        goal_.target_pose.pose.orientation.y = target_orientation[1]
-        goal_.target_pose.pose.orientation.z = target_orientation[2]
-        goal_.target_pose.pose.orientation.w = target_orientation[3]
+        goal_.target_pose.pose = target_goal if goal_ID is not None else goal_pose
 
         # send the goal
         self.move_client.send_goal(goal_)
@@ -185,7 +195,7 @@ class Move:
         uint8 LOST            = 9   # An action client can determine that a goal is LOST. This should not be
                                     #    sent over the wire by an action server
         """
-        wait = self.move_client.wait_for_result(rospy.Duration(10))
+        wait = self.move_client.wait_for_result(rospy.Duration(60))
         if not wait:
             rospy.logerr("Move Action server not available!")
             rospy.signal_shutdown("Move Action server not available!")
