@@ -6,7 +6,6 @@ from typing import List
 import mobile_manip_demo.robot_interface as skills
 import rospy
 import smach
-from state_machine_tutorial.state_machine_generation import utils as api
 
 
 def state_linker(
