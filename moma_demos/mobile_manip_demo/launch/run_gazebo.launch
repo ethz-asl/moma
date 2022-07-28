@@ -2,6 +2,7 @@
 <launch>
   <arg name="rviz" default="true"/>
 
+  <!-- MoveIt! -->
   <include file="$(find moma_bringup)/launch/royalpanda_moveit_gazebo.launch">
     <arg name="rviz"    value="false"/>
     <arg name="world"   value="$(find nav_demo)/worlds/nav_demo_gazebo.world"/>
@@ -11,8 +12,6 @@
   <arg name="initial_pose_x" default="0.0" />
   <arg name="initial_pose_y" default="0.0" />
   <arg name="initial_pose_a" default="0.0" />
-
-<!--  <remap from="/mobile_base/map" to="/map"/>-->
 
   <!-- Move base -->
   <group ns="mobile_base">
@@ -37,8 +36,7 @@
     <include file="$(find nav_demo)/launch/include/move_base.launch"/>
   </group>
 
-  <!-- Launch April Tag detector -->
-  <!-- TODO check if this works -->
+  <!-- April Tag detector -->
   <include file="$(find mobile_manip_demo)/launch/continuous_detection.launch"/>
 
   <!-- View the robot and set Nav goal in RViz -->
