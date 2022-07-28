@@ -41,4 +41,3 @@ standalone_tags:
 # MarkerDetectionNode parameters
 detection_frequency: 10.0
 reference_frame: "map"
-camera_frame: "wrist_camera_depth_optical_frame"
