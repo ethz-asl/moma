@@ -21,8 +21,8 @@ TrajectoryPlannerROS:
   escape_vel: -0.5
 
   # Goal Tolerance Parameters
-  yaw_goal_tolerance: 0.1 # defualt is 0.157 around 8 degrees 
-  xy_goal_tolerance: 0.08 # default is 0.25
+  yaw_goal_tolerance: 0.157 # defualt is 0.157 around 8 degrees 
+  xy_goal_tolerance: 0.10 # default is 0.25
   latch_xy_goal_tolerance: false
 
   # Forward Simulation Parameters
