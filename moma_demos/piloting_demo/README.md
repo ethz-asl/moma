@@ -247,13 +247,31 @@ In Terminal 3 (**smb_pc**)
 mon launch piloting_demo navigation.launch sim:=false use_global_map:=[true/false]
 ```
 
-In Terminal 4 (**operator_pc**)
+In Terminal 4 (**panda_pc**)
+
+```
+mon launch piloting_demo perception.launch
+```
+
+In Terminal 5 (**operator_pc**)
 
 ```
 mon launch piloting_demo operator_pc.launch
 ```
 
-This will launch the smb and panda robot, start their controller and run the localization and navigation pipeline. Note that localization and navigation are against a static prebuilt map. This defaults to the jfloor map for the moment, but a different map can be given as argument to the launch file. Refer to the corresponding [launch file](launch/navigation.launch) for more info. The base target is set in the same way as in simulation.
+In Terminal 6 (**operator_pc**) [Optional]
+
+```
+rosrun teleop_twist_keyboard teleop_twist_keyboard.py __ns:=keyboard_teleop
+```
+
+In Terminal 7 (**panda_pc**) [Optional]
+
+```
+roslaunch piloting_demo mission.launch standalone:=true
+```
+
+This will launch the smb and panda robot, start their controller and run the localization, navigation and perception pipeline. It will also start the state machine in standalone mode. Note that localization and navigation are against a static prebuilt map. This defaults to the `jfloor` map for the moment, but a different map can be given as argument to the launch file. Refer to the corresponding [launch file](launch/navigation.launch) for more info. The base target is set in the same way as in simulation.
 
 ## ground Robot Control Station (gRCS)
 
@@ -268,6 +286,26 @@ The buttons in the image are the most relevant for establishing a new connection
 Once the gRCS gui is started, an inspection plan need to uploaded for a mission to start. Press on the _Load Inspection Plan_ button. The docker image should already contain a inspection file that can be used. Then The GCS can connect to the robot by specifing its ip, port and identifer. Open the connection dialog window pressing on the _Robotic System Communication Options_ button and inspect the settings. Note that the settings should match with the config file used in `piloting-mavsdk-ros` to establish the connection.
 
 ![alt text](docs/images/gRCS_communication_options.png)
+
+To launch the gRCS, you additionally need to launch the following.
+
+In Terminal 1 (**panda_pc**/**operator_pc**)
+
+```
+mon launch piloting_demo mavsdk_ros.launch
+```
+
+In Terminal 2 (**panda_pc**)
+
+```
+roslaunch piloting_demo mission.launch
+```
+
+In Terminal 3 (**operator_pc**)
+
+```
+./run_grcs.sh --nvidia_drivers=False
+```
 
 ## State Machine
 
