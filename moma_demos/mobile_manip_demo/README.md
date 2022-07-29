@@ -17,3 +17,4 @@ Add instructions to install missing dependencies:
 * `catkin_simple`
 * apriltag repositories https://github.com/AprilRobotics/apriltag_ros and https://github.com/AprilRobotics/apriltag
 * apriltag models for gazebo https://github.com/koide3/gazebo_apriltag
+* vgn package from https://github.com/ethz-asl/vgn
