@@ -1,5 +1,6 @@
 import rospy
 import numpy as np
+import tf
 import tf2_ros
 from scipy.spatial.transform import Rotation
 from geometry_msgs.msg import PoseStamped, TransformStamped, Pose, PoseArray
@@ -88,16 +89,20 @@ class Idle(StateRos):
                 rospy.loginfo(f"Turning valve by angle {desired_angle} rad.")
                 self.set_context("valve_desired_angle", desired_angle)
 
+                # TODO Hack to get some orientation of the valve from a "reserved" parameter (undocumented)
+                yaw_rad = info.param3
+                quaternion = tf.transformations.quaternion_from_euler(0.0, 0.0, yaw_rad)
+
                 valve_pose = TransformStamped()
                 valve_pose.header.frame_id = self.map_frame
                 valve_pose.header.stamp = rospy.get_rostime()
                 valve_pose.transform.translation.x = info.param5
                 valve_pose.transform.translation.y = info.param6
                 valve_pose.transform.translation.z = info.param7
-                valve_pose.transform.rotation.x = 0.0
-                valve_pose.transform.rotation.y = 0.0
-                valve_pose.transform.rotation.z = 0.0
-                valve_pose.transform.rotation.w = 1.0
+                valve_pose.transform.rotation.x = quaternion[0]
+                valve_pose.transform.rotation.y = quaternion[1]
+                valve_pose.transform.rotation.z = quaternion[2]
+                valve_pose.transform.rotation.w = quaternion[3]
                 valve_pose.child_frame_id = self.valve_frame
                 self.valve_pose_broadcaster.sendTransform(valve_pose)
                 rospy.sleep(2.0)

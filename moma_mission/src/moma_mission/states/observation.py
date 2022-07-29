@@ -128,19 +128,19 @@ class FOVSamplerState(StateRos):
         self.camera_info_topic = self.get_scoped_param(
             "camera_info_topic", "/camera_info"
         )
-        self.heading = self.get_scoped_param("heading", [1, 0, 0])
 
-        # how much to look lateraly across all candiate observation poses (it is the phi angle in sperical coords)
-        self.lateral_view_angle_range = np.deg2rad(
-            self.get_scoped_param("lateral_view_angle_deg_range", [0, 20])
+        self.heading = self.get_scoped_param("heading", "range")
+        self.heading_range = np.deg2rad(
+            self.get_scoped_param("heading_range_deg", [-20, 20])
         )
-
-        self.shuffle = self.get_scoped_param("shuffle", False)
+        self.theta_range = np.deg2rad(
+            self.get_scoped_param("theta_range_deg", [-20, 20])
+        )
+        # how much to look laterally across all candidate observation poses (it is the phi angle in spherical coords)
+        self.phi_range = np.deg2rad(self.get_scoped_param("phi_range_deg", [0, 20]))
 
         self.sample_poses = None
-        self.num_samples = self.get_scoped_param(
-            "num_samples", 1 + 8
-        )  # central + intermediate angles
+        self.num_samples = self.get_scoped_param("num_samples", 8)
 
         self.attempts = None
 
@@ -151,7 +151,7 @@ class FOVSamplerState(StateRos):
             self.camera_info_topic, CameraInfo, self._camera_info_cb
         )
         self.pose_array_pub = rospy.Publisher(
-            "/sampled_viewpoints", PoseArray, queue_size=1
+            "/sampled_viewpoints", PoseArray, queue_size=1, latch=True
         )
         self.pose_broadcaster = tf2_ros.StaticTransformBroadcaster()
 
@@ -169,27 +169,20 @@ class FOVSamplerState(StateRos):
         T_map_obj = self.get_transform(self.map_frame, self.object_frame)
         T_cam_ctrl = self.get_transform(self.camera_frame, self.controlled_frame)
 
-        # (theta, phi)
-        poses = [(0.0, 0.0)] + [
-            (
-                i * 2 * np.pi / (self.num_samples - 1),
-                sample(self.lateral_view_angle_range),
-            )
-            for i in range(self.num_samples - 1)
-        ]
-        if self.shuffle:
-            random.shuffle(poses)
-
-        for theta, phi in poses:
+        for _ in range(self.num_samples):
             d = self.object_size * f / (w * sample(self.image_fill_ratio_range))
-            heading = (
-                self.heading
-                if self.heading != "random"
-                else np.append(
+            theta = sample(self.theta_range)
+            phi = sample(self.phi_range)
+            heading = self.heading
+            if self.heading == "random":
+                heading = np.append(
                     tf.transformations.unit_vector(tf.transformations.random_vector(2)),
                     0.0,
                 )
-            )
+            elif self.heading == "range":
+                heading_angle = sample(self.heading_range)
+                heading = [np.cos(heading_angle), np.sin(heading_angle), 0.0]
+
             T_obj_cam = spherical_to_pose(d, theta, phi, heading)
             T_map_cam = T_map_obj.act(T_obj_cam)
             T_map_ctrl = T_map_cam.act(T_cam_ctrl)

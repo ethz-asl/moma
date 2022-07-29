@@ -444,6 +444,7 @@ class RCSBridge:
         return True
 
     def fix_waypoints(self):
+        previous_waypoint = None
         for waypoint in self.waypoints.items:
             rospy.loginfo(f"Received waypoint {waypoint}")
 
@@ -454,8 +455,11 @@ class RCSBridge:
             if waypoint.task_type_uuid == TASK_TYPE_POSE_UUID:
                 waypoint.z = 0
 
-            # TODO Remove this hack as soon as we can adjust height of ACTION waypoints in gRCS
-            if waypoint.task_type_uuid == TASK_TYPE_ACTION_VISUAL_UUID:
+            # Remove this hack as soon as we can adjust height of ACTION waypoints in gRCS
+            if (
+                waypoint.task_type_uuid == TASK_TYPE_ACTION_VISUAL_UUID
+                and waypoint.z < 0.1
+            ):
                 rospy.logwarn("Applying hack on action waypoint height.")
                 waypoint.z = 0.5
 
@@ -468,11 +472,24 @@ class RCSBridge:
             roll_rad, pitch_rad, yaw_rad = tf.transformations.euler_from_quaternion(
                 explicit_quat
             )
+
+            # Hack for getting correct action waypoint heading, since heading is not supported for action types by gRCS
+            if waypoint.task_type_uuid == TASK_TYPE_ACTION_VISUAL_UUID:
+                rospy.loginfo(
+                    "Calculating action waypoint heading based on previous waypoint."
+                )
+                heading = tf.transformations.unit_vector(
+                    [previous_waypoint.x - waypoint.x, previous_waypoint.y - waypoint.y]
+                )
+                yaw_rad = np.arctan2(heading[1], heading[0])
+
             quaternion = tf.transformations.quaternion_from_euler(0.0, 0.0, yaw_rad)
             waypoint.param2 = quaternion[0]  # x
             waypoint.param3 = quaternion[1]  # y
             waypoint.param4 = quaternion[2]  # z
             waypoint.param1 = quaternion[3]  # w
+
+            previous_waypoint = waypoint
 
     def reset_waypoints(self):
         self.waypoint_requested_id = 0
