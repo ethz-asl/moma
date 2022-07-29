@@ -25,14 +25,19 @@ from mobile_manip_demo.grasp import GraspAction
 class RobotAtPose:
     """Check that the robot is at the target position."""
 
-    def __init__(self, robot_name: str) -> None:
+    def __init__(self, robot_name: str, namespace: str = "") -> None:
         """Initialize ROS nodes."""
-        rospy.Subscriber("amcl_pose", PoseWithCovarianceStamped, self.amcl_pose_cb)
+        # TODO: rethink namespacing
+        rospy.Subscriber(
+            namespace + "amcl_pose", PoseWithCovarianceStamped, self.amcl_pose_cb
+        )
+        rospy.loginfo(str("Subscribing to " + namespace + "amcl_pose ..."))
         self.current_pos = None
         # robot pose ground truth
         self.robot_name = robot_name
         self.ground_truth = None
-        rospy.Subscriber("gazebo/model_states", ModelStates, self.robot_callback)
+        rospy.Subscriber("/gazebo/model_states", ModelStates, self.robot_callback)
+        rospy.loginfo(str("Subscribing to /gazebo/model_states ..."))
 
     def amcl_pose_cb(self, msg) -> None:
         self.current_pos = np.array(
@@ -139,10 +144,11 @@ class InHand:
 class Move:
     """Low level implementation of a Navigation skill."""
 
-    def __init__(self) -> None:
+    def __init__(self, namespace: str = "") -> None:
         """Initialize ROS nodes."""
-        self.move_client = SimpleActionClient("move_client", MoveBaseAction)
-        self.move_client.wait_for_server(rospy.Duration(100))
+        self.move_client = SimpleActionClient(namespace + "move_base", MoveBaseAction)
+        rospy.loginfo(str("Connecting to " + namespace + "move_base ..."))
+        self.move_client.wait_for_server(rospy.Duration(20))
 
     def initialize_navigation(
         self,
@@ -195,10 +201,9 @@ class Move:
         uint8 LOST            = 9   # An action client can determine that a goal is LOST. This should not be
                                     #    sent over the wire by an action server
         """
-        wait = self.move_client.wait_for_result(rospy.Duration(60))
+        wait = self.move_client.wait_for_result(rospy.Duration(30))
         if not wait:
             rospy.logerr("Move Action server not available!")
-            rospy.signal_shutdown("Move Action server not available!")
             return -1
         else:
             # Result of executing the action
