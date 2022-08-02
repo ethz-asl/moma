@@ -113,7 +113,7 @@ roslaunch piloting_demo operator_pc.launch
 Before reading the rest of this section, be careful about consistency of the robot description among these packages. Slam and localization require the relative transforms between lidar and other odometry sources, such at the imu and the tracking camera. Both offline mapping and map generation (step 1 and 2 in the following) point to a urdf file which is statically generated and placed in `smb_slam/config/smb_cartographer/<name-urdf>.urdf`. Make sure that this is consistent with the current version of the robot
 
 Mapping relies on the `cartographer_ros` package which is wrapped by `smb_slam`. We first navigate (manually) and collect a rosbag of the required sensors.
-Use the bash script available in the smb home folder for that (TODO put this script somewhere here). Then we run a offline mapping session based on these data.
+Use the bash script available in the smb home folder for that (`smb_common/record_sensors.sh`). Then we run a offline mapping session based on these data.
 
 ### Step 1: offline mapping
 
@@ -144,7 +144,8 @@ roslaunch smb_slam assets_writer_ct.launch \
 If the bag is `/home/bags/test.bag` and this has been processed as in step 1, a `/home/bags/test.bag.pbstream` should be saved. Then an example command could be
 
 ```
-roslauncb smb_slam assets_writer_ct.launch bag_filenames:=/home/bags/test.launch \
+roslaunch smb_slam assets_writer_ct.launch \
+  bag_filenames:=/home/bags/test.launch \
   pose_graph_file_name:=/home/bags/test.bag.pbstream \
   map_name:=map output_file_prefix:=/home/maps
 ```
