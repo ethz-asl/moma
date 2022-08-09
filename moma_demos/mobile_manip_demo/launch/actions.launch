@@ -1,0 +1,31 @@
+<?xml version="1.0" ?>
+<launch>
+  <!-- Arguments -->
+  <arg name="semantic" default="false" doc="Use Voxblox++ for semantic scene reconstruction" />
+  <arg name="simulation_mode" default="true"/>
+
+  <!-- ======== Launch everything ======== -->
+
+  <!-- Load parameters -->
+  <rosparam command="load" file="$(find mobile_manip_demo)/config/grasp_demo.yaml" ns="manipulator" subst_value="true"/>
+
+<!--  <include file="$(find moma_bringup)/launch/panda_moveit_real_camera.launch">-->
+<!--    <arg name="simulation_mode" value="$(arg simulation_mode)"/>-->
+<!--  </include>-->
+
+
+  <!-- TSDF node -->
+  <node pkg="vgn" type="tsdf_server.py" name="tsdf_server" ns="manipulator" output="screen"/>
+
+  <!-- Launch action scripts -->
+<!--  <node pkg="grasp_demo" type="reset.py" name="reset" ns="manipulator" output="screen"/>-->
+<!--  <node pkg="grasp_demo" type="reconstruct_scene.py" name="scan_action_node" args="$(arg semantic)" ns="manipulator" output="screen" />-->
+<!--  <node pkg="grasp_demo" type="execute_grasp.py" name="execute_grasp" ns="manipulator" output="screen"/>-->
+<!--  <node pkg="grasp_demo" type="drop_object.py" name="drop_object" ns="manipulator" output="screen"/>-->
+
+<!--  <node pkg="mobile_manip_demo" type="grasp_node.py" name="grasp_skill" ns="manipulator" output="screen"/>-->
+
+
+<!--    <node pkg="grasp_demo" type="run_plan.py" name="grasp_demo" ns="manipulator" output="screen"/>-->
+
+</launch>

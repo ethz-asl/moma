@@ -2,6 +2,8 @@
 
 from pathlib import Path
 
+import numpy as np
+
 import rospy
 import tf2_ros
 from actionlib import SimpleActionServer, SimpleActionClient
@@ -10,26 +12,27 @@ import std_srvs.srv
 import mobile_manip_demo.msg
 import grasp_demo.msg
 import geometry_msgs.msg
-from vpp_msgs.srv import GetMap
 from moma_utils.grasping import PlanGrasp
 import moma_utils.ros.conversions as conv
 
 
-class GraspAction:
+class GraspSkill:
     def __init__(self):
         # Parameters
         model_path = Path(rospy.get_param("moma_demo/vgn/model"))
         self.base_frame_id = rospy.get_param("moma_demo/base_frame_id")
-        task_frame_id = rospy.get_param("moma_demo/task_frame_id")
+        self.task_frame_id = rospy.get_param("moma_demo/task_frame_id")
         self.grasp_selection = rospy.get_param("moma_demo/grasp_selection")
         tf_buffer = tf2_ros.Buffer()
         msg = tf_buffer.lookup_transform(
-            self.base_frame_id, task_frame_id, rospy.Time(), rospy.Duration(10)
+            self.base_frame_id, self.task_frame_id, rospy.Time(), rospy.Duration(10)
         )
         self.T_base_task = conv.from_transform_msg(msg.transform)
 
         # VGN interface
-        self.grasp_planner = PlanGrasp(model_path, self.base_frame_id, task_frame_id)
+        self.grasp_planner = PlanGrasp(
+            model_path, self.base_frame_id, self.task_frame_id
+        )
 
         # Publishers and subscribers
         self.detected_grasps_pub = rospy.Publisher(
@@ -39,17 +42,16 @@ class GraspAction:
         # Service clients
         rospy.wait_for_service("reset")
         self.srv_reset = rospy.ServiceProxy("reset", std_srvs.srv.Trigger)
-        self.get_map_srv = rospy.ServiceProxy("/gsm_node/get_map", GetMap)
 
         # Action clients
         self.client_reconstruct = SimpleActionClient(
             "scan_action", grasp_demo.msg.ScanSceneAction
         )
         self.client_reconstruct.wait_for_server()
-        self.client_grasp = SimpleActionClient(
-            "grasp_selection_action", grasp_demo.msg.SelectGraspAction
+        self.client_grasp_execution = SimpleActionClient(
+            "grasp_execution_action", grasp_demo.msg.GraspAction
         )
-        self.client_grasp.wait_for_server()
+        self.client_grasp_execution.wait_for_server()
 
         # Action server
         self.action_server = SimpleActionServer(
@@ -60,7 +62,7 @@ class GraspAction:
         )
         self.action_server.start()
 
-    def execute_callback(self):
+    def execute_callback(self, goal):
         # Reset arm
         resp = self.srv_reset()
         if not resp.success:
@@ -68,8 +70,7 @@ class GraspAction:
             return
 
         # Reconstruct scene
-        goal = grasp_demo.msg.ScanSceneGoal()
-        self.client_reconstruct.send_goal(goal)
+        self.client_reconstruct.send_goal(grasp_demo.msg.ScanSceneGoal())
         res = self.wait_monitoring_preemption(self.client_reconstruct)
         if not res:
             self.report_preemption("Preempted during scene reconstruction")
@@ -78,20 +79,42 @@ class GraspAction:
         if state != actionlib_msgs.msg.GoalStatus.SUCCEEDED:
             self.report_failure("Scene reconstruction failed")
             return
-        cloud = self.client_reconstruct.get_result().pointcloud_scene
+        map_cloud = self.client_reconstruct.get_result().pointcloud_scene
 
         # Plan grasp
-        map_cloud = self.get_map_srv().map_cloud
         grasps, scores = self.grasp_planner.detect_grasps(map_cloud, self.T_base_task)
-        if len(grasps.poses) == 0:
+        num_grasps = len(grasps.poses)
+        if num_grasps == 0:
             self.report_failure("No grasps detected")
             return
-        rospy.loginfo(f"{len(grasps.poses)} grasps detected")
+        rospy.loginfo(f"{num_grasps} grasps detected")
         self.visualize_detected_grasps(grasps)
+        grasps_list = [conv.from_pose_msg(grasps.poses[i]) for i in range(num_grasps)]
 
-        # TODO(JF) Select grasp
+        # Select grasp
+        target_pose = conv.from_pose_msg(goal.target_object_pose)
+        distances = [
+            np.linalg.norm(grasps_list[i].translation - target_pose.translation)
+            for i in range(num_grasps)
+        ]
+        selected_grasp_idx = np.argmin(distances)
+        target_pose_msg = conv.to_pose_stamped_msg(
+            grasps_list[selected_grasp_idx], self.base_frame_id
+        )
 
-        # TODO(JF) Execute grasp
+        # Execute grasp
+        grasp_goal = grasp_demo.msg.GraspActionGoal(target_grasp_pose=target_pose_msg)
+        self.client_grasp_execution.send_goal(grasp_goal)
+        res = self.wait_monitoring_preemption(self.client_grasp_execution)
+        if not res:
+            self.report_preemption("Preempted during grasp execution")
+            return
+        state = self.client_reconstruct.get_state()
+        if state != actionlib_msgs.msg.GoalStatus.SUCCEEDED:
+            self.report_failure("Grasp execution failed")
+            return
+
+        self.report_success("Finished successfully")
 
     def report_failure(self, msg):
         result = mobile_manip_demo.msg.GraspResult()
@@ -106,6 +129,13 @@ class GraspAction:
         result.success = False
         result.message = msg
         self.action_server.set_preempted(result)
+
+    def report_success(self, msg: str):
+        result = mobile_manip_demo.msg.GraspResult()
+        rospy.loginfo(msg)
+        result.success = True
+        result.message = msg
+        self.action_server.set_succeeded(result)
 
     def wait_monitoring_preemption(self, client):
         while not client.wait_for_result(timeout=rospy.Duration(1)):

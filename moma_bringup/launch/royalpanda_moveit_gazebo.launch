@@ -12,12 +12,6 @@
   <arg name="arm_id"            default="panda" doc="Name of the panda robot to spawn" />
   <arg name="use_gripper"       default="true"  doc="Should a franka hand be mounted on the flange?" />
 <!--  <arg name="controller"        default=" "     doc="Which example controller should be started? (One of {cartesian_impedance,model,force}_example_controller)" />-->
-  <arg name="x"                 default="0"     doc="How far forward to place the base of the robot in [m]?" />
-  <arg name="y"                 default="0"     doc="How far leftwards to place the base of the robot in [m]?" />
-  <arg name="z"                 default="0"     doc="How far upwards to place the base of the robot in [m]?" />
-  <arg name="roll"              default="0"     doc="How much to rotate the base of the robot around its X-axis in [rad]?" />
-  <arg name="pitch"             default="0"     doc="How much to rotate the base of the robot around its Y-axis in [rad]?" />
-  <arg name="yaw"               default="0"     doc="How much to rotate the base of the robot around its Z-axis in [rad]?" />
   <arg name="initial_joint_positions"
        doc="Initial joint configuration of the panda. Specify as a list of name/value pairs in form of '-J [name-of-joint] [value-in-rad]'. Default is a 90 degree bend in the elbow"
        default="-J $(arg arm_id)_joint1 0

@@ -28,4 +28,5 @@ sudo apt-get install \
 	ros-$ROS_DISTRO-tf-conversions\
 	ros-$ROS_DISTRO-rviz-visual-tools\
 	ros-$ROS_DISTRO-move-base\
+	ros-$ROS_DISTRO-apriltag-ros\
 	qtbase5-dev

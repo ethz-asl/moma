@@ -1,17 +1,19 @@
 <?xml version="1.0"?>
 <launch>
   <arg name="rviz" default="true"/>
+  <arg name="initial_pose_x" default="0.0" />
+  <arg name="initial_pose_y" default="0.0" />
+  <arg name="initial_pose_yaw" default="0.0" />
+  <arg name="scan_topic" default="/front/scan" />
 
   <!-- MoveIt! -->
   <include file="$(find moma_bringup)/launch/royalpanda_moveit_gazebo.launch">
     <arg name="rviz"    value="false"/>
     <arg name="world"   value="$(find nav_demo)/worlds/nav_demo_gazebo.world"/>
+    <arg name="mobile_base_x" value="$(arg initial_pose_x)"/>
+    <arg name="mobile_base_y" value="$(arg initial_pose_y)"/>
+    <arg name="mobile_base_yaw" value="$(arg initial_pose_yaw)"/>
   </include>
-
-  <arg name="scan_topic" default="/front/scan" />
-  <arg name="initial_pose_x" default="0.0" />
-  <arg name="initial_pose_y" default="0.0" />
-  <arg name="initial_pose_a" default="0.0" />
 
   <!-- Move base -->
   <group ns="mobile_base">
@@ -28,7 +30,7 @@
       <arg name="scan_topic"     value="$(arg scan_topic)" />
       <arg name="initial_pose_x" value="$(arg initial_pose_x)" />
       <arg name="initial_pose_y" value="$(arg initial_pose_y)" />
-      <arg name="initial_pose_a" value="$(arg initial_pose_a)" />
+      <arg name="initial_pose_a" value="$(arg initial_pose_yaw)" />
     </include>
 
     <!-- Run Move Base and load cost map and planner -->
@@ -37,7 +39,7 @@
   </group>
 
   <!-- April Tag detector -->
-  <include file="$(find mobile_manip_demo)/launch/continuous_detection.launch"/>
+<!--  <include file="$(find mobile_manip_demo)/launch/continuous_detection.launch"/>-->
 
   <!-- View the robot and set Nav goal in RViz -->
   <node if="$(arg rviz)" name="$(anon rviz)" pkg="rviz" type="rviz" respawn="false" args="-d $(find nav_demo)/config/royalpanda_moveit.rviz" output="screen">
