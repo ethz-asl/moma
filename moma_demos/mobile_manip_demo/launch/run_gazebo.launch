@@ -5,7 +5,7 @@
   <!-- MoveIt! -->
   <include file="$(find moma_bringup)/launch/royalpanda_moveit_gazebo.launch">
     <arg name="rviz"    value="false"/>
-    <arg name="world"   value="$(find nav_demo)/worlds/nav_demo_gazebo.world"/>
+    <arg name="world"   value="$(find mobile_manip_demo)/worlds/mobile_manip.world"/>
   </include>
 
   <arg name="scan_topic" default="/front/scan" />
@@ -20,7 +20,7 @@
     <remap from="/mobile_base/rear/scan" to="/rear/scan"/>
 
     <!-- Run the map server -->
-    <arg name="map_file" default="$(find nav_demo)/maps/nav_demo_map.yaml"/>
+    <arg name="map_file" default="$(find mobile_manip_demo)/maps/mobile_manip_map.yaml"/>
     <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)"/>
 
     <!-- Run AMCL -->
