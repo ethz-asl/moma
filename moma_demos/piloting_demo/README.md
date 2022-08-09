@@ -136,7 +136,7 @@ The genereted pose graph, can be consumed to post-process and optimize a global 
 ```
 roslaunch smb_slam assets_writer_ct.launch \
   bag_filenames:=<full-path-to-bag-file> \
-  pose_graph_file_name:=<full-path-to-bag-file>.pbstream \
+  pose_graph_filename:=<full-path-to-bag-file>.pbstream \
   map_name:=map
   output_file_prefix:=<path-to-save-directory>
 ```
