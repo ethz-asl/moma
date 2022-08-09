@@ -146,7 +146,7 @@ If the bag is `/home/bags/test.bag` and this has been processed as in step 1, a 
 ```
 roslaunch smb_slam assets_writer_ct.launch \
   bag_filenames:=/home/bags/test.launch \
-  pose_graph_file_name:=/home/bags/test.bag.pbstream \
+  pose_graph_filename:=/home/bags/test.bag.pbstream \
   map_name:=map output_file_prefix:=/home/maps
 ```
 
