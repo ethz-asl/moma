@@ -1,5 +1,7 @@
 <?xml version="1.0"?>
 <launch>
+    <arg name="tracking_cam" default="false" />
+
     <!-- Control -->
     <include file="$(find smb_control)/launch/smb_control.launch">
         <arg name="description_name"        value="smb_description"/>
@@ -16,8 +18,9 @@
     <include file="$(find smb)/launch/sensors.launch">
       <arg name="launch_versavis"       value="true"/>
       <arg name="launch_depth_cam"      value="false"/>
-      <arg name="launch_tracking_cam"   value="true"/>
+      <arg name="launch_tracking_cam"   value="$(arg tracking_cam)"/>
     </include>
+    <node name="odom_relay" pkg="topic_tools" type="relay" args="/smb/smb_diff_drive/odom /camera/odom/sample" unless="$(arg tracking_cam)" />
 
     <!-- Publish base odometry from tracking cam odometry measurements -->
     <node pkg="odometry_conversion"
