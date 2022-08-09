@@ -4,12 +4,12 @@ import sys
 
 from actionlib import SimpleActionServer
 import rospy
-from std_srvs.srv import Empty, EmptyRequest, SetBool, SetBoolRequest
-
-from grasp_demo.msg import ScanSceneAction, ScanSceneResult
+import std_srvs.srv
+import vgn.srv
+import grasp_demo.msg
 from moma_utils.ros.moveit import MoveItClient
 from moma_utils.ros.panda import PandaArmClient
-from vpp_msgs.srv import GetScenePointcloud, GetScenePointcloudRequest
+import vpp_msgs.srv
 
 
 class ReconstructSceneNode(object):
@@ -23,17 +23,24 @@ class ReconstructSceneNode(object):
         self.scan_joints = rospy.get_param("moma_demo/scan_joints")
         self.arm = PandaArmClient()
 
-        if semantic:
-            self.reset_map = None
-            self.toggle_integration = None
-            self.get_scene_cloud = None
-            self.connect_to_gsm_node()
-            execute_cb = self.reconstruct_scene_with_vpp
-        else:
-            raise NotImplementedError
+        # Init members
+        self.semantic = semantic
+        self.reset_map = None
+        self.toggle_integration = None
+        self.get_scene_cloud = None
+        self.get_map = None
 
+        if semantic:
+            self.connect_to_gsm_node()
+        else:
+            self.connect_to_tsdf_node()
+
+        execute_cb = self.reconstruct_scene
         self.action_server = SimpleActionServer(
-            "scan_action", ScanSceneAction, execute_cb=execute_cb, auto_start=False
+            "scan_action",
+            grasp_demo.msg.ScanSceneAction,
+            execute_cb=execute_cb,
+            auto_start=False,
         )
         self.action_server.start()
         rospy.loginfo("Scan action server ready")
@@ -41,30 +48,49 @@ class ReconstructSceneNode(object):
     def connect_to_gsm_node(self):
         rospy.loginfo("Waiting for gsm_node")
         rospy.wait_for_service("/gsm_node/reset_map")
-        self.reset_map = rospy.ServiceProxy("/gsm_node/reset_map", Empty)
+        self.reset_map = rospy.ServiceProxy("/gsm_node/reset_map", std_srvs.srv.Empty)
         self.toggle_integration = rospy.ServiceProxy(
-            "/gsm_node/toggle_integration", SetBool
+            "/gsm_node/toggle_integration", std_srvs.srv.SetBool
         )
         self.get_scene_cloud = rospy.ServiceProxy(
-            "/gsm_node/get_scene_pointcloud", GetScenePointcloud
+            "/gsm_node/get_scene_pointcloud", vpp_msgs.srv.GetScenePointcloud
         )
+        self.get_map = rospy.ServiceProxy("/gsm_node/get_map", vpp_msgs.srv.GetMap)
 
-    def reconstruct_scene_with_vpp(self, goal):
-        self.reset_map(EmptyRequest())
+    def connect_to_tsdf_node(self):
+        rospy.loginfo("Waiting for TSDF node")
+        rospy.wait_for_service("reset_map")
+        self.reset_map = rospy.ServiceProxy("reset_map", std_srvs.srv.Trigger)
+        self.toggle_integration = rospy.ServiceProxy(
+            "toggle_integration", std_srvs.srv.SetBool
+        )
+        self.get_scene_cloud = rospy.ServiceProxy(
+            "get_scene_cloud", vgn.srv.GetSceneCloud
+        )
+        self.get_map = rospy.ServiceProxy("get_map_cloud", vgn.srv.GetMapCloud)
+
+    def reconstruct_scene(self, goal):
+        if self.semantic:
+            self.reset_map(std_srvs.srv.EmptyRequest())
+            map_request = vpp_msgs.srv.GetMapRequest()
+        else:
+            self.reset_map(std_srvs.srv.Trigger)
+            map_request = vgn.srv.GetMapCloudRequest()
 
         self.moveit.goto(self.scan_joints[0], velocity_scaling=0.2)
 
         rospy.loginfo("Mapping scene")
-        self.toggle_integration(SetBoolRequest(data=True))
+        self.toggle_integration(std_srvs.srv.SetBoolRequest(data=True))
         rospy.sleep(2.0)
         for joints in self.scan_joints[1:]:
             self.moveit.goto(joints, velocity_scaling=0.2)
             rospy.sleep(2.0)
-        self.toggle_integration(SetBoolRequest(data=False))
+        self.toggle_integration(std_srvs.srv.SetBoolRequest(data=False))
 
-        msg = self.get_scene_cloud(GetScenePointcloudRequest())
-        cloud = msg.scene_cloud
-        result = ScanSceneResult(pointcloud_scene=cloud)
+        msg = self.get_map(map_request)
+        result = grasp_demo.msg.ScanSceneResult(
+            pointcloud_scene=msg.map_cloud, voxel_size=msg.voxel_size
+        )
 
         self.action_server.set_succeeded(result)
         rospy.loginfo("Scan scene action succeeded")
