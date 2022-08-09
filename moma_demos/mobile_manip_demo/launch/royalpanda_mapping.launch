@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="rviz" default="true"/>
+
+  <!-- MoveIt! -->
+  <include file="$(find moma_bringup)/launch/royalpanda_moveit_gazebo.launch">
+    <arg name="rviz"    value="false"/>
+    <arg name="world"   value="$(find mobile_manip_demo)/worlds/mobile_manip.world"/>
+  </include>
+
+  <arg name="scan_topic" default="/front/scan" />
+  <arg name="initial_pose_x" default="0.0" />
+  <arg name="initial_pose_y" default="0.0" />
+  <arg name="initial_pose_a" default="0.0" />
+
+  <!--- Run gmapping -->
+  <include file="$(find ridgeback_navigation)/launch/include/gmapping.launch">
+    <arg name="scan_topic" value="$(arg scan_topic)" />
+  </include>
+
+  <!-- Move base -->
+  <group ns="mobile_base">
+    <!-- Remap topics -->
+    <remap from="/mobile_base/front/scan" to="$(arg scan_topic)"/>
+    <remap from="/mobile_base/rear/scan" to="/rear/scan"/>
+
+
+    <!-- Run AMCL -->
+    <include file="$(find ridgeback_navigation)/launch/include/amcl.launch" >
+      <arg name="scan_topic"     value="$(arg scan_topic)" />
+      <arg name="initial_pose_x" value="$(arg initial_pose_x)" />
+      <arg name="initial_pose_y" value="$(arg initial_pose_y)" />
+      <arg name="initial_pose_a" value="$(arg initial_pose_a)" />
+    </include>
+
+    <!-- Run Move Base and load cost map and planner -->
+    <remap from="/mobile_base/cmd_vel" to="/cmd_vel"/>
+    <include file="$(find nav_demo)/launch/include/move_base.launch"/>
+  </group>
+
+  <!-- View the robot and set Nav goal in RViz -->
+  <node if="$(arg rviz)" name="$(anon rviz)" pkg="rviz" type="rviz" respawn="false" args="-d $(find nav_demo)/config/royalpanda_moveit.rviz" output="screen">
+    <rosparam command="load" file="$(find royalpanda_moveit_config)/config/kinematics.yaml"/>
+    <remap from="/goal" to="/mobile_base/move_base_simple/goal"/>
+  </node>
+
+</launch>
