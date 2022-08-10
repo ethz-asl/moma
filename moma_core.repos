@@ -2,7 +2,7 @@ repositories:
   robot_control:
     type: git
     url: git@github.com:ethz-asl/robot_control.git
-    version: master
+    version: d17d466dbda4924d509cd4bda9652dce850771b3
 
   catkin_simple:
     type: git
@@ -13,6 +13,7 @@ repositories:
     type: git
     local-name: realsense-ros
     url: git@github.com:IntelRealSense/realsense-ros.git
+    version: e4938bbbfd7b285fe71f81fe69cebcc76dbf72fc
 
   roboticsgroup_gazebo_plugins:
     type: git
