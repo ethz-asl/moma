@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <launch>
   <arg name="rviz" default="true"/>
-  <arg name="initial_pose_x" default="0.0" />
-  <arg name="initial_pose_y" default="0.0" />
-  <arg name="initial_pose_yaw" default="0.0" />
+  <arg name="initial_pose_x" default="-1.3" />
+  <arg name="initial_pose_y" default="2.0" />
+  <arg name="initial_pose_yaw" default="3.14" />
   <arg name="scan_topic" default="/front/scan" />
 
   <!-- MoveIt! -->

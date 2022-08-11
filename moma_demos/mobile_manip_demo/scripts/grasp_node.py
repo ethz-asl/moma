@@ -6,5 +6,5 @@ from mobile_manip_demo.grasp import GraspSkill
 
 if __name__ == "__main__":
     rospy.init_node("grasp_skill")
-    GraspSkill()
+    gs = GraspSkill()
     rospy.spin()
