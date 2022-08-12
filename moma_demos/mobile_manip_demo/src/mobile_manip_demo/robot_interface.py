@@ -18,7 +18,29 @@ from actionlib import SimpleActionClient
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 
 # Custom actions
-from mobile_manip_demo.grasp import GraspAction
+from mobile_manip_demo.msg import GraspAction, GraspActionGoal
+
+"""
+Actions return statuses:
+
+uint8 PENDING         = 0   # The goal has yet to be processed by the action server
+uint8 ACTIVE          = 1   # The goal is currently being processed by the action server
+uint8 PREEMPTED       = 2   # The goal received a cancel request after it started executing
+                            #   and has since completed its execution (Terminal State)
+uint8 SUCCEEDED       = 3   # The goal was achieved successfully by the action server (Terminal State)
+uint8 ABORTED         = 4   # The goal was aborted during execution by the action server due
+                            #    to some failure (Terminal State)
+uint8 REJECTED        = 5   # The goal was rejected by the action server without being processed,
+                            #    because the goal was unattainable or invalid (Terminal State)
+uint8 PREEMPTING      = 6   # The goal received a cancel request after it started executing
+                            #    and has not yet completed execution
+uint8 RECALLING       = 7   # The goal received a cancel request before it started executing,
+                            #    but the action server has not yet confirmed that the goal is canceled
+uint8 RECALLED        = 8   # The goal received a cancel request before it started executing
+                            #    and was successfully cancelled (Terminal State)
+uint8 LOST            = 9   # An action client can determine that a goal is LOST. This should not be
+                            #    sent over the wire by an action server
+"""
 
 
 # CONDITIONS
@@ -180,27 +202,7 @@ class Move:
         self.move_client.send_goal(goal_)
 
     def get_navigation_status(self) -> int:
-        """
-        Get result from navigation.
-
-        uint8 PENDING         = 0   # The goal has yet to be processed by the action server
-        uint8 ACTIVE          = 1   # The goal is currently being processed by the action server
-        uint8 PREEMPTED       = 2   # The goal received a cancel request after it started executing
-                                    #   and has since completed its execution (Terminal State)
-        uint8 SUCCEEDED       = 3   # The goal was achieved successfully by the action server (Terminal State)
-        uint8 ABORTED         = 4   # The goal was aborted during execution by the action server due
-                                    #    to some failure (Terminal State)
-        uint8 REJECTED        = 5   # The goal was rejected by the action server without being processed,
-                                    #    because the goal was unattainable or invalid (Terminal State)
-        uint8 PREEMPTING      = 6   # The goal received a cancel request after it started executing
-                                    #    and has not yet completed execution
-        uint8 RECALLING       = 7   # The goal received a cancel request before it started executing,
-                                    #    but the action server has not yet confirmed that the goal is canceled
-        uint8 RECALLED        = 8   # The goal received a cancel request before it started executing
-                                    #    and was successfully cancelled (Terminal State)
-        uint8 LOST            = 9   # An action client can determine that a goal is LOST. This should not be
-                                    #    sent over the wire by an action server
-        """
+        """Get result from navigation."""
         wait = self.move_client.wait_for_result(rospy.Duration(30))
         if not wait:
             rospy.logerr("Move Action server not available!")
@@ -219,14 +221,40 @@ class Pick:
 
     def __init__(self) -> None:
         """Initialize ROS nodes."""
-        self.pick_client = SimpleActionClient("pick_client", GraspAction)
-        self.pick_client.wait_for_server(rospy.Duration(100))
+        self.pick_client = SimpleActionClient("/hl_grasp", GraspAction)
+        rospy.loginfo(str("Connecting to /hl_grasp ..."))
+        self.pick_client.wait_for_server(rospy.Duration(20))
 
-    def initialize_pick(self, goal_ID: str) -> None:
-        """Move the robot to the target pose."""
-        # TODO: implement method
+    def initialize_pick(
+        self,
+        goal_pose: Pose = Pose(),
+        ref_frame: str = "map",
+        goal_ID: str = None,
+        goal_register: Any = None,
+    ) -> None:
+        """
+        Pick an item located in the target pose.
+
+        Args:
+        ----
+            - goal_pose: if desired, set directly the goal to send.
+            - ref_frame: reference frame for the goal.
+            - goal_ID: a string ID for the goal. If given, also goal_register must be provided.
+            - goal_register: function linking goal_ID to an actual goal expressed as Pose().
+
+        """
+        if goal_ID is not None:
+            target_goal, ref_frame = goal_register(goal_ID)
+        # command
+        goal_ = GraspActionGoal()
+        goal_.header.frame_id = ref_frame
+        goal_.header.stamp = rospy.Time.now()
+        goal_.goal.target_object_pose = (
+            target_goal if goal_ID is not None else goal_pose
+        )
 
         # send the goal
+        rospy.loginfo("Sending pick goal")
         self.pick_client.send_goal(goal_ID)
 
     def get_pick_status(self) -> int:
