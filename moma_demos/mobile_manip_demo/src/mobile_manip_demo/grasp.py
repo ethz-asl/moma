@@ -19,17 +19,30 @@ import moma_utils.ros.conversions as conv
 class GraspSkill:
     def __init__(self):
         # Parameters
-        model_path = Path(rospy.get_param("moma_demo/vgn/model"))
+        model_path = Path(rospy.get_param("/vgn/model"))
         self.base_frame_id = rospy.get_param("moma_demo/base_frame_id")
         self.task_frame_id = rospy.get_param("moma_demo/task_frame_id")
         self.grasp_selection = rospy.get_param("moma_demo/grasp_selection")
+
         tf_buffer = tf2_ros.Buffer()
-        msg = tf_buffer.lookup_transform(
-            self.base_frame_id, self.task_frame_id, rospy.Time(), rospy.Duration(10)
-        )
+        listener = tf2_ros.TransformListener(tf_buffer)
+
+        done = False
+        while not done:
+            try:
+                msg = tf_buffer.lookup_transform(
+                    self.base_frame_id,
+                    self.task_frame_id,
+                    rospy.Time(),
+                    rospy.Duration(5),
+                )
+                done = True
+            except Exception:
+                rospy.logerr("Could not get transform, retrying...")
         self.T_base_task = conv.from_transform_msg(msg.transform)
 
         # VGN interface
+        rospy.loginfo("Initializing grasp planner")
         self.grasp_planner = PlanGrasp(
             model_path, self.base_frame_id, self.task_frame_id
         )
@@ -60,6 +73,7 @@ class GraspSkill:
             execute_cb=self.execute_callback,
             auto_start=False,
         )
+        rospy.loginfo("Initializing grasping action server")
         self.action_server.start()
 
     def execute_callback(self, goal):
@@ -68,9 +82,11 @@ class GraspSkill:
         if not resp.success:
             self.report_failure("Calling the reset service failed")
             return
+        rospy.loginfo("Scene resetted")
 
         # Reconstruct scene
         self.client_reconstruct.send_goal(grasp_demo.msg.ScanSceneGoal())
+        rospy.loginfo("Reconstructing scene")
         res = self.wait_monitoring_preemption(self.client_reconstruct)
         if not res:
             self.report_preemption("Preempted during scene reconstruction")
@@ -80,6 +96,7 @@ class GraspSkill:
             self.report_failure("Scene reconstruction failed")
             return
         map_cloud = self.client_reconstruct.get_result().pointcloud_scene
+        rospy.loginfo("Scene reconstructed")
 
         # Plan grasp
         grasps, scores = self.grasp_planner.detect_grasps(map_cloud, self.T_base_task)
