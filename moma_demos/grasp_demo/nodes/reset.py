@@ -55,13 +55,17 @@ class ResetNode(object):
 
     def reset(self, req):
         self.reset_arm()
+        rospy.loginfo("Reset arm successful")
         self.reset_vis()
-        return TriggerResponse()
+        response = TriggerResponse()
+        response.success = True
+        return response
 
     def reset_arm(self):
         if self.arm.has_error:
             self.arm.recover()
         self.moveit.goto("ready", velocity_scaling=0.2)
+        rospy.loginfo("Going to ready position")
         self.gripper.grasp()
         self.gripper.release()
 
