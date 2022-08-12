@@ -74,7 +74,7 @@ class ReconstructSceneNode(object):
             self.reset_map(std_srvs.srv.EmptyRequest())
             map_request = vpp_msgs.srv.GetMapRequest()
         else:
-            self.reset_map(std_srvs.srv.Trigger)
+            self.reset_map(std_srvs.srv.TriggerRequest())
             map_request = vgn.srv.GetMapCloudRequest()
 
         self.moveit.goto(self.scan_joints[0], velocity_scaling=0.2)
