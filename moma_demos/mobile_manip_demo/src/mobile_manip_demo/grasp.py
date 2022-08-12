@@ -14,6 +14,7 @@ import grasp_demo.msg
 import geometry_msgs.msg
 from moma_utils.grasping import PlanGrasp
 import moma_utils.ros.conversions as conv
+import sensor_msgs.msg
 
 
 class GraspSkill:
@@ -37,6 +38,9 @@ class GraspSkill:
         # Publishers and subscribers
         self.detected_grasps_pub = rospy.Publisher(
             "grasp_candidates", geometry_msgs.msg.PoseArray, queue_size=10
+        )
+        self.pointcloud_pub = rospy.Publisher(
+            "stitched_pointcloud", sensor_msgs.msg.PointCloud2, queue_size=10
         )
 
         # Service clients
@@ -80,6 +84,8 @@ class GraspSkill:
             self.report_failure("Scene reconstruction failed")
             return
         map_cloud = self.client_reconstruct.get_result().pointcloud_scene
+
+        self.pointcloud_pub.publish(map_cloud)
 
         # Plan grasp
         grasps, scores = self.grasp_planner.detect_grasps(map_cloud, self.T_base_task)
