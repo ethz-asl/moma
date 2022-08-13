@@ -23,7 +23,9 @@ class ResetNode(object):
         self.broadcast_roi()
         self.init_robot_connection()
         self.vis = Visualizer()
-        self.cloud_pub = rospy.Publisher("/gsm_node/cloud", PointCloud2)
+        self.cloud_pub = rospy.Publisher(
+            "/gsm_node/cloud", PointCloud2, queue_size=10.0
+        )
         rospy.Service("reset", Trigger, self.reset)
         rospy.loginfo("Reset service ready")
 
@@ -54,20 +56,18 @@ class ResetNode(object):
         self.moveit.scene.add_box("table", msg, size=(0.6, 0.6, 0.02))
 
     def reset(self, req):
-        self.reset_arm()
-        rospy.loginfo("Reset arm successful")
-        self.reset_vis()
+        arm = self.reset_arm()
+        vis = self.reset_vis()
         response = TriggerResponse()
-        response.success = True
+        response.success = arm and vis
         return response
 
     def reset_arm(self):
         if self.arm.has_error:
             self.arm.recover()
         self.moveit.goto("ready", velocity_scaling=0.2)
-        rospy.loginfo("Going to ready position")
-        self.gripper.grasp()
-        self.gripper.release()
+        open = self.gripper.release()
+        return open
 
     def reset_vis(self):
         self.vis.clear()
@@ -81,6 +81,7 @@ class ResetNode(object):
         ]
         empty_cloud_msg = create_cloud(header, fields, [])
         self.cloud_pub.publish(empty_cloud_msg)
+        return True
 
 
 def main():
