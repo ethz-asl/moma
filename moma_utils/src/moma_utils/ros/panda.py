@@ -73,6 +73,7 @@ class PandaArmClient:
             self.has_error = False
             # rospy.loginfo("Error detected")
 
+
 class PandaGripperClient:
     def __init__(self):
         self._init_state_callback()
@@ -88,17 +89,19 @@ class PandaGripperClient:
     def move(self, width, speed=0.1):
         msg = MoveGoal(width, speed)
         self.move_client.send_goal(msg)
-        self.move_client.wait_for_result(rospy.Duration.from_sec(2.0))
+        self.move_client.wait_for_result(rospy.Duration.from_sec(10.0))
+        return self.move_client.get_result().success
 
     def grasp(self, width=0.0, e_inner=0.1, e_outer=0.1, speed=0.1, force=5.0):
         rospy.loginfo("Closing gripper")
         msg = GraspGoal(width, GraspEpsilon(e_inner, e_outer), speed, force)
         self.grasp_client.send_goal(msg)
-        self.grasp_client.wait_for_result(rospy.Duration(2.0))
+        self.grasp_client.wait_for_result(rospy.Duration(10.0))
+        return self.grasp_client.get_result().success
 
-    def release(self, width=0.1):
+    def release(self, width=0.08):
         rospy.loginfo("Opening gripper")
-        self.move(width)
+        return self.move(width)
 
     def stop(self):
         msg = StopGoal()
@@ -110,7 +113,7 @@ class PandaGripperClient:
 
     def _init_state_callback(self):
         rospy.Subscriber("joint_states", JointState, self._joint_state_cb)
-        
+
     def _joint_state_cb(self, msg):
         self._joint_state_msg = msg
 
