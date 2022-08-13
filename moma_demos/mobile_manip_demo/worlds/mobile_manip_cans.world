@@ -88,24 +88,30 @@
       <heading_deg>0</heading_deg>
     </spherical_coordinates>
     <state world_name='default'>
-      <sim_time>3801 316000000</sim_time>
-      <real_time>832 861533298</real_time>
-      <wall_time>1660219856 816343912</wall_time>
-      <iterations>758569</iterations>
+      <sim_time>3868 135000000</sim_time>
+      <real_time>67 653234572</real_time>
+      <wall_time>1660224422 585125053</wall_time>
+      <iterations>66819</iterations>
       <model name='can_coke'>
-        <pose>-2.13404 -0.773299 0.666557 0 -0 1.48178</pose>
+        <pose>-2.13404 -0.773299 0.665201 -1.4e-05 0.000309 1.48186</pose>
         <scale>1 1 1</scale>
+        <link name='Apriltag36_11_00000::main'>
+          <pose>-2.13404 -0.773305 0.68 0 -1.4e-05 1.48179</pose>
+          <velocity>0 0 -0 -0 -0</velocity>
+          <acceleration>-0 -0 0 0 -0 0</acceleration>
+          <wrench>-0 -0 0 0 -0 0</wrench>
+        </link>
         <link name='link_0'>
-          <pose>-2.13404 -0.773299 0.666557 0 -0 1.48178</pose>
-          <velocity>0 0 0 0 -0 0</velocity>
-          <acceleration>0 0 0 0 -0 0</acceleration>
-          <wrench>0 0 0 0 -0 0</wrench>
+          <pose>-2.13404 -0.773299 0.665201 -1.4e-05 0.000309 1.48186</pose>
+          <velocity>0 -0 0 0 0 0</velocity>
+          <acceleration>-0 -0 0 0 -0 0</acceleration>
+          <wrench>-0 -0 0 0 -0 0</wrench>
         </link>
         <link name='link_1'>
-          <pose>-2.13404 -0.773299 0.666557 0 -0 1.48178</pose>
-          <velocity>0 0 0 0 -0 0</velocity>
-          <acceleration>0 0 0 0 -0 0</acceleration>
-          <wrench>0 0 0 0 -0 0</wrench>
+          <pose>-2.13404 -0.773305 0.665194 0 -1.4e-05 1.48179</pose>
+          <velocity>0 -0 0 0 0 0</velocity>
+          <acceleration>-0 -0 0 0 -0 0</acceleration>
+          <wrench>-0 -0 0 0 -0 0</wrench>
         </link>
       </model>
       <model name='can_fanta'>
@@ -127,6 +133,12 @@
       <model name='can_pepsi'>
         <pose>3.07608 1.6936 0.666119 0 -0 0.944499</pose>
         <scale>1 1 1</scale>
+        <link name='Apriltag36_11_00001::main'>
+          <pose>3.07608 1.6936 0.68 0 -0 0.944499</pose>
+          <velocity>0 0 -0 -0 -0</velocity>
+          <acceleration>-0 -0 0 0 -0 0</acceleration>
+          <wrench>-0 -0 0 0 -0 0</wrench>
+        </link>
         <link name='link_0'>
           <pose>3.07608 1.6936 0.666119 0 -0 0.944499</pose>
           <velocity>0 0 0 0 -0 0</velocity>
@@ -207,14 +219,13 @@
         </link>
       </model>
       <model name='recharge_station'>
-        <static>1</static>
-        <pose>0.47627 -2.5234 0.002465 0 -0 0</pose>
+        <pose>0.47627 -2.5234 1.4e-05 0 -0 0</pose>
         <scale>1 1 0.01389</scale>
         <link name='link'>
-          <pose>0.47627 -2.5234 0.002465 0 -0 0</pose>
+          <pose>0.47627 -2.5234 1.4e-05 0 -0 0</pose>
           <velocity>0 0 0 0 -0 0</velocity>
-          <acceleration>0 0 0 0 -0 0</acceleration>
-          <wrench>0 0 0 0 -0 0</wrench>
+          <acceleration>-0 0 0 0 -0 0</acceleration>
+          <wrench>-0 0 0 0 -0 0</wrench>
         </link>
       </model>
       <model name='table_0_clone'>
@@ -267,377 +278,17 @@
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
       </model>
-      <model name='wood_cube_0'>
-        <pose>3.11359 -0.396171 0.663974 -0 1e-06 -0.828545</pose>
-        <scale>1 1 1</scale>
-        <link name='Apriltag36_11_00000::main'>
-          <pose>3.11359 -0.396171 0.713974 0 -4e-06 -0.828545</pose>
-          <velocity>0 -0 7.1e-05 -0 -0 -0</velocity>
-          <acceleration>-0 0 0 0 -0 0</acceleration>
-          <wrench>-0 0 0 0 -0 0</wrench>
-        </link>
-        <link name='link'>
-          <pose>3.11359 -0.396171 0.688974 -0 1e-06 -0.828545</pose>
-          <velocity>0 -0 7.1e-05 1.4e-05 5e-06 0</velocity>
-          <acceleration>-0 0 -0 -0 -0 -0</acceleration>
-          <wrench>-0 0 -0 0 -0 0</wrench>
-        </link>
-      </model>
-      <model name='wood_cube_1'>
-        <pose>3.06633 -0.614437 0.663974 0 1e-06 0.686748</pose>
-        <scale>1 1 1</scale>
-        <link name='Apriltag36_11_00001::main'>
-          <pose>3.06633 -0.614437 0.713974 0 -4e-06 0.686748</pose>
-          <velocity>0 0 7.1e-05 0 -0 0</velocity>
-          <acceleration>0 -0 0 -0 -0 -0</acceleration>
-          <wrench>0 -0 0 0 -0 0</wrench>
-        </link>
-        <link name='link'>
-          <pose>3.06633 -0.614437 0.688974 0 1e-06 0.686748</pose>
-          <velocity>0 0 7.1e-05 -4e-06 1.4e-05 0</velocity>
-          <acceleration>0 -0 0 0 -0 0</acceleration>
-          <wrench>0 -0 0 0 -0 0</wrench>
-        </link>
-      </model>
-      <model name='wood_cube_2'>
-        <pose>-2.15395 1.98713 0.663974 0 1e-06 1e-06</pose>
-        <scale>1 1 1</scale>
-        <link name='Apriltag36_11_00002::main'>
-          <pose>-2.15395 1.98713 0.713974 0 -4e-06 1e-06</pose>
-          <velocity>0 -0 7.1e-05 0 -0 0</velocity>
-          <acceleration>0 -0 0 0 -0 0</acceleration>
-          <wrench>0 -0 0 0 -0 0</wrench>
-        </link>
-        <link name='link'>
-          <pose>-2.15395 1.98713 0.688974 0 1e-06 1e-06</pose>
-          <velocity>0 -0 7.1e-05 5e-06 1.1e-05 0</velocity>
-          <acceleration>0 0 0 0 -0 0</acceleration>
-          <wrench>0 0 0 0 -0 0</wrench>
-        </link>
-      </model>
       <light name='sun'>
         <pose>0 0 10 0 -0 0</pose>
       </light>
     </state>
     <gui fullscreen='0'>
       <camera name='user_camera'>
-        <pose>-3.71587 1.66726 4.79051 -0 0.801797 -0.162406</pose>
+        <pose>4.91121 -5.44542 13.867 0 1.1378 2.06079</pose>
         <view_controller>orbit</view_controller>
         <projection_type>perspective</projection_type>
       </camera>
     </gui>
-    <model name='wood_cube_0'>
-      <link name='link'>
-        <pose>0 0 0.025 0 -0 0</pose>
-        <inertial>
-          <mass>0.0565</mass>
-          <inertia>
-            <ixx>2.35417e-05</ixx>
-            <ixy>0</ixy>
-            <ixz>0</ixz>
-            <iyy>2.35417e-05</iyy>
-            <iyz>0</iyz>
-            <izz>2.35417e-05</izz>
-          </inertia>
-          <pose>0 0 0 0 -0 0</pose>
-        </inertial>
-        <collision name='collision'>
-          <geometry>
-            <box>
-              <size>0.05 0.05 0.05</size>
-            </box>
-          </geometry>
-          <surface>
-            <contact>
-              <poissons_ratio>0.347</poissons_ratio>
-              <elastic_modulus>8.8e+09</elastic_modulus>
-              <ode>
-                <kp>100000</kp>
-                <kd>1</kd>
-                <max_vel>1</max_vel>
-                <min_depth>0.001</min_depth>
-              </ode>
-            </contact>
-            <friction>
-              <torsional>
-                <coefficient>1</coefficient>
-                <use_patch_radius>0</use_patch_radius>
-                <surface_radius>0.05</surface_radius>
-                <ode/>
-              </torsional>
-              <ode/>
-            </friction>
-            <bounce/>
-          </surface>
-          <max_contacts>10</max_contacts>
-        </collision>
-        <visual name='visual'>
-          <geometry>
-            <box>
-              <size>0.05 0.05 0.05</size>
-            </box>
-          </geometry>
-          <material>
-            <script>
-              <uri>file://media/materials/scripts/gazebo.material</uri>
-              <name>Gazebo/Wood</name>
-            </script>
-          </material>
-        </visual>
-        <self_collide>0</self_collide>
-        <enable_wind>0</enable_wind>
-        <kinematic>0</kinematic>
-      </link>
-      <frame name='Apriltag36_11_00000::__model__' attached_to='Apriltag36_11_00000::main'>
-        <pose relative_to='__model__'>0 0 0.05 0 -0 0</pose>
-      </frame>
-      <link name='Apriltag36_11_00000::main'>
-        <pose relative_to='Apriltag36_11_00000::__model__'>0 0 0 0 -0 0</pose>
-        <visual name='main_Visual'>
-          <geometry>
-            <box>
-              <size>0.05 0.05 0.001</size>
-            </box>
-          </geometry>
-          <material>
-            <script>
-              <uri>model://Apriltag36_11_00000/materials/scripts</uri>
-              <uri>model://Apriltag36_11_00000/materials/textures</uri>
-              <name>Apriltag36_11_00000</name>
-            </script>
-          </material>
-        </visual>
-        <self_collide>0</self_collide>
-        <inertial>
-          <pose>0 0 0 0 -0 0</pose>
-          <inertia>
-            <ixx>1</ixx>
-            <ixy>0</ixy>
-            <ixz>0</ixz>
-            <iyy>1</iyy>
-            <iyz>0</iyz>
-            <izz>1</izz>
-          </inertia>
-          <mass>1</mass>
-        </inertial>
-        <enable_wind>0</enable_wind>
-        <kinematic>0</kinematic>
-      </link>
-      <static>0</static>
-      <joint name='Apriltag36_11_00000_joint' type='fixed'>
-        <child>Apriltag36_11_00000::main</child>
-        <parent>link</parent>
-      </joint>
-      <pose>2.80064 -1.74365 0 0 -0 0</pose>
-    </model>
-    <model name='wood_cube_1'>
-      <link name='link'>
-        <pose>0 0 0.025 0 -0 0</pose>
-        <inertial>
-          <mass>0.0565</mass>
-          <inertia>
-            <ixx>2.35417e-05</ixx>
-            <ixy>0</ixy>
-            <ixz>0</ixz>
-            <iyy>2.35417e-05</iyy>
-            <iyz>0</iyz>
-            <izz>2.35417e-05</izz>
-          </inertia>
-          <pose>0 0 0 0 -0 0</pose>
-        </inertial>
-        <collision name='collision'>
-          <geometry>
-            <box>
-              <size>0.05 0.05 0.05</size>
-            </box>
-          </geometry>
-          <surface>
-            <contact>
-              <poissons_ratio>0.347</poissons_ratio>
-              <elastic_modulus>8.8e+09</elastic_modulus>
-              <ode>
-                <kp>100000</kp>
-                <kd>1</kd>
-                <max_vel>1</max_vel>
-                <min_depth>0.001</min_depth>
-              </ode>
-            </contact>
-            <friction>
-              <torsional>
-                <coefficient>1</coefficient>
-                <use_patch_radius>0</use_patch_radius>
-                <surface_radius>0.05</surface_radius>
-                <ode/>
-              </torsional>
-              <ode/>
-            </friction>
-            <bounce/>
-          </surface>
-          <max_contacts>10</max_contacts>
-        </collision>
-        <visual name='visual'>
-          <geometry>
-            <box>
-              <size>0.05 0.05 0.05</size>
-            </box>
-          </geometry>
-          <material>
-            <script>
-              <uri>file://media/materials/scripts/gazebo.material</uri>
-              <name>Gazebo/Wood</name>
-            </script>
-          </material>
-        </visual>
-        <self_collide>0</self_collide>
-        <enable_wind>0</enable_wind>
-        <kinematic>0</kinematic>
-      </link>
-      <frame name='Apriltag36_11_00001::__model__' attached_to='Apriltag36_11_00001::main'>
-        <pose relative_to='__model__'>0 0 0.05 0 -0 0</pose>
-      </frame>
-      <link name='Apriltag36_11_00001::main'>
-        <pose relative_to='Apriltag36_11_00001::__model__'>0 0 0 0 -0 0</pose>
-        <visual name='main_Visual'>
-          <geometry>
-            <box>
-              <size>0.05 0.05 0.001</size>
-            </box>
-          </geometry>
-          <material>
-            <script>
-              <uri>model://Apriltag36_11_00001/materials/scripts</uri>
-              <uri>model://Apriltag36_11_00001/materials/textures</uri>
-              <name>Apriltag36_11_00001</name>
-            </script>
-          </material>
-        </visual>
-        <self_collide>0</self_collide>
-        <inertial>
-          <pose>0 0 0 0 -0 0</pose>
-          <inertia>
-            <ixx>1</ixx>
-            <ixy>0</ixy>
-            <ixz>0</ixz>
-            <iyy>1</iyy>
-            <iyz>0</iyz>
-            <izz>1</izz>
-          </inertia>
-          <mass>1</mass>
-        </inertial>
-        <enable_wind>0</enable_wind>
-        <kinematic>0</kinematic>
-      </link>
-      <static>0</static>
-      <joint name='Apriltag36_11_00001_joint' type='fixed'>
-        <child>Apriltag36_11_00001::main</child>
-        <parent>link</parent>
-      </joint>
-      <pose>3.06195 -1.68406 0 0 -0 0</pose>
-    </model>
-    <model name='wood_cube_2'>
-      <link name='link'>
-        <pose>0 0 0.025 0 -0 0</pose>
-        <inertial>
-          <mass>0.0565</mass>
-          <inertia>
-            <ixx>2.35417e-05</ixx>
-            <ixy>0</ixy>
-            <ixz>0</ixz>
-            <iyy>2.35417e-05</iyy>
-            <iyz>0</iyz>
-            <izz>2.35417e-05</izz>
-          </inertia>
-          <pose>0 0 0 0 -0 0</pose>
-        </inertial>
-        <collision name='collision'>
-          <geometry>
-            <box>
-              <size>0.05 0.05 0.05</size>
-            </box>
-          </geometry>
-          <surface>
-            <contact>
-              <poissons_ratio>0.347</poissons_ratio>
-              <elastic_modulus>8.8e+09</elastic_modulus>
-              <ode>
-                <kp>100000</kp>
-                <kd>1</kd>
-                <max_vel>1</max_vel>
-                <min_depth>0.001</min_depth>
-              </ode>
-            </contact>
-            <friction>
-              <torsional>
-                <coefficient>1</coefficient>
-                <use_patch_radius>0</use_patch_radius>
-                <surface_radius>0.05</surface_radius>
-                <ode/>
-              </torsional>
-              <ode/>
-            </friction>
-            <bounce/>
-          </surface>
-          <max_contacts>10</max_contacts>
-        </collision>
-        <visual name='visual'>
-          <geometry>
-            <box>
-              <size>0.05 0.05 0.05</size>
-            </box>
-          </geometry>
-          <material>
-            <script>
-              <uri>file://media/materials/scripts/gazebo.material</uri>
-              <name>Gazebo/Wood</name>
-            </script>
-          </material>
-        </visual>
-        <self_collide>0</self_collide>
-        <enable_wind>0</enable_wind>
-        <kinematic>0</kinematic>
-      </link>
-      <frame name='Apriltag36_11_00002::__model__' attached_to='Apriltag36_11_00002::main'>
-        <pose relative_to='__model__'>0 0 0.05 0 -0 0</pose>
-      </frame>
-      <link name='Apriltag36_11_00002::main'>
-        <pose relative_to='Apriltag36_11_00002::__model__'>0 0 0 0 -0 0</pose>
-        <visual name='main_Visual'>
-          <geometry>
-            <box>
-              <size>0.05 0.05 0.001</size>
-            </box>
-          </geometry>
-          <material>
-            <script>
-              <uri>model://Apriltag36_11_00002/materials/scripts</uri>
-              <uri>model://Apriltag36_11_00002/materials/textures</uri>
-              <name>Apriltag36_11_00002</name>
-            </script>
-          </material>
-        </visual>
-        <self_collide>0</self_collide>
-        <inertial>
-          <pose>0 0 0 0 -0 0</pose>
-          <inertia>
-            <ixx>1</ixx>
-            <ixy>0</ixy>
-            <ixz>0</ixz>
-            <iyy>1</iyy>
-            <iyz>0</iyz>
-            <izz>1</izz>
-          </inertia>
-          <mass>1</mass>
-        </inertial>
-        <enable_wind>0</enable_wind>
-        <kinematic>0</kinematic>
-      </link>
-      <static>0</static>
-      <joint name='Apriltag36_11_00002_joint' type='fixed'>
-        <child>Apriltag36_11_00002::main</child>
-        <parent>link</parent>
-      </joint>
-      <pose>2.34476 0.582167 0 0 -0 0</pose>
-    </model>
     <model name='table_0_clone'>
       <static>1</static>
       <link name='link'>
@@ -2015,7 +1666,7 @@
         <collision name='collision'>
           <geometry>
             <box>
-              <size>1 1 0.002</size>
+              <size>1 1 0.002016</size>
             </box>
           </geometry>
           <max_contacts>10</max_contacts>
@@ -2035,7 +1686,7 @@
         <visual name='visual'>
           <geometry>
             <box>
-              <size>1 1 0.002</size>
+              <size>1 1 0.002016</size>
             </box>
           </geometry>
           <material>
@@ -2094,6 +1745,18 @@
         <self_collide>0</self_collide>
         <enable_wind>0</enable_wind>
         <kinematic>0</kinematic>
+        <inertial>
+          <pose>0 0 0 0 -0 0</pose>
+          <inertia>
+            <ixx>1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>1</iyy>
+            <iyz>0</iyz>
+            <izz>1</izz>
+          </inertia>
+          <mass>1</mass>
+        </inertial>
       </link>
       <link name='link_1'>
         <visual name='visual'>
@@ -2144,9 +1807,63 @@
         <self_collide>0</self_collide>
         <enable_wind>0</enable_wind>
         <kinematic>0</kinematic>
+        <inertial>
+          <pose>0 0 0 0 -0 0</pose>
+          <inertia>
+            <ixx>1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>1</iyy>
+            <iyz>0</iyz>
+            <izz>1</izz>
+          </inertia>
+          <mass>1</mass>
+        </inertial>
       </link>
-      <static>1</static>
-      <allow_auto_disable>1</allow_auto_disable>
+      <frame name='Apriltag36_11_00000::__model__' attached_to='Apriltag36_11_00000::main'>
+        <pose relative_to='__model__'>0 0 0.13 0 -0 0</pose>
+      </frame>
+      <link name='Apriltag36_11_00000::main'>
+        <pose relative_to='Apriltag36_11_00000::__model__'>0 0 0 0 -0 0</pose>
+        <visual name='main_Visual'>
+          <geometry>
+            <box>
+              <size>0.05 0.05 0.001</size>
+            </box>
+          </geometry>
+          <material>
+            <script>
+              <uri>model://Apriltag36_11_00000/materials/scripts</uri>
+              <uri>model://Apriltag36_11_00000/materials/textures</uri>
+              <name>Apriltag36_11_00000</name>
+            </script>
+          </material>
+        </visual>
+        <self_collide>0</self_collide>
+        <inertial>
+          <pose>0 0 0 0 -0 0</pose>
+          <inertia>
+            <ixx>1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>1</iyy>
+            <iyz>0</iyz>
+            <izz>1</izz>
+          </inertia>
+          <mass>0.01</mass>
+        </inertial>
+        <enable_wind>0</enable_wind>
+        <kinematic>0</kinematic>
+      </link>
+      <static>0</static>
+      <joint name='joint_0' type='fixed'>
+        <child>link_1</child>
+        <parent>link_0</parent>
+      </joint>
+      <joint name='Apriltag36_11_00000_joint' type='fixed'>
+        <child>Apriltag36_11_00000::main</child>
+        <parent>link_1</parent>
+      </joint>
       <pose>-1.723 -0.773299 0 0 -0 0</pose>
     </model>
     <model name='can_fanta'>
@@ -2343,8 +2060,50 @@
         <enable_wind>0</enable_wind>
         <kinematic>0</kinematic>
       </link>
-      <static>1</static>
-      <allow_auto_disable>1</allow_auto_disable>
+      <frame name='Apriltag36_11_00001::__model__' attached_to='Apriltag36_11_00001::main'>
+        <pose relative_to='__model__'>0 0 0.13 0 -0 0</pose>
+      </frame>
+      <link name='Apriltag36_11_00000::main'>
+        <pose relative_to='Apriltag36_11_00001::__model__'>0 0 0 0 -0 0</pose>
+        <visual name='main_Visual'>
+          <geometry>
+            <box>
+              <size>0.05 0.05 0.001</size>
+            </box>
+          </geometry>
+          <material>
+            <script>
+              <uri>model://Apriltag36_11_00001/materials/scripts</uri>
+              <uri>model://Apriltag36_11_00001/materials/textures</uri>
+              <name>Apriltag36_11_00001</name>
+            </script>
+          </material>
+        </visual>
+        <self_collide>0</self_collide>
+        <inertial>
+          <pose>0 0 0 0 -0 0</pose>
+          <inertia>
+            <ixx>1</ixx>
+            <ixy>0</ixy>
+            <ixz>0</ixz>
+            <iyy>1</iyy>
+            <iyz>0</iyz>
+            <izz>1</izz>
+          </inertia>
+          <mass>0.01</mass>
+        </inertial>
+        <enable_wind>0</enable_wind>
+        <kinematic>0</kinematic>
+      </link>
+      <static>0</static>
+      <joint name='joint_0' type='fixed'>
+        <child>link_1</child>
+        <parent>link_0</parent>
+      </joint>
+      <joint name='Apriltag36_11_00001_joint' type='fixed'>
+        <child>Apriltag36_11_00001::main</child>
+        <parent>link_1</parent>
+      </joint>
       <pose>3.17554 1.6936 0 0 -0 0</pose>
     </model>
     <model name='can_sprite'>
