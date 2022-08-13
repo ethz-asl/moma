@@ -34,6 +34,7 @@ class MarkerDetectionNode:
             detection_list = rospy.wait_for_message(
                 "/tag_detections", AprilTagDetectionArray
             )
+            rospy.sleep(0.2)
 
             self.__digest_marker_poses(detection_list.detections)
             marker_poses_msg = self.__build_pub_msg()
