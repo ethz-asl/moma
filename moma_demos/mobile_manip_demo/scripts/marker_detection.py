@@ -12,6 +12,7 @@ import tf2_ros
 class MarkerDetectionNode:
     def __init__(self):
         """Initialize ROS nodes."""
+        rospy.init_node("marker_detection_node")
         # Parameters
         frequency = rospy.get_param("detection_frequency", 10.0)
         self.rate = rospy.Rate(frequency)
@@ -34,7 +35,7 @@ class MarkerDetectionNode:
             detection_list = rospy.wait_for_message(
                 "/tag_detections", AprilTagDetectionArray
             )
-            rospy.sleep(0.2)
+            rospy.sleep(0.4)
 
             self.__digest_marker_poses(detection_list.detections)
             marker_poses_msg = self.__build_pub_msg()
@@ -83,7 +84,6 @@ class MarkerDetectionNode:
 
 
 def main():
-    rospy.init_node("marker_detection_node")
     node = MarkerDetectionNode()
 
     try:
