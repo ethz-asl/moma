@@ -1,0 +1,10 @@
+# Request
+string model_name
+string model_link
+string ee_name
+string ee_link
+geometry_msgs/Pose target_pose
+---
+# Reply
+bool success
+string message
