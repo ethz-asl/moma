@@ -82,6 +82,7 @@ class ReconstructSceneNode(object):
         rospy.loginfo("Mapping scene")
         self.toggle_integration(std_srvs.srv.SetBoolRequest(data=True))
         rospy.sleep(2.0)
+        # check with just one view
         for joints in self.scan_joints[1:]:
             self.moveit.goto(joints, velocity_scaling=0.2)
             rospy.sleep(2.0)

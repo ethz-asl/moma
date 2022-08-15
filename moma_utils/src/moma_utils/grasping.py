@@ -26,8 +26,10 @@ class PlanGrasp(object):
         voxel_size = 0.0075
         data = ros_numpy.numpify(map_cloud)
         x, y, z = data["x"], data["y"], data["z"]
-        points = np.column_stack((x, y, z)) - T_base_task.translation
-        d = (data["distance"] + 0.03) / 0.06  # scale to [0, 1]
+        points = np.column_stack((x, y, z))
+        # TODO: pass semantic argument
+        # d = (data["distance"] + 0.03) / 0.06  # scale to [0, 1]
+        d = data["distance"]
         tsdf_grid = np.zeros((40, 40, 40), dtype=np.float32)
         for idx, point in enumerate(points):
             if np.all(point > 0.0) and np.all(point < 0.3):
@@ -43,13 +45,13 @@ class PlanGrasp(object):
 
         grasps, scores = select_local_maxima(voxel_size, out, threshold=0.9)
         self.vis.grasps("task", grasps, scores)
-        rospy.loginfo("Detected grasps")
+        rospy.loginfo(f"Detected {len(grasps)} grasps")
 
         grasp_candidates = geometry_msgs.msg.PoseArray()
         grasp_candidates.header.stamp = rospy.Time.now()
         for grasp in grasps:
             pose_msg = conv.to_pose_msg(T_base_task * grasp.pose)
-            pose_msg.position.z -= 0.025  # TODO(mbreyer) Investigate this
+            # pose_msg.position.z -= 0.025  # TODO(mbreyer) Investigate this
             grasp_candidates.poses.append(pose_msg)
         grasp_candidates.header.frame_id = self.base_frame_id
 

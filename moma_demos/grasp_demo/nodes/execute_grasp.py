@@ -51,12 +51,13 @@ class GraspExecutionAction(object):
         target = T_base_grasp * Transform.translation([0, 0, -0.04]) * T_grasp_ee_offset
         self.moveit_target_pub.publish(to_pose_stamped_msg(target, self.base_frame))
         success = self.moveit.goto(target, self.velocity_scaling)
+        rospy.sleep(2.0)
 
         rospy.loginfo("Moving to grasp pose")
         target = T_base_grasp * T_grasp_ee_offset
         self.moveit_target_pub.publish(to_pose_stamped_msg(target, self.base_frame))
-        self.moveit.gotoL(target, self.velocity_scaling)
-    
+        self.moveit.goto(target, self.velocity_scaling)
+
         rospy.loginfo("Attempting grasp")
         self.gripper.grasp()
 
@@ -65,10 +66,11 @@ class GraspExecutionAction(object):
             self.action_server.set_aborted()
             return
 
+        rospy.sleep(2.0)
         rospy.loginfo("Lifting object")
         target = Transform.translation([0, 0, 0.1]) * T_base_grasp * T_grasp_ee_offset
         self.moveit_target_pub.publish(to_pose_stamped_msg(target, self.base_frame))
-        self.moveit.gotoL(target, self.velocity_scaling)
+        self.moveit.goto(target, self.velocity_scaling)
 
         if self.gripper.read() > 0.002:
             rospy.loginfo("Object grasped successfully")

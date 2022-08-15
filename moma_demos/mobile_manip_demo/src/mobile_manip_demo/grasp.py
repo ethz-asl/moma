@@ -40,6 +40,7 @@ class GraspSkill:
                 done = True
             except Exception:
                 rospy.logerr("Could not get transform, retrying...")
+        rospy.loginfo(f"Got the transform bTt\n {msg.transform}")
         self.T_base_task = conv.from_transform_msg(msg.transform)
 
         # VGN interface
@@ -124,9 +125,10 @@ class GraspSkill:
         target_pose_msg = conv.to_pose_stamped_msg(
             grasps_list[selected_grasp_idx], self.base_frame_id
         )
+        rospy.loginfo(f"Sending target for grasping:\n {target_pose_msg}")
 
         # Execute grasp
-        grasp_goal = grasp_demo.msg.GraspActionGoal(target_grasp_pose=target_pose_msg)
+        grasp_goal = grasp_demo.msg.GraspGoal(target_grasp_pose=target_pose_msg)
         self.client_grasp_execution.send_goal(grasp_goal)
         res = self.wait_monitoring_preemption(self.client_grasp_execution)
         if not res:
