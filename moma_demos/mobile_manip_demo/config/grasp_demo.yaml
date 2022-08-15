@@ -9,12 +9,14 @@ moma_demo:
   drop_joints: [-0.329, -0.285, -0.289, -1.878, -0.070, 1.635, 0.801]
 
   task_frame_id: task
-  table_height: 0.01  # Measured from the base frame specified above
+  table_height: 0.15  # Measured from the base frame specified above
 
   grasp_selection: "auto"  # Choice: manual, auto
 
   arm_velocity_scaling_drop: 0.3
   arm_velocity_scaling_grasp: 0.2
+
+  object_type: "cubes"
 
 vgn:
   model: $(find vgn)/assets/models/vgn_conv.pth
@@ -26,5 +28,5 @@ tsdf_server:
   depth_scaling: 1.0  # Set to 1.0 for Gazebo, 0.001 for a RealSense
   camera:
     frame_id: wrist_camera_depth_optical_frame
-    info_topic: /wrist_camera/depth/camera_info
+    info_topic: /wrist_camera/color/camera_info
     depth_topic: /wrist_camera/depth/image_rect_raw
