@@ -1,5 +1,6 @@
 # Define the goal
 geometry_msgs/Pose target_object_pose
+int32 goal_id
 ---
 # Define the result
 bool success

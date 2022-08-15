@@ -2,19 +2,25 @@
 
 from pathlib import Path
 
-import numpy as np
-
-import rospy
-import tf2_ros
 from actionlib import SimpleActionServer, SimpleActionClient
 import actionlib_msgs.msg
-import std_srvs.srv
-import mobile_manip_demo.msg
-import grasp_demo.msg
 import geometry_msgs.msg
+import grasp_demo.msg
+from mobile_manip_demo import environment as env
+import mobile_manip_demo.msg
+from mobile_manip_demo.srv import (
+    ForceDrop,
+    ForceDropRequest,
+    ForceGrasp,
+    ForceGraspRequest,
+)
 from moma_utils.grasping import PlanGrasp
 import moma_utils.ros.conversions as conv
+import numpy as np
+import rospy
 import sensor_msgs.msg
+import std_srvs.srv
+import tf2_ros
 
 
 class GraspSkill:
@@ -24,22 +30,14 @@ class GraspSkill:
         self.base_frame_id = rospy.get_param("moma_demo/base_frame_id")
         self.task_frame_id = rospy.get_param("moma_demo/task_frame_id")
         self.grasp_selection = rospy.get_param("moma_demo/grasp_selection")
+        self.object_type = rospy.get_param("moma_demo/object_type")
 
-        tf_buffer = tf2_ros.Buffer()
-        listener = tf2_ros.TransformListener(tf_buffer)
+        self.tf_buffer = tf2_ros.Buffer()
+        listener = tf2_ros.TransformListener(self.tf_buffer)
 
-        done = False
-        while not done:
-            try:
-                msg = tf_buffer.lookup_transform(
-                    self.base_frame_id,
-                    self.task_frame_id,
-                    rospy.Time(),
-                    rospy.Duration(5),
-                )
-                done = True
-            except Exception:
-                rospy.logerr("Could not get transform, retrying...")
+        msg = self.__compute_tf(self.task_frame_id, self.base_frame_id)
+        if msg is None:
+            raise ValueError("Could not get the transformation")
         rospy.loginfo(f"Got the transform bTt\n {msg.transform}")
         self.T_base_task = conv.from_transform_msg(msg.transform)
 
@@ -60,6 +58,9 @@ class GraspSkill:
         # Service clients
         rospy.wait_for_service("reset")
         self.srv_reset = rospy.ServiceProxy("reset", std_srvs.srv.Trigger)
+
+        self.attach_srv = rospy.ServiceProxy("force_grasp", ForceGrasp)
+        self.attach_srv.wait_for_service()
 
         # Action clients
         self.client_reconstruct = SimpleActionClient(
@@ -116,7 +117,19 @@ class GraspSkill:
         grasps_list = [conv.from_pose_msg(grasps.poses[i]) for i in range(num_grasps)]
 
         # Select grasp
-        target_pose = conv.from_pose_msg(goal.target_object_pose)
+        if int(goal.goal_id) > -1:
+            # get the pose from the ID
+            msg = self.__compute_tf("tag_" + str(goal.goal_id), self.task_frame_id)
+            if msg is None:
+                self.report_failure("Transformation Error")
+                return
+            target_pose = geometry_msgs.msg.Pose()
+            target_pose.position.x = msg.transform.translation.x
+            target_pose.position.y = msg.transform.translation.y
+            target_pose.position.z = msg.transform.translation.z
+            target_pose.orientation = msg.transform.rotation
+        else:
+            target_pose = conv.from_pose_msg(goal.target_object_pose)
         distances = [
             np.linalg.norm(grasps_list[i].translation - target_pose.translation)
             for i in range(num_grasps)
@@ -139,7 +152,19 @@ class GraspSkill:
             self.report_failure("Grasp execution failed")
             return
 
-        self.report_success("Finished successfully")
+        # Otherwise everything is fine and we can force the grasping
+        name, link = env.get_item_by_marker(int(goal.goal_id), self.object_type)
+        self.grasp_request = ForceGraspRequest()
+        self.grasp_request.model_name = name
+        self.grasp_request.ee_name = "panda"
+        self.grasp_request.model_link = link
+        self.grasp_request.ee_link = "panda::panda_leftfinger"
+        response = self.attach_srv.call(self.grasp_request)
+
+        if response.success:
+            self.report_success("Finished successfully")
+        else:
+            self.report_failure("Grasp execution failed")
 
     def report_failure(self, msg):
         result = mobile_manip_demo.msg.GraspResult()
@@ -171,3 +196,24 @@ class GraspSkill:
 
     def visualize_detected_grasps(self, grasp_candidates):
         self.detected_grasps_pub.publish(grasp_candidates)
+
+    def __compute_tf(self, target_frame: str, reference_frame: str):
+        done = False
+        attempts = 0
+        while not done or attempts > 15:
+            try:
+                msg = self.tf_buffer.lookup_transform(
+                    reference_frame,
+                    target_frame,
+                    rospy.Time(),
+                    rospy.Duration(5),
+                )
+                done = True
+            except Exception:
+                attempts += 1
+                rospy.logerr("Could not get transform, retrying...")
+
+        if done:
+            return msg
+        else:
+            return None

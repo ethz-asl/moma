@@ -18,7 +18,7 @@ from actionlib import SimpleActionClient
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 
 # Custom actions
-from mobile_manip_demo.msg import GraspAction, GraspActionGoal
+from mobile_manip_demo.msg import GraspAction, GraspActionGoal, GraspGoal
 
 """
 Actions return statuses:
@@ -223,14 +223,13 @@ class Pick:
         """Initialize ROS nodes."""
         self.pick_client = SimpleActionClient("/hl_grasp", GraspAction)
         rospy.loginfo(str("Connecting to /hl_grasp ..."))
-        self.pick_client.wait_for_server(rospy.Duration(20))
+        self.pick_client.wait_for_server(rospy.Duration(10))
 
     def initialize_pick(
         self,
         goal_pose: Pose = Pose(),
         ref_frame: str = "map",
-        goal_ID: str = None,
-        goal_register: Any = None,
+        goal_ID: int = -1,
     ) -> None:
         """
         Pick an item located in the target pose.
@@ -240,22 +239,18 @@ class Pick:
             - goal_pose: if desired, set directly the goal to send.
             - ref_frame: reference frame for the goal.
             - goal_ID: a string ID for the goal. If given, also goal_register must be provided.
-            - goal_register: function linking goal_ID to an actual goal expressed as Pose().
 
         """
-        if goal_ID is not None:
-            target_goal, ref_frame = goal_register(goal_ID)
         # command
-        goal_ = GraspActionGoal()
-        goal_.header.frame_id = ref_frame
-        goal_.header.stamp = rospy.Time.now()
-        goal_.goal.target_object_pose = (
-            target_goal if goal_ID is not None else goal_pose
-        )
+        goal_ = GraspGoal()
+        # goal_.header.frame_id = ref_frame
+        # goal_.header.stamp = rospy.Time.now()
+        goal_.target_object_pose = goal_pose
+        goal_.goal_id = goal_ID
 
         # send the goal
         rospy.loginfo("Sending pick goal")
-        self.pick_client.send_goal(goal_ID)
+        self.pick_client.send_goal(goal_)
 
     def get_pick_status(self) -> int:
         """Get result from pick."""
