@@ -1,5 +1,7 @@
 <sdf version='1.7'>
   <world name='default'>
+    <!-- A gazebo links attacher -->
+    <plugin name="ros_link_attacher_plugin" filename="libgazebo_ros_link_attacher.so"/>
     <model name='ground_plane'>
       <static>1</static>
       <link name='link'>
