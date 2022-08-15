@@ -1,0 +1,26 @@
+<?xml version="1.0" ?>
+<launch>
+  <!-- Arguments -->
+  <arg name="semantic" default="false" doc="Use Voxblox++ for semantic scene reconstruction" />
+  <arg name="simulation_mode" default="true"/>
+
+  <!-- ======== Launch everything ======== -->
+
+  <!-- Load parameters -->
+  <rosparam command="load" file="$(find mobile_manip_demo)/config/grasp_demo.yaml" subst_value="true"/>
+
+  <!-- TSDF node -->
+  <node pkg="vgn" type="tsdf_server.py" name="tsdf_server" output="screen"/>
+
+  <!-- Launch action scripts -->
+  <!-- Grasp -->
+  <node pkg="grasp_demo" type="reset.py" name="reset" output="screen"/>
+  <node pkg="grasp_demo" type="reconstruct_scene.py" name="scan_action_node" args="$(arg semantic)" output="screen" />
+  <node pkg="grasp_demo" type="execute_grasp.py" name="execute_grasp" output="screen"/>
+  <node pkg="mobile_manip_demo" type="fake_manipulation.py" name="force_manipulation" output="screen"/>
+  <!-- Drop -->
+<!--  <node pkg="grasp_demo" type="drop_object.py" name="drop_object" output="screen"/>-->
+
+  <node pkg="mobile_manip_demo" type="grasp_node.py" name="grasp_skill" output="screen"/>
+
+</launch>
