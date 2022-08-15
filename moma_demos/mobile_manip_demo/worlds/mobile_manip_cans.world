@@ -2065,7 +2065,7 @@
       <frame name='Apriltag36_11_00001::__model__' attached_to='Apriltag36_11_00001::main'>
         <pose relative_to='__model__'>0 0 0.13 0 -0 0</pose>
       </frame>
-      <link name='Apriltag36_11_00000::main'>
+      <link name='Apriltag36_11_00001::main'>
         <pose relative_to='Apriltag36_11_00001::__model__'>0 0 0 0 -0 0</pose>
         <visual name='main_Visual'>
           <geometry>
