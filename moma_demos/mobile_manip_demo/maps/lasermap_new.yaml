@@ -1,6 +1,0 @@
-image: lasermap_new.png
-resolution: 0.050000
-origin: [-18.499554, -14.333729, 0.000000]
-occupied_thresh: 0.65
-free_thresh: 0.196
-negate: 0
