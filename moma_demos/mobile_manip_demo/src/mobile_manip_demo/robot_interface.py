@@ -203,7 +203,7 @@ class Move:
 
     def get_navigation_status(self) -> int:
         """Get result from navigation."""
-        wait = self.move_client.wait_for_result(rospy.Duration(30))
+        wait = self.move_client.wait_for_result()
         if not wait:
             rospy.logerr("Move Action server not available!")
             return -1
@@ -254,7 +254,8 @@ class Pick:
 
     def get_pick_status(self) -> int:
         """Get result from pick."""
-        wait = self.pick_client.wait_for_result(rospy.Duration(10))
+        # Block until you get result
+        wait = self.pick_client.wait_for_result()
         if not wait:
             rospy.logerr("Pick Action server not available!")
             rospy.signal_shutdown("Pick Action server not available!")

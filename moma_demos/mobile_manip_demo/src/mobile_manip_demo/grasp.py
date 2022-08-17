@@ -38,7 +38,7 @@ class GraspSkill:
         msg = self.__compute_tf(self.task_frame_id, self.base_frame_id)
         if msg is None:
             raise ValueError("Could not get the transformation")
-        rospy.loginfo(f"Got the transform bTt\n {msg.transform}")
+        rospy.loginfo(f"Got the transform base to task:\n {msg.transform}")
         self.T_base_task = conv.from_transform_msg(msg.transform)
 
         # VGN interface
@@ -123,11 +123,7 @@ class GraspSkill:
             if msg is None:
                 self.report_failure("Transformation Error")
                 return
-            target_pose = geometry_msgs.msg.Pose()
-            target_pose.position.x = msg.transform.translation.x
-            target_pose.position.y = msg.transform.translation.y
-            target_pose.position.z = msg.transform.translation.z
-            target_pose.orientation = msg.transform.rotation
+            target_pose = conv.from_transform_msg(msg.transform)
         else:
             target_pose = conv.from_pose_msg(goal.target_object_pose)
         distances = [
