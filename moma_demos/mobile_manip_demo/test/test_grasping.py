@@ -1,7 +1,20 @@
 #!/usr/bin/env python
 
-from geometry_msgs.msg import Pose
+"""
+Test the grasping skill.
+
+Note: this test works only if the robot spawns in front of the right table.
+In run_gazebo.launch, set the following parameters:
+<arg name="initial_pose_x" default="-1.4" />
+<arg name="initial_pose_y" default="1.96" />
+<arg name="initial_pose_yaw" default="3.14" />
+
+Then, after spawning the robot, move it closer to the table.
+"""
+
+from geometry_msgs.msg import Pose, Twist, Vector3
 from mobile_manip_demo.robot_interface import Pick, ObjectAtPose
+from moma_utils.ros.moveit import MoveItClient
 
 import rospy
 import tf2_ros
@@ -21,7 +34,12 @@ class GraspingNode:
         self.tf_buffer = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener(self.tf_buffer)
 
+        self.moveit = MoveItClient("panda_arm")
+
     def send_pick_request(self):
+        # Put arm on a named configuration
+        self.moveit.goto("ready")
+
         self.pick_action.cancel_goal()
 
         done = False

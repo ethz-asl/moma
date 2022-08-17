@@ -16,6 +16,7 @@ from mobile_manip_demo.srv import (
 )
 from moma_utils.grasping import PlanGrasp
 import moma_utils.ros.conversions as conv
+from moma_utils.ros.moveit import MoveItClient
 import numpy as np
 import rospy
 import sensor_msgs.msg
@@ -137,6 +138,8 @@ class GraspSkill:
         rospy.loginfo(f"Sending target for grasping:\n {target_pose_msg}")
 
         # Execute grasp
+        # Note!! The after grasp pose is disabled:
+        # we first need to attach the links then we can move
         grasp_goal = grasp_demo.msg.GraspGoal(target_grasp_pose=target_pose_msg)
         self.client_grasp_execution.send_goal(grasp_goal)
         res = self.wait_monitoring_preemption(self.client_grasp_execution)
@@ -156,6 +159,10 @@ class GraspSkill:
         self.grasp_request.model_link = link
         self.grasp_request.ee_link = "panda::panda_leftfinger"
         response = self.attach_srv.call(self.grasp_request)
+
+        # go back to ready position
+        moveit_client = MoveItClient("panda_arm")
+        moveit_client.goto("ready")
 
         if response.success:
             self.report_success("Finished successfully")
