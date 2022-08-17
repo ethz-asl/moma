@@ -39,6 +39,7 @@ jobs:
             moma_piloting.repos
             install_dependencies.sh
             **/requirements.txt
+            .github/workflows/**
 
       - name: Early exit - Image up to date
         if: steps.changed-files.outputs.any_changed == 'false'
