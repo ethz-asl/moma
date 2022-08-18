@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 """
-Test the grasping skill.
+Test the manipulation skills of grasping and dropping.
 
 Note: this test works only if the robot spawns in front of the right table.
 In run_gazebo.launch, set the following parameters:
@@ -118,7 +118,10 @@ class ManipulationNode:
         place_goal.pose.position.x = msg2.transform.translation.x
         place_goal.pose.position.y = msg2.transform.translation.y
         place_goal.pose.position.z = msg2.transform.translation.z
-        place_goal.pose.orientation = msg2.transform.rotation
+        place_goal.pose.orientation.x = 0.0
+        place_goal.pose.orientation.y = 0.0
+        place_goal.pose.orientation.z = 0.0
+        place_goal.pose.orientation.w = 1.0
 
         return pick_goal, place_goal
 
