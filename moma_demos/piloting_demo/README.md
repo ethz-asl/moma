@@ -179,6 +179,8 @@ cd ~/piloting_ws/src/smb_path_planner/smb_navigation/script
 
 The previous command will generate a `map.yaml` and `map.pgm` files in the target folder. The `map.yaml` might contain some `nan` in the origin, set it manually to zero and save.
 
+For a foreign robot, you might need to adapt the `rot_roll` in `pcd_converter.launch` in case the floor is not displayed evenly.
+
 ### Step 4 (optional): Mesh generation for simulation
 
 Generate a mesh out of the `map.pcl` file for simulation in Gazebo.
