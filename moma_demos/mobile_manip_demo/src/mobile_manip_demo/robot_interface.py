@@ -18,7 +18,7 @@ from actionlib import SimpleActionClient
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 
 # Custom actions
-from mobile_manip_demo.msg import GraspAction, GraspActionGoal, GraspGoal
+from mobile_manip_demo.msg import GraspAction, GraspGoal, DropAction, DropGoal
 
 """
 Actions return statuses:
@@ -170,7 +170,7 @@ class Move:
         """Initialize ROS nodes."""
         self.move_client = SimpleActionClient(namespace + "move_base", MoveBaseAction)
         rospy.loginfo(str("Connecting to " + namespace + "move_base ..."))
-        self.move_client.wait_for_server(rospy.Duration(20))
+        self.move_client.wait_for_server()
 
     def initialize_navigation(
         self,
@@ -223,12 +223,11 @@ class Pick:
         """Initialize ROS nodes."""
         self.pick_client = SimpleActionClient("/hl_grasp", GraspAction)
         rospy.loginfo(str("Connecting to /hl_grasp ..."))
-        self.pick_client.wait_for_server(rospy.Duration(10))
+        self.pick_client.wait_for_server()
 
     def initialize_pick(
         self,
-        goal_pose: Pose = Pose(),
-        ref_frame: str = "map",
+        goal_pose: PoseStamped = PoseStamped(),
         goal_ID: int = -1,
     ) -> None:
         """
@@ -237,19 +236,18 @@ class Pick:
         Args:
         ----
             - goal_pose: if desired, set directly the goal to send.
-            - ref_frame: reference frame for the goal.
-            - goal_ID: a string ID for the goal. If given, also goal_register must be provided.
+            - goal_ID: a string ID for the item to pick.
 
         """
         # command
         goal_ = GraspGoal()
-        # goal_.header.frame_id = ref_frame
-        # goal_.header.stamp = rospy.Time.now()
         goal_.target_object_pose = goal_pose
         goal_.goal_id = goal_ID
 
         # send the goal
-        rospy.loginfo("Sending pick goal")
+        rospy.loginfo(
+            f"Sending pick goal:\n--ID {goal_ID},\n--target: {goal_pose.pose},\n--reference frame: {goal_pose.header.frame_id}"
+        )
         self.pick_client.send_goal(goal_)
 
     def get_pick_status(self) -> int:
@@ -274,22 +272,41 @@ class Place:
 
     def __init__(self) -> None:
         """Initialize ROS nodes."""
-        self.place_client = SimpleActionClient("place_client", PlaceAction)
-        self.place_client.wait_for_server(rospy.Duration(100))
+        self.place_client = SimpleActionClient("/hl_drop", DropAction)
+        rospy.loginfo(str("Connecting to /hl_drop ..."))
+        self.place_client.wait_for_server()
 
-    def initialize_place(self, goal_ID: str) -> None:
-        """Move the robot to the target pose."""
-        # TODO: implement method
+    def initialize_place(
+        self,
+        goal_pose: PoseStamped = PoseStamped(),
+        goal_ID: int = -1,
+    ) -> None:
+        """
+        Place an item in the target pose.
+
+        Args:
+        ----
+            - goal_pose: if desired, set directly the goal to send.
+            - goal_ID: a string ID for the picked item.
+
+        """
+        # command
+        goal_ = DropGoal()
+        goal_.target_object_pose = goal_pose
+        goal_.goal_id = goal_ID
 
         # send the goal
-        self.place_client.send_goal(goal_ID)
+        rospy.loginfo(
+            f"Sending place goal:\n--ID {goal_ID},\n--target: {goal_pose.pose},\n--reference frame: {goal_pose.header.frame_id}"
+        )
+        self.place_client.send_goal(goal_)
 
     def get_place_status(self) -> int:
         """Get result from place."""
         wait = self.place_client.wait_for_result(rospy.Duration(10))
         if not wait:
-            rospy.logerr("Pick Action server not available!")
-            rospy.signal_shutdown("Pick Action server not available!")
+            rospy.logerr("Place Action server not available!")
+            rospy.signal_shutdown("Place Action server not available!")
             return -1
         else:
             # Result of executing the action

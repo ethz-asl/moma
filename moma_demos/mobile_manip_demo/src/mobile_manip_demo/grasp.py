@@ -8,12 +8,7 @@ import geometry_msgs.msg
 import grasp_demo.msg
 from mobile_manip_demo import environment as env
 import mobile_manip_demo.msg
-from mobile_manip_demo.srv import (
-    ForceDrop,
-    ForceDropRequest,
-    ForceGrasp,
-    ForceGraspRequest,
-)
+from mobile_manip_demo.srv import ForceGrasp, ForceGraspRequest
 from moma_utils.grasping import PlanGrasp
 import moma_utils.ros.conversions as conv
 from moma_utils.ros.moveit import MoveItClient
@@ -126,7 +121,8 @@ class GraspSkill:
                 return
             target_pose = conv.from_transform_msg(msg.transform)
         else:
-            target_pose = conv.from_pose_msg(goal.target_object_pose)
+            target_pose = conv.from_pose_msg(goal.target_object_pose.pose)
+
         distances = [
             np.linalg.norm(grasps_list[i].translation - target_pose.translation)
             for i in range(num_grasps)
@@ -203,7 +199,7 @@ class GraspSkill:
     def __compute_tf(self, target_frame: str, reference_frame: str):
         done = False
         attempts = 0
-        while not done or attempts > 15:
+        while not done and attempts < 15:
             try:
                 msg = self.tf_buffer.lookup_transform(
                     reference_frame,
