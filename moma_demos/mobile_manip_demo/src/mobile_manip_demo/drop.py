@@ -65,28 +65,28 @@ class DropSkill:
         rospy.logwarn(
             f"Dropping object at pose {target_pose.to_list()} in frame {goal_frame}"
         )
-        result = self.moveit.goto(target_pose, velocity_scaling=self.velocity_scaling)
-        if not result:
+        done = self.moveit.goto(target_pose, velocity_scaling=self.velocity_scaling)
+        if not done:
             self.report_failure("Could not reach drop goal pose")
-
-        self.gripper.release()
-
-        name, link = env.get_item_by_marker(int(goal.goal_id), self.object_type)
-        self.drop_request = ForceDropRequest()
-        self.drop_request.model_name = name
-        self.drop_request.ee_name = "panda"
-        self.drop_request.model_link = link
-        self.drop_request.ee_link = "panda::panda_leftfinger"
-        response = self.detach_srv.call(self.drop_request)
-
-        # go back to ready position
-        moveit_client = MoveItClient("panda_arm")
-        moveit_client.goto("ready")
-
-        if response.success:
-            self.report_success("Finished successfully")
         else:
-            self.report_failure("Drop execution failed")
+            self.gripper.release()
+
+            name, link = env.get_item_by_marker(int(goal.goal_id), self.object_type)
+            self.drop_request = ForceDropRequest()
+            self.drop_request.model_name = name
+            self.drop_request.ee_name = "panda"
+            self.drop_request.model_link = link
+            self.drop_request.ee_link = "panda::panda_leftfinger"
+            response = self.detach_srv.call(self.drop_request)
+
+            # go back to ready position
+            moveit_client = MoveItClient("panda_arm")
+            moveit_client.goto("ready")
+
+            if response.success:
+                self.report_success("Finished successfully")
+            else:
+                self.report_failure("Drop execution failed")
 
     def report_failure(self, msg):
         result = mobile_manip_demo.msg.DropResult()

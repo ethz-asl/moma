@@ -34,7 +34,6 @@ class GraspSkill:
         msg = self.__compute_tf(self.task_frame_id, self.base_frame_id)
         if msg is None:
             raise ValueError("Could not get the transformation")
-        rospy.loginfo(f"Got the transform base to task:\n {msg.transform}")
         self.T_base_task = conv.from_transform_msg(msg.transform)
 
         # VGN interface
