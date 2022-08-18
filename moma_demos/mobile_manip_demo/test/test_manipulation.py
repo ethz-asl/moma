@@ -18,9 +18,6 @@ from moma_utils.ros.moveit import MoveItClient
 
 import rospy
 import tf2_ros
-import tf2_geometry_msgs
-
-import numpy as np
 
 
 class ManipulationNode:
@@ -118,10 +115,10 @@ class ManipulationNode:
         place_goal.pose.position.x = msg2.transform.translation.x
         place_goal.pose.position.y = msg2.transform.translation.y
         place_goal.pose.position.z = msg2.transform.translation.z
-        place_goal.pose.orientation.x = 0.0
+        place_goal.pose.orientation.x = 1.0
         place_goal.pose.orientation.y = 0.0
         place_goal.pose.orientation.z = 0.0
-        place_goal.pose.orientation.w = 1.0
+        place_goal.pose.orientation.w = 0.0
 
         return pick_goal, place_goal
 

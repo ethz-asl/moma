@@ -2,7 +2,9 @@
 
 """Test the to move the arm."""
 
-from geometry_msgs.msg import PoseStamped
+from scipy.spatial.transform import Rotation
+
+from geometry_msgs.msg import Pose, PoseStamped
 from moma_utils.ros.moveit import MoveItClient
 import moma_utils.ros.conversions as conv
 from moma_utils.spatial import Transform
@@ -35,10 +37,10 @@ class ArmControl:
         pose.pose.position.x = 0.4 + 1e-6
         pose.pose.position.y = 0.0 + 1e-6
         pose.pose.position.z = 0.3 + 1e-6
-        pose.pose.orientation.x = 1e-6
+        pose.pose.orientation.x = 1.0 + 1e-6
         pose.pose.orientation.y = 1e-6
         pose.pose.orientation.z = 1e-6
-        pose.pose.orientation.w = 1.000000000
+        pose.pose.orientation.w = 1e-6
         self.moveit.move_group.set_pose_target(pose)
         plan = self.moveit.move_group.plan()
         if type(plan) is tuple:
@@ -48,6 +50,11 @@ class ArmControl:
         self.moveit.move_group.stop()
         self.moveit.move_group.clear_pose_targets()
         rospy.sleep(5.0)
+
+        translation = [0.4, 0.2, 0.3]
+        rotation = Rotation.from_quat([1.0, 0.0, 0.0, 0.0])
+        pose = Transform(rotation, translation)
+        self.moveit.goto(pose)
 
 
 def main():
