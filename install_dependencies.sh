@@ -145,6 +145,7 @@ install_piloting() {
 install_system_deps() {
 sudo --preserve-env=DEBIAN_FRONTEND apt-get install \
   git git-lfs python3-pip python3-vcstool \
+  ros-$ROS_DISTRO-roslint \
 	ros-$ROS_DISTRO-ros-control \
 	ros-$ROS_DISTRO-ros-controllers \
 	ros-$ROS_DISTRO-gazebo-ros-pkgs \
