@@ -97,8 +97,7 @@ class PandaGripperClient:
         msg = GraspGoal(width, GraspEpsilon(e_inner, e_outer), speed, force)
         self.grasp_client.send_goal(msg)
         self.grasp_client.wait_for_result(rospy.Duration(10.0))
-        # return self.grasp_client.get_result().success
-        return True
+        return self.grasp_client.get_result().success
 
     def release(self, width=0.08):
         rospy.loginfo("Opening gripper")

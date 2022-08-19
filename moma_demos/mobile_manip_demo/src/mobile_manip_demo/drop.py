@@ -65,28 +65,38 @@ class DropSkill:
         rospy.logwarn(
             f"Dropping object at pose {target_pose.to_list()} in frame {goal_frame}"
         )
-        done = self.moveit.goto(target_pose, velocity_scaling=self.velocity_scaling)
-        if not done:
+        self.moveit.goto(target_pose, velocity_scaling=self.velocity_scaling)
+        # Check that the EE is at the target pose
+        # TODO: this should be replaced by the MoveIt action reasult server
+        msg = self.__compute_tf("panda_EE", self.base_frame_id)
+        msg_as_tf = conv.from_transform_msg(msg.transform)
+        if (
+            np.linalg.norm(
+                np.array(target_pose.to_list()[:3]) - np.array(msg_as_tf.to_list()[:3])
+            )
+            > 0.2
+        ):
             self.report_failure("Could not reach drop goal pose")
+            return
+
+        self.gripper.release()
+
+        name, link = env.get_item_by_marker(int(goal.goal_id), self.object_type)
+        self.drop_request = ForceDropRequest()
+        self.drop_request.model_name = name
+        self.drop_request.ee_name = "panda"
+        self.drop_request.model_link = link
+        self.drop_request.ee_link = "panda::panda_leftfinger"
+        response = self.detach_srv.call(self.drop_request)
+
+        # go back to ready position
+        moveit_client = MoveItClient("panda_arm")
+        moveit_client.goto("ready")
+
+        if response.success:
+            self.report_success("Finished successfully")
         else:
-            self.gripper.release()
-
-            name, link = env.get_item_by_marker(int(goal.goal_id), self.object_type)
-            self.drop_request = ForceDropRequest()
-            self.drop_request.model_name = name
-            self.drop_request.ee_name = "panda"
-            self.drop_request.model_link = link
-            self.drop_request.ee_link = "panda::panda_leftfinger"
-            response = self.detach_srv.call(self.drop_request)
-
-            # go back to ready position
-            moveit_client = MoveItClient("panda_arm")
-            moveit_client.goto("ready")
-
-            if response.success:
-                self.report_success("Finished successfully")
-            else:
-                self.report_failure("Drop execution failed")
+            self.report_failure("Drop execution failed")
 
     def report_failure(self, msg):
         result = mobile_manip_demo.msg.DropResult()

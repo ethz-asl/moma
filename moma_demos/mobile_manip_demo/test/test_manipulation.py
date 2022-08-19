@@ -12,7 +12,7 @@ In run_gazebo.launch, set the following parameters:
 Then, after spawning the robot, move it closer to the table.
 """
 
-from geometry_msgs.msg import PoseStamped, Twist, Vector3
+from geometry_msgs.msg import PoseStamped
 from mobile_manip_demo.robot_interface import Pick, Place, ObjectAtPose
 from moma_utils.ros.moveit import MoveItClient
 
@@ -114,7 +114,7 @@ class ManipulationNode:
         place_goal.header.stamp = rospy.Time.now()
         place_goal.pose.position.x = msg2.transform.translation.x
         place_goal.pose.position.y = msg2.transform.translation.y
-        place_goal.pose.position.z = msg2.transform.translation.z
+        place_goal.pose.position.z = msg2.transform.translation.z + 0.05
         place_goal.pose.orientation.x = 1.0
         place_goal.pose.orientation.y = 0.0
         place_goal.pose.orientation.z = 0.0

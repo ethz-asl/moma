@@ -23,7 +23,7 @@ class MoveItClient:
 
         if isinstance(target, Transform):
             # self.move_group.set_pose_target(to_pose_msg(target))
-            self.move_group.set_pose_target(to_pose_stamped_msg(target,"panda_link0"))
+            self.move_group.set_pose_target(to_pose_stamped_msg(target, "panda_link0"))
         elif isinstance(target, (list, np.ndarray)):
             self.move_group.set_joint_value_target(target)
         elif isinstance(target, str):
@@ -49,8 +49,8 @@ class MoveItClient:
         plan, _ = self.move_group.compute_cartesian_path(waypoints, 0.01, 0.0)
         return plan
 
-
     def execute(self, plan):
+        self.move_group.set_goal_tolerance(0.01)
         success = self.move_group.execute(plan, wait=True)
         self.move_group.stop()
         self.move_group.clear_pose_targets()
