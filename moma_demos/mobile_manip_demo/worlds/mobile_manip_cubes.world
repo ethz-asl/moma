@@ -90,10 +90,10 @@
       <heading_deg>0</heading_deg>
     </spherical_coordinates>
     <state world_name='default'>
-      <sim_time>3801 316000000</sim_time>
-      <real_time>832 861533298</real_time>
-      <wall_time>1660219856 816343912</wall_time>
-      <iterations>758569</iterations>
+      <sim_time>3836 51000000</sim_time>
+      <real_time>34 847564236</real_time>
+      <wall_time>1660899820 69264270</wall_time>
+      <iterations>34735</iterations>
       <model name='grey_wall'>
         <pose>2.72123 -3.33408 -0.679079 0 -0 0</pose>
         <scale>1 1 1</scale>
@@ -145,14 +145,13 @@
         </link>
       </model>
       <model name='recharge_station'>
-        <static>1</static>
-        <pose>0.47627 -2.5234 0.002465 0 -0 0</pose>
+        <pose>0.47627 -2.5234 1.4e-05 0 -0 0</pose>
         <scale>1 1 0.01389</scale>
         <link name='link'>
-          <pose>0.47627 -2.5234 0.002465 0 -0 0</pose>
+          <pose>0.47627 -2.5234 1.4e-05 0 -0 0</pose>
           <velocity>0 0 0 0 -0 0</velocity>
-          <acceleration>0 0 0 0 -0 0</acceleration>
-          <wrench>0 0 0 0 -0 0</wrench>
+          <acceleration>-0 0 0 0 -0 0</acceleration>
+          <wrench>-0 0 0 0 -0 0</wrench>
         </link>
       </model>
       <model name='table_0_clone'>
@@ -211,13 +210,13 @@
         <link name='Apriltag36_11_00000::main'>
           <pose>3.11359 -0.396171 0.713974 0 -4e-06 -0.828545</pose>
           <velocity>0 -0 7.1e-05 -0 -0 -0</velocity>
-          <acceleration>-0 0 0 0 -0 0</acceleration>
-          <wrench>-0 0 0 0 -0 0</wrench>
+          <acceleration>-0 0 -0 0 -0 0</acceleration>
+          <wrench>-0 0 -0 0 -0 0</wrench>
         </link>
         <link name='link'>
           <pose>3.11359 -0.396171 0.688974 -0 1e-06 -0.828545</pose>
           <velocity>0 -0 7.1e-05 1.4e-05 5e-06 0</velocity>
-          <acceleration>-0 0 -0 -0 -0 -0</acceleration>
+          <acceleration>-0 0 -0 0 -0 0</acceleration>
           <wrench>-0 0 -0 0 -0 0</wrench>
         </link>
       </model>
@@ -227,14 +226,14 @@
         <link name='Apriltag36_11_00001::main'>
           <pose>3.06633 -0.614437 0.713974 0 -4e-06 0.686748</pose>
           <velocity>0 0 7.1e-05 0 -0 0</velocity>
-          <acceleration>0 -0 0 -0 -0 -0</acceleration>
-          <wrench>0 -0 0 0 -0 0</wrench>
+          <acceleration>-0 -0 -0 0 -0 0</acceleration>
+          <wrench>-0 -0 -0 0 -0 0</wrench>
         </link>
         <link name='link'>
           <pose>3.06633 -0.614437 0.688974 0 1e-06 0.686748</pose>
           <velocity>0 0 7.1e-05 -4e-06 1.4e-05 0</velocity>
-          <acceleration>0 -0 0 0 -0 0</acceleration>
-          <wrench>0 -0 0 0 -0 0</wrench>
+          <acceleration>-0 -0 -0 0 -0 0</acceleration>
+          <wrench>-0 -0 -0 0 -0 0</wrench>
         </link>
       </model>
       <model name='wood_cube_2'>
@@ -243,14 +242,14 @@
         <link name='Apriltag36_11_00002::main'>
           <pose>-2.15395 1.98713 0.713974 0 -4e-06 1e-06</pose>
           <velocity>0 -0 7.1e-05 0 -0 0</velocity>
-          <acceleration>0 -0 0 0 -0 0</acceleration>
-          <wrench>0 -0 0 0 -0 0</wrench>
+          <acceleration>0 -0 -0 0 -0 0</acceleration>
+          <wrench>0 -0 -0 0 -0 0</wrench>
         </link>
         <link name='link'>
           <pose>-2.15395 1.98713 0.688974 0 1e-06 1e-06</pose>
           <velocity>0 -0 7.1e-05 5e-06 1.1e-05 0</velocity>
-          <acceleration>0 0 0 0 -0 0</acceleration>
-          <wrench>0 0 0 0 -0 0</wrench>
+          <acceleration>0 -0 -0 0 -0 0</acceleration>
+          <wrench>0 -0 -0 0 -0 0</wrench>
         </link>
       </model>
       <light name='sun'>
@@ -259,7 +258,7 @@
     </state>
     <gui fullscreen='0'>
       <camera name='user_camera'>
-        <pose>-3.71587 1.66726 4.79051 -0 0.801797 -0.162406</pose>
+        <pose>0.500794 -6.62042 9.7831 0 0.949797 1.56559</pose>
         <view_controller>orbit</view_controller>
         <projection_type>perspective</projection_type>
       </camera>
@@ -1953,7 +1952,7 @@
         <collision name='collision'>
           <geometry>
             <box>
-              <size>1 1 0.002</size>
+              <size>1 1 0.002016</size>
             </box>
           </geometry>
           <max_contacts>10</max_contacts>
@@ -1973,7 +1972,7 @@
         <visual name='visual'>
           <geometry>
             <box>
-              <size>1 1 0.002</size>
+              <size>1 1 0.002016</size>
             </box>
           </geometry>
           <material>
