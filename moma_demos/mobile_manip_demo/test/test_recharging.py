@@ -34,13 +34,11 @@ class RechargeNode:
 
         while not rospy.is_shutdown():
             status = self.recharge_action.get_recharge_status()
-            if status == 0 or status == 1:
-                rospy.loginfo("recharge RUNNING")
-            elif status == 3:
+            rospy.loginfo("recharge RUNNING")
+            if status == 3:
                 rospy.loginfo("recharge SUCCESS")
                 rospy.signal_shutdown("Success, shutting down!")
             else:
-                rospy.loginfo(str(status))
                 rospy.loginfo("recharge FAILURE")
                 rospy.signal_shutdown("Failure, shutting down!")
 

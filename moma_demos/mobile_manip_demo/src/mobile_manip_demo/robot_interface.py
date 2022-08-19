@@ -16,9 +16,14 @@ from gazebo_msgs.msg import ModelStates
 # Action lib stuff
 from actionlib import SimpleActionClient
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
-
-# Custom actions
-from mobile_manip_demo.msg import GraspAction, GraspGoal, DropAction, DropGoal
+from mobile_manip_demo.msg import (
+    GraspAction,
+    GraspGoal,
+    DropAction,
+    DropGoal,
+    RechargeAction,
+    RechargeGoal,
+)
 
 """
 Actions return statuses:
@@ -222,33 +227,36 @@ class Recharge(Move):
     def __init__(self, namespace: str = "") -> None:
         """Initialize ROS nodes."""
         super().__init__(namespace)
-        self.recharge_cli = rospy.ServiceProxy("/recharge", Trigger)
-        self.recharge_cli.wait_for_service()
-        self.recharging = False
+        self.recharge_cli = SimpleActionClient("/recharge", RechargeAction)
+        rospy.loginfo(str("Connecting to /recharge ..."))
+        self.recharge_cli.wait_for_server()
 
     def initialize_recharge(self, recharge_pose: Pose) -> None:
         """Move the robot to the recharge station and recharge the robot."""
         super().initialize_navigation(recharge_pose, "map")
+        rospy.loginfo(str("Initializing Recharge skill"))
 
     def get_recharge_status(self) -> int:
         """Get result from recharging."""
         state = super().get_navigation_status()
-        if not self.recharging:
-            if state == 3:
-                # Navigation successful, then we can recharge
-                self.recharging == True
-                # TODO: this is blocking the execution, not good for reactivity
-                resp = self.recharge_cli()
-                if resp:
-                    return 3
-                else:
-                    return 0
+        if state == 3:
+            # Navigation successful, then we can recharge
+            goal_ = RechargeGoal()
+            self.recharge_cli.send_goal(goal_)
+            wait = self.recharge_cli.wait_for_result()
+            if not wait:
+                rospy.logerr("Recharge Action server not available!")
+                return -1
             else:
-                return state
+                # Result of executing the action
+                return self.recharge_cli.get_state()
+        else:
+            return state
 
     def cancel_goal(self) -> None:
         """Cancel current navigation goal."""
         super().cancel_goal()
+        self.recharge_cli.cancel_goal()
 
 
 class Pick:
