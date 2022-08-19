@@ -7,7 +7,7 @@ import numpy as np
 from numpy import linalg as LA
 
 from geometry_msgs.msg import Twist
-from std_srvs.srv import Empty, SetBool, SetBoolRequest
+from std_srvs.srv import Empty, SetBool, SetBoolRequest, Trigger
 from geometry_msgs.msg import Pose, PoseStamped, PoseWithCovarianceStamped
 
 from sensor_msgs.msg import JointState
@@ -214,6 +214,41 @@ class Move:
     def cancel_goal(self) -> None:
         """Cancel current navigation goal."""
         self.move_client.cancel_goal()
+
+
+class Recharge(Move):
+    """Low level implementation of a Recharge skill."""
+
+    def __init__(self, namespace: str = "") -> None:
+        """Initialize ROS nodes."""
+        super().__init__(namespace)
+        self.recharge_cli = rospy.ServiceProxy("/recharge", Trigger)
+        self.recharge_cli.wait_for_service()
+        self.recharging = False
+
+    def initialize_recharge(self, recharge_pose: Pose) -> None:
+        """Move the robot to the recharge station and recharge the robot."""
+        super().initialize_navigation(recharge_pose, "map")
+
+    def get_recharge_status(self) -> int:
+        """Get result from recharging."""
+        state = super().get_navigation_status()
+        if not self.recharging:
+            if state == 3:
+                # Navigation successful, then we can recharge
+                self.recharging == True
+                # TODO: this is blocking the execution, not good for reactivity
+                resp = self.recharge_cli()
+                if resp:
+                    return 3
+                else:
+                    return 0
+            else:
+                return state
+
+    def cancel_goal(self) -> None:
+        """Cancel current navigation goal."""
+        super().cancel_goal()
 
 
 class Pick:
