@@ -7,7 +7,7 @@
   <!-- ======== Launch everything ======== -->
 
   <!-- Load parameters -->
-  <rosparam command="load" file="$(find mobile_manip_demo)/config/grasp_demo.yaml" subst_value="true"/>
+  <rosparam command="load" file="$(find mobile_manip_demo)/config/moma_demo.yaml" subst_value="true"/>
 
   <!-- TSDF node -->
   <node pkg="vgn" type="tsdf_server.py" name="tsdf_server" output="screen"/>
@@ -22,5 +22,8 @@
 
   <!-- Drop -->
   <node pkg="mobile_manip_demo" type="drop_node.py" name="drop_skill" launch-prefix="bash -c 'sleep 15; $0 $@'" output="screen"/>
+
+  <!-- Reharge -->
+  <node pkg="mobile_manip_demo" type="battery_node.py" name="recharge_skill" launch-prefix="bash -c 'sleep 15; $0 $@'" output="screen"/>
 
 </launch>

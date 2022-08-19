@@ -18,6 +18,10 @@ moma_demo:
 
   object_type: "cubes"
 
+  battery_lv: 1000
+  battery_drop_rate: 5
+  battery_charge_rate: 20
+
 vgn:
   model: $(find vgn)/assets/models/vgn_conv.pth
 
