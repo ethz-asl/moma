@@ -3,6 +3,7 @@
 from typing import Any, List
 
 import mobile_manip_demo.robot_interface as skills
+import numpy as np
 import py_trees as pt
 
 
@@ -10,17 +11,32 @@ import py_trees as pt
 # TODO: have a Node superclass that gets a State argument to track robot internal states
 
 
+def behavior_mapping(name: str, condition: bool = False):
+    """Return the correct behavior from its name."""
+    # TODO: implement this function
+    # TODO: have also parameters as argument so that the behavior can be properly created
+    return None
+
+
 class RobotAtPose(pt.behaviour.Behaviour):
     """Check if robot is at position."""
 
-    def __init__(self, name: str, pose_ID: str):
+    def __init__(
+        self,
+        name: str,
+        robot_name: str,
+        pose: np.ndarray or int,
+        tolerance: float,
+        ground_truth: bool = False,
+    ):
         super().__init__(name)
-        self.target_pose = get_pose_from_obj(pose_ID)
-        self.tolerance = get_navigation_tolerance()
-        self.interface = skills.RobotAtPose()
+        self.target_pose = pose
+        self.tolerance = tolerance
+        self.ground_truth = ground_truth
+        self.interface = skills.RobotAtPose(robot_name)
 
     def update(self):
-        if self.interface.at_pose(self.target_pose, self.tolerance):
+        if self.interface.at_pose(self.target_pose, self.tolerance, self.ground_truth):
             return pt.common.Status.SUCCESS
         else:
             return pt.common.Status.FAILURE
@@ -29,15 +45,23 @@ class RobotAtPose(pt.behaviour.Behaviour):
 class ObjectAtPose(pt.behaviour.Behaviour):
     """Check if object is at position."""
 
-    def __init__(self, name: str, obj: str):
+    def __init__(
+        self,
+        name: str,
+        object_id: str,
+        model_type: str,
+        pose: np.ndarray,
+        tolerance: float,
+        ground_truth: bool = False,
+    ):
         super().__init__(name)
-        self.target_object = obj
-        self.target_pose = get_pose_from_obj(obj)
-        self.tolerance = get_place_tolerance()
-        self.interface = skills.ObjectAtPose()
+        self.target_pose = pose
+        self.tolerance = tolerance
+        self.ground_truth = ground_truth
+        self.interface = skills.ObjectAtPose(object_id, model_type)
 
     def update(self):
-        if self.interface.at_pose(self.target_pose, self.tolerance):
+        if self.interface.at_pose(self.target_pose, self.tolerance, self.ground_truth):
             return pt.common.Status.SUCCESS
         else:
             return pt.common.Status.FAILURE
@@ -46,13 +70,27 @@ class ObjectAtPose(pt.behaviour.Behaviour):
 class InHand(pt.behaviour.Behaviour):
     """Check if object is held."""
 
-    def __init__(self, name: str, obj: str):
+    def __init__(self, name: str):
         super().__init__(name)
-        self.target_object = obj
         self.interface = skills.InHand()
 
     def update(self):
-        if self.interface.in_hand(self.target_object):
+        if self.interface.in_hand():
+            return pt.common.Status.SUCCESS
+        else:
+            return pt.common.Status.FAILURE
+
+
+class Found(pt.behaviour.Behaviour):
+    """Check if object is held."""
+
+    def __init__(self, name: str, n_IDs: int = 3):
+        super().__init__(name)
+        self.n_items = n_IDs
+        self.interface = skills.Found()
+
+    def update(self):
+        if self.interface.found(self.n_items):
             return pt.common.Status.SUCCESS
         else:
             return pt.common.Status.FAILURE
@@ -61,13 +99,23 @@ class InHand(pt.behaviour.Behaviour):
 class Move(pt.behaviour.Behaviour):
     """Navigate to the input goal."""
 
-    def __init__(self, name: str, goal_ID: str):
+    def __init__(
+        self,
+        name: str,
+        goal_ID: int = None,
+        ref_frame: str = "map",
+        goal_pose: np.ndarray = None,
+    ):
         super().__init__(name)
         self.interface = skills.Move()
-        self.goal = goal_ID
+        self.goal_ID = goal_ID
+        self.goal_pose = goal_pose
+        self.ref_frame = ref_frame
 
     def initialise(self):
-        self.interface.initialize_navigation(self.goal)
+        self.interface.initialize_navigation(
+            self.goal_pose, self.ref_frame, self.goal_ID
+        )
 
     def update(self) -> pt.common.Status:
         status = self.interface.get_navigation_status()
