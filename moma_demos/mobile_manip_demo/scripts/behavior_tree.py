@@ -53,7 +53,7 @@ class MoMaBT:
                     pose=self.delivery,
                     tolerance=0.4,
                 ),
-                bt.Move(name=f"Move-To delivery!", goal_ID=self.delivery),
+                bt.Move(name=f"Move-To delivery!", goal_pose=self.delivery),
             ]
         )
 

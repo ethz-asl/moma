@@ -4,136 +4,145 @@ from enum import IntEnum
 from typing import List
 
 import mobile_manip_demo.robot_interface as skills
+import numpy as np
 import rospy
 import smach
 
 
-def state_linker(
-    name: str,
-    current_state: "WorldState",
-    outcomes: List[str],
-    terminal_transition: str,
-    *args,
-) -> smach.State or None:
-    """Link the name of the state to add to the function realizing it."""
-    if name.startswith("grasp"):
-        # TODO: match the string with a template to get the target for the action
-        goal_ID = ""
-        return Grasp(name, goal_ID, current_state, outcomes, terminal_transition)
-
-    elif name == "IDLE":
-        return IDLE(name, goal_ID, current_state, outcomes, terminal_transition)
-
-    return None
-
-
-class WorldState(IntEnum):
-    """Definition of a state in the State Machine Simulator."""
-
-    POSE = 0
-    HAS_CUBE = 1
-    CUBE_PLACED = 2
-    BATTERY = 3
-
-
-# define state Grasp
-class Grasp(smach.State):
+class Move(smach.State):
     def __init__(
         self,
         name: str,
-        goal_ID: str,
-        current_state: "WorldState",
+        goal_ID: int,
+        ref_frame: str,
+        goal_pose: List[float],
         outcomes: List[str],
-        terminal_transition: str,
     ):
-        self.name = name
-        self.state = current_state
-        self.outcomes = outcomes
-        self.task_succeeded = terminal_transition
-        smach.State.__init__(
-            self,
-            outcomes=self.outcomes,
-        )
+        super().__init__(outcomes=outcomes)
 
-        self.interface = skills.Pick()
-        self.goal = goal_ID
+        self.name = name
+        self.interface = skills.Move()
+        self.goal_ID = goal_ID
+        self.ref_frame = ref_frame
+        self.goal_pose = np.array(goal_pose)
+        self.target_pose = (
+            self.goal_pose if self.goal_pose is not None else self.goal_ID
+        )
         self.initialized = False
 
+        self.condition = skills.RobotAtPose("panda")
+
     def initialize(self) -> bool:
-        rospy.loginfo("Initializing state GRASP!")
-        self.interface.initialize_pick(self.goal)
+        rospy.loginfo("Initializing state MOVE!")
+        self.interface.initialize_navigation(
+            goal_pose=self.goal_pose, ref_frame=self.ref_frame, goal_ID=self.goal_ID
+        )
         return True
 
     def execute(self, userdata):
         if not self.initialized:
             self.initialized = self.initialize()
-        rospy.loginfo("Executing state GRASP!")
+        rospy.loginfo("Executing state MOVE!")
 
-        status = self.interface.get_pick_status()
-        if status == 0 or status == 1:
-            outcome = "RUNNING"
-        elif status == 3:
-            outcome = "SUCCESS"
-        else:
-            outcome = "FAILURE"
+        running = True
+        while running:
+            status = self.interface.get_navigation_status()
+            if status == 0 or status == 1:
+                continue
+            elif status == 3 or self.condition.at_pose(
+                target_pose=self.target_pose, tolerance=0.4
+            ):
+                rospy.loginfo(f"Behavior {self.name} returned SUCCESS!")
+                running = False
+                return self.local_outcomes[0]
+            else:
+                running = False
+                rospy.signal_shutdown(f"Task failed in {self.name} state!")
 
-        # TODO: update WorldState
-        rospy.loginfo(f"Behavior {self.name} returned {outcome}!")
-        if outcome == "SUCCESS":
-            return self.task_succeeded
-        else:
-            return outcome
 
-
-# define state IDLE
-class IDLE(smach.State):
+class Pick(smach.State):
     def __init__(
         self,
         name: str,
         goal_ID: str,
-        current_state: "WorldState",
+        goal_pose: List[float],
         outcomes: List[str],
-        terminal_transition: str,
     ):
-        self.name = name
-        self.state = current_state
-        self.outcomes = outcomes
-        self.task_succeeded = terminal_transition
-        smach.State.__init__(
-            self,
-            outcomes=self.outcomes,
-        )
+        super().__init__(outcomes=outcomes)
 
+        self.name = name
         self.interface = skills.Pick()
-        self.goal = goal_ID
+        self.goal_ID = goal_ID
+        self.goal_pose = np.array(goal_pose)
         self.initialized = False
 
+        self.condition = skills.ObjectAtPose(goal_ID, "cubes")
+
     def initialize(self) -> bool:
-        rospy.loginfo("Initializing state GRASP!")
-        self.interface.initialize_pick(self.goal)
+        rospy.loginfo("Initializing state PICK!")
+        self.interface.initialize_pick(goal_ID=self.goal_ID, goal_pose=self.goal_pose)
         return True
 
     def execute(self, userdata):
-        rospy.loginfo("Recovery behavior: IDLE!")
-        outcome = self.__get_next_state(self.state)
-        rospy.loginfo(f"Behavior {self.name} returned {outcome}!")
-        return outcome
+        if not self.initialized:
+            self.initialized = self.initialize()
+        rospy.loginfo("Executing state PICK!")
 
-    def __get_next_state(self, state: "WorldState"):
-        # TODO: implement IDLE logic, considering that all transitions are in self.outcomes
-        # The order of the self.outcomes list depends on the PLAN given in the knowledge base
-        state[WorldState.BATTERY] -= 10
-        if state[WorldState.BATTERY] < 40:
-            return "battery low"
-        elif state[WorldState.CUBE_PLACED]:
-            return "cube1 on cupboard"
-        elif state[WorldState.HAS_CUBE]:
-            if state[WorldState.POSE] == (0.174, 1.343, 0.303):
-                return "(0.174, 1.343, 0.303) in-reach"
+        running = True
+        while running:
+            status = self.interface.get_pick_status()
+            if status == 0 or status == 1:
+                continue
+            elif status == 3 or self.condition.at_pose(
+                target_pose=self.goal_pose, tolerance=0.4
+            ):
+                rospy.loginfo(f"Behavior {self.name} returned SUCCESS!")
+                running = False
+                return self.outcomes[0]
             else:
-                return "cube1 in-hand"
-        else:
-            if state[WorldState.POSE] == "cube1":
-                return "cube1 in-reach"
+                running = False
+                rospy.signal_shutdown(f"Task failed in {self.name} state!")
+
+
+class Place(smach.State):
+    def __init__(
+        self,
+        name: str,
+        goal_ID: str,
+        goal_pose: List[float],
+        outcomes: List[str],
+    ):
+        super().__init__(outcomes=outcomes)
+
+        self.name = name
+        self.interface = skills.Place()
+        self.goal_ID = goal_ID
+        self.goal_pose = np.array(goal_pose)
+        self.initialized = False
+
+        self.condition = skills.ObjectAtPose(goal_ID, "cubes")
+
+    def initialize(self) -> bool:
+        rospy.loginfo("Initializing state PLACE!")
+        self.interface.initialize_place(goal_pose=self.goal_pose, goal_ID=self.goal_ID)
+        return True
+
+    def execute(self, userdata):
+        if not self.initialized:
+            self.initialized = self.initialize()
+        rospy.loginfo("Executing state PLACE!")
+
+        running = True
+        while running:
+            status = self.interface.get_place_status()
+            if status == 0 or status == 1:
+                continue
+            elif status == 3 or self.condition.at_pose(
+                target_pose=self.goal_pose, tolerance=0.4
+            ):
+                rospy.loginfo(f"Behavior {self.name} returned SUCCESS!")
+                running = False
+                return self.outcomes[0]
             else:
-                return "start the task"
+                running = False
+                rospy.signal_shutdown(f"Task failed in {self.name} state!")
