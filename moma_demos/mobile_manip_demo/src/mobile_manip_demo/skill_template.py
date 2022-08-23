@@ -45,7 +45,7 @@ class Skill:
     def compute_tf(self, target_frame: str, reference_frame: str):
         done = False
         attempts = 0
-        while not done and attempts < 15:
+        while not done and attempts < 20:
             try:
                 msg = self.tf_buffer.lookup_transform(
                     reference_frame,
@@ -57,6 +57,7 @@ class Skill:
             except Exception:
                 attempts += 1
                 rospy.logerr("Could not get transform, retrying...")
+                rospy.Rate(1).sleep()
 
         if done:
             return msg

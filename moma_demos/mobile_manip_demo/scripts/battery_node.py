@@ -16,6 +16,8 @@ class RechargeSkill(Skill):
     """Handle the battery management."""
 
     def __init__(self):
+        super().__init__()
+        # Parameters
         self.battery_lv = rospy.get_param("moma_demo/battery_lv")
         self.drop_rate = rospy.get_param("moma_demo/battery_drop_rate")
         self.charge_rate = rospy.get_param("moma_demo/battery_charge_rate")

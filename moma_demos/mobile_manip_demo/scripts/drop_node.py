@@ -20,6 +20,8 @@ class DropSkill(Skill):
     """Drops the target object at a given position."""
 
     def __init__(self):
+        super().__init__()
+        # Parameters
         self.velocity_scaling = rospy.get_param("moma_demo/arm_velocity_scaling_drop")
         self.drop_joints = rospy.get_param("moma_demo/drop_joints")
         self.base_frame_id = rospy.get_param("moma_demo/base_frame_id")

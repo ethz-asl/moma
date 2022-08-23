@@ -1,21 +1,9 @@
 """Implement various py trees behaviors for object pick and place."""
 
-from typing import Any, List
-
+from typing import List
 import mobile_manip_demo.robot_interface as skills
 import numpy as np
 import py_trees as pt
-
-
-# import the robot interface where ROS bindings are defined
-# TODO: have a Node superclass that gets a State argument to track robot internal states
-
-
-def behavior_mapping(name: str, condition: bool = False):
-    """Return the correct behavior from its name."""
-    # TODO: implement this function
-    # TODO: have also parameters as argument so that the behavior can be properly created
-    return None
 
 
 class RobotAtPose(pt.behaviour.Behaviour):
@@ -81,6 +69,22 @@ class InHand(pt.behaviour.Behaviour):
             return pt.common.Status.FAILURE
 
 
+class BatteryLv(pt.behaviour.Behaviour):
+    """Check if battery is at threshold value."""
+
+    def __init__(self, name: str, relation: str, value: float):
+        super().__init__(name)
+        self.interface = skills.BatteryLv()
+        self.relation = relation
+        self.value = value
+
+    def update(self):
+        if self.interface.battery_lv(self.relation, self.value):
+            return pt.common.Status.SUCCESS
+        else:
+            return pt.common.Status.FAILURE
+
+
 class Found(pt.behaviour.Behaviour):
     """Check if object is held."""
 
@@ -131,16 +135,70 @@ class Move(pt.behaviour.Behaviour):
             self.interface.cancel_goal()
 
 
+class Recharge(pt.behaviour.Behaviour):
+    """Move the robot to recharge station and charge the robot."""
+
+    def __init__(self, name: str):
+        super().__init__(name)
+        self.interface = skills.Recharge()
+
+    def initialise(self):
+        self.interface.initialize_recharge()
+
+    def update(self) -> pt.common.Status:
+        status = self.interface.get_recharge_status()
+        if status == 0 or status == 1:
+            return pt.common.Status.RUNNING
+        elif status == 3:
+            return pt.common.Status.SUCCESS
+        else:
+            return pt.common.Status.FAILURE
+
+    def terminate(self, new_status: pt.common.Status):
+        if new_status == pt.common.Status.INVALID:
+            self.interface.cancel_goal()
+
+
+class Search(pt.behaviour.Behaviour):
+    """Move the robot to recharge station and charge the robot."""
+
+    def __init__(self, name: str, targets: List[List[float]]):
+        super().__init__(name)
+        self.interface = skills.Search(targets)
+
+    def initialise(self):
+        self.interface.initialize_search()
+
+    def update(self) -> pt.common.Status:
+        status = self.interface.get_search_status()
+        if status == 0 or status == 1:
+            return pt.common.Status.RUNNING
+        elif status == 3:
+            return pt.common.Status.SUCCESS
+        else:
+            return pt.common.Status.FAILURE
+
+    def terminate(self, new_status: pt.common.Status):
+        if new_status == pt.common.Status.INVALID:
+            self.interface.cancel_goal()
+
+
 class Pick(pt.behaviour.Behaviour):
     """Pick the target object."""
 
-    def __init__(self, name: str, goal_ID: str):
+    def __init__(self, name: str, goal_ID: str, goal_pose: List[float] = None):
         super().__init__(name)
         self.interface = skills.Pick()
-        self.goal = goal_ID
+        self.goal_ID = goal_ID
+        self.goal_pose = goal_pose
 
     def initialise(self):
-        self.interface.initialize_pick(self.goal)
+        if self.goal_pose is not None:
+            self.interface.initialize_pick(
+                goal_ID=self.goal_ID, goal_pose=self.goal_pose
+            )
+        else:
+            self.interface.initialize_pick(goal_ID=self.goal_ID)
 
     def update(self) -> pt.common.Status:
         status = self.interface.get_pick_status()
@@ -159,13 +217,14 @@ class Pick(pt.behaviour.Behaviour):
 class Place(pt.behaviour.Behaviour):
     """Place the target object."""
 
-    def __init__(self, name: str, goal_ID: str):
+    def __init__(self, name: str, goal_ID: str, goal_pose: List[float]):
         super().__init__(name)
         self.interface = skills.Place()
-        self.goal = goal_ID
+        self.goal_ID = goal_ID
+        self.goal_pose = goal_pose
 
     def initialise(self):
-        self.interface.initialize_place(self.goal)
+        self.interface.initialize_place(goal_pose=self.goal_pose, goal_ID=self.goal_ID)
 
     def update(self) -> pt.common.Status:
         status = self.interface.get_place_status()

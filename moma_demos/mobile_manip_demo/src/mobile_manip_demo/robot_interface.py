@@ -7,12 +7,10 @@ import rospy
 import numpy as np
 from numpy import linalg as LA
 
-from geometry_msgs.msg import Twist
-from std_srvs.srv import Empty, SetBool, SetBoolRequest, Trigger
-from geometry_msgs.msg import Pose, PoseStamped, PoseWithCovarianceStamped
-
-from sensor_msgs.msg import JointState
 from gazebo_msgs.msg import ModelStates
+from geometry_msgs.msg import Twist
+from geometry_msgs.msg import Pose, PoseStamped, PoseWithCovarianceStamped
+from std_msgs.msg import Int32
 
 # Action lib stuff
 from actionlib import SimpleActionClient
@@ -150,7 +148,9 @@ class RobotAtPose(MarkerPose):
         current_pose = self.amcl_pose[:2]
         if ground_truth:
             current_pose = self.gazebo_pose[:2]
-        distance = LA.norm(current_pose - target_pose)
+        distance = LA.norm(current_pose - target_pose[:2])
+        distance = abs(distance - 0.5)
+        rospy.logwarn(f"Robot at distance {distance} from target.")
         if distance < tolerance:
             return True
         return False
@@ -200,7 +200,7 @@ class ObjectAtPose(MarkerPose):
         current_pose = self.get_pose(self.object_id, np.ndarray)[:3]
         if ground_truth:
             current_pose = self.gazebo_pose[:3]
-        distance = LA.norm(current_pose - target_pose)
+        distance = LA.norm(current_pose - target_pose[:3])
         # TODO: check orientation?
         if distance < tolerance:
             return True
@@ -221,6 +221,28 @@ class InHand:
         else:
             rospy.logwarn("Nothing detected in gripper")
             return False
+
+
+class BatteryLv:
+    """Check the battery Lv."""
+
+    def __init__(self):
+        """Initialize ROS nodes."""
+        self.current_lv = None
+        self.max_lv = rospy.get_param("moma_demo/battery_lv")
+        self.battery_sub = rospy.Subscriber("/battery_level", Int32, self.battery_cb)
+
+    def battery_cb(self, msg):
+        self.current_lv = msg.data
+
+    def battery_lv(self, relation: str, value: float) -> bool:
+        current_rate = self.current_lv * 100 / self.max_lv
+        if relation == "lower":
+            out = True if current_rate < value else False
+            msg = f"Battery below {value}%" if out else f"Battery above {value}%"
+        else:
+            out = True if current_rate > value else False
+            msg = f"Battery above {value}%" if out else f"Battery below {value}%"
 
 
 class Found:
@@ -252,14 +274,7 @@ class MoveArm:
         self.moveit_client = MoveItClient("panda_arm")
 
     def initialize_arm(self, configuration: str) -> None:
-        """
-        Move the arm to the target configuration.
-
-        Args:
-        ----
-            - configuration: the target for the arm motion.
-
-        """
+        """Move the arm to the target configuration."""
         self.moveit_client.goto(configuration)
 
     def get_motion_status(self) -> int:
@@ -274,15 +289,15 @@ class MoveArm:
 class Move(MarkerPose):
     """Low level implementation of a Navigation skill."""
 
-    def __init__(self) -> None:
+    def __init__(self, approach: bool = False) -> None:
         """Initialize ROS nodes."""
+        self.approach = approach
+
         self.move_client = SimpleActionClient("/mobile_base/move_base", MoveBaseAction)
         rospy.loginfo(str("Connecting to /mobile_base/move_base ..."))
         self.move_client.wait_for_server()
 
-        self.vel_control = rospy.Publisher(
-            "/mobile_base/ridgeback_velocity_controller/cmd_vel", Twist, queue_size=10
-        )
+        self.vel_control = rospy.Publisher("/cmd_vel", Twist, queue_size=10)
 
         super().__init__()
 
@@ -291,7 +306,6 @@ class Move(MarkerPose):
         goal_pose: Pose or List[float] or np.ndarray = None,
         ref_frame: str = "map",
         goal_ID: int = None,
-        approach: bool = True,
     ) -> None:
         """
         Move the robot to the target pose.
@@ -301,16 +315,17 @@ class Move(MarkerPose):
             - goal_pose: if desired, set directly the goal to send.
             - ref_frame: reference frame for the goal.
             - goal_ID: an int ID for the goal. If given, also goal_register must be provided.
-            - approach: add a pre- and post-goal motion to the robot.
 
         """
         arm_client = MoveArm()
         arm_client.initialize_arm("detection")
+        # Control the robot in velocity to make it go out the obstacles
+        self.__velocity_control(velocity=-0.1)
         if goal_ID is not None:
             marker_pose = self.get_pose(goal_ID, np.ndarray)
             goal_pose = env.get_closest_robot_target(marker_pose)
 
-        if type(goal_pose) != Pose():
+        if type(goal_pose) != Pose:
             new_goal_pose = Pose()
             new_goal_pose.position.x = goal_pose[0]
             new_goal_pose.position.y = goal_pose[1]
@@ -331,26 +346,31 @@ class Move(MarkerPose):
         goal_.target_pose.pose = goal_pose
 
         # send the goal
-        # TODO: if approach send a vel command to the robot
         self.move_client.send_goal(goal_)
 
     def get_navigation_status(self) -> int:
         """Get result from navigation."""
         if self.move_client.get_state() == 3:
-            # Success! we can move 50cm further
-            msg = Twist()
-            msg.linear.x = 0.1
-            msg.linear.y = 0.0
-            msg.linear.z = 0.0
-            start = rospy.Time.now()
-            while rospy.Time.now() - start < rospy.Duration(5):
-                self.vel_control.publish(msg)
-                rospy.Rate(10).sleep()
+            if self.approach:
+                # Success! we can move 50cm further
+                self.__velocity_control(velocity=0.1)
         return self.move_client.get_state()
 
     def cancel_goal(self) -> None:
         """Cancel current navigation goal."""
         self.move_client.cancel_goal()
+
+    def __velocity_control(self, velocity: float) -> None:
+        """Control the robot on velocity, use carefully."""
+        # Move velocity[m/s] * 5[s] further
+        msg = Twist()
+        msg.linear.x = velocity
+        msg.linear.y = 0.0
+        msg.linear.z = 0.0
+        start = rospy.Time.now()
+        while rospy.Time.now() - start < rospy.Duration(5):
+            self.vel_control.publish(msg)
+            rospy.Rate(10).sleep()
 
 
 class Recharge(Move):
@@ -358,14 +378,17 @@ class Recharge(Move):
 
     def __init__(self) -> None:
         """Initialize ROS nodes."""
-        super().__init__()
+        super().__init__(approach=False)
+        self.recharge_pose = rospy.get_param("moma_demo/battery_station")
         self.recharge_cli = SimpleActionClient("/recharge", RechargeAction)
         rospy.loginfo(str("Connecting to /recharge ..."))
         self.recharge_cli.wait_for_server()
 
-    def initialize_recharge(self, recharge_pose: Pose) -> None:
+    def initialize_recharge(self) -> None:
         """Move the robot to the recharge station and recharge the robot."""
-        super().initialize_navigation(recharge_pose, "map", approach=False)
+        super().initialize_navigation(
+            goal_pose=self.recharge_pose, ref_frame="map", approach=False
+        )
         rospy.loginfo(str("Initializing Recharge skill"))
 
     def get_recharge_status(self) -> int:
@@ -388,17 +411,17 @@ class Recharge(Move):
 class Search(Move):
     """Low level implementation of a search skill."""
 
-    def __init__(self) -> None:
+    def __init__(self, targets: List[List[float]]) -> None:
         """Initialize ROS nodes."""
-        super().__init__()
-        self.targets = None
+        super().__init__(approach=False)
+        self.initial_targets = targets
+        self.current_targets = None
 
-    def initialize_search(self, targets: List[List[float]]) -> None:
+    def initialize_search(self) -> None:
         """Move the robot to the target poses."""
-        self.targets = self.__make_poses(targets)
-        targets_copy = copy(self.targets)
         rospy.loginfo(str("Initializing Search skill"))
-        for target in targets_copy:
+        self.current_targets = copy(self.initial_targets)
+        for target in self.current_targets:
             # command
             self.initialize_navigation(goal_pose=target)
             self.targets.pop(0)
@@ -408,7 +431,7 @@ class Search(Move):
         """Get result from searching."""
         state = super().get_navigation_status()
         if state == 3:
-            if len(self.targets) == 0:
+            if len(self.current_targets) == 0:
                 # then we are fully done
                 self.cancel_goal()
                 return state
@@ -424,22 +447,6 @@ class Search(Move):
         super().cancel_goal()
         self.targets = None
 
-    def __make_poses(self, waypoints: List[List[float]]) -> List[Pose]:
-        """Read the parameters and build a Pose msg."""
-        pose_list = []
-        for point in waypoints:
-            msg = Pose()
-            msg.position.x = point[0]
-            msg.position.y = point[1]
-            msg.position.z = point[2]
-            msg.orientation.x = point[3]
-            msg.orientation.y = point[4]
-            msg.orientation.z = point[5]
-            msg.orientation.w = point[6]
-            pose_list.append(msg)
-
-        return pose_list
-
 
 class Pick:
     """Low level implementation of a Picking skill."""
@@ -452,7 +459,7 @@ class Pick:
 
     def initialize_pick(
         self,
-        goal_pose: PoseStamped = PoseStamped(),
+        goal_pose: Pose or List[float] or np.ndarray = Pose(),
         goal_ID: int = -1,
     ) -> None:
         """
@@ -466,13 +473,26 @@ class Pick:
         """
         # command
         goal_ = GraspGoal()
-        goal_.target_object_pose = goal_pose
+        goal_.target_object_pose = PoseStamped()
+        goal_.target_object_pose.header.frame_id = "panda_link0"
+        if type(goal_pose) != Pose:
+            new_goal_pose = Pose()
+            new_goal_pose.position.x = goal_pose[0]
+            new_goal_pose.position.y = goal_pose[1]
+            new_goal_pose.position.z = goal_pose[2]
+
+            goal_pose = copy(new_goal_pose)
+
+        goal_.target_object_pose.pose = goal_pose
         goal_.goal_id = goal_ID
 
         # send the goal
-        rospy.loginfo(
-            f"Sending pick goal:\n--ID {goal_ID},\n--target: {goal_pose.pose},\n--reference frame: {goal_pose.header.frame_id}"
-        )
+        if goal_.target_object_pose.pose != Pose():
+            rospy.loginfo(
+                f"Sending pick goal:\n--ID {goal_ID},\n--target: {goal_pose.pose},\n--reference frame: {goal_pose.header.frame_id}"
+            )
+        else:
+            rospy.loginfo(f"Sending pick goal for tag_{goal_ID}")
         self.pick_client.send_goal(goal_)
 
     def get_pick_status(self) -> int:
@@ -495,11 +515,11 @@ class Place:
 
     def initialize_place(
         self,
-        goal_pose: PoseStamped = PoseStamped(),
+        goal_pose: Pose or List[float] or np.ndarray = Pose(),
         goal_ID: int = -1,
     ) -> None:
         """
-        Place an item in the target pose.
+        Place an item in the target pose in the manipulator frame.
 
         Args:
         ----
@@ -509,7 +529,21 @@ class Place:
         """
         # command
         goal_ = DropGoal()
-        goal_.target_object_pose = goal_pose
+        goal_.target_object_pose = PoseStamped()
+        goal_.target_object_pose.header.frame_id = "panda_link0"
+        if type(goal_pose) != Pose:
+            new_goal_pose = Pose()
+            new_goal_pose.position.x = np.random.uniform(
+                goal_pose[0] + 0.1, goal_pose[0] - 0.1
+            )
+            new_goal_pose.position.y = np.random.uniform(
+                goal_pose[1] + 0.2, goal_pose[1] - 0.2
+            )
+            new_goal_pose.position.z = goal_pose[2] if goal_pose[2] >= 0.25 else 0.25
+
+            goal_pose = copy(new_goal_pose)
+
+        goal_.target_object_pose.pose = goal_pose
         goal_.goal_id = goal_ID
 
         # send the goal

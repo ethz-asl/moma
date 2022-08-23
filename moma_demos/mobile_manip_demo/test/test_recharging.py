@@ -22,9 +22,6 @@ class RechargeNode:
         self.target_pose.orientation.z = 0.0
         self.target_pose.orientation.w = 1.0
 
-        namespace = "/mobile_base/"
-        self.recharge_action = Recharge(namespace)
-
         self.tf_buffer = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener(self.tf_buffer)
 

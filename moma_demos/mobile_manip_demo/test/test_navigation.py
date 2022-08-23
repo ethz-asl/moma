@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from copy import copy
 from typing import Any, List
 from geometry_msgs.msg import Pose
 from mobile_manip_demo.robot_interface import Move, RobotAtPose, Search
@@ -16,7 +17,7 @@ class NavigationNode:
         # Parameters
         self.waypoints = rospy.get_param("moma_demo/search_waypoints")
 
-        self.move_action = Move()
+        self.move_action = Move(approach=True)
         self.at_pose = RobotAtPose("panda")
 
         self.search_action = Search()
@@ -24,18 +25,18 @@ class NavigationNode:
         self.tf_buffer = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener(self.tf_buffer)
 
-    def simple_goal(self):
-        point = self.waypoints[0]
+    def simple_goal(self, idx: int):
+        point = self.waypoints[idx]
         rospy.loginfo("Sending goal." + str(point))
 
         goal_pose = Pose()
         goal_pose.position.x = point[0]
         goal_pose.position.y = point[1]
         goal_pose.position.z = point[2]
-        goal_pose.orientation.x = 0.0
-        goal_pose.orientation.y = 0.0
-        goal_pose.orientation.z = 0.0
-        goal_pose.orientation.w = 1.0
+        goal_pose.orientation.x = point[3]
+        goal_pose.orientation.y = point[4]
+        goal_pose.orientation.z = point[5]
+        goal_pose.orientation.w = point[6]
 
         self.move_action.cancel_goal()
         self.move_action.initialize_navigation(goal_pose)
@@ -75,13 +76,14 @@ class NavigationNode:
                 rospy.loginfo(str(status))
                 rospy.loginfo("move base FAILURE")
                 move_base_done = True
+            rospy.Rate(1).sleep()
 
         # condition checking
-        amcl_pose_ok = self.at_pose.at_pose(target_pose=point, tolerance=0.5)
+        amcl_pose_ok = self.at_pose.at_pose(target_pose=point, tolerance=0.2)
         rospy.loginfo("Pose reached (AMCL)?: " + str(amcl_pose_ok))
         # with ground truth = robot pose in gazebo
         model_pose_ok = self.at_pose.at_pose(
-            target_pose=point, tolerance=0.5, ground_truth=True
+            target_pose=point, tolerance=0.2, ground_truth=True
         )
         rospy.loginfo("Pose reached (gazebo)?: " + str(model_pose_ok))
 
@@ -91,9 +93,9 @@ def main():
     node = NavigationNode()
 
     try:
-        # node.simple_goal()
+        node.simple_goal(0)
         node.goal_from_ID()
-        # node.follow_waypoints()
+        node.follow_waypoints()
     except rospy.ROSInterruptException:
         pass
 
