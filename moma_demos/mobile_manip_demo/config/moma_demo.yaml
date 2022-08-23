@@ -21,14 +21,19 @@ moma_demo:
   battery_lv: 1000
   battery_drop_rate: 5
   battery_charge_rate: 20
+  battery_station: [0.5, -2.0, 0, 0, 0, 0, 1]
 
   # Waypoints for the base to follow during search action:
   search_waypoints:
     - [-1.0, -1.0, 0, 0, 0, 1, 0]
     - [-1.0, 2.0, 0, 0, 0, 1, 0]
     - [0.5, 2.3, 0, 0, 0, 0.7071068, 0.7071068]
-    - [1.8, 1.5, 0, 0, 0, 0, 1]
-    - [1.8, -1.0, 0, 0, 0, 0, 1]
+    - [2.0, 1.5, 0, 0, 0, 0, 1]
+    - [2.0, -1.0, 0, 0, 0, 0, 1]
+  
+  delivery_station: [0.5, 2.3, 0, 0, 0, 0.7071068, 0.7071068]
+  place_pose: [0.5, 0.0, 0.25]
+  inspection_station: [-1.0, -1.0, 0, 0, 0, 1, 0]
 
 vgn:
   model: $(find vgn)/assets/models/vgn_conv.pth
