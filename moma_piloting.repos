@@ -27,7 +27,7 @@ repositories:
   smb_path_planner:
     type: git
     url: git@github.com:ethz-asl/smb_path_planner.git
-    version: 6106f851d41978a1f1a0cd081d29bd0f0eee3eb2
+    version: 35dc6ce238474aedfdc3322b57e2448f21d69286
 
   teb_local_planner:
     type: git
