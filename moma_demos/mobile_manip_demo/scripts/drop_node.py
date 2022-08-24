@@ -64,7 +64,7 @@ class DropSkill(Skill):
         )
         self.moveit.goto(target_pose, velocity_scaling=self.velocity_scaling)
         # Check that the EE is at the target pose
-        # TODO: this should be replaced by the MoveIt action reasult server
+        # TODO: this should be replaced by the MoveIt action result server
         msg = self.compute_tf("panda_EE", self.base_frame_id)
         msg_as_tf = conv.from_transform_msg(msg.transform)
         if (
@@ -88,7 +88,7 @@ class DropSkill(Skill):
 
         # go back to ready position
         moveit_client = MoveItClient("panda_arm")
-        moveit_client.goto("ready")
+        moveit_client.goto("post_drop")
 
         if response.success:
             self.report_success(DropResult(), "Finished successfully")
