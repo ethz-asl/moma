@@ -20,6 +20,7 @@ from mobile_manip_demo.srv import ForceGrasp, ForceGraspRequest
 from moma_utils.grasping import PlanGrasp
 import moma_utils.ros.conversions as conv
 from moma_utils.ros.moveit import MoveItClient
+from moma_utils.ros.panda import PandaArmClient, PandaGripperClient
 
 
 class GraspSkill(Skill):
@@ -152,7 +153,7 @@ class GraspSkill(Skill):
         res = self.wait_monitoring_preemption(self.client_grasp_execution)
         if not res:
             self.report_preemption(
-                mobile_manip_demo.msg.raspResult(), "Preempted during grasp execution"
+                mobile_manip_demo.msg.GraspResult(), "Preempted during grasp execution"
             )
             return
         state = self.client_reconstruct.get_state()
@@ -162,6 +163,12 @@ class GraspSkill(Skill):
             )
             return
 
+        gripper_client = PandaGripperClient()
+        if gripper_client.read() < 0.02:
+            self.report_failure(
+                mobile_manip_demo.msg.GraspResult(), "Grasp execution failed"
+            )
+            return
         # Otherwise everything is fine and we can force the grasping
         name, link = env.get_item_by_marker(int(goal.goal_id), self.object_type)
         self.grasp_request = ForceGraspRequest()

@@ -1,9 +1,9 @@
 shutdown_costmaps: false
 
-controller_frequency: 20.0
+controller_frequency: 15.0
 controller_patience: 15.0 #How long the controller will wait in seconds without receiving a valid control before space-clearing operations are performed. 
 
-planner_frequency: 20.0
+planner_frequency: 15.0
 planner_patience: 5.0 #How long the planner will wait in seconds in an attempt to find a valid plan before space-clearing operations are performed. 
 
 oscillation_timeout: 0.0

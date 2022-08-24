@@ -112,7 +112,9 @@ class PandaGripperClient:
         return self._joint_state_msg.position[-2] + self._joint_state_msg.position[-1]
 
     def _init_state_callback(self):
-        rospy.Subscriber("joint_states", JointState, self._joint_state_cb)
+        rospy.Subscriber(
+            "/panda/franka_gripper/joint_states", JointState, self._joint_state_cb
+        )
 
     def _joint_state_cb(self, msg):
         self._joint_state_msg = msg

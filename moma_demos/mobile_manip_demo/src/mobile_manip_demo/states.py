@@ -18,13 +18,14 @@ class Move(smach.State):
         goal_pose: List[float],
         outcomes: List[str],
     ):
+        self.outcomes = outcomes
         super().__init__(outcomes=outcomes)
 
         self.name = name
-        self.interface = skills.Move()
+        self.interface = skills.Move(approach=True)
         self.goal_ID = goal_ID
         self.ref_frame = ref_frame
-        self.goal_pose = np.array(goal_pose)
+        self.goal_pose = np.array(goal_pose) if goal_pose is not None else goal_pose
         self.target_pose = (
             self.goal_pose if self.goal_pose is not None else self.goal_ID
         )
@@ -49,15 +50,17 @@ class Move(smach.State):
             status = self.interface.get_navigation_status()
             if status == 0 or status == 1:
                 continue
-            elif status == 3 or self.condition.at_pose(
-                target_pose=self.target_pose, tolerance=0.4
+            elif status == 3 and self.condition.at_pose(
+                target_pose=self.target_pose, tolerance=0.25
             ):
+                rospy.logwarn(f"Target pose:{self.target_pose}")
                 rospy.loginfo(f"Behavior {self.name} returned SUCCESS!")
                 running = False
-                return self.local_outcomes[0]
+                return self.outcomes[0]
             else:
                 running = False
-                rospy.signal_shutdown(f"Task failed in {self.name} state!")
+                return "FAILURE"
+                # rospy.signal_shutdown(f"Task failed in {self.name} state!")
 
 
 class Pick(smach.State):
@@ -68,15 +71,16 @@ class Pick(smach.State):
         goal_pose: List[float],
         outcomes: List[str],
     ):
+        self.outcomes = outcomes
         super().__init__(outcomes=outcomes)
 
         self.name = name
         self.interface = skills.Pick()
         self.goal_ID = goal_ID
-        self.goal_pose = np.array(goal_pose)
+        self.goal_pose = np.array(goal_pose) if goal_pose is not None else goal_pose
         self.initialized = False
 
-        self.condition = skills.ObjectAtPose(goal_ID, "cubes")
+        self.condition = skills.InHand()
 
     def initialize(self) -> bool:
         rospy.loginfo("Initializing state PICK!")
@@ -93,15 +97,14 @@ class Pick(smach.State):
             status = self.interface.get_pick_status()
             if status == 0 or status == 1:
                 continue
-            elif status == 3 or self.condition.at_pose(
-                target_pose=self.goal_pose, tolerance=0.4
-            ):
+            elif status == 3 and self.condition.in_hand():
                 rospy.loginfo(f"Behavior {self.name} returned SUCCESS!")
                 running = False
                 return self.outcomes[0]
             else:
                 running = False
-                rospy.signal_shutdown(f"Task failed in {self.name} state!")
+                return "FAILURE"
+                # rospy.signal_shutdown(f"Task failed in {self.name} state!")
 
 
 class Place(smach.State):
@@ -112,6 +115,7 @@ class Place(smach.State):
         goal_pose: List[float],
         outcomes: List[str],
     ):
+        self.outcomes = outcomes
         super().__init__(outcomes=outcomes)
 
         self.name = name
@@ -137,7 +141,7 @@ class Place(smach.State):
             status = self.interface.get_place_status()
             if status == 0 or status == 1:
                 continue
-            elif status == 3 or self.condition.at_pose(
+            elif status == 3 and self.condition.at_pose(
                 target_pose=self.goal_pose, tolerance=0.4
             ):
                 rospy.loginfo(f"Behavior {self.name} returned SUCCESS!")
@@ -145,4 +149,14 @@ class Place(smach.State):
                 return self.outcomes[0]
             else:
                 running = False
-                rospy.signal_shutdown(f"Task failed in {self.name} state!")
+                return "FAILURE"
+                # rospy.signal_shutdown(f"Task failed in {self.name} state!")
+
+
+class Dummy(smach.State):
+    def __init__(self, outcomes: List[str]):
+        self.outcomes = outcomes
+        super().__init__(outcomes=outcomes)
+
+    def execute(self, userdata):
+        return self.outcomes[0]

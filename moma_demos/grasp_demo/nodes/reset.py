@@ -46,7 +46,7 @@ class ResetNode(object):
         self.gripper = PandaGripperClient()
         self.moveit = MoveItClient("panda_arm")
 
-        rospy.sleep(1.0)
+        rospy.sleep(10.0)
 
         # Add a collision box for the table
         msg = geometry_msgs.msg.PoseStamped()

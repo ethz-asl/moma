@@ -143,7 +143,8 @@ class RobotAtPose(MarkerPose):
         if type(target_pose) == int:
             # Get target pose from marker
             marker_pose = self.get_pose(target_pose, np.ndarray)
-            target_pose = env.get_closest_robot_target(marker_pose)[:2]
+            target_pose = env.get_closest_robot_target(marker_pose)
+            rospy.logwarn(f"Target pose is {target_pose}")
         # 2D target
         current_pose = self.amcl_pose[:2]
         if ground_truth:
@@ -198,9 +199,12 @@ class ObjectAtPose(MarkerPose):
         """Check if the current pose is within tolerance from the target pose."""
         # Get target pose from marker
         current_pose = self.get_pose(self.object_id, np.ndarray)[:3]
+        rospy.logwarn(f"Target pose is {target_pose}")
+        rospy.logwarn(f"Current pose is {current_pose}")
         if ground_truth:
             current_pose = self.gazebo_pose[:3]
-        distance = LA.norm(current_pose - target_pose[:3])
+        distance = LA.norm(current_pose[:3] - target_pose[:3])
+        rospy.logwarn(f"Distance is {distance}")
         # TODO: check orientation?
         if distance < tolerance:
             return True
@@ -215,7 +219,7 @@ class InHand:
         self.gripper = PandaGripperClient()
 
     def in_hand(self) -> bool:
-        if self.gripper.read() > 0.002:
+        if self.gripper.read() > 0.02:
             rospy.loginfo("Object grasped successfully")
             return True
         else:
@@ -317,6 +321,7 @@ class Move(MarkerPose):
             - goal_ID: an int ID for the goal. If given, also goal_register must be provided.
 
         """
+        rospy.logwarn(f"Got input: {goal_pose} and {goal_ID}.")
         arm_client = MoveArm()
         arm_client.initialize_arm("detection")
         # Control the robot in velocity to make it go out the obstacles
@@ -325,7 +330,9 @@ class Move(MarkerPose):
             marker_pose = self.get_pose(goal_ID, np.ndarray)
             goal_pose = env.get_closest_robot_target(marker_pose)
 
-        if type(goal_pose) != Pose:
+        if goal_pose is None:
+            goal_pose = Pose()
+        elif type(goal_pose) != Pose:
             new_goal_pose = Pose()
             new_goal_pose.position.x = goal_pose[0]
             new_goal_pose.position.y = goal_pose[1]
@@ -346,15 +353,18 @@ class Move(MarkerPose):
         goal_.target_pose.pose = goal_pose
 
         # send the goal
+        rospy.logwarn(f"Sending goal:\n {goal_}")
         self.move_client.send_goal(goal_)
 
     def get_navigation_status(self) -> int:
         """Get result from navigation."""
         if self.move_client.get_state() == 3:
             if self.approach:
-                # Success! we can move 50cm further
+                rospy.logwarn("Success! we can move 50cm further")
                 self.__velocity_control(velocity=0.1)
-        return self.move_client.get_state()
+                return 3
+        else:
+            return self.move_client.get_state()
 
     def cancel_goal(self) -> None:
         """Cancel current navigation goal."""
@@ -459,7 +469,7 @@ class Pick:
 
     def initialize_pick(
         self,
-        goal_pose: Pose or List[float] or np.ndarray = Pose(),
+        goal_pose: Pose or List[float] or np.ndarray = None,
         goal_ID: int = -1,
     ) -> None:
         """
@@ -472,10 +482,14 @@ class Pick:
 
         """
         # command
+        rospy.logwarn(f"Got input: {goal_pose} and {goal_ID}.")
         goal_ = GraspGoal()
         goal_.target_object_pose = PoseStamped()
         goal_.target_object_pose.header.frame_id = "panda_link0"
-        if type(goal_pose) != Pose:
+
+        if goal_pose is None:
+            goal_pose = Pose()
+        elif type(goal_pose) != Pose:
             new_goal_pose = Pose()
             new_goal_pose.position.x = goal_pose[0]
             new_goal_pose.position.y = goal_pose[1]
@@ -528,9 +542,11 @@ class Place:
 
         """
         # command
+        rospy.logwarn(f"Got input: {goal_pose} and {goal_ID}.")
         goal_ = DropGoal()
         goal_.target_object_pose = PoseStamped()
         goal_.target_object_pose.header.frame_id = "panda_link0"
+
         if type(goal_pose) != Pose:
             new_goal_pose = Pose()
             new_goal_pose.position.x = np.random.uniform(
@@ -541,6 +557,9 @@ class Place:
             )
             new_goal_pose.position.z = goal_pose[2] if goal_pose[2] >= 0.25 else 0.25
 
+            # the gripper is oriented 'downward'
+            new_goal_pose.orientation.x = 1.0
+
             goal_pose = copy(new_goal_pose)
 
         goal_.target_object_pose.pose = goal_pose
@@ -548,7 +567,7 @@ class Place:
 
         # send the goal
         rospy.loginfo(
-            f"Sending place goal:\n--ID {goal_ID},\n--target: {goal_pose.pose},\n--reference frame: {goal_pose.header.frame_id}"
+            f"Sending place goal:\n--ID {goal_ID},\n--target: {goal_pose},\n--reference frame: {goal_.target_object_pose.header.frame_id}"
         )
         self.place_client.send_goal(goal_)
 
