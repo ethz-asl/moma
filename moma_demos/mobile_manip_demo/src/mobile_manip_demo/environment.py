@@ -4,8 +4,8 @@
 
 from argparse import ArgumentError
 import numpy as np
-
-from geometry_msgs.msg import Pose
+import os
+import yaml
 
 
 def get_item_by_marker(marker_id: int, model_type: str = "cubes"):
@@ -36,13 +36,14 @@ def get_item_by_marker(marker_id: int, model_type: str = "cubes"):
 
 def get_closest_robot_target(marker_pose: np.ndarray) -> np.ndarray:
     """Get the robot pose that is closest to the given marker pose."""
-    search_waypoints = [
-        np.array([-1.0, -1.0, 0, 0, 0, 1, 0]),
-        np.array([-1.0, 2.0, 0, 0, 0, 1, 0]),
-        np.array([0.5, 2.3, 0, 0, 0, 0.7071068, 0.7071068]),
-        np.array([1.8, 1.5, 0, 0, 0, 0, 1]),
-        np.array([1.8, -1.0, 0, 0, 0, 0, 1]),
-    ]
+    dir_path = os.path.dirname(os.path.abspath(__file__))
+    parent_path = os.path.dirname(os.path.dirname(dir_path))
+    config_file = os.path.join(parent_path, "config/moma_demo.yaml")
+    with open(config_file) as file:
+        params = yaml.full_load(file)
+        search_waypoints = params["moma_demo"]["search_waypoints"]
+
+    search_waypoints = [np.array(x) for x in search_waypoints]
 
     dist = 1e10
     idx = 0

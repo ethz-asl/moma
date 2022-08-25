@@ -1,8 +1,11 @@
 """Define ROS bindings for mobile manipulation task."""
 
 from copy import copy
+from ossaudiodev import control_labels
 from typing import Any, List, Tuple
+
 import rospy
+import tf2_ros
 
 import numpy as np
 from numpy import linalg as LA
@@ -61,6 +64,9 @@ class MarkerPose:
         rospy.Subscriber("/marker_poses", MarkerPoses, self.marker_cb)
         self.marker_dict = {}
 
+        self.tf_buffer = tf2_ros.Buffer()
+        self.tf_listener = tf2_ros.TransformListener(self.tf_buffer)
+
     def marker_cb(self, msg) -> None:
         """Read the marker msg with IDs and last known poses."""
         for i, id in enumerate(msg.marker_ids):
@@ -85,6 +91,28 @@ class MarkerPose:
             return as_list
         else:
             return marker_pose
+
+    def compute_tf(self, target_frame: str, reference_frame: str):
+        done = False
+        attempts = 0
+        while not done and attempts < 20:
+            try:
+                msg = self.tf_buffer.lookup_transform(
+                    reference_frame,
+                    target_frame,
+                    rospy.Time(),
+                    rospy.Duration(5),
+                )
+                done = True
+            except Exception:
+                attempts += 1
+                rospy.logerr("Could not get transform, retrying...")
+                rospy.Rate(1).sleep()
+
+        if done:
+            return msg
+        else:
+            return None
 
 
 class RobotAtPose(MarkerPose):
@@ -164,12 +192,12 @@ class ObjectAtPose(MarkerPose):
     def __init__(self, object_id: int, model_type: str = "cubes"):
         """Initialize ROS nodes."""
         # object pose ground truth
+        super().__init__()
         rospy.Subscriber("gazebo/model_states", ModelStates, self.gazebo_cb)
         self.gazebo_pose = None
         self.object_id = object_id
         self.target_obj = env.get_item_by_marker(object_id, model_type)
-
-        super().__init__()
+        rospy.logerr(f"{self.target_obj}")
 
     def gazebo_cb(self, msg):
         if self.target_obj in msg.name:
@@ -198,13 +226,33 @@ class ObjectAtPose(MarkerPose):
     ) -> bool:
         """Check if the current pose is within tolerance from the target pose."""
         # Get target pose from marker
+        rospy.sleep(3)
         current_pose = self.get_pose(self.object_id, np.ndarray)[:3]
+        tf_robot_map = self.compute_tf("panda_link0", "map")
+        tf_translation = np.array(
+            [
+                tf_robot_map.transform.translation.x,
+                tf_robot_map.transform.translation.y,
+                tf_robot_map.transform.translation.z,
+            ]
+        )
+        rospy.logwarn(f"Translating by {tf_translation}")
+        target_pose += tf_translation
         rospy.logwarn(f"Target pose is {target_pose}")
         rospy.logwarn(f"Current pose is {current_pose}")
-        if ground_truth:
-            current_pose = self.gazebo_pose[:3]
+        rospy.logwarn(f"Model pose is {self.gazebo_pose}")
+        control_distance = LA.norm(current_pose[:3] - self.gazebo_pose[:3])
+        rospy.logwarn(f"Control distance is {control_distance}")
         distance = LA.norm(current_pose[:3] - target_pose[:3])
-        rospy.logwarn(f"Distance is {distance}")
+        rospy.logwarn(f"Fair distance is {distance}")
+
+        if control_distance > tolerance:
+            # this means that the marker is not updated correctly
+            # then use the ground truth
+            current_pose = self.gazebo_pose[:3]
+
+        distance = LA.norm(current_pose[:3] - target_pose[:3])
+        rospy.logwarn(f"Used distance is {distance}")
         # TODO: check orientation?
         if distance < tolerance:
             return True

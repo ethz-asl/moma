@@ -164,6 +164,7 @@ class GraspSkill(Skill):
             return
 
         gripper_client = PandaGripperClient()
+        rospy.sleep(3)
         if gripper_client.read() < 0.02:
             self.report_failure(
                 mobile_manip_demo.msg.GraspResult(), "Grasp execution failed"

@@ -45,11 +45,12 @@ class ManipulationNode:
         if self.with_id:
             self.pick_action.initialize_pick(goal_ID=2)
         else:
-            self.pick_action.initialize_pick(pick_goal, goal_ID=2)
+            self.pick_action.initialize_pick(pick_goal.pose, goal_ID=2)
             rospy.loginfo(f"Sending goal:\n {pick_goal.pose.position}.")
 
         pick_done = False
         while not pick_done:
+            rospy.Rate(1).sleep()
             status = self.pick_action.get_pick_status()
             if status == 0 or status == 1:
                 rospy.loginfo("pick RUNNING")
@@ -63,7 +64,7 @@ class ManipulationNode:
 
         # If pick is done, place where you picked
         if pick_done:
-            self.place_action.initialize_place(goal_pose=place_goal, goal_ID=2)
+            self.place_action.initialize_place(goal_pose=place_goal.pose, goal_ID=2)
 
             place_done = False
             while not place_done:

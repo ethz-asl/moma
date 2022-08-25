@@ -76,6 +76,7 @@ class PandaArmClient:
 
 class PandaGripperClient:
     def __init__(self):
+        self.joint_state_msg = JointState()
         self._init_state_callback()
         self._init_action_clients()
         rospy.loginfo("Panda gripper ready")
@@ -83,20 +84,30 @@ class PandaGripperClient:
     def home(self):
         msg = HomingGoal()
         self.homing_client.send_goal(msg)
-        self.homing_client.wait_for_result(rospy.Duration.from_sec(20.0))
+        self.homing_client.wait_for_result(rospy.Duration.from_sec(35.0))
         rospy.loginfo("Panda gripper homed")
 
     def move(self, width, speed=0.1):
         msg = MoveGoal(width, speed)
         self.move_client.send_goal(msg)
-        self.move_client.wait_for_result(rospy.Duration.from_sec(10.0))
+        if not self.move_client.wait_for_result(rospy.Duration.from_sec(35.0)):
+            rospy.logerr("Timeout exceeded while waiting the move action to complete")
+            return False
+        rospy.logerr(
+            f"FRANKA GRIPPER: {self.move_client.get_result()}, type: {type(self.move_client.get_result())}"
+        )
         return self.move_client.get_result().success
 
     def grasp(self, width=0.0, e_inner=0.1, e_outer=0.1, speed=0.1, force=20.0):
         rospy.loginfo("Closing gripper")
         msg = GraspGoal(width, GraspEpsilon(e_inner, e_outer), speed, force)
         self.grasp_client.send_goal(msg)
-        self.grasp_client.wait_for_result(rospy.Duration(10.0))
+        if not self.grasp_client.wait_for_result(rospy.Duration.from_sec(35.0)):
+            rospy.logerr("Timeout exceeded while waiting the grasp action to complete")
+            return False
+        rospy.logerr(
+            f"FRANKA GRIPPER: {self.grasp_client.get_result()}, type: {type(self.grasp_client.get_result())}"
+        )
         return self.grasp_client.get_result().success
 
     def release(self, width=0.08):
@@ -109,7 +120,7 @@ class PandaGripperClient:
         self.stop_client.wait_for_result(timeout=rospy.Duration(2.0))
 
     def read(self):
-        return self._joint_state_msg.position[-2] + self._joint_state_msg.position[-1]
+        return self.joint_state_msg.position[-2] + self.joint_state_msg.position[-1]
 
     def _init_state_callback(self):
         rospy.Subscriber(
@@ -117,7 +128,7 @@ class PandaGripperClient:
         )
 
     def _joint_state_cb(self, msg):
-        self._joint_state_msg = msg
+        self.joint_state_msg = msg
 
     def _init_action_clients(self, ns="/panda/franka_gripper/"):
         self.move_client = actionlib.SimpleActionClient(ns + "move", MoveAction)

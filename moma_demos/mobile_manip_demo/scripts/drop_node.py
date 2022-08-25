@@ -88,7 +88,7 @@ class DropSkill(Skill):
 
         # go back to ready position
         moveit_client = MoveItClient("panda_arm")
-        moveit_client.goto("post_drop")
+        moveit_client.goto("post_place")
 
         if response.success:
             self.report_success(DropResult(), "Finished successfully")
