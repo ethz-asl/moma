@@ -134,7 +134,7 @@ class Place(smach.State):
         if status == 0 or status == 1:
             return "RUNNING"
         elif status == 3 and self.condition.at_pose(
-            target_pose=self.goal_pose, tolerance=0.5
+            target_pose=self.goal_pose, tolerance=np.array([0.5, 0.5, 0.1])
         ):
             rospy.loginfo(f"Behavior {self.name} returned SUCCESS!")
             return self.outcomes[0]
@@ -190,24 +190,32 @@ class IDLE(smach.State):
     def __get_next_state(self):
         # TODO: implement IDLE logic, considering that all transitions are in self.outcomes
         # The order of the self.outcomes list depends on the PLAN given in the knowledge base
-        if self.move_condition.at_pose(
-            target_pose=self.goal_dict["move_1"][1], tolerance=0.25
+        if self.place_condition.at_pose(
+            target_pose=self.goal_dict["place"][1], tolerance=np.array([0.5, 0.5, 0.1])
         ):
-            # Move action successfull: return next action
-            return self.outcomes[1]
-        elif self.pick_condition.in_hand():
-            # Pick action successfull: return next action
-            return self.outcomes[2]
-        elif self.move_condition.at_pose(
-            target_pose=self.goal_dict["move_2"][1], tolerance=0.25
-        ):
-            # Move action successfull: return next action
-            return self.outcomes[3]
-        elif self.place_condition.at_pose(
-            target_pose=self.goal_dict["place"][1], tolerance=0.5
-        ):
-            # Move action successfull: return next action
+            # Task solved
+            rospy.logwarn(f"IDLE returning: {self.outcomes[4]}")
             return self.outcomes[4]
+        elif self.pick_condition.in_hand():
+            # The robot is holding the object, so we can move and place
+            if self.move_condition.at_pose(
+                target_pose=self.goal_dict["move_2"][1], tolerance=0.25
+            ):
+                # If we are at the delivery table, just place it
+                rospy.logwarn(f"IDLE returning: {self.outcomes[3]}")
+                return self.outcomes[3]
+            else:
+                # Move first, then place
+                rospy.logwarn(f"IDLE returning: {self.outcomes[2]}")
+                return self.outcomes[2]
         else:
-            # restart the task?
-            return self.outcomes[0]
+            # The robot is not holding the cube, so go to pick it
+            if self.move_condition.at_pose(
+                target_pose=self.goal_dict["move_1"][1], tolerance=0.25
+            ):
+                # If already in sight of the cube, just pick it
+                rospy.logwarn(f"IDLE returning: {self.outcomes[1]}")
+                return self.outcomes[1]
+            else:
+                # Move to where the cube is
+                return self.outcomes[0]

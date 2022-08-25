@@ -1,7 +1,6 @@
 """Define ROS bindings for mobile manipulation task."""
 
 from copy import copy
-from ossaudiodev import control_labels
 from typing import Any, List, Tuple
 
 import rospy
@@ -11,8 +10,15 @@ import numpy as np
 from numpy import linalg as LA
 
 from gazebo_msgs.msg import ModelStates
-from geometry_msgs.msg import Twist
-from geometry_msgs.msg import Pose, PoseStamped, PoseWithCovarianceStamped
+from geometry_msgs.msg import (
+    Pose,
+    PoseStamped,
+    PoseWithCovarianceStamped,
+    Quaternion,
+    Transform,
+    Twist,
+    Vector3,
+)
 from std_msgs.msg import Int32
 
 # Action lib stuff
@@ -28,6 +34,8 @@ from mobile_manip_demo.msg import (
     RechargeAction,
     RechargeGoal,
 )
+from moma_utils import spatial
+import moma_utils.ros.conversions as conv
 from moma_utils.ros.moveit import MoveItClient
 from moma_utils.ros.panda import PandaArmClient, PandaGripperClient
 
@@ -185,7 +193,6 @@ class RobotAtPose(MarkerPose):
         return False
 
 
-# TODO: check if this can be integrated in the relative one for the robot
 class ObjectAtPose(MarkerPose):
     """Check that the object is at the target position."""
 
@@ -196,8 +203,7 @@ class ObjectAtPose(MarkerPose):
         rospy.Subscriber("gazebo/model_states", ModelStates, self.gazebo_cb)
         self.gazebo_pose = None
         self.object_id = object_id
-        self.target_obj = env.get_item_by_marker(object_id, model_type)
-        rospy.logerr(f"{self.target_obj}")
+        self.target_obj, _ = env.get_item_by_marker(object_id, model_type)
 
     def gazebo_cb(self, msg):
         if self.target_obj in msg.name:
@@ -221,40 +227,46 @@ class ObjectAtPose(MarkerPose):
     def at_pose(
         self,
         target_pose: np.ndarray,
-        tolerance: float,
+        tolerance: np.ndarray,
         ground_truth: bool = False,
     ) -> bool:
         """Check if the current pose is within tolerance from the target pose."""
         # Get target pose from marker
         rospy.sleep(3)
         current_pose = self.get_pose(self.object_id, np.ndarray)[:3]
-        tf_robot_map = self.compute_tf("panda_link0", "map")
-        tf_translation = np.array(
-            [
-                tf_robot_map.transform.translation.x,
-                tf_robot_map.transform.translation.y,
-                tf_robot_map.transform.translation.z,
-            ]
-        )
-        rospy.logwarn(f"Translating by {tf_translation}")
-        target_pose += tf_translation
+        # some transformations for the target pose which is in manipulator frame
+        tf_robot_map_stamp = self.compute_tf("panda_link0", "map")
+        tf_robot_map_msg = tf_robot_map_stamp.transform
+        tf_robot_map = conv.from_transform_msg(tf_robot_map_msg)
+        rospy.logwarn(f"TF robot-map {tf_robot_map.to_list()}")
+
+        tf_target_robot = spatial.Transform.identity()
+        tf_target_robot.translation = target_pose
+        rospy.logwarn(f"TF target-robot {tf_target_robot.to_list()}")
+
+        tf_target_map = tf_robot_map.__mul__(tf_target_robot)
+        rospy.logwarn(f"TF target-map {tf_target_map.to_list()}")
+
+        target_pose = tf_target_map.translation
         rospy.logwarn(f"Target pose is {target_pose}")
-        rospy.logwarn(f"Current pose is {current_pose}")
+        rospy.logwarn(f"Detected pose is {current_pose}")
         rospy.logwarn(f"Model pose is {self.gazebo_pose}")
-        control_distance = LA.norm(current_pose[:3] - self.gazebo_pose[:3])
+        control_distance = abs(current_pose[:3] - self.gazebo_pose[:3])
         rospy.logwarn(f"Control distance is {control_distance}")
-        distance = LA.norm(current_pose[:3] - target_pose[:3])
+        distance = abs(current_pose[:3] - target_pose[:3])
         rospy.logwarn(f"Fair distance is {distance}")
 
-        if control_distance > tolerance:
+        if np.all(control_distance >= tolerance) and not np.all(
+            np.equal(self.gazebo_pose, np.array([100, 100, 0]))
+        ):
             # this means that the marker is not updated correctly
             # then use the ground truth
             current_pose = self.gazebo_pose[:3]
 
-        distance = LA.norm(current_pose[:3] - target_pose[:3])
+        distance = abs(current_pose[:3] - target_pose[:3])
         rospy.logwarn(f"Used distance is {distance}")
         # TODO: check orientation?
-        if distance < tolerance:
+        if np.all(distance <= tolerance):
             return True
         return False
 

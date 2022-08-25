@@ -13,11 +13,13 @@ Then, after spawning the robot, move it closer to the table.
 """
 
 from geometry_msgs.msg import PoseStamped
-from mobile_manip_demo.robot_interface import Pick, Place, ObjectAtPose
+from mobile_manip_demo.robot_interface import InHand, Pick, Place, ObjectAtPose
 from moma_utils.ros.moveit import MoveItClient
 
 import rospy
 import tf2_ros
+
+import numpy as np
 
 
 class ManipulationNode:
@@ -29,10 +31,20 @@ class ManipulationNode:
         self.pick_action = Pick()
         self.place_action = Place()
 
+        self.pick_condition = InHand()
+        self.place_condition = ObjectAtPose(2)
+
         self.tf_buffer = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener(self.tf_buffer)
 
         self.moveit = MoveItClient("panda_arm")
+
+    def check_place_condition(self):
+        condition = self.place_condition.at_pose(
+            target_pose=np.array([0.5, 0.0, 0.25]),
+            tolerance=np.array([0.5, 0.5, 0.1]),
+        )
+        rospy.logwarn(f"Place condition: {condition}")
 
     def send_manip_request(self):
         # Put arm on a named configuration
@@ -55,6 +67,7 @@ class ManipulationNode:
             if status == 0 or status == 1:
                 rospy.loginfo("pick RUNNING")
             elif status == 3:
+                rospy.logwarn(f"Pick condition: {self.pick_condition.in_hand()}")
                 rospy.loginfo("pick SUCCESS")
                 pick_done = True
             else:
@@ -68,14 +81,24 @@ class ManipulationNode:
 
             place_done = False
             while not place_done:
+                rospy.Rate(1).sleep()
                 status = self.place_action.get_place_status()
                 if status == 0 or status == 1:
                     rospy.loginfo("place RUNNING")
                 elif status == 3:
+                    condition = self.place_condition.at_pose(
+                        target_pose=np.array([0.5, 0.0, 0.25]),
+                        tolerance=np.array([0.5, 0.5, 0.1]),
+                    )
+                    rospy.logwarn(f"Place condition: {condition}")
                     rospy.loginfo("place SUCCESS")
                     place_done = True
                 else:
-                    rospy.loginfo(str(status))
+                    condition = self.place_condition.at_pose(
+                        target_pose=np.array([0.5, 0.0, 0.25]),
+                        tolerance=np.array([0.5, 0.5, 0.1]),
+                    )
+                    rospy.logwarn(f"Place condition: {condition}")
                     rospy.loginfo("place FAILURE")
                     place_done = True
 
@@ -129,7 +152,8 @@ def main():
     node = ManipulationNode()
 
     try:
-        node.send_manip_request()
+        # node.send_manip_request()
+        node.check_place_condition()
     except rospy.ROSInterruptException:
         pass
 

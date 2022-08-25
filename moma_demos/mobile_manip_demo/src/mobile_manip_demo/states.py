@@ -141,7 +141,7 @@ class Place(smach.State):
             if status == 0 or status == 1:
                 continue
             elif status == 3 and self.condition.at_pose(
-                target_pose=self.goal_pose, tolerance=0.4
+                target_pose=self.goal_pose, tolerance=np.array([0.5, 0.5, 0.1])
             ):
                 rospy.loginfo(f"Behavior {self.name} returned SUCCESS!")
                 running = False

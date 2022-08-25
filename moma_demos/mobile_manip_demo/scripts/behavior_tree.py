@@ -5,6 +5,7 @@ import mobile_manip_demo.behaviors as bt
 import rospy
 
 import py_trees
+import numpy as np
 
 
 class MoMaBT:
@@ -22,13 +23,13 @@ class MoMaBT:
                     name=f"Robot-At cube{cube_ID}?",
                     robot_name="panda",
                     pose=cube_ID,
-                    tolerance=0.2,
+                    tolerance=0.25,
                 ),
                 bt.Move(name=f"Move-To cube{cube_ID}!", goal_ID=cube_ID),
             ]
         )
 
-        pick_sequence = py_trees.composites.Sequence(name="Sequence")
+        pick_sequence = py_trees.composites.Sequence(name="Sequence", memory=False)
         pick_sequence.add_children(
             [
                 move_to_pick,
@@ -51,13 +52,13 @@ class MoMaBT:
                     name=f"Robot-At delivery?",
                     robot_name="panda",
                     pose=self.delivery,
-                    tolerance=0.4,
+                    tolerance=0.25,
                 ),
                 bt.Move(name=f"Move-To delivery!", goal_pose=self.delivery),
             ]
         )
 
-        place_sequence = py_trees.composites.Sequence(name="Sequence")
+        place_sequence = py_trees.composites.Sequence(name="Sequence", memory=False)
         place_sequence.add_children(
             [
                 pick,
@@ -79,7 +80,7 @@ class MoMaBT:
                     object_id=cube_ID,
                     model_type="cubes",
                     pose=self.place_pose,
-                    tolerance=0.4,
+                    tolerance=np.array([0.5, 0.5, 0.1]),
                 ),
                 place_sequence,
             ]
