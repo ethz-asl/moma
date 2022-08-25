@@ -26,12 +26,12 @@ moma_demo:
   # Waypoints for the base to follow during search action:
   search_waypoints:
     - [-1.0, -1.0, 0, 0, 0, 1, 0]
-    - [-1.0, 2.0, 0, 0, 0, 1, 0]
+    - [-1.0, 1.8, 0, 0, 0, 1, 0]
     - [0.5, 2.1, 0, 0, 0, 0.7071068, 0.7071068]
     - [2.0, 1.5, 0, 0, 0, 0, 1]
     - [2.0, -1.0, 0, 0, 0, 0, 1]
   
-  delivery_station: [0.5, 2.3, 0, 0, 0, 0.7071068, 0.7071068]
+  delivery_station: [0.5, 2.1, 0, 0, 0, 0.7071068, 0.7071068]
   place_pose: [0.5, 0.0, 0.25]
   inspection_station: [-1.0, -1.0, 0, 0, 0, 1, 0]
 
