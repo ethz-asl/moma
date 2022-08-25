@@ -48,6 +48,7 @@
   <node if="$(arg rviz)" name="$(anon rviz)" pkg="rviz" type="rviz" respawn="false" args="-d $(find nav_demo)/config/royalpanda_moveit.rviz" output="screen">
     <rosparam command="load" file="$(find royalpanda_moveit_config)/config/kinematics.yaml"/>
     <remap from="/goal" to="/mobile_base/move_base_simple/goal"/>
+    <remap from="/initialpose" to="/mobile_base/set_pose"/>
   </node>
 
 </launch>
