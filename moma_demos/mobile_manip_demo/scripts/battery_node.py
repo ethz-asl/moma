@@ -40,7 +40,10 @@ class RechargeSkill(Skill):
         rate = rospy.Rate(1)
         while not rospy.is_shutdown():
             if self.recharging:
-                self.current_lv += self.charge_rate
+                # self.current_lv += self.charge_rate
+                # Instantaneous recharging:
+                self.current_lv = copy(self.battery_lv)
+                self.recharging = False
             else:
                 self.current_lv -= self.drop_rate
             self.battery_pub.publish(self.current_lv)
@@ -49,9 +52,9 @@ class RechargeSkill(Skill):
     def execute_callback(self, goal):
         rospy.logwarn("Recharging the batteries!")
         self.recharging = True
-        while self.current_lv < self.battery_lv:
-            rospy.sleep(2)
-        self.recharging = False
+        # while self.current_lv < self.battery_lv:
+        #     rospy.sleep(2)
+        # self.recharging = False
 
         rospy.logwarn("Recharged!")
         self.report_success(RechargeResult(), "Battery recharged!")

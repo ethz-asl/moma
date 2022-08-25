@@ -308,6 +308,9 @@ class BatteryLv:
             out = True if current_rate > value else False
             msg = f"Battery above {value}%" if out else f"Battery below {value}%"
 
+        rospy.logwarn(msg)
+        return out
+
 
 class Found:
     """Check that the search motion was successfull."""
@@ -422,7 +425,7 @@ class Move(MarkerPose):
             if self.approach:
                 rospy.logwarn("Success! we can move 50cm further")
                 self.__velocity_control(velocity=0.1)
-                return 3
+            return 3
         else:
             return self.move_client.get_state()
 
@@ -456,9 +459,7 @@ class Recharge(Move):
 
     def initialize_recharge(self) -> None:
         """Move the robot to the recharge station and recharge the robot."""
-        super().initialize_navigation(
-            goal_pose=self.recharge_pose, ref_frame="map", approach=False
-        )
+        super().initialize_navigation(goal_pose=self.recharge_pose, ref_frame="map")
         rospy.loginfo(str("Initializing Recharge skill"))
 
     def get_recharge_status(self) -> int:
@@ -467,8 +468,9 @@ class Recharge(Move):
         if state == 3:
             # Navigation successful, then we can recharge
             goal_ = RechargeGoal()
+            rospy.loginfo(str("Sending recharge request."))
             self.recharge_cli.send_goal(goal_)
-            return self.recharge_cli.get_state()
+            return 3 if self.recharge_cli.get_state() == 0 else 4
         else:
             return state
 
