@@ -71,10 +71,10 @@ def state_machine(cube_ID: int, visualize=False):
                 name=f"Place cube{cube_ID}",
                 goal_ID=cube_ID,
                 goal_pose=place_pose,
-                outcomes=[f"Cube{cube_ID} palced", "FAILURE"],
+                outcomes=[f"Cube{cube_ID} placed", "FAILURE"],
             ),
             transitions={
-                f"Cube{cube_ID} palced": "Success",
+                f"Cube{cube_ID} placed": "Success",
                 "FAILURE": "Failure",
             },
         )

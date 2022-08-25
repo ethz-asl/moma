@@ -1,6 +1,5 @@
 """Define SMACH states for the FSM."""
 
-from enum import IntEnum
 from typing import List
 
 import mobile_manip_demo.robot_interface as skills
