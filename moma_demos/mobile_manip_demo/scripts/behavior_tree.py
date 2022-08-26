@@ -1,11 +1,26 @@
 #!/usr/bin/env python
 
 import mobile_manip_demo.behaviors as bt
+from mobile_manip_demo.environment import get_place_pose
 
 import rospy
 
-import py_trees
+import functools
 import numpy as np
+import py_trees
+
+
+def post_tick_handler(snapshot_visitor, behavior_tree):
+    """Prints an ascii tree with the current snapshot status."""
+    print(
+        "\n"
+        + py_trees.display.unicode_tree(
+            root=behavior_tree.root,
+            visited=snapshot_visitor.visited,
+            previously_visited=snapshot_visitor.previously_visited,
+        )
+    )
+    name_ = "root" + str(behavior_tree.count)
 
 
 class MoMaBT:
@@ -13,7 +28,10 @@ class MoMaBT:
         """Initialize ROS nodes."""
         # Parameters
         self.delivery = rospy.get_param("moma_demo/delivery_station")
-        self.place_pose = rospy.get_param("moma_demo/place_pose")
+        self.place_target = rospy.get_param("moma_demo/place_pose")
+        self.place_pose = get_place_pose(
+            np.array(self.delivery), np.array(self.place_target)
+        )
 
         # Mobile Picking:
         move_to_pick = py_trees.composites.Selector(name="Fallback")
@@ -23,13 +41,13 @@ class MoMaBT:
                     name=f"Robot-At cube{cube_ID}?",
                     robot_name="panda",
                     pose=cube_ID,
-                    tolerance=0.25,
+                    tolerance=0.1,
                 ),
                 bt.Move(name=f"Move-To cube{cube_ID}!", goal_ID=cube_ID),
             ]
         )
 
-        pick_sequence = py_trees.composites.Sequence(name="Sequence", memory=False)
+        pick_sequence = bt.RSequence(name="Sequence")
         pick_sequence.add_children(
             [
                 move_to_pick,
@@ -51,14 +69,14 @@ class MoMaBT:
                 bt.RobotAtPose(
                     name=f"Robot-At delivery?",
                     robot_name="panda",
-                    pose=self.delivery,
-                    tolerance=0.25,
+                    pose=np.array(self.delivery),
+                    tolerance=0.1,
                 ),
-                bt.Move(name=f"Move-To delivery!", goal_pose=self.delivery),
+                bt.Move(name=f"Move-To delivery!", goal_pose=np.array(self.delivery)),
             ]
         )
 
-        place_sequence = py_trees.composites.Sequence(name="Sequence", memory=False)
+        place_sequence = bt.RSequence(name="Sequence")
         place_sequence.add_children(
             [
                 pick,
@@ -66,7 +84,7 @@ class MoMaBT:
                 bt.Place(
                     name=f"Place cube{cube_ID}!",
                     goal_ID=cube_ID,
-                    goal_pose=self.place_pose,
+                    goal_pose=self.place_target,
                 ),
             ]
         )
@@ -93,9 +111,17 @@ class MoMaBT:
         return self.root
 
     def run(self):
+        self.tree.visitors.append(py_trees.visitors.DebugVisitor())
+        snapshot_visitor = py_trees.visitors.SnapshotVisitor()
+        self.tree.add_post_tick_handler(
+            functools.partial(post_tick_handler, snapshot_visitor)
+        )
+        self.tree.visitors.append(snapshot_visitor)
+        self.tree.setup(timeout=15)
+
         while not rospy.is_shutdown():
-            # print(self.root.status)
-            self.root.tick_once()
+            rospy.Rate(3).sleep()
+            self.tree.tick()
 
 
 def main():
@@ -103,7 +129,7 @@ def main():
     node = MoMaBT(2)
 
     try:
-        # node.run()
+        node.run()
         pass
     except rospy.ROSInterruptException:
         pass
