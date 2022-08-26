@@ -2,6 +2,7 @@
 
 from typing import List
 
+from mobile_manip_demo.environment import get_place_pose
 import mobile_manip_demo.robot_interface as skills
 import numpy as np
 import rospy
@@ -111,7 +112,8 @@ class Place(smach.State):
         self,
         name: str,
         goal_ID: str,
-        goal_pose: List[float],
+        nav_target: List[float],
+        place_target: List[float],
         outcomes: List[str],
     ):
         self.outcomes = outcomes
@@ -120,14 +122,17 @@ class Place(smach.State):
         self.name = name
         self.interface = skills.Place()
         self.goal_ID = goal_ID
-        self.goal_pose = np.array(goal_pose)
+        self.place_target = np.array(place_target)
+        self.place_pose = get_place_pose(np.array(nav_target), self.place_target)
         self.initialized = False
 
         self.condition = skills.ObjectAtPose(goal_ID, "cubes")
 
     def initialize(self) -> bool:
         rospy.loginfo("Initializing state PLACE!")
-        self.interface.initialize_place(goal_pose=self.goal_pose, goal_ID=self.goal_ID)
+        self.interface.initialize_place(
+            goal_pose=self.place_target, goal_ID=self.goal_ID
+        )
         return True
 
     def execute(self, userdata):
@@ -141,7 +146,7 @@ class Place(smach.State):
             if status == 0 or status == 1:
                 continue
             elif status == 3 and self.condition.at_pose(
-                target_pose=self.goal_pose, tolerance=np.array([0.5, 0.5, 0.1])
+                target_pose=self.place_pose, tolerance=np.array([0.5, 0.5, 0.1])
             ):
                 rospy.loginfo(f"Behavior {self.name} returned SUCCESS!")
                 running = False

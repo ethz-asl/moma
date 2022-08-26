@@ -15,7 +15,7 @@ def state_machine(cube_ID: int, visualize=False):
 
     # Parameters
     delivery = rospy.get_param("moma_demo/delivery_station")
-    place_pose = rospy.get_param("moma_demo/place_pose")
+    place_target = rospy.get_param("moma_demo/place_pose")
 
     # Create a SMACH state machine
     sm = smach.StateMachine(outcomes=["SUCCESS", "FAILURE"])
@@ -70,7 +70,8 @@ def state_machine(cube_ID: int, visualize=False):
             states.Place(
                 name=f"Place cube{cube_ID}",
                 goal_ID=cube_ID,
-                goal_pose=place_pose,
+                place_target=place_target,
+                nav_target=delivery,
                 outcomes=[f"Cube{cube_ID} placed", "FAILURE"],
             ),
             transitions={

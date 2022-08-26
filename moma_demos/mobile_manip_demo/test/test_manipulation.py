@@ -41,7 +41,7 @@ class ManipulationNode:
 
     def check_place_condition(self):
         condition = self.place_condition.at_pose(
-            target_pose=np.array([0.5, 0.0, 0.25]),
+            target_pose=np.array([-1.2, -2.0, 0.75]),
             tolerance=np.array([0.5, 0.5, 0.1]),
         )
         rospy.logwarn(f"Place condition: {condition}")
@@ -63,11 +63,11 @@ class ManipulationNode:
         pick_done = False
         while not pick_done:
             rospy.Rate(1).sleep()
+            rospy.logwarn(f"Pick condition: {self.pick_condition.in_hand()}")
             status = self.pick_action.get_pick_status()
             if status == 0 or status == 1:
                 rospy.loginfo("pick RUNNING")
             elif status == 3:
-                rospy.logwarn(f"Pick condition: {self.pick_condition.in_hand()}")
                 rospy.loginfo("pick SUCCESS")
                 pick_done = True
             else:
@@ -86,19 +86,11 @@ class ManipulationNode:
                 if status == 0 or status == 1:
                     rospy.loginfo("place RUNNING")
                 elif status == 3:
-                    condition = self.place_condition.at_pose(
-                        target_pose=np.array([0.5, 0.0, 0.25]),
-                        tolerance=np.array([0.5, 0.5, 0.1]),
-                    )
-                    rospy.logwarn(f"Place condition: {condition}")
+                    self.check_place_condition()
                     rospy.loginfo("place SUCCESS")
                     place_done = True
                 else:
-                    condition = self.place_condition.at_pose(
-                        target_pose=np.array([0.5, 0.0, 0.25]),
-                        tolerance=np.array([0.5, 0.5, 0.1]),
-                    )
-                    rospy.logwarn(f"Place condition: {condition}")
+                    self.check_place_condition()
                     rospy.loginfo("place FAILURE")
                     place_done = True
 
@@ -122,8 +114,8 @@ class ManipulationNode:
                 done = True
             except Exception:
                 attempts += 1
+                rospy.Rate(1).sleep()
                 rospy.logerr("Could not get transform, retrying...")
-                rospy.signal_shutdown("Transformation Error")
 
         pick_goal = PoseStamped()
         pick_goal.header.frame_id = "task"
@@ -152,8 +144,8 @@ def main():
     node = ManipulationNode()
 
     try:
-        # node.send_manip_request()
-        node.check_place_condition()
+        node.send_manip_request()
+        # node.check_place_condition()
     except rospy.ROSInterruptException:
         pass
 

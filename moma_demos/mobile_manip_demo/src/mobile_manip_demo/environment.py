@@ -3,6 +3,8 @@
 
 
 from argparse import ArgumentError
+from copy import copy
+import math
 import numpy as np
 import os
 import yaml
@@ -54,3 +56,42 @@ def get_closest_robot_target(marker_pose: np.ndarray) -> np.ndarray:
             idx = i
 
     return search_waypoints[idx]
+
+
+def get_place_pose(
+    navigation_target: np.ndarray, place_target: np.ndarray
+) -> np.ndarray:
+    place_pose = copy(navigation_target)
+    # transform from panda_link0 to base_link
+    tf_manip_base = np.array([0.210, 0.000, 0.480])
+    target_in_base = tf_manip_base + place_target
+    # add also 0.5 for the last control we give to mobile base
+    place_pose[0] += target_in_base[1]
+    place_pose[1] += target_in_base[0] + 0.5
+    place_pose[2] += target_in_base[2]
+
+    return place_pose
+
+
+def angle_from_quaternion(quaternion: np.ndarray, rotation: str = "yaw") -> float:
+    """Return the desired rotation angle in radians from a quaternion."""
+    x, y, z, w = quaternion.tolist()
+    t0 = +2.0 * (w * x + y * z)
+    t1 = +1.0 - 2.0 * (x * x + y * y)
+    roll_x = math.atan2(t0, t1)
+
+    t2 = +2.0 * (w * y - z * x)
+    t2 = +1.0 if t2 > +1.0 else t2
+    t2 = -1.0 if t2 < -1.0 else t2
+    pitch_y = math.asin(t2)
+
+    t3 = +2.0 * (w * z + x * y)
+    t4 = +1.0 - 2.0 * (y * y + z * z)
+    yaw_z = math.atan2(t3, t4)
+
+    if rotation == "yaw":
+        return yaw_z
+    elif rotation == "pitch":
+        return pitch_y
+    else:
+        return roll_x
