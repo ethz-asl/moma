@@ -208,8 +208,8 @@ done
 
 set -- "${POSITIONAL[@]}" # restore positional parameters
 
-info "Installing control dependencies  = ${INSTALL_CONTROL_DEPS}"
-info "Installing piloting dependencies  = ${INSTALL_PILOTING_DEPS}"
+info "Installing control dependencies = ${INSTALL_CONTROL_DEPS}"
+info "Installing piloting dependencies = ${INSTALL_PILOTING_DEPS}"
 
 
 if [ "$DISTRIB_RELEASE" == "20.04" ] && [ "$ROS_DISTRO" == "noetic" ]; then
