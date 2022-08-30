@@ -16,8 +16,8 @@ info() {
 }
 
 fail() {
-    echo ${RED}[STOPPING DUE TO ERROR] $1${NC} >&2
-    exit 1
+  echo ${RED}[STOPPING DUE TO ERROR] $1${NC} >&2
+  exit 1
 }
 
 install_ci() {
@@ -75,17 +75,17 @@ install_pinocchio() {
   # If no previous install is found build the package again
   if [[ ! -d install ]]
   then
-      [ ! -d build ] || rm -r build
-      mkdir build
-      cd build
+    [ ! -d build ] || rm -r build
+    mkdir build
+    cd build
 
-      cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${PINOCCHIO_INSTALL_PREFIX} -DBUILD_WITH_COLLISION_SUPPORT=ON -DBUILD_PYTHON_INTERFACE=ON -DBUILD_TESTING=OFF || fail "Please resource ~/.moma_bashrc and restart the script"
-      make -j4 || fail "Error building pinocchio"
+    cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${PINOCCHIO_INSTALL_PREFIX} -DBUILD_WITH_COLLISION_SUPPORT=ON -DBUILD_PYTHON_INTERFACE=ON -DBUILD_TESTING=OFF || fail "Please resource ~/.moma_bashrc and restart the script"
+    make -j4 || fail "Error building pinocchio"
 
-      mkdir install
-      make install || fail "Error installing pinocchio"
+    mkdir install
+    make install || fail "Error installing pinocchio"
   else
-    info "Previos pinocchio installation found at ${PINOCCHIO_INSTALL_PREFIX}"
+    info "Previous pinocchio installation found at ${PINOCCHIO_INSTALL_PREFIX}"
   fi
 
 
@@ -214,7 +214,7 @@ info "Installing piloting dependencies  = ${INSTALL_PILOTING_DEPS}"
 
 
 if [ "$DISTRIB_RELEASE" == "20.04" ] && [ "$ROS_DISTRO" == "noetic" ]; then
-  echo "${GREEN}Supported distribution was found${NC}"
+  info "Supported distribution was found"
 else
   fail "Your distribution is currently not officially supported"
 fi
