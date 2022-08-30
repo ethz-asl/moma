@@ -88,7 +88,6 @@ install_pinocchio() {
     info "Previous pinocchio installation found at ${PINOCCHIO_INSTALL_PREFIX}"
   fi
 
-
   cat << EOF >> ~/.moma_bashrc
 export PATH=${PINOCCHIO_INSTALL_PREFIX}/bin:\$PATH
 export PKG_CONFIG_PATH=${PINOCCHIO_INSTALL_PREFIX_STR}/lib/pkgconfig:\$PKG_CONFIG_PATH
