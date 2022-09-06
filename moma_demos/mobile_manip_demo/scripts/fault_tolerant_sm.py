@@ -16,6 +16,7 @@ def reactive_state_machine(cube_ID: int, visualize=False):
     # Parameters
     delivery = rospy.get_param("moma_demo/delivery_station")
     place_pose = rospy.get_param("moma_demo/place_pose")
+    dock_pose = rospy.get_param("moma_demo/inspection_station")
     cube_locations = rospy.get_param("moma_demo/search_waypoints")
     search_IDs = [0, 1, 2]
 
@@ -37,21 +38,26 @@ def reactive_state_machine(cube_ID: int, visualize=False):
     search_name = "Search Cubes"
     search_outcome = "All cubes found"
 
+    dock_name = "Dock"
+    dock_outcome = "Dock pose reached"
+
     goal_dictionary = {
-        "search": [search_name, search_IDs],
+        # "search": [search_name, search_IDs],
         "move_1": [move_1_name, cube_ID],
         "pick": [pick_name, cube_ID],
         "move_2": [move_2_name, delivery],
         "place": [place_name, place_pose],
+        "dock": [dock_name, dock_pose],
         "recharge": [recharge_name, None],
     }
 
     outcome_dictionary = {
-        "search": search_outcome,
+        # "search": search_outcome,
         "move_1": move_1_outcome,
         "pick": pick_outcome,
         "move_2": move_2_outcome,
         "place": place_outcome,
+        "dock": dock_outcome,
         "recharge": recharge_condition,
     }
 
@@ -59,21 +65,21 @@ def reactive_state_machine(cube_ID: int, visualize=False):
     sm = smach.StateMachine(outcomes=["SUCCESS"])
 
     with sm:
-        smach.StateMachine.add(
-            search_name,
-            reactive_states.Search(
-                name=search_name,
-                locations=cube_locations,
-                IDs=search_IDs,
-                outcomes=[search_outcome, "RUNNING", "FAILURE", recharge_condition],
-            ),
-            transitions={
-                search_outcome: move_1_name,
-                "RUNNING": search_name,
-                "FAILURE": "IDLE",
-                recharge_condition: recharge_name,
-            },
-        )
+        # smach.StateMachine.add(
+        #     search_name,
+        #     reactive_states.Search(
+        #         name=search_name,
+        #         locations=cube_locations,
+        #         IDs=search_IDs,
+        #         outcomes=[search_outcome, "RUNNING", "FAILURE", recharge_condition],
+        #     ),
+        #     transitions={
+        #         search_outcome: move_1_name,
+        #         "RUNNING": search_name,
+        #         "FAILURE": "IDLE",
+        #         recharge_condition: recharge_name,
+        #     },
+        # )
 
         smach.StateMachine.add(
             move_1_name,
@@ -134,8 +140,23 @@ def reactive_state_machine(cube_ID: int, visualize=False):
                 outcomes=[place_outcome, "RUNNING", "FAILURE", recharge_condition],
             ),
             transitions={
-                place_outcome: "Success",
+                place_outcome: dock_name,
                 "RUNNING": place_name,
+                "FAILURE": "IDLE",
+                recharge_condition: recharge_name,
+            },
+        )
+
+        smach.StateMachine.add(
+            dock_name,
+            reactive_states.Dock(
+                name=dock_name,
+                target_pose=dock_pose,
+                outcomes=[dock_outcome, "RUNNING", "FAILURE", recharge_condition],
+            ),
+            transitions={
+                dock_outcome: "Success",
+                "RUNNING": dock_name,
                 "FAILURE": "IDLE",
                 recharge_condition: recharge_name,
             },
@@ -165,12 +186,13 @@ def reactive_state_machine(cube_ID: int, visualize=False):
                 ],
             ),
             transitions={
-                "Restart the task": search_name,
-                search_outcome: move_1_name,
+                "Restart the task": move_1_name,
+                # search_outcome: move_1_name,
                 move_1_outcome: pick_name,
                 pick_outcome: move_2_name,
                 move_2_outcome: place_name,
-                place_outcome: "Success",
+                place_outcome: dock_name,
+                dock_outcome: "Success",
                 recharge_condition: recharge_name,
                 "RUNNING": "IDLE",
             },
