@@ -6,8 +6,6 @@ import mobile_manip_demo.robot_interface as skills
 import numpy as np
 import py_trees as pt
 
-import rospy
-
 
 class RobotAtPose(pt.behaviour.Behaviour):
     """Check if robot is at position."""
@@ -89,13 +87,13 @@ class BatteryLv(pt.behaviour.Behaviour):
 class Found(pt.behaviour.Behaviour):
     """Check if object is held."""
 
-    def __init__(self, name: str, n_IDs: int = 3):
+    def __init__(self, name: str, IDs: List[int] = [2]):
         super().__init__(name)
-        self.n_items = n_IDs
+        self.IDs = IDs
         self.interface = skills.Found()
 
     def update(self):
-        if self.interface.found(self.n_items):
+        if self.interface.found(self.IDs):
             return pt.common.Status.SUCCESS
         else:
             return pt.common.Status.FAILURE
@@ -148,6 +146,30 @@ class Recharge(pt.behaviour.Behaviour):
 
     def update(self) -> pt.common.Status:
         status = self.interface.get_recharge_status()
+        if status == 0 or status == 1:
+            return pt.common.Status.RUNNING
+        elif status == 3:
+            return pt.common.Status.SUCCESS
+        else:
+            return pt.common.Status.FAILURE
+
+    def terminate(self, new_status: pt.common.Status):
+        if new_status == pt.common.Status.INVALID:
+            self.interface.cancel_goal()
+
+
+class Dock(pt.behaviour.Behaviour):
+    """Move the robot to the docking station."""
+
+    def __init__(self, name: str):
+        super().__init__(name)
+        self.interface = skills.Dock()
+
+    def initialise(self):
+        self.interface.initialize_docking()
+
+    def update(self) -> pt.common.Status:
+        status = self.interface.get_docking_status()
         if status == 0 or status == 1:
             return pt.common.Status.RUNNING
         elif status == 3:

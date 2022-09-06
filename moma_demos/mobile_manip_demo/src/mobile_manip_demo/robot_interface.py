@@ -305,12 +305,12 @@ class BatteryLv:
 
     def __init__(self):
         """Initialize ROS nodes."""
-        self.current_lv = None
         self.max_lv = rospy.get_param("moma_demo/battery_lv")
+        self.current_lv = copy(self.max_lv)
         self.battery_sub = rospy.Subscriber("/battery_level", Int32, self.battery_cb)
 
     def battery_cb(self, msg):
-        self.current_lv = msg.data
+        self.current_lv = msg.data if msg.data is not None else self.current_lv
 
     def battery_lv(self, relation: str, value: float) -> bool:
         current_rate = self.current_lv * 100 / self.max_lv
@@ -338,11 +338,9 @@ class Found:
         for i, id in enumerate(msg.marker_ids):
             self.marker_dict[id] = msg.poses[i]
 
-    def found(self, n_IDs: int = 3) -> None:
+    def found(self, IDs: List[int]) -> None:
         """Chack that n_IDs have been identified."""
-        if len(self.marker_dict.keys()) == n_IDs:
-            return True
-        return False
+        return all(x in list(self.marker_dict.keys()) for x in IDs)
 
 
 # ACTIONS
@@ -438,7 +436,7 @@ class Move(MarkerPose):
             if self.approach:
                 rospy.logwarn("Navigation successful, we can move 50cm further")
                 self.__velocity_control(velocity=0.1)
-                return 3
+            return 3
 
         else:
             return self.move_client.get_state()
@@ -481,6 +479,7 @@ class Recharge(Move):
         state = super().get_navigation_status()
         if state == 3:
             # Navigation successful, then we can recharge
+            rospy.logerr("Move-To charge pose successful!")
             goal_ = RechargeGoal()
             # rospy.loginfo("Sending recharge request.")
             self.recharge_cli.send_goal(goal_)
@@ -492,6 +491,29 @@ class Recharge(Move):
         """Cancel current navigation goal."""
         super().cancel_goal()
         self.recharge_cli.cancel_goal()
+
+
+class Dock(Move):
+    """Low level implementation of a Docking skill."""
+
+    def __init__(self) -> None:
+        """Initialize ROS nodes."""
+        super().__init__(approach=True)
+        self.dock_pose = rospy.get_param("moma_demo/inspection_station")
+
+    def initialize_docking(self) -> None:
+        """Move the robot to the docking station."""
+        super().initialize_navigation(goal_pose=self.dock_pose, ref_frame="map")
+        rospy.loginfo("Initializing Docking skill")
+
+    def get_docking_status(self) -> int:
+        """Get result from recharging."""
+        state = super().get_navigation_status()
+        return state
+
+    def cancel_goal(self) -> None:
+        """Cancel current navigation goal."""
+        super().cancel_goal()
 
 
 class Search(Move):

@@ -24,14 +24,34 @@ def post_tick_handler(snapshot_visitor, behavior_tree):
 
 
 class MoMaBT:
-    def __init__(self, cube_ID: int):
+    def __init__(self, bt_name: str, cube_ID: int):
         """Initialize ROS nodes."""
         # Parameters
-        self.delivery = rospy.get_param("moma_demo/delivery_station")
-        self.place_target = rospy.get_param("moma_demo/place_pose")
-        self.place_pose = get_place_pose(
-            np.array(self.delivery), np.array(self.place_target)
-        )
+        delivery = rospy.get_param("moma_demo/delivery_station")
+        place_target = rospy.get_param("moma_demo/place_pose")
+        place_pose = get_place_pose(np.array(delivery), np.array(place_target))
+        search_locations = rospy.get_param("moma_demo/search_waypoints")
+        dock_pose = rospy.get_param("moma_demo/inspection_station")
+
+        # Search for Cubes
+        # search = py_trees.composites.Selector(name="Fallback")
+        # search.add_children(
+        #     [
+        #         bt.Found(
+        #             name=f"Cubes found?",
+        #             IDs=[2],
+        #         ),
+        #         bt.Search(name=f"Search cubes!", targets=search_locations),
+        #     ]
+        # )
+
+        # move_sequence = bt.RSequence(name="Sequence")
+        # move_sequence.add_children(
+        #     [
+        #         search,
+        #         bt.Move(name=f"Move-To cube{cube_ID}!", goal_ID=cube_ID),
+        #     ]
+        # )
 
         # Mobile Picking:
         move_to_pick = py_trees.composites.Selector(name="Fallback")
@@ -69,10 +89,10 @@ class MoMaBT:
                 bt.RobotAtPose(
                     name=f"Robot-At delivery?",
                     robot_name="panda",
-                    pose=np.array(self.delivery),
+                    pose=np.array(delivery),
                     tolerance=0.1,
                 ),
-                bt.Move(name=f"Move-To delivery!", goal_pose=np.array(self.delivery)),
+                bt.Move(name=f"Move-To delivery!", goal_pose=np.array(delivery)),
             ]
         )
 
@@ -84,28 +104,61 @@ class MoMaBT:
                 bt.Place(
                     name=f"Place cube{cube_ID}!",
                     goal_ID=cube_ID,
-                    goal_pose=self.place_target,
+                    goal_pose=place_target,
                 ),
             ]
         )
 
         # MoMa
-        self.root = py_trees.composites.Selector(name="Fallback")
-        self.root.add_children(
+        moma = py_trees.composites.Selector(name="Fallback")
+        moma.add_children(
             [
                 bt.ObjectAtPose(
                     name=f"Cube{cube_ID} in delivery?",
                     object_id=cube_ID,
                     model_type="cubes",
-                    pose=self.place_pose,
+                    pose=place_pose,
                     tolerance=np.array([0.5, 0.5, 0.1]),
                 ),
                 place_sequence,
             ]
         )
 
+        # Recharge
+        recharge = py_trees.composites.Selector(name="Fallback")
+        recharge.add_children(
+            [
+                bt.BatteryLv(
+                    name="Battery > 20%?",
+                    relation="greater",
+                    value=20.0,
+                ),
+                bt.Recharge(name="Recharge!"),
+            ]
+        )
+
+        # Dock
+        dock = py_trees.composites.Selector(name="Fallback")
+        dock.add_children(
+            [
+                bt.RobotAtPose(
+                    name=f"Robot-At inspection?",
+                    robot_name="panda",
+                    pose=np.array(dock_pose),
+                    tolerance=0.1,
+                ),
+                bt.Dock(name="Dock!"),
+            ]
+        )
+
+        self.root = bt.RSequence(name="Sequence")
+        # self.root = self.moma
+        # self.root.add_children([recharge, moma])
+        # self.root.add_children([moma, dock])
+        self.root.add_children([recharge, moma, dock])
+
         self.tree = py_trees.trees.BehaviourTree(self.root)
-        py_trees.display.render_dot_tree(self.tree.root, name="moma_bt")
+        py_trees.display.render_dot_tree(self.tree.root, name=bt_name)
 
     def get_root(self) -> py_trees.composites.Selector:
         return self.root
@@ -126,7 +179,7 @@ class MoMaBT:
 
 def main():
     rospy.init_node("BehaviorTree")
-    node = MoMaBT(2)
+    node = MoMaBT("big_moma", 2)
 
     try:
         node.run()
