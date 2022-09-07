@@ -202,9 +202,9 @@ class RobotAtPose(MarkerPose):
         distance_xy = round(LA.norm(current_pose_xy - target_pose_xy) - 0.5, 3)
         distance_th = round(abs(current_pose_th - target_pose_th), 3)
         rospy.logwarn(
-            f"Robot at distance {distance_xy}[m] and {distance_th}[rad] from target"
+            f"Robot at distance {abs(distance_xy)}[m] and {distance_th}[rad] from target"
         )
-        if distance_xy < tolerance and distance_th < 0.157:
+        if abs(distance_xy) < tolerance and distance_th < 0.157:
             return True
         return False
 
@@ -367,10 +367,10 @@ class MoveArm:
 class Move(MarkerPose):
     """Low level implementation of a Navigation skill."""
 
-    def __init__(self, approach: bool = True) -> None:
+    def __init__(self) -> None:
         """Initialize ROS nodes."""
         super().__init__()
-        self.approach = approach
+        self.approach = True
 
         self.move_client = SimpleActionClient("/mobile_base/move_base", MoveBaseAction)
         rospy.loginfo("Connecting to /mobile_base/move_base ...")
@@ -384,6 +384,7 @@ class Move(MarkerPose):
         goal_pose: Pose or List[float] or np.ndarray = None,
         ref_frame: str = "map",
         goal_ID: int = None,
+        approach=True,
     ) -> None:
         """
         Move the robot to the target pose.
@@ -396,6 +397,7 @@ class Move(MarkerPose):
 
         """
         # rospy.logwarn(f"Got input: {goal_pose} and {goal_ID}.")
+        self.approach = approach
         arm_client = MoveArm()
         arm_client.initialize_arm("detection")
         # Control the robot in velocity to make it go out the obstacles
@@ -456,6 +458,7 @@ class Move(MarkerPose):
         while rospy.Time.now() - start < rospy.Duration(5):
             self.vel_control.publish(msg)
             rospy.Rate(10).sleep()
+        rospy.logwarn("Forward movement ended")
 
 
 class Recharge(Move):
@@ -463,7 +466,7 @@ class Recharge(Move):
 
     def __init__(self) -> None:
         """Initialize ROS nodes."""
-        super().__init__(approach=False)
+        super().__init__()
         self.recharge_pose = rospy.get_param("moma_demo/battery_station")
         self.recharge_cli = SimpleActionClient("/recharge", RechargeAction)
         rospy.loginfo("Connecting to /recharge ...")
@@ -471,7 +474,9 @@ class Recharge(Move):
 
     def initialize_recharge(self) -> None:
         """Move the robot to the recharge station and recharge the robot."""
-        super().initialize_navigation(goal_pose=self.recharge_pose, ref_frame="map")
+        super().initialize_navigation(
+            goal_pose=self.recharge_pose, ref_frame="map", approach=False
+        )
         rospy.loginfo("Initializing Recharge skill")
 
     def get_recharge_status(self) -> int:
@@ -498,12 +503,14 @@ class Dock(Move):
 
     def __init__(self) -> None:
         """Initialize ROS nodes."""
-        super().__init__(approach=True)
+        super().__init__()
         self.dock_pose = rospy.get_param("moma_demo/inspection_station")
 
     def initialize_docking(self) -> None:
         """Move the robot to the docking station."""
-        super().initialize_navigation(goal_pose=self.dock_pose, ref_frame="map")
+        super().initialize_navigation(
+            goal_pose=self.dock_pose, ref_frame="map", approach=True
+        )
         rospy.loginfo("Initializing Docking skill")
 
     def get_docking_status(self) -> int:
@@ -521,14 +528,14 @@ class Search(Move):
 
     def __init__(self, targets: List[List[float]]) -> None:
         """Initialize ROS nodes."""
-        super().__init__(approach=False)
+        super().__init__()
         self.initial_targets = targets
         self.current_targets = None
 
     def initialize_search(self) -> None:
         """Move the robot to the target poses."""
         rospy.loginfo("Initializing Search skill")
-        self.current_targets = copy(self.initial_targets)
+        self.current_targets = copy(self.initial_targets, approach=False)
         for target in self.current_targets:
             # command
             self.initialize_navigation(goal_pose=target)
