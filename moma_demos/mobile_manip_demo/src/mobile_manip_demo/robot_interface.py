@@ -1,6 +1,7 @@
 """Define ROS bindings for mobile manipulation task."""
 
 from copy import copy
+from math import atan2, cos, sin
 from typing import Any, List, Tuple
 
 import rospy
@@ -200,7 +201,13 @@ class RobotAtPose(MarkerPose):
             current_pose_th = env.angle_from_quaternion(self.amcl_pose[3:], "yaw")
         # distance that the robot covers when controlled in velocity
         distance_xy = round(LA.norm(current_pose_xy - target_pose_xy) - 0.5, 3)
-        distance_th = round(abs(current_pose_th - target_pose_th), 3)
+        delta_th = abs(
+            atan2(
+                sin(target_pose_th - current_pose_th),
+                cos(target_pose_th - current_pose_th),
+            )
+        )
+        distance_th = round(delta_th, 3)
         rospy.logwarn(
             f"Robot at distance {abs(distance_xy)}[m] and {distance_th}[rad] from target"
         )
@@ -438,6 +445,8 @@ class Move(MarkerPose):
             if self.approach:
                 rospy.logwarn("Navigation successful, we can move 50cm further")
                 self.__velocity_control(velocity=0.1)
+                # wait for the movement to end
+                rospy.Rate(0.2).sleep()
             return 3
 
         else:
