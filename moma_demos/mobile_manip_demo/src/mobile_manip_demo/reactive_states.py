@@ -7,8 +7,6 @@ import numpy as np
 import rospy
 import smach
 
-# TODO: if condition is True, then preempt action!
-
 
 class Search(smach.State):
     def __init__(
@@ -36,18 +34,18 @@ class Search(smach.State):
         return True
 
     def execute(self, userdata):
-        if not self.initialized:
+        if self.condition.found(self.IDs):
+            self.interface.cancel_goal()
+            self.initialized = False
+            return self.outcomes[0]
+        elif not self.initialized:
             self.initialized = self.initialize()
         rospy.Rate(1).sleep()
         rospy.loginfo("Executing state SEARCH!")
 
         status = self.interface.get_recharge_status()
 
-        if self.condition.found(self.IDs):
-            self.interface.cancel_goal()
-            self.initialized = False
-            return self.outcomes[0]
-        elif status == 0 or status == 1:
+        if status == 0 or status == 1:
             return "RUNNING"
         elif status == 3 and self.condition.battery_lv("greater", 20.0):
             self.initialized = False
@@ -75,7 +73,9 @@ class Recharge(smach.State):
         return True
 
     def execute(self, userdata):
-        if not self.initialized:
+        if self.condition.battery_lv("greater", 20.0):
+            return self.outcomes[0]
+        elif not self.initialized:
             self.initialized = self.initialize()
         rospy.Rate(1).sleep()
         rospy.loginfo("Executing state RECHARGE!")
@@ -83,11 +83,11 @@ class Recharge(smach.State):
         status = self.interface.get_recharge_status()
         if status == 0 or status == 1:
             return "RUNNING"
-        elif status == 3 and self.condition.battery_lv("greater", 20.0):
+        elif status == 3:
             return self.outcomes[0]
         else:
             self.initialized = False
-            return "self.outcomes[0]"
+            return self.outcomes[0]
 
 
 class Dock(smach.State):
@@ -101,6 +101,7 @@ class Dock(smach.State):
         self.initialized = False
 
         self.condition = skills.RobotAtPose("panda")
+        self.battery_condition = skills.BatteryLv()
         self.target_pose = np.array(target_pose)
 
     def initialize(self) -> bool:
@@ -109,17 +110,21 @@ class Dock(smach.State):
         return True
 
     def execute(self, userdata):
-        if not self.initialized:
+        if self.condition.at_pose(target_pose=self.target_pose, tolerance=0.25):
+            self.interface.cancel_goal()
+            self.initialized = False
+            return self.outcomes[0]
+        elif not self.initialized:
             self.initialized = self.initialize()
         rospy.Rate(1).sleep()
         rospy.loginfo("Executing state DOCK!")
 
         status = self.interface.get_docking_status()
-        if status == 0 or status == 1:
+        if self.battery_condition.battery_lv("lower", 20.0):
+            return self.outcomes[-1]
+        elif status == 0 or status == 1:
             return "RUNNING"
-        elif status == 3 and self.condition.at_pose(
-            target_pose=self.target_pose, tolerance=0.25
-        ):
+        elif status == 3:
             rospy.logwarn(f"Target pose:{self.target_pose}")
             rospy.loginfo(f"Behavior {self.name} returned SUCCESS!")
             return self.outcomes[0]
@@ -151,6 +156,7 @@ class Move(smach.State):
         self.initialized = False
 
         self.condition = skills.RobotAtPose("panda")
+        self.battery_condition = skills.BatteryLv()
 
     def initialize(self) -> bool:
         rospy.loginfo("Initializing state MOVE!")
@@ -160,7 +166,11 @@ class Move(smach.State):
         return True
 
     def execute(self, userdata):
-        if not self.initialized:
+        if self.condition.at_pose(target_pose=self.target_pose, tolerance=0.25):
+            self.interface.cancel_goal()
+            self.initialized = False
+            return self.outcomes[0]
+        elif not self.initialized:
             self.initialized = self.initialize()
         rospy.Rate(1).sleep()
         rospy.loginfo("Executing state MOVE!")
@@ -170,9 +180,7 @@ class Move(smach.State):
             return self.outcomes[-1]
         elif status == 0 or status == 1:
             return "RUNNING"
-        elif status == 3 and self.condition.at_pose(
-            target_pose=self.target_pose, tolerance=0.25
-        ):
+        elif status == 3:
             rospy.logwarn(f"Target pose:{self.target_pose}")
             rospy.loginfo(f"Behavior {self.name} returned SUCCESS!")
             return self.outcomes[0]
@@ -199,6 +207,7 @@ class Pick(smach.State):
         self.initialized = False
 
         self.condition = skills.InHand()
+        self.battery_condition = skills.BatteryLv()
 
     def initialize(self) -> bool:
         rospy.loginfo("Initializing state PICK!")
@@ -206,7 +215,11 @@ class Pick(smach.State):
         return True
 
     def execute(self, userdata):
-        if not self.initialized:
+        if self.condition.in_hand():
+            self.interface.cancel_goal()
+            self.initialized = False
+            return self.outcomes[0]
+        elif not self.initialized:
             self.initialized = self.initialize()
         rospy.Rate(1).sleep()
         rospy.loginfo("Executing state PICK!")
@@ -216,7 +229,7 @@ class Pick(smach.State):
             return self.outcomes[-1]
         elif status == 0 or status == 1:
             return "RUNNING"
-        elif status == 3 and self.condition.in_hand():
+        elif status == 3:
             rospy.loginfo(f"Behavior {self.name} returned SUCCESS!")
             return self.outcomes[0]
         else:
@@ -242,6 +255,7 @@ class Place(smach.State):
         self.initialized = False
 
         self.condition = skills.ObjectAtPose(goal_ID, "cubes")
+        self.battery_condition = skills.BatteryLv()
 
     def initialize(self) -> bool:
         rospy.loginfo("Initializing state PLACE!")
@@ -249,7 +263,13 @@ class Place(smach.State):
         return True
 
     def execute(self, userdata):
-        if not self.initialized:
+        if self.condition.at_pose(
+            target_pose=self.goal_pose, tolerance=np.array([0.5, 0.5, 0.1])
+        ):
+            self.interface.cancel_goal()
+            self.initialized = False
+            return self.outcomes[0]
+        elif not self.initialized:
             self.initialized = self.initialize()
         rospy.Rate(1).sleep()
         rospy.loginfo("Executing state PLACE!")
@@ -259,9 +279,7 @@ class Place(smach.State):
             return self.outcomes[-1]
         elif status == 0 or status == 1:
             return "RUNNING"
-        elif status == 3 and self.condition.at_pose(
-            target_pose=self.goal_pose, tolerance=np.array([0.5, 0.5, 0.1])
-        ):
+        elif status == 3:
             rospy.loginfo(f"Behavior {self.name} returned SUCCESS!")
             return self.outcomes[0]
         else:
