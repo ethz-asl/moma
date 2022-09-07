@@ -8,6 +8,7 @@ import rospy
 import functools
 import numpy as np
 import py_trees
+from mobile_manip_demo.visualizer import BTVisualizer
 
 
 def post_tick_handler(snapshot_visitor, behavior_tree):
@@ -152,7 +153,7 @@ class MoMaBT:
         )
 
         self.root = bt.RSequence(name="Sequence")
-        # self.root = self.moma
+        # self.root = moma
         # self.root.add_children([recharge, moma])
         # self.root.add_children([moma, dock])
         self.root.add_children([recharge, moma, dock])
@@ -176,13 +177,19 @@ class MoMaBT:
             rospy.Rate(3).sleep()
             self.tree.tick()
 
+    def run_online(self):
+        viz = BTVisualizer(self.tree)
+        while not rospy.is_shutdown():
+            rospy.Rate(3).sleep()
+            viz.tick()
+
 
 def main():
     rospy.init_node("BehaviorTree")
     node = MoMaBT("big_moma", 2)
 
     try:
-        node.run()
+        node.run_online()
         pass
     except rospy.ROSInterruptException:
         pass
