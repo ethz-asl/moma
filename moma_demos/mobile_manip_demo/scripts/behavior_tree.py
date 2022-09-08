@@ -179,9 +179,12 @@ class MoMaBT:
 
     def run_online(self):
         viz = BTVisualizer(self.tree)
+
+        self.tree.add_post_tick_handler(viz.update_graph)
         while not rospy.is_shutdown():
             rospy.Rate(3).sleep()
-            viz.tick()
+            # viz.tick()
+            self.tree.tick()
 
 
 def main():

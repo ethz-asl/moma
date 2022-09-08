@@ -99,9 +99,9 @@ class BTVisualizer:
     def tick(self) -> pt.common.Status:
         """Tick the tree once and display its status."""
         self.tree.tick_once()
-        self.update_graph()
+        self.update_graph(self.tree)
         return self.tree.status
 
-    def update_graph(self):
+    def update_graph(self, bt: pt.trees.BehaviourTree):
         """Update the visualized graph."""
-        dot_graph(self.tree, True).write_svg(self.svg_document, encoding="utf8")
+        dot_graph(bt, True).write_svg(self.svg_document, encoding="utf8")
