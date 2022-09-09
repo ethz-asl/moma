@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+"""ROS node exposing the action for the Grasp Skill."""
 
 import numpy as np
 from pathlib import Path
@@ -20,7 +21,7 @@ from mobile_manip_demo.srv import ForceGrasp, ForceGraspRequest
 from moma_utils.grasping import PlanGrasp
 import moma_utils.ros.conversions as conv
 from moma_utils.ros.moveit import MoveItClient
-from moma_utils.ros.panda import PandaArmClient, PandaGripperClient
+from moma_utils.ros.panda import PandaGripperClient
 
 
 class GraspSkill(Skill):

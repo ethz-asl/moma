@@ -358,7 +358,6 @@ class IDLE(smach.State):
         return outcome
 
     def __get_next_state(self):
-        # TODO: implement IDLE logic, considering that all transitions are in self.outcomes
         # The order of the self.outcomes list depends on the PLAN given in the knowledge base
         if self.battery_condition.battery_lv("lower", 20.0):
             return self.out_dict["recharge"]

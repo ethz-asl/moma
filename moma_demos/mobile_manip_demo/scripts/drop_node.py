@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+"""ROS node exposing the action for the Drop Skill."""
 
 import numpy as np
 

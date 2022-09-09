@@ -1,4 +1,4 @@
-"""Define SMACH states for the FSM."""
+"""Define SMACH states for the sequential FSM."""
 
 from typing import List
 

@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+"""ROS node for the AprilTag detection."""
 
 from typing import List
 

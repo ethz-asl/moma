@@ -1,4 +1,4 @@
-"""Implement various py trees behaviors for object pick and place."""
+"""Implement various py trees behaviors mobile manipulation."""
 
 from typing import Any, List
 

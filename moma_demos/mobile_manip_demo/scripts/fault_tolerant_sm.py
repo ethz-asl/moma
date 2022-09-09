@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Build the FSM."""
+"""Build the fault tolerant FSM."""
 
 import sys
 

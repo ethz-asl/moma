@@ -5,12 +5,13 @@
 from argparse import ArgumentError
 from copy import copy
 import math
+from typing import Tuple
 import numpy as np
 import os
 import yaml
 
 
-def get_item_by_marker(marker_id: int, model_type: str = "cubes"):
+def get_item_by_marker(marker_id: int, model_type: str = "cubes") -> Tuple[str, str]:
     """Get model name and link as defined in Gazebo."""
     if model_type == "cubes":
         name = "wood_cube_" + str(marker_id)

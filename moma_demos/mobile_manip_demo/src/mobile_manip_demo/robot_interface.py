@@ -15,10 +15,7 @@ from geometry_msgs.msg import (
     Pose,
     PoseStamped,
     PoseWithCovarianceStamped,
-    Quaternion,
-    Transform,
     Twist,
-    Vector3,
 )
 from std_msgs.msg import Int32
 
@@ -35,10 +32,8 @@ from mobile_manip_demo.msg import (
     RechargeAction,
     RechargeGoal,
 )
-from moma_utils import spatial
-import moma_utils.ros.conversions as conv
 from moma_utils.ros.moveit import MoveItClient
-from moma_utils.ros.panda import PandaArmClient, PandaGripperClient
+from moma_utils.ros.panda import PandaGripperClient
 
 
 """
@@ -401,6 +396,7 @@ class Move(MarkerPose):
             - goal_pose: if desired, set directly the goal to send.
             - ref_frame: reference frame for the goal.
             - goal_ID: an int ID for the goal. If given, also goal_register must be provided.
+            - approach: if True, send a velocity command to cover .5m
 
         """
         # rospy.logwarn(f"Got input: {goal_pose} and {goal_ID}.")
@@ -614,13 +610,6 @@ class Pick:
         goal_.target_object_pose.pose = goal_pose
         goal_.goal_id = goal_ID
 
-        # send the goal
-        # if goal_.target_object_pose.pose != Pose():
-        #     rospy.logwarn(
-        #         f"Sending pick goal:\n--ID {goal_ID},\n--target: {goal_pose.pose},\n--reference frame: {goal_pose.header.frame_id}"
-        #     )
-        # else:
-        #     rospy.logwarn(f"Sending pick goal for tag_{goal_ID}")
         self.pick_client.send_goal(goal_)
 
     def get_pick_status(self) -> int:
@@ -679,10 +668,6 @@ class Place:
         goal_.target_object_pose.pose = goal_pose
         goal_.goal_id = goal_ID
 
-        # send the goal
-        # rospy.loginfo(
-        #     f"Sending place goal:\n--ID {goal_ID},\n--target: {goal_pose},\n--reference frame: {goal_.target_object_pose.header.frame_id}"
-        # )
         self.place_client.send_goal(goal_)
 
     def get_place_status(self) -> int:

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""The recharge skill."""
+"""ROS node exposing the action for the Recharge Skill."""
 
 from copy import copy
 

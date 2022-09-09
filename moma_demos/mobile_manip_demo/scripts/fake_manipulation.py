@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
-"""Service node that ."""
+"""ROS node that attaches links in Gazebo for a robust grasping."""
 
-from gazebo_msgs.srv import SpawnModel, DeleteModel, DeleteModelRequest
-from gazebo_ros_link_attacher.srv import Attach, AttachRequest, AttachResponse
-from geometry_msgs.msg import Pose
+from gazebo_ros_link_attacher.srv import Attach, AttachRequest
 from mobile_manip_demo.srv import (
     ForceDrop,
     ForceDropResponse,

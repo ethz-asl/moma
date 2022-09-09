@@ -165,6 +165,7 @@ class MoMaBT:
         return self.root
 
     def run(self):
+        """The BT execution is visualized in the terminal."""
         self.tree.visitors.append(py_trees.visitors.DebugVisitor())
         snapshot_visitor = py_trees.visitors.SnapshotVisitor()
         self.tree.add_post_tick_handler(
@@ -178,6 +179,7 @@ class MoMaBT:
             self.tree.tick()
 
     def run_online(self):
+        """The BT execution is visualized in a Chrome page that opens upon execution."""
         viz = BTVisualizer(self.tree)
 
         self.tree.add_post_tick_handler(viz.update_graph)

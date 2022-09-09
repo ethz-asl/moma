@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Build the FSM."""
+"""Build the sequntial FSM."""
 
 import sys
 

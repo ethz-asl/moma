@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
+"""Base implementation of a robot skill."""
 
 from typing import Any
 import rospy
 import tf2_ros
-
-import mobile_manip_demo.msg
 
 
 class Skill:

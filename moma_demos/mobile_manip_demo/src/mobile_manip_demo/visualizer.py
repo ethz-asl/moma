@@ -44,7 +44,6 @@ import py_trees as pt
 class BTVisualizer:
     """Render the BT in a web browser and allows ticking the tree manually."""
 
-    # This works only in Windows!!
     CHROME_PATH = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
     DISPLAY_HTML = '<!DOCTYPE html>\
                         <html>\
