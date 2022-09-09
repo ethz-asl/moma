@@ -27,10 +27,11 @@ class Search(smach.State):
         self.initialized = False
 
         self.condition = skills.Found()
+        self.battery_condition = skills.BatteryLv()
 
     def initialize(self) -> bool:
         rospy.loginfo("Initializing state SEARCH!")
-        self.interface.initialize_recharge()
+        self.interface.initialize_search()
         return True
 
     def execute(self, userdata):
@@ -43,11 +44,15 @@ class Search(smach.State):
         rospy.Rate(1).sleep()
         rospy.loginfo("Executing state SEARCH!")
 
-        status = self.interface.get_recharge_status()
+        status = self.interface.get_search_status()
 
-        if status == 0 or status == 1:
+        if self.battery_condition.battery_lv("lower", 20.0):
+            self.interface.cancel_goal()
+            self.initialized = False
+            return self.outcomes[-1]
+        elif status == 0 or status == 1:
             return "RUNNING"
-        elif status == 3 and self.condition.battery_lv("greater", 20.0):
+        elif status == 3 and self.condition.found(self.IDs):
             self.initialized = False
             return self.outcomes[0]
         else:
@@ -74,6 +79,8 @@ class Recharge(smach.State):
 
     def execute(self, userdata):
         if self.condition.battery_lv("greater", 20.0):
+            self.interface.cancel_goal()
+            self.initialized = False
             return self.outcomes[0]
         elif not self.initialized:
             self.initialized = self.initialize()
@@ -84,6 +91,7 @@ class Recharge(smach.State):
         if status == 0 or status == 1:
             return "RUNNING"
         elif status == 3:
+            self.initialized = False
             return self.outcomes[0]
         else:
             self.initialized = False
@@ -109,8 +117,11 @@ class Dock(smach.State):
         self.interface.initialize_docking()
         return True
 
+    def check_done(self) -> bool:
+        return self.condition.at_pose(target_pose=self.target_pose, tolerance=0.01)
+
     def execute(self, userdata):
-        if self.condition.at_pose(target_pose=self.target_pose, tolerance=0.25):
+        if self.check_done():
             self.interface.cancel_goal()
             self.initialized = False
             return self.outcomes[0]
@@ -121,16 +132,19 @@ class Dock(smach.State):
 
         status = self.interface.get_docking_status()
         if self.battery_condition.battery_lv("lower", 20.0):
+            self.interface.cancel_goal()
+            self.initialized = False
             return self.outcomes[-1]
         elif status == 0 or status == 1:
             return "RUNNING"
-        elif status == 3:
+        elif status == 3 and self.check_done():
+            self.initialized = False
             rospy.logwarn(f"Target pose:{self.target_pose}")
             rospy.loginfo(f"Behavior {self.name} returned SUCCESS!")
             return self.outcomes[0]
         else:
             self.initialized = False
-            return "self.outcomes[0]"
+            return "FAILURE"
 
 
 class Move(smach.State):
@@ -146,7 +160,7 @@ class Move(smach.State):
         super().__init__(outcomes=outcomes)
 
         self.name = name
-        self.interface = skills.Move(approach=True)
+        self.interface = skills.Move()
         self.goal_ID = goal_ID
         self.ref_frame = ref_frame
         self.goal_pose = np.array(goal_pose) if goal_pose is not None else goal_pose
@@ -165,8 +179,11 @@ class Move(smach.State):
         )
         return True
 
+    def check_done(self) -> bool:
+        return self.condition.at_pose(target_pose=self.target_pose, tolerance=0.01)
+
     def execute(self, userdata):
-        if self.condition.at_pose(target_pose=self.target_pose, tolerance=0.25):
+        if self.check_done():
             self.interface.cancel_goal()
             self.initialized = False
             return self.outcomes[0]
@@ -177,10 +194,13 @@ class Move(smach.State):
 
         status = self.interface.get_navigation_status()
         if self.battery_condition.battery_lv("lower", 20.0):
+            self.interface.cancel_goal()
+            self.initialized = False
             return self.outcomes[-1]
         elif status == 0 or status == 1:
             return "RUNNING"
-        elif status == 3:
+        elif status == 3 and self.check_done():
+            self.initialized = False
             rospy.logwarn(f"Target pose:{self.target_pose}")
             rospy.loginfo(f"Behavior {self.name} returned SUCCESS!")
             return self.outcomes[0]
@@ -226,10 +246,13 @@ class Pick(smach.State):
 
         status = self.interface.get_pick_status()
         if self.battery_condition.battery_lv("lower", 20.0):
+            self.interface.cancel_goal()
+            self.initialized = False
             return self.outcomes[-1]
         elif status == 0 or status == 1:
             return "RUNNING"
-        elif status == 3:
+        elif status == 3 and self.condition.in_hand():
+            self.initialized = False
             rospy.loginfo(f"Behavior {self.name} returned SUCCESS!")
             return self.outcomes[0]
         else:
@@ -262,10 +285,13 @@ class Place(smach.State):
         self.interface.initialize_place(goal_pose=self.goal_pose, goal_ID=self.goal_ID)
         return True
 
-    def execute(self, userdata):
-        if self.condition.at_pose(
+    def check_done(self) -> bool:
+        return self.condition.at_pose(
             target_pose=self.goal_pose, tolerance=np.array([0.5, 0.5, 0.1])
-        ):
+        )
+
+    def execute(self, userdata):
+        if self.check_done():
             self.interface.cancel_goal()
             self.initialized = False
             return self.outcomes[0]
@@ -276,10 +302,13 @@ class Place(smach.State):
 
         status = self.interface.get_place_status()
         if self.battery_condition.battery_lv("lower", 20.0):
+            self.interface.cancel_goal()
+            self.initialized = False
             return self.outcomes[-1]
         elif status == 0 or status == 1:
             return "RUNNING"
-        elif status == 3:
+        elif status == 3 and self.check_done():
+            self.initialized = False
             rospy.loginfo(f"Behavior {self.name} returned SUCCESS!")
             return self.outcomes[0]
         else:
@@ -317,7 +346,7 @@ class IDLE(smach.State):
 
         self.move_condition = skills.RobotAtPose("panda")
         self.pick_condition = skills.InHand()
-        self.place_condition = skills.ObjectAtPose(goal_dict["place"][1], "cubes")
+        self.place_condition = skills.ObjectAtPose(goal_dict["pick"][1], "cubes")
         self.battery_condition = skills.BatteryLv()
         self.search_condition = skills.Found()
 
@@ -334,7 +363,7 @@ class IDLE(smach.State):
         if self.battery_condition.battery_lv("lower", 20.0):
             return self.out_dict["recharge"]
         elif self.move_condition.at_pose(
-            target_pose=self.goal_dict["dock"][1], tolerance=0.25
+            target_pose=self.goal_dict["dock"][1], tolerance=0.1
         ):
             # If we are at the docking table, the task is solved
             rospy.logwarn(f"IDLE returning: {self.out_dict['dock']}")
@@ -349,7 +378,7 @@ class IDLE(smach.State):
             # The robot is holding the object, so we can move and place
             # If already at pose, place
             if self.move_condition.at_pose(
-                target_pose=self.goal_dict["move_2"][1], tolerance=0.25
+                target_pose=self.goal_dict["move_2"][1], tolerance=0.1
             ):
                 # If we are at the delivery table, just place it
                 rospy.logwarn(f"IDLE returning: {self.out_dict['move_2']}")
@@ -363,7 +392,7 @@ class IDLE(smach.State):
             # The robot is not holding the cube, so go to pick it
             # If already in sight of the cube, just pick it
             if self.move_condition.at_pose(
-                target_pose=self.goal_dict["move_1"][1], tolerance=0.25
+                target_pose=self.goal_dict["move_1"][1], tolerance=0.1
             ):
                 rospy.logwarn(f"IDLE returning: {self.out_dict['move_1']}")
                 return self.out_dict["move_1"]

@@ -73,9 +73,11 @@ def get_place_pose(
     return place_pose
 
 
-def angle_from_quaternion(quaternion: np.ndarray, rotation: str = "yaw") -> float:
+def angle_from_quaternion(
+    quaternion: np.ndarray or list, rotation: str = "yaw"
+) -> float:
     """Return the desired rotation angle in radians from a quaternion."""
-    x, y, z, w = quaternion.tolist()
+    x, y, z, w = quaternion if isinstance(quaternion, list) else quaternion.tolist()
     t0 = +2.0 * (w * x + y * z)
     t1 = +1.0 - 2.0 * (x * x + y * y)
     roll_x = math.atan2(t0, t1)

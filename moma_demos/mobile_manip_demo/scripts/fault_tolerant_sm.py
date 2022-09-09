@@ -223,7 +223,7 @@ def reactive_state_machine(cube_ID: int, visualize=False):
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        reactive_state_machine(2, True)
+        reactive_state_machine(2, False)
         print("Usage: <node> arg1")
         print("arg1: terminal OR sequence OR fallback OR connected")
     else:
