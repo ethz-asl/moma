@@ -4,6 +4,8 @@
 import sys
 
 from mobile_manip_demo import reactive_states
+from mobile_manip_demo.environment import get_place_pose
+import numpy as np
 import rospy
 import smach
 import smach_ros
@@ -15,7 +17,8 @@ def reactive_state_machine(cube_ID: int, visualize=False):
 
     # Parameters
     delivery = rospy.get_param("moma_demo/delivery_station")
-    place_pose = rospy.get_param("moma_demo/place_pose")
+    place_target = rospy.get_param("moma_demo/place_pose")
+    place_pose = get_place_pose(np.array(delivery), np.array(place_target))
     dock_pose = rospy.get_param("moma_demo/inspection_station")
     cube_locations = rospy.get_param("moma_demo/search_waypoints")
     search_IDs = [0, 1, 2]
