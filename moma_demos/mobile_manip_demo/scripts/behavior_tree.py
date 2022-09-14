@@ -6,6 +6,7 @@ from mobile_manip_demo.environment import get_place_pose
 import rospy
 
 import functools
+import networkx as nx
 import numpy as np
 import py_trees
 from mobile_manip_demo.visualizer import BTVisualizer
@@ -25,7 +26,7 @@ def post_tick_handler(snapshot_visitor, behavior_tree):
 
 
 class MoMaBT:
-    def __init__(self, bt_name: str, cube_ID: int):
+    def __init__(self, cube_ID: int):
         """Initialize ROS nodes."""
         # Parameters
         delivery = rospy.get_param("moma_demo/delivery_station")
@@ -159,10 +160,17 @@ class MoMaBT:
         self.root.add_children([recharge, moma, dock])
 
         self.tree = py_trees.trees.BehaviourTree(self.root)
-        py_trees.display.render_dot_tree(self.tree.root, name=bt_name)
 
     def get_root(self) -> py_trees.composites.Selector:
         return self.root
+
+    def visualize(self, bt_name: str):
+        """Compute the number of nodes and transition in a BT and save it as figure."""
+        py_trees.display.render_dot_tree(self.tree.root, name=bt_name)
+        graph = nx.DiGraph(
+            nx.drawing.nx_pydot.from_pydot(py_trees.display.dot_tree(self.tree.root))
+        )
+        print(f"{bt_name}, {graph}")
 
     def run(self):
         """The BT execution is visualized in the terminal."""
@@ -191,10 +199,11 @@ class MoMaBT:
 
 def main():
     rospy.init_node("BehaviorTree")
-    node = MoMaBT("big_moma", 2)
+    node = MoMaBT(2)
 
     try:
-        node.run_online()
+        node.visualize("big_moma")
+        # node.run_online()
         pass
     except rospy.ROSInterruptException:
         pass
