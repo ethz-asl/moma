@@ -253,9 +253,7 @@ class ObjectAtPose(MarkerPose):
         current_pose = self.get_pose(self.object_id, np.ndarray)[:3]
 
         control_distance = abs(current_pose[:3] - self.gazebo_pose[:3])
-        # rospy.logwarn(f"Control distance is {control_distance}")
-        distance = abs(current_pose[:3] - target_pose[:3])
-        # rospy.logwarn(f"Fair distance is {distance}")
+        # rospy.logwarn(f"Distance marker-gazebo is {control_distance}")
 
         a, b, c = [control_distance[x] >= tolerance[x] for x in range(len(tolerance))]
         if (a or b or c) and not np.all(
@@ -318,12 +316,13 @@ class BatteryLv:
         current_rate = self.current_lv * 100 / self.max_lv
         if relation == "lower":
             out = True if current_rate < value else False
-            msg = f"Battery below {value}%" if out else f"Battery above {value}%"
+            # msg = f"Battery below {value}%" if out else f"Battery above {value}%"
         else:
             out = True if current_rate > value else False
-            msg = f"Battery above {value}%" if out else f"Battery below {value}%"
+            # msg = f"Battery above {value}%" if out else f"Battery below {value}%"
 
-        rospy.logwarn(msg)
+        # rospy.logwarn(msg)
+        rospy.logwarn(f"Battery lv: {self.current_lv}")
         return out
 
 
