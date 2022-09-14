@@ -118,7 +118,7 @@ class Dock(smach.State):
         return True
 
     def check_done(self) -> bool:
-        return self.condition.at_pose(target_pose=self.target_pose, tolerance=0.01)
+        return self.condition.at_pose(target_pose=self.target_pose, tolerance=0.1)
 
     def execute(self, userdata):
         if self.check_done():
@@ -180,7 +180,7 @@ class Move(smach.State):
         return True
 
     def check_done(self) -> bool:
-        return self.condition.at_pose(target_pose=self.target_pose, tolerance=0.01)
+        return self.condition.at_pose(target_pose=self.target_pose, tolerance=0.1)
 
     def execute(self, userdata):
         if self.check_done():
@@ -236,7 +236,7 @@ class Pick(smach.State):
 
     def execute(self, userdata):
         if self.condition.in_hand():
-            self.interface.cancel_goal()
+            # self.interface.cancel_goal()
             self.initialized = False
             return self.outcomes[0]
         elif not self.initialized:
@@ -282,6 +282,7 @@ class Place(smach.State):
 
     def initialize(self) -> bool:
         rospy.loginfo("Initializing state PLACE!")
+        rospy.logerr(f"with target {self.goal_pose}")
         self.interface.initialize_place(goal_pose=self.goal_pose, goal_ID=self.goal_ID)
         return True
 
