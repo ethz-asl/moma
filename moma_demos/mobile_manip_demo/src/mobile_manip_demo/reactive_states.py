@@ -118,7 +118,7 @@ class Dock(smach.State):
         return True
 
     def check_done(self) -> bool:
-        return self.condition.at_pose(target_pose=self.target_pose, tolerance=0.1)
+        return self.condition.at_pose(target_pose=self.target_pose, tolerance=0.15)
 
     def execute(self, userdata):
         if self.check_done():
@@ -180,7 +180,7 @@ class Move(smach.State):
         return True
 
     def check_done(self) -> bool:
-        return self.condition.at_pose(target_pose=self.target_pose, tolerance=0.1)
+        return self.condition.at_pose(target_pose=self.target_pose, tolerance=0.15)
 
     def execute(self, userdata):
         if self.check_done():
@@ -363,7 +363,7 @@ class IDLE(smach.State):
         if self.battery_condition.battery_lv("lower", 20.0):
             return self.out_dict["recharge"]
         elif self.move_condition.at_pose(
-            target_pose=self.goal_dict["dock"][1], tolerance=0.1
+            target_pose=self.goal_dict["dock"][1], tolerance=0.15
         ):
             # If we are at the docking table, the task is solved
             rospy.logwarn(f"IDLE returning: {self.out_dict['dock']}")
@@ -378,7 +378,7 @@ class IDLE(smach.State):
             # The robot is holding the object, so we can move and place
             # If already at pose, place
             if self.move_condition.at_pose(
-                target_pose=self.goal_dict["move_2"][1], tolerance=0.1
+                target_pose=self.goal_dict["move_2"][1], tolerance=0.15
             ):
                 # If we are at the delivery table, just place it
                 rospy.logwarn(f"IDLE returning: {self.out_dict['move_2']}")
@@ -392,7 +392,7 @@ class IDLE(smach.State):
             # The robot is not holding the cube, so go to pick it
             # If already in sight of the cube, just pick it
             if self.move_condition.at_pose(
-                target_pose=self.goal_dict["move_1"][1], tolerance=0.1
+                target_pose=self.goal_dict["move_1"][1], tolerance=0.15
             ):
                 rospy.logwarn(f"IDLE returning: {self.out_dict['move_1']}")
                 return self.out_dict["move_1"]
