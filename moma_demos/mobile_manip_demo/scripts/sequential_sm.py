@@ -4,6 +4,8 @@
 import sys
 
 from mobile_manip_demo import states
+from mobile_manip_demo.environment import get_place_pose
+import numpy as np
 import rospy
 import smach
 import smach_ros
@@ -16,6 +18,7 @@ def state_machine(cube_ID: int, visualize=False):
     # Parameters
     delivery = rospy.get_param("moma_demo/delivery_station")
     place_target = rospy.get_param("moma_demo/place_pose")
+    place_pose = get_place_pose(np.array(delivery), np.array(place_target))
 
     # Create a SMACH state machine
     sm = smach.StateMachine(outcomes=["SUCCESS", "FAILURE"])
@@ -70,8 +73,7 @@ def state_machine(cube_ID: int, visualize=False):
             states.Place(
                 name=f"Place cube{cube_ID}",
                 goal_ID=cube_ID,
-                place_target=place_target,
-                nav_target=delivery,
+                goal_pose=place_pose,
                 outcomes=[f"Cube{cube_ID} placed", "FAILURE"],
             ),
             transitions={
