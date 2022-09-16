@@ -142,6 +142,7 @@ def reactive_state_machine(cube_ID: int, visualize=False):
             reactive_states.Place(
                 name=place_name,
                 goal_ID=cube_ID,
+                place_target=place_target,
                 goal_pose=place_pose,
                 # outcomes=[place_outcome, "RUNNING", "FAILURE"],
                 outcomes=[place_outcome, "RUNNING", "FAILURE", recharge_condition],
@@ -164,7 +165,8 @@ def reactive_state_machine(cube_ID: int, visualize=False):
                 outcomes=[dock_outcome, "RUNNING", "FAILURE", recharge_condition],
             ),
             transitions={
-                dock_outcome: "SUCCESS",
+                # dock_outcome: "SUCCESS",
+                dock_outcome: "Success",
                 "RUNNING": dock_name,
                 "FAILURE": "IDLE",
                 recharge_condition: recharge_name,
@@ -202,17 +204,20 @@ def reactive_state_machine(cube_ID: int, visualize=False):
                 move_2_outcome: place_name,
                 # place_outcome: "SUCCESS",
                 place_outcome: dock_name,
-                dock_outcome: "SUCCESS",
+                # dock_outcome: "SUCCESS",
+                dock_outcome: "Success",
                 recharge_condition: recharge_name,
                 "RUNNING": "IDLE",
             },
         )
 
-        # smach.StateMachine.add(
-        #     "Success",
-        #     reactive_states.Dummy(outcomes=["SUCCESS"]),
-        #     transitions={"SUCCESS": "SUCCESS"},
-        # )
+        # Note: comment this if you wish to count the number of states and transitions!
+        # If so, rename the IDLE and last state transitions from 'Success' to 'SUCCESS'
+        smach.StateMachine.add(
+            "Success",
+            reactive_states.Dummy(outcomes=["SUCCESS"]),
+            transitions={"SUCCESS": "SUCCESS"},
+        )
 
     # Create and start the introspection server
     sis = smach_ros.IntrospectionServer("server_name", sm, "/SM_ROOT")
@@ -240,7 +245,7 @@ def reactive_state_machine(cube_ID: int, visualize=False):
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        reactive_state_machine(2, True)
+        reactive_state_machine(2, False)
         print("Usage: <node> arg1")
         print("arg1: terminal OR sequence OR fallback OR connected")
     else:

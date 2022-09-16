@@ -92,7 +92,7 @@ class MoMaBT:
                     name=f"Robot-At delivery?",
                     robot_name="panda",
                     pose=np.array(delivery),
-                    tolerance=0.1,
+                    tolerance=0.15,
                 ),
                 bt.Move(name=f"Move-To delivery!", goal_pose=np.array(delivery)),
             ]
@@ -203,7 +203,7 @@ def main():
 
     try:
         node.visualize("big_moma")
-        # node.run_online()
+        node.run_online()
         pass
     except rospy.ROSInterruptException:
         pass

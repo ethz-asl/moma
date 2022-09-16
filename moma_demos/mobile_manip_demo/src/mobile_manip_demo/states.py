@@ -113,6 +113,7 @@ class Place(smach.State):
         self,
         name: str,
         goal_ID: str,
+        place_target: List[float],
         goal_pose: List[float],
         outcomes: List[str],
     ):
@@ -122,6 +123,7 @@ class Place(smach.State):
         self.name = name
         self.interface = skills.Place()
         self.goal_ID = goal_ID
+        self.place_target = np.array(place_target)
         self.goal_pose = np.array(goal_pose)
         self.initialized = False
 
@@ -129,7 +131,9 @@ class Place(smach.State):
 
     def initialize(self) -> bool:
         rospy.loginfo("Initializing state PLACE!")
-        self.interface.initialize_place(goal_pose=self.goal_pose, goal_ID=self.goal_ID)
+        self.interface.initialize_place(
+            goal_pose=self.place_target, goal_ID=self.goal_ID
+        )
         return True
 
     def execute(self, userdata):

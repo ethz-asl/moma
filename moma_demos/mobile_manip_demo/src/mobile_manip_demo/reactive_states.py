@@ -118,14 +118,10 @@ class Dock(smach.State):
         return True
 
     def check_done(self) -> bool:
-        return self.condition.at_pose(target_pose=self.target_pose, tolerance=0.15)
+        return self.condition.at_pose(target_pose=self.target_pose, tolerance=0.17)
 
     def execute(self, userdata):
-        if self.check_done():
-            self.interface.cancel_goal()
-            self.initialized = False
-            return self.outcomes[0]
-        elif not self.initialized:
+        if not self.initialized:
             self.initialized = self.initialize()
         rospy.Rate(1).sleep()
         rospy.loginfo("Executing state DOCK!")
@@ -180,14 +176,10 @@ class Move(smach.State):
         return True
 
     def check_done(self) -> bool:
-        return self.condition.at_pose(target_pose=self.target_pose, tolerance=0.15)
+        return self.condition.at_pose(target_pose=self.target_pose, tolerance=0.17)
 
     def execute(self, userdata):
-        if self.check_done():
-            self.interface.cancel_goal()
-            self.initialized = False
-            return self.outcomes[0]
-        elif not self.initialized:
+        if not self.initialized:
             self.initialized = self.initialize()
         rospy.Rate(1).sleep()
         rospy.loginfo("Executing state MOVE!")
@@ -235,11 +227,7 @@ class Pick(smach.State):
         return True
 
     def execute(self, userdata):
-        if self.condition.in_hand():
-            # self.interface.cancel_goal()
-            self.initialized = False
-            return self.outcomes[0]
-        elif not self.initialized:
+        if not self.initialized:
             self.initialized = self.initialize()
         rospy.Rate(1).sleep()
         rospy.loginfo("Executing state PICK!")
@@ -265,6 +253,7 @@ class Place(smach.State):
         self,
         name: str,
         goal_ID: str,
+        place_target: List[float],
         goal_pose: List[float],
         outcomes: List[str],
     ):
@@ -274,6 +263,7 @@ class Place(smach.State):
         self.name = name
         self.interface = skills.Place()
         self.goal_ID = goal_ID
+        self.place_target = np.array(place_target)
         self.goal_pose = np.array(goal_pose)
         self.initialized = False
 
@@ -283,7 +273,9 @@ class Place(smach.State):
     def initialize(self) -> bool:
         rospy.loginfo("Initializing state PLACE!")
         rospy.logerr(f"with target {self.goal_pose}")
-        self.interface.initialize_place(goal_pose=self.goal_pose, goal_ID=self.goal_ID)
+        self.interface.initialize_place(
+            goal_pose=self.place_target, goal_ID=self.goal_ID
+        )
         return True
 
     def check_done(self) -> bool:
@@ -378,7 +370,7 @@ class IDLE(smach.State):
             # The robot is holding the object, so we can move and place
             # If already at pose, place
             if self.move_condition.at_pose(
-                target_pose=self.goal_dict["move_2"][1], tolerance=0.15
+                target_pose=self.goal_dict["move_2"][1], tolerance=0.17
             ):
                 # If we are at the delivery table, just place it
                 rospy.logwarn(f"IDLE returning: {self.out_dict['move_2']}")
@@ -392,7 +384,7 @@ class IDLE(smach.State):
             # The robot is not holding the cube, so go to pick it
             # If already in sight of the cube, just pick it
             if self.move_condition.at_pose(
-                target_pose=self.goal_dict["move_1"][1], tolerance=0.15
+                target_pose=self.goal_dict["move_1"][1], tolerance=0.17
             ):
                 rospy.logwarn(f"IDLE returning: {self.out_dict['move_1']}")
                 return self.out_dict["move_1"]

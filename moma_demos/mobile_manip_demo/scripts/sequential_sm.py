@@ -73,6 +73,7 @@ def state_machine(cube_ID: int, visualize=False):
             states.Place(
                 name=f"Place cube{cube_ID}",
                 goal_ID=cube_ID,
+                place_target=place_target,
                 goal_pose=place_pose,
                 outcomes=[f"Cube{cube_ID} placed", "FAILURE"],
             ),
