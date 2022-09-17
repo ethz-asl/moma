@@ -51,9 +51,9 @@ class Move(smach.State):
             if status == 0 or status == 1:
                 continue
             elif status == 3 and self.condition.at_pose(
-                target_pose=self.target_pose, tolerance=0.15
+                target_pose=self.target_pose, tolerance=0.17
             ):
-                rospy.logwarn(f"Target pose:{self.target_pose}")
+                rospy.logwarn(f"Target pose: {self.target_pose}")
                 rospy.loginfo(f"Behavior {self.name} returned SUCCESS!")
                 running = False
                 return self.outcomes[0]

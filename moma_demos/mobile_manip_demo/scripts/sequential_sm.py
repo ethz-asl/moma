@@ -6,6 +6,7 @@ import sys
 from mobile_manip_demo import states
 from mobile_manip_demo.environment import get_place_pose
 import numpy as np
+import random
 import rospy
 import smach
 import smach_ros
@@ -113,6 +114,7 @@ def state_machine(cube_ID: int, visualize=False):
 
 
 if __name__ == "__main__":
+    random.seed(100)
     if len(sys.argv) < 2:
         state_machine(2, False)
         print("Usage: <node> arg1")

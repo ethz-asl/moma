@@ -2,6 +2,7 @@
 
 import mobile_manip_demo.behaviors as bt
 from mobile_manip_demo.environment import get_place_pose
+from mobile_manip_demo.visualizer import BTVisualizer
 
 import rospy
 
@@ -9,7 +10,7 @@ import functools
 import networkx as nx
 import numpy as np
 import py_trees
-from mobile_manip_demo.visualizer import BTVisualizer
+import random
 
 
 def post_tick_handler(snapshot_visitor, behavior_tree):
@@ -183,7 +184,7 @@ class MoMaBT:
         self.tree.setup(timeout=15)
 
         while not rospy.is_shutdown():
-            rospy.Rate(3).sleep()
+            rospy.Rate(1).sleep()
             self.tree.tick()
 
     def run_online(self):
@@ -192,12 +193,13 @@ class MoMaBT:
 
         self.tree.add_post_tick_handler(viz.update_graph)
         while not rospy.is_shutdown():
-            rospy.Rate(3).sleep()
+            rospy.Rate(1).sleep()
             # viz.tick()
             self.tree.tick()
 
 
 def main():
+    random.seed(40)
     rospy.init_node("BehaviorTree")
     node = MoMaBT(2)
 
