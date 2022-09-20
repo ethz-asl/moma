@@ -5,7 +5,6 @@
   <description>The mobile_manip_demo package</description>
 
   <maintainer email="fjulian@ethz.ch">Julian Foerster</maintainer>
-  <!-- TODO add Michel and Ken -->
 
   <!-- One license tag required, multiple allowed, one license per tag -->
   <!-- Commonly used license strings: -->
@@ -23,6 +22,7 @@
   <depend>vpp_msgs</depend>
 
   <depend>grasp_demo</depend>
+  <depend>nav_demo</depend>
   <depend>moma_utils</depend>
   <depend>yumi_controllers</depend>
   <depend>map_server</depend>
