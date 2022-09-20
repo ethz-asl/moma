@@ -1,6 +1,0 @@
-# Define the goal
----
-# Define the result
-geometry_msgs/Pose target_object_pose
----
-# Define the feedback
