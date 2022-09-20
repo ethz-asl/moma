@@ -23,7 +23,7 @@
   <!-- Drop -->
   <node pkg="mobile_manip_demo" type="drop_node.py" name="drop_skill" launch-prefix="bash -c 'sleep 20; $0 $@'" output="screen"/>
 
-  <!-- Reharge -->
+  <!-- Recharge -->
   <node pkg="mobile_manip_demo" type="battery_node.py" name="recharge_skill" launch-prefix="bash -c 'sleep 20; $0 $@'" output="screen"/>
 
 </launch>
