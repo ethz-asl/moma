@@ -38,7 +38,7 @@ HOME_ROBOT:
       "effort_joint_trajectory_controller",
     ]
   joints_configurations:
-    - [0, -0.885, 0, -2.1, 0, 1.571, 0.785]
+    - [0.0, -0.885, 0, -2.1, 0, 1.571, 0.785]
 
 REACH_DETECTION_HOTSPOT_FAR:
   default_outcome: None
@@ -113,7 +113,7 @@ NEW_VALVE:
   post: False
 
 VALVE_ANGLE_CONTROLLER:
-  turning_angle_deg: 240.0
+  turning_angle_deg: 360.0
 
 DETECTION_DECISION:
   default_outcome: Completed
@@ -128,8 +128,8 @@ OBSERVATION_POSE:
   object_size: 0.20
   camera_info_topic: "/camera_info"
   num_samples: 32
-  theta_range_deg: [-45, 45]
-  phi_range_deg: [10, 30]
+  theta_range_deg: [-15, 75]
+  phi_range_deg: [30, 40]
   image_fill_ratio_range: [0.4, 0.6]
   heading: "range"
   heading_range_deg: [30, 150] # Don't make this too large (e.g. [0, 180]) since the head orientation could get flipped when going from one extreme to the other
@@ -151,9 +151,9 @@ OBSERVATION_APPROACH:
 
 MODEL_FIT_VALVE:
   default_outcome: None
-  num_spokes: 4
+  num_spokes: 5
   spoke_radius: 0.01
-  handle_radius: 0.01
+  handle_radius: 0.015
   dummy: false
   dummy_position: [0.8, 0.0, 0.5]
   dummy_orientation: [0.0, 0.707, 0.0, 0.707]
@@ -168,8 +168,8 @@ PLAN_MODEL_VALVE:
   poses_topic: /valve_poses
   approach_poses_topic: /valve_approach_poses
   robot_base_frame: panda_link0
-  turning_angle_step_deg: 120.0 # Note that a higher step size than this can result in more entangled trajectories
-  safety_distance_factor: 6
+  turning_angle_step_deg: 180.0 # Note that a higher step size than this can result in more entangled trajectories
+  safety_distance_factor: 3.8
 
 PLAN_URDF_VALVE:
   default_outcome: None
@@ -177,6 +177,20 @@ PLAN_URDF_VALVE:
   poses_topic: /valve_poses
   approach_poses_topic: /valve_approach_poses
   turning_angle_deg: 120.0
+
+APPROACH_HOMING:
+  default_outcome: None
+  action_name: /joint_space_controller_server
+  manager_namespace: panda
+  startlist: ["joint_space_controller"]
+  stoplist:
+    [
+      "mpc_controller",
+      "mpc_wholebody_controller",
+      "path_passthrough_controller",
+    ]
+  joints_configurations:
+    - [1.571, -0.885, 0, -2.1, 0, 1.571, 0.785]
 
 APPROACH_VALVE:
   default_outcome: None
@@ -196,8 +210,8 @@ APPROACH_VALVE:
   angular_tolerance: 0.1
 
   poses_topic: /valve_approach_poses
-  offset: [0, 0, -0.05]
-  timeout: 30.0
+  offset: [0, 0, -0.15]
+  timeout: 300.0
 
 GRASP_VALVE:
   default_outcome: None
@@ -218,6 +232,7 @@ GRASP_VALVE:
 
   poses_topic: /valve_poses
   section: "first"
+  offset: [0, 0, 0.018]
   timeout: 15.0
 
 MANIPULATE_VALVE:

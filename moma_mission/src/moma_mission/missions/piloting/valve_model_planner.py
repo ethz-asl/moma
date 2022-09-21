@@ -1,4 +1,5 @@
 import rospy
+import tf
 import numpy as np
 from geometry_msgs.msg import PoseArray, Pose
 
@@ -110,8 +111,13 @@ class ValveModelPlanner:
         """
         x_score = 0
         if self.robot_base_heading is not None:
+            z_rotation = tf.transformations.quaternion_matrix(
+                tf.transformations.quaternion_from_euler(0, 0, -np.pi / 4)
+            )[0:3, 0:3]
             x_axis = R.from_quat(grasp["orientation"]).as_matrix()[:, 0]
-            x_score = np.dot(x_axis, self.robot_base_heading)
+            heading_axis = np.matmul(z_rotation, x_axis)
+            # print(f"Gripper forward axis is {x_axis} and corrected one is {heading_axis} due to gripper symmetry offset")
+            x_score = np.dot(heading_axis, self.robot_base_heading)
         return x_score
 
     def _get_valid_paths(
