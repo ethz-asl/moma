@@ -9,6 +9,16 @@ repositories:
     url: git@github.com:ethz-asl/object_keypoints_ros.git
     version: 780ad826ebd5c6b6f2436bd5c523c575645a63f3
 
+  cartographer:
+    type: git
+    url: https://github.com/cartographer-project/cartographer.git
+    version: 105c034577220268cd28a304a185adbec46b729f
+
+  cartographer_ros:
+    type: git
+    url: https://github.com/cartographer-project/cartographer_ros.git
+    version: c06879b63567a78ef92b7d1fa79453839e36ffec
+
   compslam:
     type: git
     url: https://bitbucket.org/leggedrobotics/compslam_rss.git
@@ -27,7 +37,7 @@ repositories:
   smb_path_planner:
     type: git
     url: git@github.com:ethz-asl/smb_path_planner.git
-    version: 4b528b0c4c43fbbd360a420226842df15a983d65
+    version: 35dc6ce238474aedfdc3322b57e2448f21d69286
 
   teb_local_planner:
     type: git

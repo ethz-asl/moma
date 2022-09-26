@@ -25,7 +25,6 @@ COPY moma_mission/requirements.txt ${CATKIN_WS}/src/moma/moma_mission/
 WORKDIR ${CATKIN_WS}/src
 RUN vcs import --recursive --input moma/moma_core.repos
 RUN vcs import --recursive --input moma/moma_piloting.repos
-RUN vcs import --input https://raw.githubusercontent.com/cartographer-project/cartographer_ros/master/cartographer_ros.rosinstall
 RUN apt-get -qq update && apt-get -qq upgrade && DEBIAN_FRONTEND=noninteractive moma/install_dependencies.sh --control --piloting
 RUN rosdep update
 RUN rosdep install --from-paths . --ignore-src -r -y || true

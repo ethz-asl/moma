@@ -145,33 +145,34 @@ install_piloting() {
 install_system_deps() {
 sudo --preserve-env=DEBIAN_FRONTEND apt-get install \
   git git-lfs python3-pip python3-vcstool \
-	ros-$ROS_DISTRO-ros-control \
-	ros-$ROS_DISTRO-ros-controllers \
-	ros-$ROS_DISTRO-gazebo-ros-pkgs \
-	ros-$ROS_DISTRO-gazebo-ros-control \
-	ros-$ROS_DISTRO-gazebo-ros \
-	ros-$ROS_DISTRO-moveit \
-	ros-$ROS_DISTRO-rosmon \
-	ros-$ROS_DISTRO-pcl-ros \
-	ros-$ROS_DISTRO-tf2-sensor-msgs \
-	ros-$ROS_DISTRO-py-trees \
-	ros-$ROS_DISTRO-py-trees-ros \
-	ros-$ROS_DISTRO-rqt-py-trees \
-	ros-$ROS_DISTRO-libfranka \
-	ros-$ROS_DISTRO-franka-ros \
-	ros-$ROS_DISTRO-franka-description \
-	ros-$ROS_DISTRO-joint-state-publisher-gui \
-	ros-$ROS_DISTRO-ddynamic-reconfigure \
-	ros-$ROS_DISTRO-lms1xx \
-	ros-$ROS_DISTRO-interactive-marker-twist-server \
+  ros-$ROS_DISTRO-roslint \
+  ros-$ROS_DISTRO-ros-control \
+  ros-$ROS_DISTRO-ros-controllers \
+  ros-$ROS_DISTRO-gazebo-ros-pkgs \
+  ros-$ROS_DISTRO-gazebo-ros-control \
+  ros-$ROS_DISTRO-gazebo-ros \
+  ros-$ROS_DISTRO-moveit \
+  ros-$ROS_DISTRO-rosmon \
+  ros-$ROS_DISTRO-pcl-ros \
+  ros-$ROS_DISTRO-tf2-sensor-msgs \
+  ros-$ROS_DISTRO-py-trees \
+  ros-$ROS_DISTRO-py-trees-ros \
+  ros-$ROS_DISTRO-rqt-py-trees \
+  ros-$ROS_DISTRO-libfranka \
+  ros-$ROS_DISTRO-franka-ros \
+  ros-$ROS_DISTRO-franka-description \
+  ros-$ROS_DISTRO-joint-state-publisher-gui \
+  ros-$ROS_DISTRO-ddynamic-reconfigure \
+  ros-$ROS_DISTRO-lms1xx \
+  ros-$ROS_DISTRO-interactive-marker-twist-server \
   ros-$ROS_DISTRO-plotjuggler-ros \
   ros-$ROS_DISTRO-jsk-rviz-plugins \
-	qtbase5-dev -qq || fail "Error installing system dependencies"
+  qtbase5-dev -qq || fail "Error installing system dependencies"
 }
 
 
 install_external() {
-	vcs import --recursive --input moma/moma_core.repos || fail "Error importing dependencies"
+  vcs import --recursive --input moma/moma_core.repos || fail "Error importing dependencies"
 }
 
 usage="$(basename "$0") [-h] [-c --control] [-p --piloting] -- moma stack installation script\n

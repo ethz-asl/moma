@@ -113,7 +113,7 @@ roslaunch piloting_demo operator_pc.launch
 Before reading the rest of this section, be careful about consistency of the robot description among these packages. Slam and localization require the relative transforms between lidar and other odometry sources, such at the imu and the tracking camera. Both offline mapping and map generation (step 1 and 2 in the following) point to a urdf file which is statically generated and placed in `smb_slam/config/smb_cartographer/<name-urdf>.urdf`. Make sure that this is consistent with the current version of the robot
 
 Mapping relies on the `cartographer_ros` package which is wrapped by `smb_slam`. We first navigate (manually) and collect a rosbag of the required sensors.
-Use the bash script available in the smb home folder for that (TODO put this script somewhere here). Then we run a offline mapping session based on these data.
+Use the bash script available in the smb home folder for that (`smb_common/record_sensors.sh`). Then we run a offline mapping session based on these data.
 
 ### Step 1: offline mapping
 
@@ -136,7 +136,7 @@ The genereted pose graph, can be consumed to post-process and optimize a global 
 ```
 roslaunch smb_slam assets_writer_ct.launch \
   bag_filenames:=<full-path-to-bag-file> \
-  pose_graph_file_name:=<full-path-to-bag-file>.pbstream \
+  pose_graph_filename:=<full-path-to-bag-file>.pbstream \
   map_name:=map
   output_file_prefix:=<path-to-save-directory>
 ```
@@ -144,8 +144,9 @@ roslaunch smb_slam assets_writer_ct.launch \
 If the bag is `/home/bags/test.bag` and this has been processed as in step 1, a `/home/bags/test.bag.pbstream` should be saved. Then an example command could be
 
 ```
-roslauncb smb_slam assets_writer_ct.launch bag_filenames:=/home/bags/test.launch \
-  pose_graph_file_name:=/home/bags/test.bag.pbstream \
+roslaunch smb_slam assets_writer_ct.launch \
+  bag_filenames:=/home/bags/test.launch \
+  pose_graph_filename:=/home/bags/test.bag.pbstream \
   map_name:=map output_file_prefix:=/home/maps
 ```
 
@@ -177,6 +178,8 @@ cd ~/piloting_ws/src/smb_path_planner/smb_navigation/script
 ```
 
 The previous command will generate a `map.yaml` and `map.pgm` files in the target folder. The `map.yaml` might contain some `nan` in the origin, set it manually to zero and save.
+
+For a foreign robot, you might need to adapt the `rot_roll` in `pcd_converter.launch` in case the floor is not displayed evenly.
 
 ### Step 4 (optional): Mesh generation for simulation
 
@@ -247,13 +250,31 @@ In Terminal 3 (**smb_pc**)
 mon launch piloting_demo navigation.launch sim:=false use_global_map:=[true/false]
 ```
 
-In Terminal 4 (**operator_pc**)
+In Terminal 4 (**panda_pc**)
+
+```
+mon launch piloting_demo perception.launch
+```
+
+In Terminal 5 (**operator_pc**)
 
 ```
 mon launch piloting_demo operator_pc.launch
 ```
 
-This will launch the smb and panda robot, start their controller and run the localization and navigation pipeline. Note that localization and navigation are against a static prebuilt map. This defaults to the jfloor map for the moment, but a different map can be given as argument to the launch file. Refer to the corresponding [launch file](launch/navigation.launch) for more info. The base target is set in the same way as in simulation.
+In Terminal 6 (**operator_pc**) [Optional]
+
+```
+rosrun teleop_twist_keyboard teleop_twist_keyboard.py __ns:=keyboard_teleop
+```
+
+In Terminal 7 (**panda_pc**) [Optional]
+
+```
+roslaunch piloting_demo mission.launch standalone:=true
+```
+
+This will launch the smb and panda robot, start their controller and run the localization, navigation and perception pipeline. It will also start the state machine in standalone mode. Note that localization and navigation are against a static prebuilt map. This defaults to the `jfloor` map for the moment, but a different map can be given as argument to the launch file. Refer to the corresponding [launch file](launch/navigation.launch) for more info. The base target is set in the same way as in simulation.
 
 ## ground Robot Control Station (gRCS)
 
@@ -268,6 +289,26 @@ The buttons in the image are the most relevant for establishing a new connection
 Once the gRCS gui is started, an inspection plan need to uploaded for a mission to start. Press on the _Load Inspection Plan_ button. The docker image should already contain a inspection file that can be used. Then The GCS can connect to the robot by specifing its ip, port and identifer. Open the connection dialog window pressing on the _Robotic System Communication Options_ button and inspect the settings. Note that the settings should match with the config file used in `piloting-mavsdk-ros` to establish the connection.
 
 ![alt text](docs/images/gRCS_communication_options.png)
+
+To launch the gRCS, you additionally need to launch the following.
+
+In Terminal 1 (**panda_pc**/**operator_pc**)
+
+```
+mon launch piloting_demo mavsdk_ros.launch
+```
+
+In Terminal 2 (**panda_pc**)
+
+```
+roslaunch piloting_demo mission.launch
+```
+
+In Terminal 3 (**operator_pc**)
+
+```
+./run_grcs.sh --nvidia_drivers=False
+```
 
 ## State Machine
 
