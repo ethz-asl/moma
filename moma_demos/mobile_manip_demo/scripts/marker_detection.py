@@ -18,6 +18,7 @@ class MarkerDetectionNode:
         frequency = rospy.get_param("detection_frequency", 10.0)
         self.rate = rospy.Rate(frequency)
         self.reference_frame = rospy.get_param("reference_frame", "map")
+        self.init_poses = rospy.get_param("initial_poses", [])
 
         self.tf_buffer = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener(self.tf_buffer)
@@ -26,12 +27,29 @@ class MarkerDetectionNode:
         # Key is an int representing the ID
         # Value is a Pose representing the pose of the marker with said ID
         self.known_markers = {}
+        # Initialize the poses prior for the markers
+        self.init_markers_kb()
 
         self.marker_publisher = rospy.Publisher(
             "/marker_poses", MarkerPoses, queue_size=10
         )
 
+    def init_markers_kb(self):
+        """Initialize robot knowledge."""
+        for val in self.init_poses:
+            init_pose = Pose()
+            init_pose.position.x = float(val["pose"][0])
+            init_pose.position.y = float(val["pose"][1])
+            init_pose.position.z = float(val["pose"][2])
+            init_pose.orientation.x = float(val["pose"][3])
+            init_pose.orientation.y = float(val["pose"][4])
+            init_pose.orientation.z = float(val["pose"][5])
+            init_pose.orientation.w = float(val["pose"][6])
+
+            self.known_markers[int(val["id"])] = init_pose
+
     def marker_callback(self):
+        """Detect markers and build robot knowledge."""
         while not rospy.is_shutdown():
             detection_list = rospy.wait_for_message(
                 "/tag_detections", AprilTagDetectionArray

@@ -41,3 +41,6 @@ standalone_tags:
 # MarkerDetectionNode parameters
 detection_frequency: 10.0
 reference_frame: "map"
+initial_poses: [
+  {id: 2, pose: [-2.1, 1.95, 0.68, -0.051, 0.004, 0.704, -0.708]}
+]
