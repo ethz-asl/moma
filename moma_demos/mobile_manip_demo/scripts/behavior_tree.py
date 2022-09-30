@@ -27,14 +27,18 @@ def post_tick_handler(snapshot_visitor, behavior_tree):
 
 
 class MoMaBT:
-    def __init__(self, cube_ID: int):
+    def __init__(self):
         """Initialize ROS nodes."""
+        cube_ID = 2
         # Parameters
         delivery = rospy.get_param("moma_demo/delivery_station")
         place_target = rospy.get_param("moma_demo/place_pose")
         place_pose = get_place_pose(np.array(delivery), np.array(place_target))
         search_locations = rospy.get_param("moma_demo/search_waypoints")
         dock_pose = rospy.get_param("moma_demo/inspection_station")
+
+        task_type = rospy.get_param("moma_demo/experiment")
+        self.visualization_only = rospy.get_param("moma_demo/visualization_only")
 
         # Search for Cubes
         # search = py_trees.composites.Selector(name="Fallback")
@@ -155,10 +159,12 @@ class MoMaBT:
         )
 
         self.root = bt.RSequence(name="Sequence")
-        # self.root = moma
-        # self.root.add_children([recharge, moma])
-        # self.root.add_children([moma, dock])
-        self.root.add_children([recharge, moma, dock])
+        if task_type == 2:
+            self.root.add_children([recharge, moma])
+        elif task_type == 3:
+            self.root.add_children([recharge, moma, dock])
+        else:
+            self.root = moma
 
         self.tree = py_trees.trees.BehaviourTree(self.root)
 
@@ -199,13 +205,13 @@ class MoMaBT:
 
 
 def main():
-    random.seed(40)
     rospy.init_node("BehaviorTree")
-    node = MoMaBT(2)
+    node = MoMaBT()
 
     try:
         node.visualize("big_moma")
-        node.run_online()
+        if not node.visualization_only:
+            node.run_online()
         pass
     except rospy.ROSInterruptException:
         pass

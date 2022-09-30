@@ -12,9 +12,11 @@ import smach
 import smach_ros
 
 
-def reactive_state_machine(cube_ID: int, visualize=False):
+def reactive_state_machine():
 
     rospy.init_node("state_machine")
+
+    cube_ID = 2
 
     # Parameters
     delivery = rospy.get_param("moma_demo/delivery_station")
@@ -23,6 +25,9 @@ def reactive_state_machine(cube_ID: int, visualize=False):
     dock_pose = rospy.get_param("moma_demo/inspection_station")
     cube_locations = rospy.get_param("moma_demo/search_waypoints")
     search_IDs = [0, 1, 2]
+
+    task_type = rospy.get_param("moma_demo/experiment")
+    visualization_only = rospy.get_param("moma_demo/visualization_only")
 
     move_1_name = f"Move-To cube{cube_ID}"
     move_1_outcome = f"Cube{cube_ID} reached"
@@ -51,9 +56,11 @@ def reactive_state_machine(cube_ID: int, visualize=False):
         "pick": [pick_name, cube_ID],
         "move_2": [move_2_name, delivery],
         "place": [place_name, place_pose],
-        "dock": [dock_name, dock_pose],
-        "recharge": [recharge_name, None],
     }
+    if task_type == 2 or task_type == 3:
+        goal_dictionary["recharge"] = [recharge_name, None]
+    if task_type == 3:
+        goal_dictionary["dock"] = [dock_name, dock_pose]
 
     outcome_dictionary = {
         # "search": search_outcome,
@@ -61,9 +68,11 @@ def reactive_state_machine(cube_ID: int, visualize=False):
         "pick": pick_outcome,
         "move_2": move_2_outcome,
         "place": place_outcome,
-        "dock": dock_outcome,
-        "recharge": recharge_condition,
     }
+    if task_type == 2 or task_type == 3:
+        outcome_dictionary["recharge"] = recharge_condition
+    if task_type == 3:
+        outcome_dictionary["dock"] = dock_outcome
 
     # Create a SMACH state machine
     sm = smach.StateMachine(outcomes=["SUCCESS"])
@@ -85,6 +94,17 @@ def reactive_state_machine(cube_ID: int, visualize=False):
         #     },
         # )
 
+        # Move Action 1
+        move_1_tr = {
+            move_1_outcome: pick_name,
+            "RUNNING": move_1_name,
+            "FAILURE": "IDLE",
+        }
+        move_1_out = [move_1_outcome, "RUNNING", "FAILURE"]
+        if task_type == 2 or task_type == 3:
+            move_1_tr[recharge_condition] = recharge_name
+            move_1_out.append(recharge_condition)
+
         smach.StateMachine.add(
             move_1_name,
             reactive_states.Move(
@@ -92,16 +112,21 @@ def reactive_state_machine(cube_ID: int, visualize=False):
                 goal_ID=cube_ID,
                 ref_frame="map",
                 goal_pose=None,
-                # outcomes=[move_1_outcome, "RUNNING", "FAILURE"],
-                outcomes=[move_1_outcome, "RUNNING", "FAILURE", recharge_condition],
+                outcomes=move_1_out,
             ),
-            transitions={
-                move_1_outcome: pick_name,
-                "RUNNING": move_1_name,
-                "FAILURE": "IDLE",
-                recharge_condition: recharge_name,
-            },
+            transitions=move_1_tr,
         )
+
+        # Pick action
+        pick_tr = {
+            pick_outcome: move_2_name,
+            "RUNNING": pick_name,
+            "FAILURE": "IDLE",
+        }
+        pick_out = [pick_outcome, "RUNNING", "FAILURE"]
+        if task_type == 2 or task_type == 3:
+            pick_tr[recharge_condition] = recharge_name
+            pick_out.append(recharge_condition)
 
         smach.StateMachine.add(
             pick_name,
@@ -109,16 +134,21 @@ def reactive_state_machine(cube_ID: int, visualize=False):
                 name=pick_name,
                 goal_ID=cube_ID,
                 goal_pose=None,
-                # outcomes=[pick_outcome, "RUNNING", "FAILURE"],
-                outcomes=[pick_outcome, "RUNNING", "FAILURE", recharge_condition],
+                outcomes=pick_out,
             ),
-            transitions={
-                pick_outcome: move_2_name,
-                "RUNNING": pick_name,
-                "FAILURE": "IDLE",
-                recharge_condition: recharge_name,
-            },
+            transitions=pick_tr,
         )
+
+        # Move Action 2
+        move_2_tr = {
+            move_2_outcome: place_name,
+            "RUNNING": move_2_name,
+            "FAILURE": "IDLE",
+        }
+        move_2_out = [move_2_outcome, "RUNNING", "FAILURE"]
+        if task_type == 2 or task_type == 3:
+            move_2_tr[recharge_condition] = recharge_name
+            move_2_out.append(recharge_condition)
 
         smach.StateMachine.add(
             move_2_name,
@@ -127,16 +157,22 @@ def reactive_state_machine(cube_ID: int, visualize=False):
                 goal_ID=None,
                 ref_frame="map",
                 goal_pose=delivery,
-                # outcomes=[move_2_outcome, "RUNNING", "FAILURE"],
-                outcomes=[move_2_outcome, "RUNNING", "FAILURE", recharge_condition],
+                outcomes=move_2_out,
             ),
-            transitions={
-                move_2_outcome: place_name,
-                "RUNNING": move_2_name,
-                "FAILURE": "IDLE",
-                recharge_condition: recharge_name,
-            },
+            transitions=move_2_tr,
         )
+
+        # Place Action
+        after_place = dock_name if task_type == 3 else "Success"  # "SUCCESS"
+        place_tr = {
+            place_outcome: after_place,
+            "RUNNING": place_name,
+            "FAILURE": "IDLE",
+        }
+        place_out = [place_outcome, "RUNNING", "FAILURE"]
+        if task_type == 2 or task_type == 3:
+            place_tr[recharge_condition] = recharge_name
+            place_out.append(recharge_condition)
 
         smach.StateMachine.add(
             place_name,
@@ -145,46 +181,56 @@ def reactive_state_machine(cube_ID: int, visualize=False):
                 goal_ID=cube_ID,
                 place_target=place_target,
                 goal_pose=place_pose,
-                # outcomes=[place_outcome, "RUNNING", "FAILURE"],
-                outcomes=[place_outcome, "RUNNING", "FAILURE", recharge_condition],
+                outcomes=place_out,
             ),
-            transitions={
-                # place_outcome: "SUCCESS",
-                place_outcome: dock_name,
-                "RUNNING": place_name,
-                "FAILURE": "IDLE",
-                recharge_condition: recharge_name,
-            },
+            transitions=place_tr,
         )
 
-        smach.StateMachine.add(
-            dock_name,
-            reactive_states.Dock(
-                name=dock_name,
-                target_pose=dock_pose,
-                # outcomes=[dock_outcome, "RUNNING", "FAILURE"],
-                outcomes=[dock_outcome, "RUNNING", "FAILURE", recharge_condition],
-            ),
-            transitions={
-                # dock_outcome: "SUCCESS",
-                dock_outcome: "Success",
-                "RUNNING": dock_name,
-                "FAILURE": "IDLE",
-                recharge_condition: recharge_name,
-            },
-        )
+        # Dock Action
+        if task_type == 3:
+            smach.StateMachine.add(
+                dock_name,
+                reactive_states.Dock(
+                    name=dock_name,
+                    target_pose=dock_pose,
+                    outcomes=[dock_outcome, "RUNNING", "FAILURE", recharge_condition],
+                ),
+                transitions={
+                    # dock_outcome: "SUCCESS",
+                    dock_outcome: "Success",
+                    "RUNNING": dock_name,
+                    "FAILURE": "IDLE",
+                    recharge_condition: recharge_name,
+                },
+            )
 
-        smach.StateMachine.add(
-            recharge_name,
-            reactive_states.Recharge(
-                name=recharge_name,
-                outcomes=["SUCCESS", "RUNNING"],
-            ),
-            transitions={
-                "RUNNING": recharge_name,
-                "SUCCESS": "IDLE",
-            },
-        )
+        if task_type == 2 or task_type == 3:
+            smach.StateMachine.add(
+                recharge_name,
+                reactive_states.Recharge(
+                    name=recharge_name,
+                    outcomes=["SUCCESS", "RUNNING"],
+                ),
+                transitions={
+                    "RUNNING": recharge_name,
+                    "SUCCESS": "IDLE",
+                },
+            )
+
+        # IDLE
+        idle_tr = {
+            "Restart the task": move_1_name,
+            # search_outcome: move_1_name,
+            move_1_outcome: pick_name,
+            pick_outcome: move_2_name,
+            move_2_outcome: place_name,
+            place_outcome: after_place,
+            "RUNNING": "IDLE",
+        }
+        if task_type == 2 or task_type == 3:
+            idle_tr[recharge_condition] = recharge_name
+        if task_type == 3:
+            idle_tr[dock_outcome] = "Success"  # "SUCCESS"
 
         smach.StateMachine.add(
             "IDLE",
@@ -197,19 +243,7 @@ def reactive_state_machine(cube_ID: int, visualize=False):
                     "RUNNING",
                 ],
             ),
-            transitions={
-                "Restart the task": move_1_name,
-                # search_outcome: move_1_name,
-                move_1_outcome: pick_name,
-                pick_outcome: move_2_name,
-                move_2_outcome: place_name,
-                # place_outcome: "SUCCESS",
-                place_outcome: dock_name,
-                # dock_outcome: "SUCCESS",
-                dock_outcome: "Success",
-                recharge_condition: recharge_name,
-                "RUNNING": "IDLE",
-            },
+            transitions=idle_tr,
         )
 
         # Note: comment this if you wish to count the number of states and transitions!
@@ -231,7 +265,7 @@ def reactive_state_machine(cube_ID: int, visualize=False):
 
     print("Number of transitions: ", n_transitions)
 
-    if not visualize:
+    if not visualization_only:
         # Execute SMACH plan
         outcome = sm.execute()
         if outcome == "SUCCESS":
@@ -245,10 +279,4 @@ def reactive_state_machine(cube_ID: int, visualize=False):
 
 
 if __name__ == "__main__":
-    random.seed(100)
-    if len(sys.argv) < 2:
-        reactive_state_machine(2, False)
-        print("Usage: <node> arg1")
-        print("arg1: terminal OR sequence OR fallback OR connected")
-    else:
-        reactive_state_machine(2, sys.argv[1])
+    reactive_state_machine()

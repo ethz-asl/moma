@@ -329,10 +329,7 @@ class IDLE(smach.State):
     ):
         self.out_dict = out_dict
         self.outcomes = outcomes + list(out_dict.values())
-        smach.State.__init__(
-            self,
-            outcomes=self.outcomes,
-        )
+        super().__init__(outcomes=self.outcomes)
 
         self.name = name
         self.goal_dict = goal_dict
@@ -352,11 +349,13 @@ class IDLE(smach.State):
 
     def __get_next_state(self):
         # The order of the self.outcomes list depends on the PLAN given in the knowledge base
-        if self.battery_condition.battery_lv("lower", 20.0):
+        if self.battery_condition.battery_lv("lower", 20.0) and "recharge" in list(
+            self.goal_dict.keys()
+        ):
             return self.out_dict["recharge"]
         elif self.move_condition.at_pose(
             target_pose=self.goal_dict["dock"][1], tolerance=0.15
-        ):
+        ) and "dock" in list(self.goal_dict.keys()):
             # If we are at the docking table, the task is solved
             rospy.logwarn(f"IDLE returning: {self.out_dict['dock']}")
             return self.out_dict["dock"]
