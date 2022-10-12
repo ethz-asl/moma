@@ -51,7 +51,7 @@ EOF
 
   cat << EOF >> ~/.moma_bashrc
 export PATH=/opt/openrobots/bin:\$PATH
-export PKG_CONFIG_PATH=/opt/openrobots/lib/pkgconfig:\$PKG_CONFIG_PATH
+#export PKG_CONFIG_PATH=/opt/openrobots/lib/pkgconfig:\$PKG_CONFIG_PATH
 export LD_LIBRARY_PATH=/opt/openrobots/lib:\$LD_LIBRARY_PATH
 export LIBRARY_PATH=/opt/openrobots/lib:\$LIBRARY_PATH
 export PYTHONPATH=/opt/openrobots/lib/python3.8/site-packages:\$PYTHONPATH
@@ -61,6 +61,7 @@ EOF
 
 install_pinocchio() {
   echo "Installing pinocchio"
+  apt-get purge -qq ros-$ROS_DISTRO-pinocchio
   source ~/.moma_bashrc
 
   mkdir -p ~/git
@@ -91,7 +92,7 @@ install_pinocchio() {
 
   cat << EOF >> ~/.moma_bashrc
 export PATH=${PINOCCHIO_INSTALL_PREFIX}/bin:\$PATH
-export PKG_CONFIG_PATH=${PINOCCHIO_INSTALL_PREFIX_STR}/lib/pkgconfig:\$PKG_CONFIG_PATH
+#export PKG_CONFIG_PATH=${PINOCCHIO_INSTALL_PREFIX_STR}/lib/pkgconfig:\$PKG_CONFIG_PATH
 export LD_LIBRARY_PATH=${PINOCCHIO_INSTALL_PREFIX_STR}/lib:\$LD_LIBRARY_PATH
 export LIBRARY_PATH=${PINOCCHIO_INSTALL_PREFIX_STR}/lib:\$LIBRARY_PATH
 export PYTHONPATH=\$PYTHONPATH:${PINOCCHIO_INSTALL_PREFIX_STR}/lib/python2.7/dist-packages:${PINOCCHIO_INSTALL_PREFIX_STR}/lib/python3/dist-packages

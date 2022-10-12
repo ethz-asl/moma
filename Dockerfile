@@ -25,6 +25,9 @@ COPY moma_mission/requirements.txt ${CATKIN_WS}/src/moma/moma_mission/
 WORKDIR ${CATKIN_WS}/src
 RUN vcs import --recursive --input moma/moma_core.repos
 RUN vcs import --recursive --input moma/moma_piloting.repos
+# Fix recent versions of Ubuntu putting /opt/ros/noetic/lib/x86_64-linux-gnu/pkgconfig into PKG_CONFIG_PATH
+# and then pinocchio will have a non-existent include path when queried with "pkg-config --cflags pinocchio"
+ENV PKG_CONFIG_PATH=""
 RUN apt-get -qq update && apt-get -qq upgrade && DEBIAN_FRONTEND=noninteractive moma/install_dependencies.sh --control --piloting
 RUN rosdep update
 RUN rosdep install --from-paths . --ignore-src -r -y || true
