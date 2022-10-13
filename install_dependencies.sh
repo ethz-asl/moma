@@ -88,7 +88,6 @@ install_pinocchio() {
     cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${PINOCCHIO_INSTALL_PREFIX} -DBUILD_WITH_COLLISION_SUPPORT=ON -DBUILD_PYTHON_INTERFACE=ON -DBUILD_TESTING=OFF || fail "Please resource ~/.moma_bashrc and restart the script"
     make -j4 || fail "Error building pinocchio"
 
-    mkdir install
     make install || fail "Error installing pinocchio"
   else
     info "Previous pinocchio installation found at ${PINOCCHIO_INSTALL_PREFIX}"
