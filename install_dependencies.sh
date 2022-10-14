@@ -16,8 +16,8 @@ info() {
 }
 
 fail() {
-    echo ${RED}[STOPPING DUE TO ERROR] $1${NC} >&2
-    exit 1
+  echo ${RED}[STOPPING DUE TO ERROR] $1${NC} >&2
+  exit 1
 }
 
 install_ci() {
@@ -53,6 +53,7 @@ EOF
 export PATH=/opt/openrobots/bin:\$PATH
 export PKG_CONFIG_PATH=/opt/openrobots/lib/pkgconfig:\$PKG_CONFIG_PATH
 export LD_LIBRARY_PATH=/opt/openrobots/lib:\$LD_LIBRARY_PATH
+export LIBRARY_PATH=/opt/openrobots/lib:\$LIBRARY_PATH
 export PYTHONPATH=/opt/openrobots/lib/python3.8/site-packages:\$PYTHONPATH
 export CMAKE_PREFIX_PATH=/opt/openrobots:\$CMAKE_PREFIX_PATH
 EOF
@@ -60,6 +61,11 @@ EOF
 
 install_pinocchio() {
   echo "Installing pinocchio"
+  sudo apt-get purge -qq ros-$ROS_DISTRO-pinocchio
+  # Bug in ROS build, this directory needs to exist
+  # Fix recent versions of Ubuntu putting /opt/ros/noetic/lib/x86_64-linux-gnu/pkgconfig into PKG_CONFIG_PATH
+  # and then pinocchio will have a non-existent include path when queried with "pkg-config --cflags pinocchio"
+  sudo mkdir /opt/ros/noetic/lib/include
   source ~/.moma_bashrc
 
   mkdir -p ~/git
@@ -75,24 +81,23 @@ install_pinocchio() {
   # If no previous install is found build the package again
   if [[ ! -d install ]]
   then
-      [ ! -d build ] || rm -r build
-      mkdir build
-      cd build
+    [ ! -d build ] || rm -r build
+    mkdir build
+    cd build
 
-      cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${PINOCCHIO_INSTALL_PREFIX} -DBUILD_WITH_COLLISION_SUPPORT=ON -DBUILD_PYTHON_INTERFACE=ON -DBUILD_TESTING=OFF || fail "Please resource ~/.moma_bashrc and restart the script"
-      make -j4 || fail "Error building pinocchio"
+    cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${PINOCCHIO_INSTALL_PREFIX} -DBUILD_WITH_COLLISION_SUPPORT=ON -DBUILD_PYTHON_INTERFACE=ON -DBUILD_TESTING=OFF || fail "Please resource ~/.moma_bashrc and restart the script"
+    make -j4 || fail "Error building pinocchio"
 
-      mkdir install
-      make install || fail "Error installing pinocchio"
+    make install || fail "Error installing pinocchio"
   else
-    info "Previos pinocchio installation found at ${PINOCCHIO_INSTALL_PREFIX}"
+    info "Previous pinocchio installation found at ${PINOCCHIO_INSTALL_PREFIX}"
   fi
-
 
   cat << EOF >> ~/.moma_bashrc
 export PATH=${PINOCCHIO_INSTALL_PREFIX}/bin:\$PATH
 export PKG_CONFIG_PATH=${PINOCCHIO_INSTALL_PREFIX_STR}/lib/pkgconfig:\$PKG_CONFIG_PATH
 export LD_LIBRARY_PATH=${PINOCCHIO_INSTALL_PREFIX_STR}/lib:\$LD_LIBRARY_PATH
+export LIBRARY_PATH=${PINOCCHIO_INSTALL_PREFIX_STR}/lib:\$LIBRARY_PATH
 export PYTHONPATH=\$PYTHONPATH:${PINOCCHIO_INSTALL_PREFIX_STR}/lib/python2.7/dist-packages:${PINOCCHIO_INSTALL_PREFIX_STR}/lib/python3/dist-packages
 export CMAKE_PREFIX_PATH=${PINOCCHIO_INSTALL_PREFIX_STR}:\$CMAKE_PREFIX_PATH
 EOF
@@ -209,12 +214,12 @@ done
 
 set -- "${POSITIONAL[@]}" # restore positional parameters
 
-info "Installing control dependencies  = ${INSTALL_CONTROL_DEPS}"
-info "Installing piloting dependencies  = ${INSTALL_PILOTING_DEPS}"
+info "Installing control dependencies = ${INSTALL_CONTROL_DEPS}"
+info "Installing piloting dependencies = ${INSTALL_PILOTING_DEPS}"
 
 
 if [ "$DISTRIB_RELEASE" == "20.04" ] && [ "$ROS_DISTRO" == "noetic" ]; then
-  echo "${GREEN}Supported distribution was found${NC}"
+  info "Supported distribution was found"
 else
   fail "Your distribution is currently not officially supported"
 fi
