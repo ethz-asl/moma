@@ -5,12 +5,29 @@
 
     <!-- panda arm  -->
     <!--xacro:if value="${sim}"-->
-        <xacro:include filename="$(find franka_description)/robots/panda_gazebo.xacro"/>
+        <!-- Up until franka-description 0.9.x -->
+        <!--xacro:include filename="$(find franka_description)/robots/panda_gazebo.xacro"/-->
     <!--/xacro:if>
     <xacro:unless value="${sim}">
         <xacro:include filename="$(find franka_description)/robots/panda_arm.xacro"/>
     </xacro:unless-->
-    <xacro:panda_arm connected_to="${connected_to}" rpy="${rpy}" xyz="${xyz}"/>
+
+    <!-- Starting from franka-description 0.10.x -->
+    <xacro:include filename="$(find franka_description)/robots/common/utils.xacro" />
+    <xacro:include filename="$(find franka_description)/robots/common/franka_arm.xacro" />
+
+    <!-- Up until franka-description 0.9.x -->
+    <!--xacro:panda_arm connected_to="${connected_to}" rpy="${rpy}" xyz="${xyz}"/-->
+
+    <!-- Starting from franka-description 0.10.x -->
+    <xacro:franka_arm
+      arm_id="panda"
+      connected_to="${connected_to}"
+      xyz="${xyz}"
+      rpy="${rpy}"
+      safety_distance="0.03"
+      gazebo="true"
+      joint_limits="${xacro.load_yaml('$(find franka_description)/robots/panda/joint_limits.yaml')}"/>
 
     <!-- no tool frame -->
     <xacro:if value="${tool == 'none' or tool == 'panda_hand'}">
