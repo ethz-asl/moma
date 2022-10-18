@@ -92,15 +92,28 @@ It is non-trivial to get all the frames right for such a demo. Many frames are i
 
 ## Networking
 
-TODO
+One of the most convenient solutions for network access to the robotic system is [ZeroTier](https://zerotier.com).
+After setup, put the following snippet to your `~/.bashrc` file, replacing `<ZEROTIER-IFACE-NAME>` with the name of your ZeroTier network interface name.
+
+```bash
+# update MTU on zerotier
+MTU_SIZE=1347
+if [[ $(ifconfig <ZEROTIER-IFACE-NAME> | sed -nr 's/.*mtu ([0-9]+)/\1/p') -ne "$MTU_SIZE" ]]
+then
+  echo "Adapting ZeroTier MTU"
+  sudo ifconfig <ZEROTIER-IFACE-NAME> mtu $MTU_SIZE
+fi
+```
+
+This ensures that ZeroTier stays working properly even when running on restricted cellular connections, which limit the MTU. Otherwise, some TCP sockets might suddenly freeze (e. g. VNC Viewer) and receive no more data, while the socket itself remains still open.
 
 ## Operator
 
 In order to allow the operator to inspect the robot state, set goals, and visualize sensor information we provide a dedicated launch that always run on the operator pc.
 
-- _simulation_: no particular care must be taken as everything run locally
-- _real robot_: make sure that the operator pc is networked to the common robot networks and that a single ros core is already running on the smb computer. Referent to the [networking section](#networking) for troubleshooting possible networking issues.
-  Run the operator pc to visualize sensor stram and interact with the robot:
+- _simulation_: no particular care must be taken as everything runs locally
+- _real robot_: make sure that the operator pc is networked to the common robot networks and that a single ros core is already running on the smb computer. Refer to the [networking section](#networking) for troubleshooting possible networking issues.
+  Run the operator pc to visualize the sensor stream and interact with the robot:
 
 ```
 roslaunch piloting_demo operator_pc.launch
