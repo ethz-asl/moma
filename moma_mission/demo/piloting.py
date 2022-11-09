@@ -13,6 +13,7 @@ from moma_mission.states.waypoint_bridge import (
     WaypointBroadcasterState,
     WaypointReachedState,
 )
+from moma_mission.states.manipulation import JointsConfigurationAction
 
 
 # Init ros
@@ -247,9 +248,9 @@ try:
             rospy.loginfo("Homing detection")
             state_machine.add(
                 "APPROACH_HOMING",
-                homing_sequence_factory(),
+                JointsConfigurationAction,
                 transitions={
-                    "Success": "APPROACH_VALVE",
+                    "Completed": "APPROACH_VALVE",
                     "Failure": "Failure",
                 },
             )
