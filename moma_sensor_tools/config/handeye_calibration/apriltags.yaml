@@ -17,7 +17,7 @@
 #     {id: ID, size: SIZE, name: NAME},
 #     ...
 #   ]
-standalone_tags: [{ id: 2, size: 0.16 }]
+standalone_tags: [{ id: 2, size: 0.0778 }]
 # ## Tag bundle definitions
 # ### Remarks
 #

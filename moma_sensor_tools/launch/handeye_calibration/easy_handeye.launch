@@ -2,13 +2,14 @@
 <launch>
 
     <!-- Setting calibration namespace -->
-    <arg name="eye_on_hand" value="true"/>
+    <arg name="eye_on_hand" default="false"/>
 
     <!-- The prefix of the namespace the node will run in, and of the folder in which the result will be saved" -->
     <arg name="namespace_prefix" default="easy_handeye"/>
 
     <!-- The namespace the node will run in, and the folder in which the result will be saved  -->
     <arg name="namespace" value="$(arg namespace_prefix)_eye_on_hand" if="$(arg eye_on_hand)" />
+    <arg name="namespace" value="$(arg namespace_prefix)_eye_on_base" unless="$(arg eye_on_hand)" />
 
     <!-- The input reference frames -->
     <arg name="robot_base_frame"        default="base_link" />
@@ -27,9 +28,9 @@
     <arg name="start_sampling_gui" default="true"/>
     <arg name="rqt_perspective_file" default="$(find easy_handeye)/launch/rqt_easy_handeye.perspective"/>
 
-    <!-- Dummy calibration to have a fully connected tf tree and see all frames -->
+    <!-- Publish approximate pose of the kinect (for visualization and debugging purposes) -->
     <node if="$(arg publish_dummy)" name="dummy_handeye" pkg="tf" type="static_transform_publisher"
-        args="0 0 0.05 0 0 0 $(arg robot_effector_frame) $(arg tracking_base_frame) 10" />
+        args="0.222 -0.037 0.866 -0.696 0.678 -0.171 0.1565 $(arg robot_base_frame) $(arg tracking_base_frame) 10" />
 
     <group ns="$(arg namespace)">
 
