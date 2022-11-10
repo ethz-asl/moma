@@ -2,7 +2,7 @@
 <launch>
   <arg name="robot_ip" default="192.168.1.12"/>
   <arg name="username" default="admin"/>
-  <arg name="password" default="987654321"/>
+  <arg name="password"/>
 
   <!-- Load the robot description -->
   <arg name="simulation" value="false"/>
