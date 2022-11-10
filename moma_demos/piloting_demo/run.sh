@@ -22,6 +22,6 @@ top_right_up=$(tmux split-window -h -P -F "#{pane_id}" -d ssh -t piloting@smb261
 tmux select-pane -t $top_right_up
 top_right_down=$(tmux split-window -P -F "#{pane_id}" -d ssh -t piloting@smb261 'bash -ic "mon launch piloting_demo navigation.launch sim:=false"; bash -l')
 tmux select-pane -t $bottom_right_up
-bottom_right_down=$(tmux split-window -P -F "#{pane_id}")
+bottom_right_down=$(tmux split-window -P -F "#{pane_id}" -d "bash --rcfile <(echo '. ~/.bashrc; mon launch piloting_demo mavsdk_ros.launch')")
 
 echo Attach using "tmux a -t PILOTING"
