@@ -2,6 +2,8 @@ pageInfo:
   title: PILOTING Dashboard
   description: Welcome to the PILOTING project dashboard!
   navLinks:
+    - title: Full-Screen Terminal
+      path: /wetty
     - title: PILOTING Portal
       path: https://portal.piloting-project.eu
 appConfig:
