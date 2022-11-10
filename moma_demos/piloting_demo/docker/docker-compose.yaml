@@ -22,6 +22,7 @@ services:
       - SSHUSER=smb
       - SSHPASS=smb
       - SSHHOST=host.docker.internal
-      - COMMAND=tmux attach || tmux
+      #- COMMAND=tmux attach || tmux
+      - COMMAND=tmux a -t PILOTING
     extra_hosts:
       - "host.docker.internal:host-gateway"
