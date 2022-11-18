@@ -1,6 +1,8 @@
 <?xml version="1.0" ?>
 <launch>
   <arg name="robot_ip" default="192.168.1.12"/>
+  <arg name="username" default="admin"/>
+  <arg name="password"/>
 
   <!-- Load the robot description -->
   <arg name="simulation" value="false"/>
@@ -8,6 +10,13 @@
   <arg name="tool" default="panda_hand"/>
   <arg name="load_gripper" default="true"  if="$(eval arg('tool') == 'panda_hand')"/>
   <arg name="load_gripper" default="false" unless="$(eval arg('tool') == 'panda_hand')"/>
+
+  <arg name="unlock" default="true"/>
+  <arg name="unlock_arg" default="" unless="$(arg unlock)"/>
+  <arg name="unlock_arg" default="-u" if="$(arg unlock)"/>
+  <arg name="relock" default="true"/>
+  <arg name="relock_arg" default="" unless="$(arg relock)"/>
+  <arg name="relock_arg" default="-l" if="$(arg relock)"/>
 
   <include file="$(find moma_robot)/launch/robot_pc_panda_description.launch">
     <arg name="description" value="$(arg description)" />
@@ -27,17 +36,29 @@
   </group>
 
   <group ns="panda">
-      <node name="franka_control" pkg="franka_control" type="franka_control_node" output="screen" required="true">
+      <node name="franka_control" pkg="franka_control" type="franka_control_node" output="screen" respawn="true">
         <rosparam command="load" file="$(find moma_robot)/config/franka_control_node.yaml" />
         <param name="robot_ip" value="$(arg robot_ip)" />
       </node>
 
+      <node name="franka_lock_unlock"
+            pkg="franka_lock_unlock"
+            type="__init__.py"
+            output="screen"
+            args="$(arg robot_ip) $(arg username) $(arg password) $(arg unlock_arg) $(arg relock_arg) -w -r -p -c"
+            respawn="true"
+            unless="$(arg simulation)"
+      />
+
       <node name="panda_autorecovery" pkg="moma_robot" type="panda_autorecovery.py" output="screen"/>
 
-      <!-- Launch franka gripper -->
-      <include file="$(find franka_gripper)/launch/franka_gripper.launch" if="$(arg load_gripper)">
-         <arg name="robot_ip" value="$(arg robot_ip)" />
-      </include>
+      <!-- Launch franka gripper, taken from $(find franka_gripper)/launch/franka_gripper.launch), but including "respawn=true" -->
+      <node name="franka_gripper" pkg="franka_gripper" type="franka_gripper_node" output="screen" respawn="true">
+        <param name="robot_ip" value="$(arg robot_ip)"/>
+        <param name="stop_at_shutdown" value="false" />
+        <rosparam command="load" file="$(find franka_gripper)/config/franka_gripper_node.yaml" />
+        <rosparam param="joint_names" subst_value="true">[panda_finger_joint1, panda_finger_joint2]</rosparam>
+      </node>
 
       <rosparam command="load" file="$(find franka_control)/config/default_controllers.yaml" />
       <node name="state_controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="franka_state_controller"/>
