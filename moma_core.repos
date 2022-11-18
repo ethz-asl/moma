@@ -13,7 +13,7 @@ repositories:
   franka_lock_unlock:
     type: git
     url: git@github.com:jk-ethz/franka_lock_unlock.git
-    version: 935954d50bc4ba232a8b2c0fbd9cfb8daaee8de2
+    version: 5bc1621cadc2f39ef7abe4a5d06e4af4c0bbdeb2
 
   realsense-ros:
     type: git
