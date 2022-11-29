@@ -113,7 +113,7 @@ NEW_VALVE:
   post: False
 
 VALVE_ANGLE_CONTROLLER:
-  turning_angle_deg: 240.0
+  turning_angle_deg: 360.0
 
 DETECTION_DECISION:
   default_outcome: Completed
@@ -153,7 +153,7 @@ MODEL_FIT_VALVE:
   default_outcome: None
   num_spokes: 4
   spoke_radius: 0.01
-  handle_radius: 0.01
+  handle_radius: 0.008
   dummy: false
   dummy_position: [0.8, 0.0, 0.5]
   dummy_orientation: [0.0, 0.707, 0.0, 0.707]
@@ -168,7 +168,7 @@ PLAN_MODEL_VALVE:
   poses_topic: /valve_poses
   approach_poses_topic: /valve_approach_poses
   robot_base_frame: panda_link0
-  turning_angle_step_deg: 120.0 # Note that a higher step size than this can result in more entangled trajectories
+  turning_angle_step_deg: 180.0 # Note that a higher step size than this can result in more entangled trajectories
   safety_distance_factor: 6
 
 PLAN_URDF_VALVE:
@@ -207,11 +207,12 @@ APPROACH_VALVE:
       "path_passthrough_controller",
     ]
   linear_tolerance: 0.02
-  angular_tolerance: 0.1
+  angular_tolerance: 0.12
 
   poses_topic: /valve_approach_poses
   offset: [0, 0, -0.1]
   timeout: 30.0
+  delay: 1.0
 
 GRASP_VALVE:
   default_outcome: None
@@ -233,6 +234,8 @@ GRASP_VALVE:
   poses_topic: /valve_poses
   section: "first"
   timeout: 15.0
+  delay: 1.0
+  linear_speed: 0.01
 
 MANIPULATE_VALVE:
   default_outcome: None
@@ -286,3 +289,4 @@ BACKOFF_VALVE:
   offset: [0, 0, -0.1]
   linear_tolerance: 0.05
   angular_tolerance: 0.3
+  delay: 0.0

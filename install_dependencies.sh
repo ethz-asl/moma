@@ -125,6 +125,7 @@ install_object_keypoints() {
   mkdir -p ~/git
   git clone git@github.com:ethz-asl/object_keypoints.git -b monocular_fix ~/git/object_keypoints
   cd ~/git/object_keypoints
+  git checkout 4052313e387a853d96f9090d6dac74fe613bbb6e
   pip3 install -r requirements.txt
   pip3 install -e .
   cd perception/corner_net_lite/core/models/py_utils/_cpools

@@ -208,6 +208,8 @@ class ValveModel:
         markers = MarkerArray()
         wheel_marker = Marker()
         wheel_marker.header.frame_id = self.__frame
+        # wheel_marker.frame_locked = True
+        wheel_marker.header.stamp = rospy.get_rostime()
         wheel_marker.id = 0
         wheel_marker.action = Marker.ADD
         wheel_marker.type = Marker.CYLINDER
@@ -236,6 +238,8 @@ class ValveModel:
             spoke_position = self.get_point_on_wheel(angle)
             spoke_marker = Marker()
             spoke_marker.header.frame_id = self.__frame
+            # spoke_marker.frame_locked = True
+            spoke_marker.header.stamp = rospy.get_rostime()
             spoke_marker.id = i + 1
             spoke_marker.action = Marker.ADD
             spoke_marker.type = Marker.CYLINDER
