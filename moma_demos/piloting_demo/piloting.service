@@ -1,0 +1,18 @@
+[Unit]
+Description=PILOTING service
+Requires=network-online.target
+After=network-online.target
+
+[Service]
+User=smb
+WorkingDirectory=~/catkin_ws/src/moma/moma_demos/piloting_demo/
+ExecStart=~/catkin_ws/src/moma/moma_demos/piloting_demo/run.sh
+ExecStop=~/catkin_ws/src/moma/moma_demos/piloting_demo/run.sh -0
+RemainAfterExit=true
+Type=forking
+TimeoutStartSec=0
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

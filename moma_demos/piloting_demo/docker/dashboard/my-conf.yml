@@ -1,0 +1,41 @@
+pageInfo:
+  title: PILOTING Dashboard
+  description: Welcome to the PILOTING project dashboard!
+  navLinks:
+    - title: Full-Screen Terminal
+      path: /wetty
+    - title: PILOTING Portal
+      path: https://portal.piloting-project.eu
+appConfig:
+  theme: material
+  layout: auto
+  iconSize: medium
+  language: en
+sections:
+  - name: Terminal
+    icon: fas fa-terminal
+    displayData:
+      sortBy: default
+      rows: 1
+      cols: 5
+      collapsed: false
+      hideForGuests: false
+    widgets:
+      - type: iframe
+        options:
+          frameHeight: 600
+          url: /wetty
+        id: 0_828_iframe
+  - name: System
+    icon: fas fa-rocket
+    displayData:
+      sortBy: default
+      rows: 1
+      cols: 1
+      collapsed: false
+      hideForGuests: false
+    widgets:
+      - type: system-info
+        id: 0_645_systeminfo
+      - type: gl-cpu-history
+        id: 1_645_glcpuhistory

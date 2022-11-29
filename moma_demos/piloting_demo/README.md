@@ -329,4 +329,4 @@ TODO
 
 ## Running the Demo
 
-TODO
+See the `run.sh` file which will spawn all necessary components in separate terminals.
