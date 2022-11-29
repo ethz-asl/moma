@@ -23,6 +23,7 @@ class TransformVisitorState(StateRosControl):
         self.timeout = self.get_scoped_param(
             "timeout", max(2 * self.duration, 5.0) if self.duration > 0 else 30.0
         )
+        self.delay = self.get_scoped_param("delay", 2.0)
         self.mode = self.get_scoped_param("mode", "path")  # "path", "pose"
         self.allow_flip = self.get_scoped_param("allow_flip", False)
         self.linear_tolerance = self.get_scoped_param("linear_tolerance", 0.02)
@@ -89,5 +90,5 @@ class TransformVisitorState(StateRosControl):
         ):
             return "Failure"
 
-        rospy.sleep(2.0)
+        rospy.sleep(self.delay)
         return "Completed"

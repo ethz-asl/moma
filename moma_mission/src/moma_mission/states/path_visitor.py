@@ -37,6 +37,7 @@ class PathVisitorState(StateRosControl):
         self.angle_z = self.get_scoped_param("angle_z", 0)
         self.timeout = self.get_scoped_param("timeout", 0)
         self.timeout_factor = self.get_scoped_param("timeout_factor", 2)
+        self.delay = self.get_scoped_param("delay", 2.0)
         self.linear_speed = self.get_scoped_param("linear_speed", 0.1)  # m/s
         self.angular_speed = self.get_scoped_param("angular_speed", 0.5)  # rad/s
         self.linear_tolerance = self.get_scoped_param("linear_tolerance", 0.02)
@@ -198,5 +199,5 @@ class PathVisitorState(StateRosControl):
         ):
             return "Failure"
 
-        rospy.sleep(2.0)
+        rospy.sleep(self.delay)
         return "Completed"
