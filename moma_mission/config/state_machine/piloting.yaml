@@ -40,6 +40,30 @@ HOME_ROBOT:
   joints_configurations:
     - [0, -0.885, 0, -2.1, 0, 1.571, 0.785]
 
+TRASH_ROBOT:
+  default_outcome: None
+  action_name: /joint_space_controller_server
+  manager_namespace: panda
+  startlist: ["joint_space_controller"]
+  stoplist:
+    [
+      "mpc_controller",
+      "mpc_wholebody_controller",
+      "cartesian_impedance_controller",
+      "path_passthrough_controller",
+      "effort_joint_trajectory_controller",
+    ]
+  joints_configurations:
+    - [
+        -1.715305482347655,
+        0.17660245548214829,
+        -0.2234576702766251,
+        -1.0905383325347242,
+        0.060005745944049615,
+        1.2780859287360733,
+        0.6280151809751959,
+      ]
+
 REACH_DETECTION_HOTSPOT_FAR:
   default_outcome: None
   goal_action_topic: /move_base
@@ -151,9 +175,9 @@ OBSERVATION_APPROACH:
 
 MODEL_FIT_VALVE:
   default_outcome: None
-  num_spokes: 4
+  num_spokes: 5
   spoke_radius: 0.01
-  handle_radius: 0.008
+  handle_radius: 0.015
   dummy: false
   dummy_position: [0.8, 0.0, 0.5]
   dummy_orientation: [0.0, 0.707, 0.0, 0.707]
@@ -169,7 +193,7 @@ PLAN_MODEL_VALVE:
   approach_poses_topic: /valve_approach_poses
   robot_base_frame: panda_link0
   turning_angle_step_deg: 180.0 # Note that a higher step size than this can result in more entangled trajectories
-  safety_distance_factor: 6
+  safety_distance_factor: 3.8
 
 PLAN_URDF_VALVE:
   default_outcome: None
@@ -234,14 +258,14 @@ GRASP_VALVE:
   poses_topic: /valve_poses
   section: "first"
   timeout: 15.0
-  delay: 1.0
+  delay: 2.0
   linear_speed: 0.01
 
 MANIPULATE_VALVE:
   default_outcome: None
   mode: pose
-  linear_speed: 0.1
-  angular_speed: 1.0
+  linear_speed: 0.2
+  angular_speed: 2.0
   control_frame: panda_link0
   pose_topic: "/panda/cartesian_impedance_controller/equilibrium_pose"
   manager_namespace: panda
@@ -286,7 +310,7 @@ BACKOFF_VALVE:
   stoplist: []
 
   duration: 30.0
-  offset: [0, 0, -0.1]
-  linear_tolerance: 0.05
-  angular_tolerance: 0.3
+  offset: [0, 0, -0.25]
+  linear_tolerance: 0.15
+  angular_tolerance: 3
   delay: 0.0

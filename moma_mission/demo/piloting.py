@@ -188,6 +188,12 @@ try:
                 },
             )
 
+            valve_sequence.add(
+                "TRASH_ROBOT",
+                JointsConfigurationAction,
+                transitions={"Completed": "OPEN_GRIPPER", "Failure": "Failure"},
+            )
+
             rospy.loginfo("Observation pose")
             valve_sequence.add(
                 "OBSERVATION_POSE",
@@ -316,14 +322,14 @@ try:
             valve_sequence.add(
                 "APPROACH_FINAL_POSE",
                 TransformVisitorState,
-                transitions={"Completed": "OPEN_GRIPPER", "Failure": "Failure"},
+                transitions={"Completed": "BACKOFF_VALVE", "Failure": "Failure"},
             )
 
             rospy.loginfo("Open gripper")
             valve_sequence.add(
                 "OPEN_GRIPPER",
                 GripperGrasp,
-                transitions={"Completed": "BACKOFF_VALVE", "Failure": "Failure"},
+                transitions={"Completed": "Success", "Failure": "Failure"},
             )
 
             rospy.loginfo("Backoff valve")
@@ -331,7 +337,7 @@ try:
                 "BACKOFF_VALVE",
                 TransformVisitorState,
                 transitions={
-                    "Completed": "HOMING_FINAL",
+                    "Completed": "TRASH_ROBOT",
                     "Failure": "Failure",  # This is a critical error that needs manual intervention, as we do not know how entangled the robot is with the valve
                 },
             )
