@@ -1,0 +1,46 @@
+version: "3"
+
+services:
+  reverse-proxy:
+    image: nginx
+    depends_on:
+      - dashy
+      - wetty
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - ./reverse-proxy/default.conf:/etc/nginx/conf.d/default.conf
+      - ./robodash:/usr/share/nginx/html/robodash
+      - /opt/ros/noetic/share/franka_description:/usr/share/nginx/html/franka_description
+      - ../../../moma_description:/usr/share/nginx/html/moma_description
+      - ../../../../realsense-ros/realsense2_description:/usr/share/nginx/html/realsense2_description
+      - ../../../../smb_common/smb_description:/usr/share/nginx/html/smb_description
+      - ../../../../robosense_simulator/robosense_description:/usr/share/nginx/html/robosense_description
+  dashy:
+    image: lissy93/dashy
+    volumes:
+      - ./dashboard/my-conf.yml:/app/public/conf.yml
+  wetty:
+    image: wettyoss/wetty
+    environment:
+      - BASE=/wetty
+      - SSHUSER=smb
+      - SSHPASS=smb
+      - SSHHOST=host.docker.internal
+      #- COMMAND=tmux attach || tmux
+      - COMMAND=tmux a -t PILOTING
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+  code-server:
+    image: codercom/code-server
+    volumes:
+      - $HOME/.config:/home/coder/.config
+      - $HOME/catkin_ws/src:/home/coder/project
+  markdown-reader:
+    image: jkethz/markdown-reader-web
+    command: moma_demos/piloting_demo/README.md
+    volumes:
+      - $HOME/catkin_ws/src/moma:/app
+  robodash:
+    image: jkethz/robodash

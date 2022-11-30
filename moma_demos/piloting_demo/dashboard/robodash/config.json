@@ -1,0 +1,428 @@
+{
+  "configById": {
+    "3D!14dd3qp": {
+      "cameraState": {
+        "perspective": true,
+        "distance": 11.376001845519037,
+        "phi": 41.7802406032511,
+        "thetaOffset": 79.7208861897417,
+        "targetOffset": [
+          0.28639132740566975, 1.0060717230079226, -1.3667540954880896e-16
+        ],
+        "target": [0, 0, 0],
+        "targetOrientation": [0, 0, 0, 1],
+        "fovy": 45,
+        "near": 0.5,
+        "far": 5000
+      },
+      "followMode": "follow-pose",
+      "followTf": "map",
+      "scene": {
+        "enableStats": false,
+        "transforms": {
+          "labelSize": 0.01,
+          "axisScale": 0.1,
+          "lineWidth": 0.1,
+          "showLabel": true
+        }
+      },
+      "transforms": {
+        "frame:hand_eye_depth_optical_frame": {
+          "visible": false
+        },
+        "frame:hand_eye_depth_frame": {
+          "visible": false
+        },
+        "frame:hand_eye_color_optical_frame": {
+          "visible": false
+        },
+        "frame:hand_eye_color_frame": {
+          "visible": false
+        },
+        "frame:hand_eye_link": {
+          "visible": false
+        },
+        "frame:panda_rightfinger": {
+          "visible": false
+        },
+        "frame:panda_leftfinger": {
+          "visible": false
+        },
+        "frame:panda_hand": {
+          "visible": false
+        },
+        "frame:panda_NE": {
+          "visible": false
+        },
+        "frame:panda_K": {
+          "visible": false
+        },
+        "frame:panda_EE": {
+          "visible": false
+        },
+        "frame:panda_default_ee": {
+          "visible": false
+        },
+        "frame:dummy_bottom_screw_frame": {
+          "visible": false
+        },
+        "frame:dummy_link": {
+          "visible": false
+        },
+        "frame:dummy_color_frame": {
+          "visible": false
+        },
+        "frame:dummy_color_optical_frame": {
+          "visible": false
+        },
+        "frame:dummy_depth_frame": {
+          "visible": false
+        },
+        "frame:dummy_depth_optical_frame": {
+          "visible": false
+        },
+        "frame:dummy_infra1_frame": {
+          "visible": false
+        },
+        "frame:dummy_infra1_optical_frame": {
+          "visible": false
+        },
+        "frame:dummy_infra2_frame": {
+          "visible": false
+        },
+        "frame:dummy_infra2_optical_frame": {
+          "visible": false
+        },
+        "frame:panda_link6_sc": {
+          "visible": true
+        },
+        "frame:final_pose": {
+          "visible": false
+        },
+        "frame:object": {
+          "visible": false
+        },
+        "frame:valve_wheel_center": {
+          "visible": false
+        },
+        "frame:range_sensor": {
+          "visible": false
+        },
+        "frame:inertial_sensor": {
+          "visible": false
+        },
+        "frame:wheel": {
+          "visible": false
+        },
+        "frame:grasp_point": {
+          "visible": false
+        },
+        "frame:valve_gt": {
+          "visible": false
+        },
+        "frame:panda_link8": {
+          "visible": true
+        }
+      },
+      "topics": {
+        "/map": {
+          "visible": true
+        },
+        "/scan": {
+          "visible": false,
+          "colorField": "intensity",
+          "colorMode": "colormap",
+          "colorMap": "turbo"
+        },
+        "/rslidar_points_filtered": {
+          "visible": true,
+          "colorField": "x",
+          "colorMode": "colormap",
+          "colorMap": "turbo"
+        },
+        "/move_base/TebLocalPlannerROS/global_plan": {
+          "visible": true
+        },
+        "/move_base/TebLocalPlannerROS/local_plan": {
+          "visible": true
+        },
+        "/move_base/local_costmap/footprint": {
+          "visible": true
+        },
+        "/move_base/global_costmap/footprint": {
+          "visible": false
+        },
+        "/versavis/cam0/image_raw": {
+          "visible": false,
+          "cameraInfoTopic": "/camera_info"
+        },
+        "/object_keypoints_ros/result_img": {
+          "visible": false,
+          "cameraInfoTopic": "/camera_info",
+          "distance": 0.8
+        },
+        "/camera_info": {
+          "visible": false
+        },
+        "/hand_eye/depth/color/points": {
+          "visible": false
+        },
+        "/valve_poses": {
+          "visible": true,
+          "axisScale": 0.05
+        },
+        "/valve_marker": {
+          "visible": true
+        }
+      },
+      "layers": {
+        "9fa484f5-bfa3-44b0-bfdb-152b39e2041d": {
+          "visible": true,
+          "frameLocked": true,
+          "label": "URDF",
+          "instanceId": "9fa484f5-bfa3-44b0-bfdb-152b39e2041d",
+          "layerId": "robodash.Urdf",
+          "url": "http:/robodash/smb.urdf",
+          "order": 1
+        }
+      },
+      "publish": {
+        "type": "pose_estimate",
+        "poseTopic": "/move_base_simple/goal",
+        "pointTopic": "/clicked_point",
+        "poseEstimateTopic": "/initialpose",
+        "poseEstimateXDeviation": 0.5,
+        "poseEstimateYDeviation": 0.5,
+        "poseEstimateThetaDeviation": 0.26179939
+      }
+    },
+    "ImageViewPanel!2tdqqi0": {
+      "cameraTopic": "/object_keypoints_ros/result_img",
+      "enabledMarkerTopics": [],
+      "mode": "fit",
+      "pan": {
+        "x": 0,
+        "y": 0
+      },
+      "rotation": 0,
+      "synchronize": false,
+      "transformMarkers": false,
+      "zoom": 1
+    },
+    "Plot!12b7p2d": {
+      "title": "End-Effector Force",
+      "paths": [
+        {
+          "value": "/panda/franka_state_controller/F_ext.wrench.force.x",
+          "enabled": true,
+          "timestampMethod": "receiveTime"
+        }
+      ],
+      "minYValue": -30,
+      "maxYValue": 30,
+      "showXAxisLabels": true,
+      "showYAxisLabels": true,
+      "showLegend": false,
+      "legendDisplay": "floating",
+      "showPlotValuesInLegend": false,
+      "isSynced": true,
+      "xAxisVal": "timestamp",
+      "sidebarDimension": 240,
+      "followingViewWidth": 20
+    },
+    "Tab!406ss4d": {
+      "activeTabIdx": 0,
+      "tabs": [
+        {
+          "title": "SMB",
+          "layout": {
+            "first": {
+              "first": "Teleop!4k7hlto",
+              "second": "Gauge!1ts1ysc",
+              "direction": "row"
+            },
+            "second": "Plot!44yv2h0",
+            "direction": "row"
+          }
+        }
+      ]
+    },
+    "Tab!229h1nq": {
+      "activeTabIdx": 0,
+      "tabs": [
+        {
+          "title": "Panda",
+          "layout": {
+            "first": "Indicator!1s7hrmw",
+            "second": "Plot!1zkzffl",
+            "direction": "row"
+          }
+        }
+      ]
+    },
+    "Teleop!4k7hlto": {
+      "topic": "/joy_teleop/cmd_vel",
+      "publishRate": 20,
+      "upButton": {
+        "field": "linear-x",
+        "value": 0.15
+      },
+      "downButton": {
+        "field": "linear-x",
+        "value": -0.15
+      },
+      "leftButton": {
+        "field": "angular-z",
+        "value": 0.15
+      },
+      "rightButton": {
+        "field": "angular-z",
+        "value": -0.15
+      }
+    },
+    "Gauge!1ts1ysc": {
+      "path": "/smb/base_battery_state.percentage",
+      "minValue": 0,
+      "maxValue": 1,
+      "colorMap": "red-yellow-green",
+      "colorMode": "colormap",
+      "gradient": ["#0000ff", "#ff00ff"],
+      "reverse": false
+    },
+    "Plot!44yv2h0": {
+      "title": "Wheel Speeds",
+      "paths": [
+        {
+          "value": "/wheelSpeeds.data[1]",
+          "enabled": true,
+          "timestampMethod": "receiveTime"
+        },
+        {
+          "value": "/wheelSpeeds.data[2]",
+          "enabled": true,
+          "timestampMethod": "receiveTime"
+        }
+      ],
+      "minYValue": -5,
+      "maxYValue": 5,
+      "showXAxisLabels": true,
+      "showYAxisLabels": true,
+      "showLegend": false,
+      "legendDisplay": "floating",
+      "showPlotValuesInLegend": false,
+      "isSynced": true,
+      "xAxisVal": "timestamp",
+      "sidebarDimension": 240,
+      "followingViewWidth": 20
+    },
+    "Indicator!1s7hrmw": {
+      "path": "/panda/franka_state_controller/franka_states.robot_mode",
+      "style": "background",
+      "fallbackColor": "#a0a0a0",
+      "fallbackLabel": "Panda is in Unknown State",
+      "rules": [
+        {
+          "operator": "=",
+          "rawValue": "1",
+          "color": "#5ac040",
+          "label": "Panda is Ready"
+        },
+        {
+          "operator": "=",
+          "rawValue": "2",
+          "color": "#68e24a",
+          "label": "Panda is Active"
+        },
+        {
+          "operator": "=",
+          "rawValue": "5",
+          "color": "#ff0000",
+          "label": "Panda is Emergency Stopped"
+        },
+        {
+          "operator": "=",
+          "rawValue": "3",
+          "color": "#fb00ff",
+          "label": "Panda is Guided"
+        }
+      ]
+    },
+    "Plot!1zkzffl": {
+      "title": "Panda Joint States",
+      "paths": [
+        {
+          "value": "/joint_states.position[:]",
+          "enabled": true,
+          "timestampMethod": "receiveTime"
+        }
+      ],
+      "minYValue": -3.14,
+      "maxYValue": 3.14,
+      "showXAxisLabels": true,
+      "showYAxisLabels": true,
+      "showLegend": false,
+      "legendDisplay": "floating",
+      "showPlotValuesInLegend": false,
+      "isSynced": true,
+      "xAxisVal": "timestamp",
+      "sidebarDimension": 240,
+      "followingViewWidth": 20
+    },
+    "website!3fsa71t": {
+      "url": "/wetty/"
+    },
+    "website!398a92l": {
+      "url": "/code/"
+    },
+    "website!4486mcx": {
+      "url": "/markdown/"
+    },
+    "Tab!3btn1ta": {
+      "activeTabIdx": 1,
+      "tabs": [
+        {
+          "title": "Visualization",
+          "layout": {
+            "first": "3D!14dd3qp",
+            "second": {
+              "first": "ImageViewPanel!2tdqqi0",
+              "second": "Plot!12b7p2d",
+              "direction": "column",
+              "splitPercentage": 63.65546218487395
+            },
+            "direction": "row",
+            "splitPercentage": 75.87476979742172
+          }
+        },
+        {
+          "title": "Status",
+          "layout": {
+            "first": "Tab!406ss4d",
+            "second": "Tab!229h1nq",
+            "direction": "column"
+          }
+        },
+        {
+          "title": "Terminal",
+          "layout": "website!3fsa71t"
+        },
+        {
+          "title": "Code",
+          "layout": "website!398a92l"
+        },
+        {
+          "title": "Help",
+          "layout": "website!4486mcx"
+        }
+      ],
+      "openInBackground": true
+    }
+  },
+  "globalVariables": {},
+  "userNodes": {},
+  "linkedGlobalVariables": [],
+  "playbackConfig": {
+    "speed": 1
+  },
+  "layout": "Tab!3btn1ta"
+}

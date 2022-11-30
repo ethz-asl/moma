@@ -1,0 +1,16 @@
+[Unit]
+Description=PILOTING bridge service
+Requires=network-online.target
+After=network-online.target
+Requires=piloting.service
+
+[Service]
+User=smb
+ExecStart=/bin/bash -c ". /home/smb/.moma_bashrc && export ROS_MASTER_URI=http://10.0.1.5:11311 && export ROS_IP=10.0.1.6 && roslaunch rosbridge_server rosbridge_websocket.launch"
+Type=simple
+TimeoutStartSec=0
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
