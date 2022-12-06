@@ -1,7 +1,4 @@
-# Define the goal
 ---
-# Define the result
-sensor_msgs/PointCloud2 pointcloud_scene
 float64 voxel_size
+sensor_msgs/PointCloud2 map_cloud
 ---
-# Define the feedback

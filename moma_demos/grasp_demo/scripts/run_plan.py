@@ -36,7 +36,7 @@ def construct_state_machine():
         StateMachine.add(
             "RECONSTRUCT_SCENE",
             SimpleActionState(
-                "scan_action", ScanSceneAction, result_slots=["pointcloud_scene"]
+                "scan_action", ScanSceneAction, result_slots=["voxel_size", "map_cloud"]
             ),
             transitions={
                 "succeeded": "PLAN_GRASP",
@@ -49,7 +49,7 @@ def construct_state_machine():
             SimpleActionState(
                 "grasp_selection_action",
                 SelectGraspAction,
-                goal_slots=["pointcloud_scene"],
+                goal_slots=["voxel_size", "map_cloud"],
                 result_slots=["target_grasp_pose"],
             ),
             transitions={

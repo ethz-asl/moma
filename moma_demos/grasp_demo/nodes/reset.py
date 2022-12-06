@@ -23,16 +23,14 @@ class ResetNode(object):
         self.broadcast_roi()
         self.init_robot_connection()
         self.vis = Visualizer()
-        self.cloud_pub = rospy.Publisher("/gsm_node/cloud", PointCloud2)
+        self.cloud_pub = rospy.Publisher("/scene_cloud", PointCloud2)
         rospy.Service("reset", Trigger, self.reset)
         rospy.loginfo("Reset service ready")
 
     def broadcast_roi(self):
         self.static_broadcaster = tf2_ros.StaticTransformBroadcaster()
         rospy.sleep(1.0)
-
         T_base_task = Transform.translation([0.3, -0.15, self.table_height - 0.05])
-
         msg = geometry_msgs.msg.TransformStamped()
         msg.header.frame_id = self.base_frame_id
         msg.child_frame_id = self.task_frame_id
@@ -43,7 +41,6 @@ class ResetNode(object):
         self.arm = PandaArmClient()
         self.gripper = PandaGripperClient()
         self.moveit = MoveItClient("panda_arm")
-
         rospy.sleep(1.0)
 
         # Add a collision box for the table

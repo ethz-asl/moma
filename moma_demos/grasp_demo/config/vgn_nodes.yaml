@@ -1,0 +1,12 @@
+tsdf_server:
+  frame_id: task
+  length: 0.3
+  resolution: 40
+  depth_scaling: 0.001
+  camera:
+    frame_id: wrist_camera_depth_optical_frame
+    info_topic: /wrist_camera/depth/camera_info
+    depth_topic: /wrist_camera/depth/image_rect_raw
+
+vgn:
+  model: $(find vgn)/assets/models/vgn_conv.pth

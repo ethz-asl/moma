@@ -14,8 +14,7 @@ from moma_utils.ros.conversions import *
 from vgn.grasp import ParallelJawGrasp
 from vgn.detection import VGN, select_local_maxima
 from vgn.rviz import Visualizer
-from vgn.utils import grid_to_map_cloud
-from vpp_msgs.srv import GetMap
+from vgn.utils import map_cloud_to_grid
 
 
 class PlanGraspNode(object):
@@ -48,9 +47,8 @@ class PlanGraspNode(object):
         )
 
     def init_vgn(self):
-        model_path = Path(rospy.get_param("moma_demo/vgn/model"))
+        model_path = Path(rospy.get_param("/vgn/model"))
         self.vgn = VGN(model_path)
-        self.get_map_srv = rospy.ServiceProxy("/gsm_node/get_map", GetMap)
         self.tf_buffer = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener(self.tf_buffer)
         msg = self.tf_buffer.lookup_transform(
@@ -58,55 +56,47 @@ class PlanGraspNode(object):
         )
         self.T_base_task = from_transform_msg(msg.transform)
 
-    def plan_grasp(self, goal_msg):
-        grasps, scores = self.detect_grasps()
+    def plan_grasp(self, goal):
+        # Deserialize map cloud message
+        voxel_size = goal.voxel_size
+        data = ros_numpy.numpify(goal.map_cloud)
+        points = np.column_stack((data["x"], data["y"], data["z"]))
+        distances = data["distance"]
+        tsdf_grid = map_cloud_to_grid(voxel_size, points, distances)
 
-        if len(grasps.poses) == 0:
+        # Evaluate VGN
+        out = self.vgn.predict(tsdf_grid)
+
+        # Visualize grasp quality tensor
+        self.vis.quality(self.task_frame_id, voxel_size, out.qual)
+
+        # Filter output
+        grasps, scores = select_local_maxima(voxel_size, out, threshold=0.9)
+
+        # Visualize grasps
+        self.vis.grasps("task", grasps, scores)
+
+        # Serialize grasps
+        grasps_msg = PoseArray()
+        grasps_msg.header.stamp = rospy.Time.now()
+        for grasp in grasps:
+            pose_msg = to_pose_msg(self.T_base_task * grasp.pose)
+            # pose_msg.position.z -= 0.025  # TODO(mbreyer) Investigate this
+            grasps_msg.poses.append(pose_msg)
+        grasps_msg.header.frame_id = self.base_frame_id
+
+        if len(grasps_msg.poses) == 0:
             self.action_server.set_aborted(SelectGraspResult())
             rospy.loginfo("No grasps detected, aborting")
             return
         else:
-            rospy.loginfo("{} grasps detected".format(len(grasps.poses)))
+            rospy.loginfo("{} grasps detected".format(len(grasps_msg.poses)))
 
-        self.visualize_detected_grasps(grasps)
-        selected_grasp = self.select_grasp(grasps, scores)
+        self.visualize_detected_grasps(grasps_msg)
+        selected_grasp = self.select_grasp(grasps_msg, scores)
         self.visualize_selected_grasp(selected_grasp)
         result = SelectGraspResult(target_grasp_pose=selected_grasp)
         self.action_server.set_succeeded(result)
-
-    def detect_grasps(self):
-        voxel_size = 0.0075
-        map_cloud = self.get_map_srv().map_cloud
-        data = ros_numpy.numpify(map_cloud)
-        x, y, z = data["x"], data["y"], data["z"]
-        points = np.column_stack((x, y, z)) - self.T_base_task.translation
-        d = (data["distance"] + 0.03) / 0.06  # scale to [0, 1]
-        tsdf_grid = np.zeros((40, 40, 40), dtype=np.float32)
-        for idx, point in enumerate(points):
-            if np.all(point > 0.0) and np.all(point < 0.3):
-                i, j, k = np.floor(point / voxel_size).astype(int)
-                tsdf_grid[i, j, k] = d[idx]
-
-        points, distances = grid_to_map_cloud(voxel_size, tsdf_grid)
-        self.vis.map_cloud(self.task_frame_id, points, distances)
-        rospy.loginfo("Received map cloud")
-
-        out = self.vgn.predict(tsdf_grid)
-        self.vis.quality(self.task_frame_id, voxel_size, out.qual)
-
-        grasps, scores = select_local_maxima(voxel_size, out, threshold=0.9)
-        self.vis.grasps("task", grasps, scores)
-        rospy.loginfo("Detected grasps")
-
-        grasp_candidates = PoseArray()
-        grasp_candidates.header.stamp = rospy.Time.now()
-        for grasp in grasps:
-            pose_msg = to_pose_msg(self.T_base_task * grasp.pose)
-            pose_msg.position.z -= 0.025  # TODO(mbreyer) Investigate this
-            grasp_candidates.poses.append(pose_msg)
-        grasp_candidates.header.frame_id = self.base_frame_id
-
-        return grasp_candidates, scores
 
     def visualize_detected_grasps(self, grasp_candidates):
         self.detected_grasps_pub.publish(grasp_candidates)
