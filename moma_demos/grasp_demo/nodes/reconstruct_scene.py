@@ -9,7 +9,6 @@ import std_srvs.srv
 
 from grasp_demo.msg import ScanSceneAction, ScanSceneResult
 from moma_utils.ros.moveit import MoveItClient
-from moma_utils.ros.panda import PandaArmClient
 import vpp_msgs.srv
 import vgn.srv
 
@@ -18,7 +17,6 @@ class ReconstructSceneNode(object):
     """Reconstruct scene moving the camera along a fixed trajectory."""
 
     def __init__(self, semantic):
-        self.arm = PandaArmClient()
         self.moveit = MoveItClient("panda_arm")
         self.scan_joints = rospy.get_param("moma_demo/scan_joints")
 
@@ -51,6 +49,10 @@ class ReconstructSceneNode(object):
         self.get_scene_cloud = rospy.ServiceProxy(
             "/gsm_node/get_scene_pointcloud",
             vpp_msgs.srv.GetScenePointcloud,
+        )
+        self.get_map_cloud = rospy.ServiceProxy(
+            "/gsm_node/get_map",
+            vpp_msgs.srv.GetMap,
         )
 
     def init_tsdf_services(self):
@@ -92,7 +94,7 @@ class ReconstructSceneNode(object):
         result.voxel_size = msg.voxel_size
         result.map_cloud = msg.map_cloud
 
-        # TODO check conversion from vpp
+        # TODO vpp map conversion
         # map_cloud = self.get_map_srv().map_cloud
         # data = ros_numpy.numpify(map_cloud)
         # x, y, z = data["x"], data["y"], data["z"]

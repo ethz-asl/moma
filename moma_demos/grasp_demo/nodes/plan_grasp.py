@@ -21,8 +21,9 @@ class PlanGraspNode(object):
     def __init__(self):
         self.listener = tf.TransformListener()
         self.read_parameters()
-        self.init_visualization()
+        self.lookup_tf()
         self.init_vgn()
+        self.init_visualization()
 
         self.action_server = SimpleActionServer(
             "grasp_selection_action",
@@ -38,23 +39,25 @@ class PlanGraspNode(object):
         self.task_frame_id = rospy.get_param("moma_demo/task_frame_id")
         self.grasp_selection = rospy.get_param("moma_demo/grasp_selection")
 
-    def init_visualization(self):
-        self.vis = Visualizer()
-        self.detected_grasps_pub = rospy.Publisher(
-            "grasp_candidates",
-            PoseArray,
-            queue_size=10,
+    def lookup_tf(self):
+        tf_buffer = tf2_ros.Buffer()
+        tf_listener = tf2_ros.TransformListener(tf_buffer)
+        msg = tf_buffer.lookup_transform(
+            "panda_link0", "task", rospy.Time(), rospy.Duration(10.0)
         )
+        self.T_base_task = from_transform_msg(msg.transform)
 
     def init_vgn(self):
         model_path = Path(rospy.get_param("/vgn/model"))
         self.vgn = VGN(model_path)
-        self.tf_buffer = tf2_ros.Buffer()
-        self.tf_listener = tf2_ros.TransformListener(self.tf_buffer)
-        msg = self.tf_buffer.lookup_transform(
-            "panda_link0", "task", rospy.Time(), rospy.Duration(10.0)
+
+    def init_visualization(self):
+        self.vis = Visualizer()
+        self.grasp_poses_pub = rospy.Publisher(
+            "grasp_poses",
+            PoseArray,
+            queue_size=10,
         )
-        self.T_base_task = from_transform_msg(msg.transform)
 
     def plan_grasp(self, goal):
         # Deserialize map cloud message
@@ -73,33 +76,27 @@ class PlanGraspNode(object):
         # Filter output
         grasps, scores = select_local_maxima(voxel_size, out, threshold=0.9)
 
-        # Visualize grasps
-        self.vis.grasps("task", grasps, scores)
-
         # Serialize grasps
-        grasps_msg = PoseArray()
-        grasps_msg.header.stamp = rospy.Time.now()
-        for grasp in grasps:
-            pose_msg = to_pose_msg(self.T_base_task * grasp.pose)
-            # pose_msg.position.z -= 0.025  # TODO(mbreyer) Investigate this
-            grasps_msg.poses.append(pose_msg)
-        grasps_msg.header.frame_id = self.base_frame_id
+        grasp_poses_msg = PoseArray()
+        grasp_poses_msg.header.stamp = rospy.Time.now()
+        grasp_poses_msg.header.frame_id = self.base_frame_id
+        grasp_poses_msg.poses = [to_pose_msg(self.T_base_task * g.pose) for g in grasps]
 
-        if len(grasps_msg.poses) == 0:
+        if len(grasp_poses_msg.poses) == 0:
             self.action_server.set_aborted(SelectGraspResult())
             rospy.loginfo("No grasps detected, aborting")
             return
         else:
-            rospy.loginfo("{} grasps detected".format(len(grasps_msg.poses)))
+            rospy.loginfo("{} grasps detected".format(len(grasp_poses_msg.poses)))
 
-        self.visualize_detected_grasps(grasps_msg)
-        selected_grasp = self.select_grasp(grasps_msg, scores)
+        self.visualize_grasps(grasp_poses_msg)
+        selected_grasp = self.select_grasp(grasp_poses_msg, scores)
         self.visualize_selected_grasp(selected_grasp)
         result = SelectGraspResult(target_grasp_pose=selected_grasp)
         self.action_server.set_succeeded(result)
 
-    def visualize_detected_grasps(self, grasp_candidates):
-        self.detected_grasps_pub.publish(grasp_candidates)
+    def visualize_grasps(self, grasp_candidates):
+        self.grasp_poses_pub.publish(grasp_candidates)
 
     def select_grasp(self, grasps, scores):
         if self.grasp_selection == "manual":
