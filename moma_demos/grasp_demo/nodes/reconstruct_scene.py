@@ -57,7 +57,7 @@ class ReconstructSceneNode(object):
     def init_tsdf_services(self):
         self.reset_map = rospy.ServiceProxy(
             "/reset_map",
-            std_srvs.srv.Trigger,
+            std_srvs.srv.Empty,
         )
         self.toggle_integration = rospy.ServiceProxy(
             "/toggle_integration",
