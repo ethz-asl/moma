@@ -21,7 +21,7 @@ class PlanGraspNode(object):
     def __init__(self):
         self.listener = tf.TransformListener()
         self.read_parameters()
-        self.lookup_tf()
+        self.init_tf()
         self.init_vgn()
         self.init_visualization()
 
@@ -39,13 +39,9 @@ class PlanGraspNode(object):
         self.task_frame_id = rospy.get_param("moma_demo/task_frame_id")
         self.grasp_selection = rospy.get_param("moma_demo/grasp_selection")
 
-    def lookup_tf(self):
-        tf_buffer = tf2_ros.Buffer()
-        tf_listener = tf2_ros.TransformListener(tf_buffer)
-        msg = tf_buffer.lookup_transform(
-            "panda_link0", "task", rospy.Time(), rospy.Duration(10.0)
-        )
-        self.T_base_task = from_transform_msg(msg.transform)
+    def init_tf(self):
+        self.tf_buffer = tf2_ros.Buffer()
+        self.tf_listener = tf2_ros.TransformListener(self.tf_buffer)
 
     def init_vgn(self):
         model_path = Path(rospy.get_param("/vgn/model"))
@@ -76,15 +72,25 @@ class PlanGraspNode(object):
         # Filter output
         grasps, scores = select_local_maxima(voxel_size, out, threshold=0.9)
 
+        # Lookup task transform
+        msg = self.tf_buffer.lookup_transform(
+            "panda_link0", "task", rospy.Time(), rospy.Duration(10.0)
+        )
+        T_base_task = from_transform_msg(msg.transform)
+
         # Serialize grasps
         grasp_poses_msg = PoseArray()
         grasp_poses_msg.header.stamp = rospy.Time.now()
         grasp_poses_msg.header.frame_id = self.base_frame_id
-        grasp_poses_msg.poses = [to_pose_msg(self.T_base_task * g.pose) for g in grasps]
+        grasp_poses_msg.poses = [to_pose_msg(T_base_task * g.pose) for g in grasps]
 
         if len(grasp_poses_msg.poses) == 0:
             self.action_server.set_aborted(SelectGraspResult())
             rospy.loginfo("No grasps detected, aborting")
+            # Try detecting grasps in a different workspace
+            n = len(rospy.get_param("moma_demo/workspaces"))
+            i = rospy.get_param("moma_demo/workspace")
+            rospy.set_param("moma_demo/workspace", (i + 1) % n)
             return
         else:
             rospy.loginfo("{} grasps detected".format(len(grasp_poses_msg.poses)))

@@ -20,29 +20,21 @@ class ResetNode(object):
         self.base_frame_id = rospy.get_param("moma_demo/base_frame_id")
         self.task_frame_id = rospy.get_param("moma_demo/task_frame_id")
         self.table_height = rospy.get_param("moma_demo/table_height")
-        self.broadcast_roi()
+        rospy.set_param("moma_demo/workspace", 0)
         self.init_robot_connection()
         self.vis = Visualizer()
         self.cloud_pub = rospy.Publisher("/scene_cloud", sensor_msgs.msg.PointCloud2)
+        self.static_broadcaster = tf2_ros.StaticTransformBroadcaster()
         rospy.Service("reset", std_srvs.srv.Trigger, self.reset)
         rospy.loginfo("Reset service ready")
 
-    def broadcast_roi(self):
-        self.static_broadcaster = tf2_ros.StaticTransformBroadcaster()
-        rospy.sleep(1.0)
-        T_base_task = Transform.translation([0.3, -0.15, self.table_height - 0.05])
-        msg = geometry_msgs.msg.TransformStamped()
-        msg.header.frame_id = self.base_frame_id
-        msg.child_frame_id = self.task_frame_id
-        msg.transform = to_transform_msg(T_base_task)
-        self.static_broadcaster.sendTransform(msg)
-
     def init_robot_connection(self):
+        # Establish robot node connections
         self.arm = PandaArmClient()
         self.gripper = PandaGripperClient()
         self.moveit = MoveItClient("panda_arm")
-        rospy.sleep(1.0)
 
+        # Reset gripper
         self.gripper.grasp()
 
         # Add a collision box for the table
@@ -54,6 +46,7 @@ class ResetNode(object):
 
     def reset(self, req):
         self.reset_arm()
+        self.broadcast_roi()
         self.reset_vis()
         return std_srvs.srv.TriggerResponse()
 
@@ -62,6 +55,20 @@ class ResetNode(object):
             self.arm.recover()
         self.gripper.release()
         self.moveit.goto("ready", velocity_scaling=0.2)
+
+    def broadcast_roi(self):
+        l = 0.3
+        n = len(rospy.get_param("moma_demo/workspaces"))
+        i = rospy.get_param("moma_demo/workspace")
+        T_base_task = Transform.translation(
+            [0.3, -n * l / 2 + i * l, self.table_height - 0.05]
+        )
+        msg = geometry_msgs.msg.TransformStamped()
+        msg.header.frame_id = self.base_frame_id
+        msg.child_frame_id = self.task_frame_id
+        msg.transform = to_transform_msg(T_base_task)
+        self.static_broadcaster.sendTransform(msg)
+        rospy.sleep(1.0)  # wait for tf tree to be updated
 
     def reset_vis(self):
         self.vis.clear()

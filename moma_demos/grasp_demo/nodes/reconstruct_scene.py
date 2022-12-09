@@ -18,7 +18,6 @@ class ReconstructSceneNode(object):
 
     def __init__(self, semantic):
         self.moveit = MoveItClient("panda_arm")
-        self.scan_joints = rospy.get_param("moma_demo/scan_joints")
 
         if semantic:
             self.init_gsm_services()
@@ -74,13 +73,17 @@ class ReconstructSceneNode(object):
         )
 
     def reconstruct_scene(self, goal):
+        i = rospy.get_param("moma_demo/workspace")
+        scan_joints = rospy.get_param("moma_demo/workspaces")[i]["scan_joints"]
+
         self.reset_map()
-        self.moveit.goto(self.scan_joints[0], velocity_scaling=0.2)
+        self.moveit.goto(scan_joints[0], velocity_scaling=0.2)
 
         rospy.loginfo("Mapping scene")
         self.toggle_integration(std_srvs.srv.SetBoolRequest(data=True))
         rospy.sleep(1.0)
-        for joints in self.scan_joints[1:]:
+
+        for joints in scan_joints[1:]:
             self.moveit.goto(joints, velocity_scaling=0.2)
         self.toggle_integration(std_srvs.srv.SetBoolRequest(data=False))
 
