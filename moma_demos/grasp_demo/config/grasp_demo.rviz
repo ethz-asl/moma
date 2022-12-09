@@ -5,7 +5,6 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /TF1/Frames1
-        - /RSCloud1/Status1
         - /MarkerArray1/Namespaces1
       Splitter Ratio: 0.545271635055542
     Tree Height: 874
@@ -447,8 +446,8 @@ Visualization Manager:
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
-        Max Value: -9999
-        Min Value: 9999
+        Max Value: 0.25787556171417236
+        Min Value: 0.1719152182340622
         Value: true
       Axis: Z
       Channel Name: intensity
@@ -585,7 +584,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 1.9246630668640137
+      Distance: 2.1439754962921143
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -601,9 +600,9 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.19479554891586304
+      Pitch: 0.2497960329055786
       Target Frame: <Fixed Frame>
-      Yaw: 5.096648693084717
+      Yaw: 5.206644535064697
     Saved: ~
 Window Geometry:
   Displays:
