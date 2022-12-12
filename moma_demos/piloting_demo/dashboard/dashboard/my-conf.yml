@@ -2,8 +2,12 @@ pageInfo:
   title: PILOTING Dashboard
   description: Welcome to the PILOTING project dashboard!
   navLinks:
-    - title: Full-Screen Terminal
+    - title: RoboDash
+      path: /robodash/
+    - title: Terminal
       path: /wetty
+    - title: Code
+      path: /code/?folder=/home/coder/project
     - title: PILOTING Portal
       path: https://portal.piloting-project.eu
 appConfig:
@@ -23,11 +27,39 @@ sections:
     widgets:
       - type: iframe
         options:
-          frameHeight: 600
+          frameHeight: 800
           url: /wetty
         id: 0_828_iframe
-  - name: System
+  - name: Visualization
+    icon: fas fa-star
+    displayData:
+      sortBy: default
+      rows: 1
+      cols: 5
+      collapsed: false
+      hideForGuests: false
+    widgets:
+      - type: iframe
+        options:
+          frameHeight: 800
+          url: /robodash/
+        id: 0_691_iframe
+  - name: Development
     icon: fas fa-rocket
+    displayData:
+      sortBy: default
+      rows: 1
+      cols: 5
+      collapsed: false
+      hideForGuests: false
+    widgets:
+      - type: iframe
+        options:
+          frameHeight: 800
+          url: /code/?folder=/home/coder/project
+        id: 0_691_iframe
+  - name: System
+    icon: fas fa-wrench
     displayData:
       sortBy: default
       rows: 1
