@@ -18,8 +18,8 @@
   <!-- valve model -->
   <include file="$(find piloting_demo)/launch/valve.launch" if="$(arg standalone)">
     <arg name="sim" value="$(arg sim)"/>
-    <arg name="x" value="2.0"/>
-    <arg name="y" value="2.0"/>
+    <arg name="x" value="-0.7"/>
+    <arg name="y" value="1.8"/>
     <!-- arg name="z" value="0"/-->
   </include>
 
@@ -27,17 +27,17 @@
   <node pkg="tf2_ros"
         type="static_transform_publisher"
         name="hotspot_far_broadcaster"
-        args="1.5 0 0 3.14 0 0 valve_gt hotspot_far" />
+        args="0.0 -1.4 0 1.57 0 0 valve_gt hotspot_far" />
 
   <node pkg="tf2_ros"
           type="static_transform_publisher"
           name="hotspot_medium_broadcaster"
-          args="0.6 0 0 3.14 0 0 valve_gt hotspot_medium" />
+          args="0.0 -0.6 0 1.57 0 0 valve_gt hotspot_medium" />
 
   <node pkg="tf2_ros"
           type="static_transform_publisher"
           name="hotspot_close_broadcaster"
-          args="0.0 0 0.4 0 0 3.14 valve_gt hotspot_close" />
+          args="0.0 -0.4 0 1.57 0 3.14 valve_gt hotspot_close" />
 
   <!-- mission state machine params -->
   <rosparam command="load" file="$(find moma_mission)/config/state_machine/piloting.yaml" subst_value="true"/>
