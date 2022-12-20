@@ -34,6 +34,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // clang-format on
 
 #include "moma_ocs2/MobileManipulatorInterface.h"
+
 #include <ocs2_core/initialization/DefaultInitializer.h>
 #include <ocs2_core/misc/LoadData.h>
 #include <ocs2_core/soft_constraint/StateInputSoftConstraint.h>
