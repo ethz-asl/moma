@@ -46,13 +46,13 @@ repositories:
 
   icp_localization:
     type: git
-    url: https://github.com/leggedrobotics/icp_localization.git
-    version: 801e4f75fe06532c0f5ab55a810b524d99aa9cfb
+    url: https://github.com/jk-ethz/icp_localization.git
+    version: 09a8267db8e5bc7a0e806179b63f44f3bff00991
 
   libpointmatcher:
     type: git
-    url: https://github.com/leggedrobotics/libpointmatcher
-    version: b264553fcad6f386d96d8ba7bb95ded4582102c7
+    url: https://github.com/jk-ethz/libpointmatcher.git
+    version: 596025b62ee82804a78e781bb5b30da7f33e5e5c
 
   libnabo:
     type: git
