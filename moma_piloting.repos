@@ -47,7 +47,7 @@ repositories:
   icp_localization:
     type: git
     url: https://github.com/jk-ethz/icp_localization.git
-    version: 09a8267db8e5bc7a0e806179b63f44f3bff00991
+    version: 0f39a25d54dc66accbcd1fba93eaa5986c83a430
 
   libpointmatcher:
     type: git
