@@ -4,6 +4,10 @@ on:
   pull_request:
     branches: [projects/piloting]
 
+concurrency:
+  group: ${{ github.head_ref }}
+  cancel-in-progress: true
+
 jobs:
   linting:
     runs-on: ubuntu-latest
