@@ -437,7 +437,11 @@ class ModelFitValveState(StateRos):
             return False
 
         req = KeypointsPerceptionRequest()
-        res = self.perception_srv_client.call(req)
+        try:
+            res = self.perception_srv_client.call(req)
+        except Exception as e:
+            rospy.logerr(e)
+            return False
 
         if len(res.keypoints.poses) != self.num_spokes + 1:
             return False
