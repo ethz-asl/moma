@@ -18,8 +18,8 @@
   <!-- valve model -->
   <include file="$(find piloting_demo)/launch/valve.launch" if="$(arg standalone)">
     <arg name="sim" value="$(arg sim)"/>
-    <arg name="x" value="2.0"/>
-    <arg name="y" value="2.0"/>
+    <arg name="x" value="1.25"/>
+    <arg name="y" value="1.25"/>
     <!-- arg name="z" value="0"/-->
   </include>
 
