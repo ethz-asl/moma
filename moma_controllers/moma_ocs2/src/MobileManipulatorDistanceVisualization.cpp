@@ -36,7 +36,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <ocs2_self_collision/PinocchioGeometryInterface.h>
 #include <ocs2_self_collision/loadStdVectorOfPair.h>
 #include <ocs2_self_collision_visualization/GeometryInterfaceVisualization.h>
+// clang-format off
 #include <moma_ocs2/MobileManipulatorInterface.h>
+// clang-format on
 
 #include <ros/package.h>
 #include <ros/ros.h>
