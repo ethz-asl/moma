@@ -57,6 +57,7 @@ class Idle(StateRos):
             outcomes=[
                 "ExecuteInspectionPlan",
                 "ExecuteDummyPlan",
+                "PlaceObject",
                 "ManipulateValve",
                 "Failure",
             ],
@@ -79,6 +80,7 @@ class Idle(StateRos):
             command, info = gRCS.get_current_hl_command()
             if command == "PLACE_OBJECT":
                 rospy.loginfo("Placing an object...")
+                return "PlaceObject"
             elif command == "MANIPULATE_VALVE":
                 rospy.loginfo("Manipulating valve...")
                 desired_angle = info.param1

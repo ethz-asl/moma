@@ -26,6 +26,35 @@ def homing_sequence_factory():
     return homing_sequence
 
 
+def object_placement_sequence_factory():
+    object_placement_sequence = StateMachineRos(outcomes=["Success", "Failure"])
+    with object_placement_sequence:
+        object_placement_sequence.add(
+            "APPROACH_OBJECT",
+            JointsConfigurationAction,
+            transitions={"Completed": "CLOSE_GRIPPER", "Failure": "Failure"},
+        )
+
+        object_placement_sequence.add(
+            "CLOSE_GRIPPER",
+            GripperGrasp,
+            transitions={"Completed": "APPROACH_TARGET", "Failure": "Failure"},
+        )
+
+        object_placement_sequence.add(
+            "APPROACH_TARGET",
+            JointsConfigurationAction,
+            transitions={"Completed": "OPEN_GRIPPER", "Failure": "Failure"},
+        )
+
+        object_placement_sequence.add(
+            "OPEN_GRIPPER",
+            GripperGrasp,
+            transitions={"Completed": "Success", "Failure": "Failure"},
+        )
+    return object_placement_sequence
+
+
 def lateral_manipulation_sequence_factory():
     lateral_manipulation_sequence = StateMachineRos(outcomes=["Success", "Failure"])
     with lateral_manipulation_sequence:

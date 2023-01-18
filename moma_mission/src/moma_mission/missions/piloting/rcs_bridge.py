@@ -79,7 +79,7 @@ class AlarmWatchdogBattery(AlarmWatchdog):
     def check(self, msg: BatteryState):
         if msg.percentage < 0.2:
             return AlarmStatus.ERROR
-        elif msg.percentage < 0.3:
+        elif msg.percentage < 0.35:
             return AlarmStatus.WARNING
         return AlarmStatus.OK
 
