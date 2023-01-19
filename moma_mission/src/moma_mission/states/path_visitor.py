@@ -24,7 +24,7 @@ def _angular_dist(rot1, rot2):
     return np.arccos(theta)
 
 
-# TODO PathVisitorState and TransformVisitorState are very similar, merge them
+# TODO PathVisitorState and TransformVisitorState are very similar, merge them to PathVisitorState
 class PathVisitorState(StateRosControl):
     def __init__(self, ns):
         StateRosControl.__init__(self, ns=ns)
@@ -43,39 +43,45 @@ class PathVisitorState(StateRosControl):
         self.linear_tolerance = self.get_scoped_param("linear_tolerance", 0.02)
         self.angular_tolerance = self.get_scoped_param("angular_tolerance", 0.1)
         self.section = self.get_scoped_param("section", "all")  # "first", "last"
-        self.mode = self.get_scoped_param("mode", "path")  # "path", "pose"
+        self.input = self.get_scoped_param("input", "topic")  # "topic", "frame"
+        self.output = self.get_scoped_param("output", "path")  # "path", "pose"
         self.poses = None
 
-        if self.mode not in {"path", "pose"}:
-            raise NameError(f"Wrong path following mode: {self.mode}")
+        if self.input == "topic":
+            self.poses_subscriber = rospy.Subscriber(
+                self.get_scoped_param("poses_topic", "/poses"),
+                PoseArray,
+                self._poses_msg,
+                queue_size=1,
+            )
+        elif self.input == "frame":
+            pass
+        else:
+            raise NameError(f"Wrong path following input mode: {self.input}")
 
-        self.poses_subscriber = rospy.Subscriber(
-            self.get_scoped_param("poses_topic", "/poses"),
-            PoseArray,
-            self._poses_msg,
-            queue_size=1,
-        )
-
-        if self.mode == "pose":
+        if self.output == "pose":
             self.pose_publisher = rospy.Publisher(
                 self.get_scoped_param("pose_topic", "/desired_pose"),
                 PoseStamped,
                 queue_size=1,
             )
-        elif self.mode == "path":
+        elif self.output == "path":
             self.path_publisher = rospy.Publisher(
                 self.get_scoped_param("path_topic", "/desired_path"), Path, queue_size=1
             )
+        else:
+            raise NameError(f"Wrong path following output mode: {self.output}")
 
     def _poses_msg(self, msg: PoseArray):
         self.poses = msg
 
     def run(self):
-        # Wait for poses callback to be triggered in case of latching
-        rospy.sleep(2.0)
-        if self.poses is None:
-            rospy.logerr(f"No poses received yet, can't publish path")
-            return "Failure"
+        if self.input == "topic":
+            # Wait for poses callback to be triggered in case of latching
+            rospy.sleep(2.0)
+            if self.poses is None:
+                rospy.logerr(f"No poses received yet, can't publish path")
+                return "Failure"
 
         controller_switched = self.do_switch()
         if not controller_switched:
@@ -90,9 +96,15 @@ class PathVisitorState(StateRosControl):
         pose_stamped.header.stamp = rospy.get_rostime()
         path.poses.append(pose_stamped)
 
-        H_t_toff = tf.transformations.rotation_matrix(self.angle_z, [0, 0, 1])
-        H_t_toff[0:3, 3] = self.offset
-        T_t_toff = pin.SE3(H_t_toff)
+        # Add the target frame in case we are in "frame" input mode
+        if self.input == "frame":
+            transform_se3 = self.get_transform(self.control_frame, self.target_frame)
+            pose_stamped = se3_to_pose_stamped(transform_se3, self.control_frame)
+            pose_stamped.header.stamp = rospy.get_rostime()
+            poses = [pose_stamped.pose]
+            self.poses = PoseArray()
+            self.poses.header = pose_stamped.header
+            self.poses.poses = poses
 
         poses = self.poses.poses
         if self.section == "all":
@@ -105,8 +117,14 @@ class PathVisitorState(StateRosControl):
             rospy.logerr("Unknown value for 'section'")
             return "Failure"
 
+        H_t_toff = tf.transformations.rotation_matrix(self.angle_z, [0, 0, 1])
+        H_t_toff[0:3, 3] = self.offset
+        T_t_toff = pin.SE3(H_t_toff)
+
         t = rospy.get_rostime()
 
+        print(f"Poses to reach are")
+        print(poses)
         for pose in poses:
             pose_stamped = PoseStamped()
             pose_stamped.header.frame_id = self.control_frame
@@ -176,9 +194,9 @@ class PathVisitorState(StateRosControl):
 
             # path.poses.append(pose_stamped)
 
-        if self.mode == "path":
+        if self.output == "path":
             self.path_publisher.publish(path)
-        elif self.mode == "pose":
+        elif self.output == "pose":
             for i, pose in enumerate(path.poses[1:]):
                 self.pose_publisher.publish(pose)
                 rospy.sleep(

@@ -40,21 +40,40 @@ HOME_ROBOT:
   joints_configurations:
     - [0, -0.885, 0, -2.1, 0, 1.571, 0.785]
 
-APPROACH_OBJECT:
+HOVER_OBJECT:
   default_outcome: None
-  action_name: /joint_space_controller_server
+  input: frame
+  output: pose
+  control_frame: panda_link0
+  target_frame: object_location
+  pose_topic: "/panda/cartesian_impedance_controller/equilibrium_pose"
   manager_namespace: panda
-  startlist: ["joint_space_controller"]
+  startlist: ["cartesian_impedance_controller"]
   stoplist:
     [
       "mpc_controller",
       "mpc_wholebody_controller",
-      "cartesian_impedance_controller",
+      "joint_space_controller",
       "path_passthrough_controller",
-      "effort_joint_trajectory_controller",
     ]
-  joints_configurations:
-    - [-2.02, 0, -0.28, -2.45, 0, 2.38, 0]
+  offset: [0, 0, -0.2]
+
+APPROACH_OBJECT:
+  default_outcome: None
+  input: frame
+  output: pose
+  control_frame: panda_link0
+  target_frame: object_location
+  pose_topic: "/panda/cartesian_impedance_controller/equilibrium_pose"
+  manager_namespace: panda
+  startlist: ["cartesian_impedance_controller"]
+  stoplist:
+    [
+      "mpc_controller",
+      "mpc_wholebody_controller",
+      "joint_space_controller",
+      "path_passthrough_controller",
+    ]
 
 APPROACH_TARGET:
   default_outcome: None
@@ -226,7 +245,7 @@ APPROACH_HOMING:
 
 APPROACH_VALVE:
   default_outcome: None
-  mode: pose
+  output: pose
   control_frame: panda_link0
   pose_topic: "/panda/cartesian_impedance_controller/equilibrium_pose"
   manager_namespace: panda
@@ -248,7 +267,7 @@ APPROACH_VALVE:
 
 GRASP_VALVE:
   default_outcome: None
-  mode: pose
+  output: pose
   control_frame: panda_link0
   pose_topic: "/panda/cartesian_impedance_controller/equilibrium_pose"
   manager_namespace: panda
@@ -271,7 +290,7 @@ GRASP_VALVE:
 
 MANIPULATE_VALVE:
   default_outcome: None
-  mode: pose
+  output: pose
   linear_speed: 0.1
   angular_speed: 1.0
   control_frame: panda_link0
@@ -301,7 +320,7 @@ APPROACH_FINAL_POSE:
   default_outcome: None
   target_frame: final_pose
   control_frame: panda_link0
-  mode: pose
+  output: pose
   pose_topic: "/panda/cartesian_impedance_controller/equilibrium_pose"
   startlist: ["cartesian_impedance_controller"]
   stoplist: []
@@ -311,7 +330,7 @@ BACKOFF_VALVE:
   default_outcome: None
   target_frame: final_pose
   control_frame: panda_link0
-  mode: pose
+  output: pose
   pose_topic: "/panda/cartesian_impedance_controller/equilibrium_pose"
   manager_namespace: panda
   startlist: ["cartesian_impedance_controller"]

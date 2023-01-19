@@ -5,6 +5,7 @@ import smach_ros
 
 from moma_mission.core import StateMachineRos, StateRos
 from moma_mission.missions.piloting.states import *
+from moma_mission.states.path_visitor import PathVisitorState
 from moma_mission.states.gripper import GripperControl, GripperGrasp
 from moma_mission.states.manipulation import JointsConfigurationAction
 
@@ -30,8 +31,14 @@ def object_placement_sequence_factory():
     object_placement_sequence = StateMachineRos(outcomes=["Success", "Failure"])
     with object_placement_sequence:
         object_placement_sequence.add(
+            "HOVER_OBJECT",
+            PathVisitorState,
+            transitions={"Completed": "APPROACH_OBJECT", "Failure": "Failure"},
+        )
+
+        object_placement_sequence.add(
             "APPROACH_OBJECT",
-            JointsConfigurationAction,
+            PathVisitorState,
             transitions={"Completed": "CLOSE_GRIPPER", "Failure": "Failure"},
         )
 
