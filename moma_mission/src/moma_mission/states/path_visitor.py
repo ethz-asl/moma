@@ -43,11 +43,11 @@ class PathVisitorState(StateRosControl):
         self.linear_tolerance = self.get_scoped_param("linear_tolerance", 0.02)
         self.angular_tolerance = self.get_scoped_param("angular_tolerance", 0.1)
         self.section = self.get_scoped_param("section", "all")  # "first", "last"
-        self.input = self.get_scoped_param("input", "topic")  # "topic", "frame"
+        self.input = self.get_scoped_param("input", "poses")  # "poses", "frame"
         self.output = self.get_scoped_param("output", "path")  # "path", "pose"
         self.poses = None
 
-        if self.input == "topic":
+        if self.input == "poses":
             self.poses_subscriber = rospy.Subscriber(
                 self.get_scoped_param("poses_topic", "/poses"),
                 PoseArray,
@@ -76,7 +76,7 @@ class PathVisitorState(StateRosControl):
         self.poses = msg
 
     def run(self):
-        if self.input == "topic":
+        if self.input == "poses":
             # Wait for poses callback to be triggered in case of latching
             rospy.sleep(2.0)
             if self.poses is None:
