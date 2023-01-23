@@ -45,6 +45,12 @@ def object_placement_sequence_factory():
         object_placement_sequence.add(
             "CLOSE_GRIPPER",
             GripperGrasp,
+            transitions={"Completed": "BACKOFF_OBJECT", "Failure": "Failure"},
+        )
+
+        object_placement_sequence.add(
+            "BACKOFF_OBJECT",
+            PathVisitorState,
             transitions={"Completed": "APPROACH_TARGET", "Failure": "Failure"},
         )
 
