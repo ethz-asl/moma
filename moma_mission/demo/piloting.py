@@ -95,9 +95,11 @@ try:
             "REACH_DETECTION_HOTSPOT_FAR",
             NavigationState,
             transitions={
-                "Completed": "REACH_DETECTION_HOTSPOT_MEDIUM"
-                if not sim
-                else "REACH_DETECTION_HOTSPOT_CLOSE",
+                # Use wholebody controller in sim
+                # "Completed": "REACH_DETECTION_HOTSPOT_MEDIUM"
+                # if not sim
+                # else "REACH_DETECTION_HOTSPOT_CLOSE",
+                "Completed": "REACH_DETECTION_HOTSPOT_MEDIUM",
                 "Failure": "REACH_DETECTION_HOTSPOT_FAR",
             },
         )
