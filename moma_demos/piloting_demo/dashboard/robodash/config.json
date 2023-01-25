@@ -237,7 +237,7 @@
           "title": "SMB",
           "layout": {
             "first": {
-              "first": "Teleop!4k7hlto",
+              "first": "joystick!2htxtix",
               "second": "Gauge!1ts1ysc",
               "direction": "row"
             },
@@ -260,25 +260,11 @@
         }
       ]
     },
-    "Teleop!4k7hlto": {
+    "joystick!2htxtix": {
       "topic": "/joy_teleop/cmd_vel",
       "publishRate": 20,
-      "upButton": {
-        "field": "linear-x",
-        "value": 0.15
-      },
-      "downButton": {
-        "field": "linear-x",
-        "value": -0.15
-      },
-      "leftButton": {
-        "field": "angular-z",
-        "value": 0.15
-      },
-      "rightButton": {
-        "field": "angular-z",
-        "value": -0.15
-      }
+      "maxLinearSpeed": 0.15,
+      "maxAngularSpeed": 0.15
     },
     "Gauge!1ts1ysc": {
       "path": "/smb/base_battery_state.percentage",
@@ -368,6 +354,218 @@
       "sidebarDimension": 240,
       "followingViewWidth": 20
     },
+    "Tab!6z085m": {
+      "activeTabIdx": 0,
+      "tabs": [
+        {
+          "title": "Valve Detection",
+          "layout": {
+            "first": {
+              "first": "ImageViewPanel!4427b47",
+              "second": "ImageViewPanel!350c9k4",
+              "direction": "row"
+            },
+            "second": "Publish!1sms0aa",
+            "direction": "column",
+            "splitPercentage": 75
+          }
+        },
+        {
+          "title": "Gauge Reading",
+          "layout": {
+            "first": "Tab!2r309x2",
+            "second": {
+              "first": "RawMessages!3fwcvto",
+              "second": "Publish!2619o6s",
+              "direction": "row"
+            },
+            "direction": "column",
+            "splitPercentage": 80.88235294117648
+          }
+        }
+      ],
+      "openInBackground": true
+    },
+    "ImageViewPanel!4427b47": {
+      "cameraTopic": "/object_keypoints_ros/result_img",
+      "enabledMarkerTopics": [],
+      "mode": "fit",
+      "pan": {
+        "x": 0,
+        "y": 0
+      },
+      "rotation": 0,
+      "synchronize": false,
+      "transformMarkers": false,
+      "zoom": 1
+    },
+    "ImageViewPanel!350c9k4": {
+      "cameraTopic": "/object_keypoints_ros/heatmap_raw",
+      "enabledMarkerTopics": [],
+      "mode": "fit",
+      "pan": {
+        "x": 0,
+        "y": 0
+      },
+      "rotation": 0,
+      "synchronize": false,
+      "transformMarkers": false,
+      "zoom": 1
+    },
+    "Publish!1sms0aa": {
+      "topicName": "/object_keypoints_ros/perceive",
+      "datatype": "",
+      "buttonText": "Detect Valve",
+      "buttonTooltip": "",
+      "buttonFontSize": 50,
+      "buttonColor": "",
+      "advancedView": false,
+      "value": "{}",
+      "service": true
+    },
+    "Tab!2r309x2": {
+      "activeTabIdx": 0,
+      "tabs": [
+        {
+          "title": "Main",
+          "layout": {
+            "first": "ImageViewPanel!3wn9erh",
+            "second": "ImageViewPanel!c9du95",
+            "direction": "row"
+          }
+        },
+        {
+          "title": "Debug",
+          "layout": {
+            "first": {
+              "first": "ImageViewPanel!4l86y2n",
+              "second": {
+                "first": "ImageViewPanel!23p02q8",
+                "second": "ImageViewPanel!2j0sjvk",
+                "direction": "column"
+              },
+              "direction": "row"
+            },
+            "second": {
+              "first": "ImageViewPanel!4335kpp",
+              "second": "ImageViewPanel!2ewghlr",
+              "direction": "row"
+            },
+            "direction": "row"
+          }
+        }
+      ],
+      "openInBackground": true
+    },
+    "RawMessages!3fwcvto": {
+      "diffEnabled": false,
+      "diffMethod": "custom",
+      "diffTopicPath": "",
+      "showFullMessageForDiff": false,
+      "topicPath": "/analog_gauge_meter_reader_ml/readings"
+    },
+    "Publish!2619o6s": {
+      "topicName": "/analog_gauge_meter_reader_ml/read",
+      "datatype": "",
+      "buttonText": "Read Gauge",
+      "buttonTooltip": "",
+      "buttonFontSize": 50,
+      "buttonColor": "",
+      "advancedView": false,
+      "value": "{}",
+      "service": true
+    },
+    "ImageViewPanel!3wn9erh": {
+      "cameraTopic": "/analog_gauge_meter_reader_ml/det",
+      "enabledMarkerTopics": [],
+      "mode": "fit",
+      "pan": {
+        "x": 0,
+        "y": 0
+      },
+      "rotation": 0,
+      "synchronize": false,
+      "transformMarkers": false,
+      "zoom": 1
+    },
+    "ImageViewPanel!c9du95": {
+      "cameraTopic": "/analog_gauge_meter_reader_ml/ocr_plot",
+      "enabledMarkerTopics": [],
+      "mode": "fit",
+      "pan": {
+        "x": 0,
+        "y": 0
+      },
+      "rotation": 0,
+      "synchronize": false,
+      "transformMarkers": false,
+      "zoom": 1
+    },
+    "ImageViewPanel!4l86y2n": {
+      "cameraTopic": "/analog_gauge_meter_reader_ml/seg_eroded_img",
+      "enabledMarkerTopics": [],
+      "mode": "fit",
+      "pan": {
+        "x": 0,
+        "y": 0
+      },
+      "rotation": 0,
+      "synchronize": false,
+      "transformMarkers": false,
+      "zoom": 1
+    },
+    "ImageViewPanel!23p02q8": {
+      "cameraTopic": "/analog_gauge_meter_reader_ml/seg_rectified",
+      "enabledMarkerTopics": [],
+      "mode": "fit",
+      "pan": {
+        "x": 0,
+        "y": 0
+      },
+      "rotation": 0,
+      "synchronize": false,
+      "transformMarkers": false,
+      "zoom": 1
+    },
+    "ImageViewPanel!2j0sjvk": {
+      "cameraTopic": "/analog_gauge_meter_reader_ml/original",
+      "enabledMarkerTopics": [],
+      "mode": "fit",
+      "pan": {
+        "x": 0,
+        "y": 0
+      },
+      "rotation": 0,
+      "synchronize": false,
+      "transformMarkers": false,
+      "zoom": 1
+    },
+    "ImageViewPanel!4335kpp": {
+      "cameraTopic": "/analog_gauge_meter_reader_ml/scale_skeleton",
+      "enabledMarkerTopics": [],
+      "mode": "fit",
+      "pan": {
+        "x": 0,
+        "y": 0
+      },
+      "rotation": 0,
+      "synchronize": false,
+      "transformMarkers": false,
+      "zoom": 1
+    },
+    "ImageViewPanel!2ewghlr": {
+      "cameraTopic": "/analog_gauge_meter_reader_ml/ocr_plot_inliers",
+      "enabledMarkerTopics": [],
+      "mode": "fit",
+      "pan": {
+        "x": 0,
+        "y": 0
+      },
+      "rotation": 0,
+      "synchronize": false,
+      "transformMarkers": false,
+      "zoom": 1
+    },
     "website!3fsa71t": {
       "url": "/wetty/"
     },
@@ -388,10 +586,10 @@
               "first": "ImageViewPanel!2tdqqi0",
               "second": "Plot!12b7p2d",
               "direction": "column",
-              "splitPercentage": 63.65546218487395
+              "splitPercentage": 64
             },
             "direction": "row",
-            "splitPercentage": 75.87476979742172
+            "splitPercentage": 76
           }
         },
         {
@@ -401,6 +599,10 @@
             "second": "Tab!229h1nq",
             "direction": "column"
           }
+        },
+        {
+          "title": "Operations",
+          "layout": "Tab!6z085m"
         },
         {
           "title": "Terminal",
