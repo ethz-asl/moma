@@ -9,6 +9,11 @@ repositories:
     url: git@github.com:ethz-asl/object_keypoints_ros.git
     version: 4862b6fae5df4f18cec0973f1844f79f1c10572f
 
+  analog-gauge-meter-reader-ml:
+    type: git
+    url: git@github.com:jk-ethz/analog-gauge-meter-reader-ml.git
+    version: 289b6f32780c73ce0bda360fff7ea536b71d0c3d
+
   cartographer:
     type: git
     url: https://github.com/cartographer-project/cartographer.git

@@ -28,6 +28,7 @@
     <!-- perception dependencies -->
     <exec_depend>moma_sensor_tools</exec_depend>
     <exec_depend>object_keypoints_ros</exec_depend>
+    <exec_depend>analog_gauge_meter_reader_ml</exec_depend>
     <exec_depend>realsense2_camera</exec_depend>
     <exec_depend>realsense2_description</exec_depend>
 

@@ -42,17 +42,12 @@
     </include>
   </group>
 
-  <group ns="gauge">
-    <!--node name="gauge_detection" pkg="gauge_detection_ros" type="gauge_detection.py" output="screen"-->
-
-    <node name="gauge_perception" pkg="object_keypoints_ros" type="keypoints_perception.py" output="screen">
-      <param name="base_frame" value="$(arg base_frame)"/>
-      <param name="camera_frame" value="$(arg camera_frame)"/>
-      <param name="image_topic" value="$(arg image_topic)"/>
-      <param name="depth_topic" value="$(arg depth_topic)"/>
-      <param name="calibration_topic" value="$(arg calibration_topic)"/>
-    </node>
-  </group>
+  <!--group>
+    <include file="$(find analog_gauge_meter_reader_ml)/launch/reader_ros.launch">
+      <arg name="image_topic" value="/hand_eye/color/image_raw"/>
+      <arg name="latch" value="true"/>
+    </include>
+  </group-->
 
   <group unless="$(arg sim)">
       <include file="$(find realsense2_camera)/launch/rs_camera.launch">
