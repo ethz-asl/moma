@@ -51,6 +51,8 @@
       />
 
       <node name="panda_autorecovery" pkg="moma_robot" type="panda_autorecovery.py" output="screen"/>
+      <!-- gRCS takes up a lot of resources, increase the task priority of the panda robot control to avoid reflex errors -->
+      <node name="panda_priority" pkg="moma_robot" type="panda_priority.sh" output="screen"/>
 
       <!-- Launch franka gripper, taken from $(find franka_gripper)/launch/franka_gripper.launch), but including "respawn=true" -->
       <node name="franka_gripper" pkg="franka_gripper" type="franka_gripper_node" output="screen" respawn="true">
