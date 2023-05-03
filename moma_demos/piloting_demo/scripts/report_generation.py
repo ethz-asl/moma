@@ -30,27 +30,27 @@ IMAGE_TOPIC = "/photos_taken"
 IMAGES_DELTA_TIME = 0  # take a picture every ... seconds
 BASE_LINK_FRAME = "base_link"
 ODOM_TOPIC = "/mavsdk_ros/local_position"
-ROBOT_UUID = "f09df66e-cc30-4e11-92e8-fa2f5d7d19e5"
+ROBOT_UUID = "2b565591-d688-4634-9e87-0613fc0d1ef2"
 CAMERA_FOV = {  # https://www.intelrealsense.com/depth-camera-d435i/
     "horizontal": 69.0,
     "vertical": 42.0,
 }
 CAMERA_IMAGE_SIZE = {"width": 1280, "height": 720}
 SENSORS_LIST = {
-    "rslidar": [
-        "16 Beans Lidar Sensor",
-        "148ddf1c-da28-4d33-b85b-d3ddc445e58a",
+    # "ad_adis16448": ["Analog Devices IMU", "4902be61-2dfe-4140-b3c5-ed9a49e32a91", "imu"],
+    "rs-lidar-16": [
+        "RoboSense 16 laser-beam LiDAR",
+        "d0bd91d4-eb1c-4a2c-985f-7dfa81ef13b4",
         "rslidar",
     ],
     "realsense_t265": [
-        "Realsense Tracking Camera",
-        "8de3129f-7a0c-4f84-8a34-77f0a1eebd31",
+        "RealSense Tracking Camera",
+        "9f12e02d-8660-4581-b585-b0790f002cdc",
         "realsense_t265",
     ],
-    "imu": ["XSense Imu", "4902be61-2dfe-4140-b3c5-ed9a49e32a91", "imu"],
     "realsense_d435i": [
-        "RealSense D435i Depth Camera",
-        "47255b80-561e-41b6-bbef-2916da6426e6",
+        "RealSense Depth Camera",
+        "9085b9ca-3b01-45db-a340-1c3b0362ac27",
         "hand_eye_color_frame",
     ],
 }
