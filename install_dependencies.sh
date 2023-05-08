@@ -72,11 +72,15 @@ install_pinocchio() {
   git clone git@github.com:stack-of-tasks/pinocchio.git ~/git/pinocchio
   cd ~/git/pinocchio || fail "Failed to clone pinocchio repo"
   git checkout v2.6.4
+  git submodule update --init --recursive
+
   # Bug with recent cmake versions:
   # Target "pinocchio_pywrap" links to target "Python3::NumPy" but the target was not found
   # Fixed by the following patch
   git cherry-pick f8cba6715f86f91337299656f41356a32d836761 || true
-  git submodule update --init --recursive
+  cd cmake
+  git checkout 72e90fe444bbd07fbcf086dfb73d52c647e8d8b7
+  cd ..
 
   PINOCCHIO_INSTALL_PREFIX=${HOME}/git/pinocchio/install
   PINOCCHIO_INSTALL_PREFIX_STR=\${HOME}/git/pinocchio/install
