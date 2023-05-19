@@ -22,7 +22,7 @@ class DDDHL_Client:
         self.post_url = (
             "http://httpbin.org/post"
             if debug
-            else "http://168.119.15.247:3040/apis/Mission/mRCS/ETH/"
+            else "https://piloting-ddhl.inlecomsystems.com/apis/Mission/mRCS/ETH/"
         )
 
     def post_mission_data(self, full_archive_path: str) -> bool:
