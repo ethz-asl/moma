@@ -7,6 +7,7 @@ from moma_mission.core import StateMachineRos, StateRos
 from moma_mission.missions.piloting.states import *
 from moma_mission.states.gripper import GripperControl, GripperGrasp
 from moma_mission.states.manipulation import JointsConfigurationAction
+from moma_mission.states.path_visitor import PathVisitorState
 
 
 def homing_sequence_factory():
@@ -24,6 +25,47 @@ def homing_sequence_factory():
             transitions={"Completed": "Success", "Failure": "Failure"},
         )
     return homing_sequence
+
+
+def object_placement_sequence_factory():
+    object_placement_sequence = StateMachineRos(outcomes=["Success", "Failure"])
+    with object_placement_sequence:
+        object_placement_sequence.add(
+            "HOVER_OBJECT",
+            PathVisitorState,
+            transitions={"Completed": "APPROACH_OBJECT", "Failure": "Failure"},
+        )
+
+        object_placement_sequence.add(
+            "APPROACH_OBJECT",
+            PathVisitorState,
+            transitions={"Completed": "CLOSE_GRIPPER", "Failure": "Failure"},
+        )
+
+        object_placement_sequence.add(
+            "CLOSE_GRIPPER",
+            GripperGrasp,
+            transitions={"Completed": "BACKOFF_OBJECT", "Failure": "Failure"},
+        )
+
+        object_placement_sequence.add(
+            "BACKOFF_OBJECT",
+            PathVisitorState,
+            transitions={"Completed": "APPROACH_TARGET", "Failure": "Failure"},
+        )
+
+        object_placement_sequence.add(
+            "APPROACH_TARGET",
+            JointsConfigurationAction,
+            transitions={"Completed": "OPEN_GRIPPER", "Failure": "Failure"},
+        )
+
+        object_placement_sequence.add(
+            "OPEN_GRIPPER",
+            GripperGrasp,
+            transitions={"Completed": "Success", "Failure": "Failure"},
+        )
+    return object_placement_sequence
 
 
 def lateral_manipulation_sequence_factory():

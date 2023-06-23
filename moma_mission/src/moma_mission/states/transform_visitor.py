@@ -10,7 +10,7 @@ from moma_mission.core import StateRosControl
 from moma_mission.utils.transforms import *
 
 
-# TODO TransformVisitorState and PathVisitorState are very similar, merge them
+# TODO TransformVisitorState and PathVisitorState are very similar, merge them to PathVisitorState
 class TransformVisitorState(StateRosControl):
     def __init__(self, ns):
         StateRosControl.__init__(self, ns=ns)
@@ -24,18 +24,18 @@ class TransformVisitorState(StateRosControl):
             "timeout", max(2 * self.duration, 5.0) if self.duration > 0 else 30.0
         )
         self.delay = self.get_scoped_param("delay", 2.0)
-        self.mode = self.get_scoped_param("mode", "path")  # "path", "pose"
+        self.output = self.get_scoped_param("output", "path")  # "path", "pose"
         self.allow_flip = self.get_scoped_param("allow_flip", False)
         self.linear_tolerance = self.get_scoped_param("linear_tolerance", 0.02)
         self.angular_tolerance = self.get_scoped_param("angular_tolerance", 0.1)
 
-        if self.mode == "pose":
+        if self.output == "pose":
             self.pose_publisher = rospy.Publisher(
                 self.get_scoped_param("pose_topic", "/desired_pose"),
                 PoseStamped,
                 queue_size=1,
             )
-        elif self.mode == "path":
+        elif self.output == "path":
             self.path_publisher = rospy.Publisher(
                 self.get_scoped_param("path_topic", "/desired_path"), Path, queue_size=1
             )
@@ -47,7 +47,7 @@ class TransformVisitorState(StateRosControl):
 
         path = Path()
         path.header.frame_id = self.control_frame
-        if self.duration > 0 and self.mode == "path":
+        if self.duration > 0 and self.output == "path":
             # Add the current position to the path,
             # such that the path motion velocity is respected,
             # which is not the case for a singleton path
@@ -76,9 +76,9 @@ class TransformVisitorState(StateRosControl):
         )
         path.poses.append(pose_stamped)
 
-        if self.mode == "path":
+        if self.output == "path":
             self.path_publisher.publish(path)
-        elif self.mode == "pose":
+        elif self.output == "pose":
             self.pose_publisher.publish(path.poses[-1])
 
         if not self.wait_until_reached(

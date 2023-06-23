@@ -39,6 +39,11 @@
           name="hotspot_close_broadcaster"
           args="0.0 0 0.4 0 0 3.14 valve_gt hotspot_close" />
 
+  <node pkg="tf2_ros"
+          type="static_transform_publisher"
+          name="object_location_broadcaster"
+          args="-0.2 -0.4 0.2 -1.57 0 3.14 panda_link0 object_location" />
+
   <!-- mission state machine params -->
   <rosparam command="load" file="$(find moma_mission)/config/state_machine/piloting.yaml" subst_value="true"/>
   <rosparam command="load" file="$(find moma_mission)/config/state_machine/piloting_frames.yaml"/>

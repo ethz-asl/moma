@@ -74,7 +74,18 @@ try:
             transitions={
                 "ExecuteInspectionPlan": "WAYPOINT_BROADCAST",
                 "ExecuteDummyPlan": "REACH_DETECTION_HOTSPOT_FAR",
+                "PlaceObject": "OBJECT_PLACEMENT",
                 "ManipulateValve": "VALVE_SEQUENCE",
+                "Failure": "Failure",
+            },
+        )
+
+        rospy.loginfo("Object placement")
+        state_machine.add(
+            "OBJECT_PLACEMENT",
+            object_placement_sequence_factory(),
+            transitions={
+                "Success": "HOMING_START",
                 "Failure": "Failure",
             },
         )

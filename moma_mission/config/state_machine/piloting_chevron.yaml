@@ -194,7 +194,7 @@ APPROACH_HOMING:
 
 APPROACH_VALVE:
   default_outcome: None
-  mode: pose
+  output: pose
   control_frame: panda_link0
   pose_topic: "/panda/cartesian_impedance_controller/equilibrium_pose"
   manager_namespace: panda
@@ -215,7 +215,7 @@ APPROACH_VALVE:
 
 GRASP_VALVE:
   default_outcome: None
-  mode: pose
+  output: pose
   control_frame: panda_link0
   pose_topic: "/panda/cartesian_impedance_controller/equilibrium_pose"
   manager_namespace: panda
@@ -237,7 +237,7 @@ GRASP_VALVE:
 
 MANIPULATE_VALVE:
   default_outcome: None
-  mode: pose
+  output: pose
   linear_speed: 0.1
   angular_speed: 1.0
   control_frame: panda_link0
@@ -267,7 +267,7 @@ APPROACH_FINAL_POSE:
   default_outcome: None
   target_frame: final_pose
   control_frame: panda_link0
-  mode: pose
+  output: pose
   pose_topic: "/panda/cartesian_impedance_controller/equilibrium_pose"
   startlist: ["cartesian_impedance_controller"]
   stoplist: []
@@ -277,7 +277,7 @@ BACKOFF_VALVE:
   default_outcome: None
   target_frame: final_pose
   control_frame: panda_link0
-  mode: pose
+  output: pose
   pose_topic: "/panda/cartesian_impedance_controller/equilibrium_pose"
   manager_namespace: panda
   startlist: ["cartesian_impedance_controller"]
