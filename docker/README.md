@@ -33,4 +33,4 @@ The install files are executed in the order shown in the table below.
 | `ros_deps`     |     x     |    x    |       x      |      x     |
 | `drivers`      |     x     |         |              |            |
 | `simulation`   |           |    x    |       x      |            |
-
+| `build_ros`    |     x     |    x    |       x      |      x     |
