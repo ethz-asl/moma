@@ -1,6 +1,8 @@
 # Dockers
 
 All of these dockers are based heavily on the work of Julian Keller for Piloting.
+Not all of them are ready yet; as  rule of thumb, if the file doesn't exist, it's only planned. ;) 
+
 
 ## General Overview
 All of these dockers are meant to be used with a local checkout of the moma repo.
@@ -20,13 +22,15 @@ The general idea is a 3-level overlay:
 
 
 ## How to add new deps
-The deps should go into one of several categories: `dependencies`, `drivers`, `simulation`, etc. 
+The deps should go into one of several categories: `sys_deps`, `ros_deps`, `drivers`, `simulation`, etc. You can find the `install_*.sh` files in the `scripts` subfolder.
 The table below shows which docker images use which files.
+The install files are executed in the order shown in the table below. 
 
 
 | **File**       | **Robot** | **Dev** | **Dev-CUDA** | **Jetson** |
 |----------------|:---------:|:-------:|:------------:|:----------:|
-| `dependencies` |     x     |    x    |       x      |      x     |
+| `sys_deps`     |     x     |    x    |       x      |      x     |
+| `ros_deps`     |     x     |    x    |       x      |      x     |
 | `drivers`      |     x     |         |              |            |
 | `simulation`   |           |    x    |       x      |            |
 
