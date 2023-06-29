@@ -25,8 +25,9 @@ build -f robot.Dockerfile -t ethz-asl/moma_robot .
 ```
 Once the file is built then you can run it with:
 ```
-docker run -it --volume moma_volume:/root --volume /home/$USER/moma_ws:/root/moma_ws --net=host --name moma ethz-asl/moma_robot bash
+./run_docker.sh
 ```
+
 What's important to note:
  - This mounts `~/moma_ws` as `~/moma_ws` inside the docker. Update accordingly depending on where the moma repo is checked out in on your home folder.
  - Mount additional volumes with `--volume /home/$USER/data:/root/data` for example.
@@ -45,3 +46,8 @@ The install files are executed in the order shown in the table below.
 | `drivers`      |     x     |         |              |            |
 | `simulation`   |           |    x    |       x      |            |
 | `build_ros`    |     x     |    x    |       x      |      x     |
+
+### Helen notes
+export FRANKA_IP=172.16.0.2
+
+roslaunch franka_example_controllers cartesian_impedance_example_controller.launch robot_ip:=${FRANKA_IP}
