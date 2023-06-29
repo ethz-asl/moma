@@ -1,8 +1,8 @@
 base_frame_id: panda_link0
-ee_grasp_offset_z: -0.04
+ee_grasp_offset_z: -0.06 #-0.04
 
 task_frame_id: task
-table_height: 0.16  # Measured from the base frame specified above
+table_height: 0.14  # Measured from the base frame specified above
 
 workspaces:
 - scan_joints: 

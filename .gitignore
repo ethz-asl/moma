@@ -25,3 +25,7 @@ CATKIN_IGNORE
 # Files that will be auto-generated on compile
 moma_demos/grasp_demo/config/yumi/gpd.cfg
 moma_demos/grasp_demo/config/panda/gpd.cfg
+
+# Temporary
+moma_msgs
+moma_sensor_tools
