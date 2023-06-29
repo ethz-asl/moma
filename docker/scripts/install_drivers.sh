@@ -1,3 +1,7 @@
+#!/bin/bash
+
+set -o pipefail
+
 # Install RealSense
 # Directions from: https://github.com/IntelRealSense/librealsense/blob/master/doc/distribution_linux.md#installing-the-packages
 mkdir -p /etc/apt/keyrings

@@ -1,3 +1,6 @@
+#!/bin/bash
+set -o pipefail
+
 # Install Gazebo
 apt-get -qq update && apt-get install -y ros-noetic-gazebo-ros 
 

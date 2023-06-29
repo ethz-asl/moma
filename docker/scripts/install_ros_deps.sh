@@ -1,3 +1,6 @@
+#!/bin/bash
+set -o pipefail
+
 # Set up a ROS workspace
 mkdir -p $MOMA_DEP_WS/src
 cd $MOMA_DEP_WS
@@ -28,6 +31,6 @@ apt-get install -y \
   ros-noetic-fkie-node-manager
 
 # Install all the other dependencies in the moma_dep_ws
-cd $MOMA_DEP_WS/src
+cd $MOMA_DEP_WS/src || exit 1
 vcs import --recursive --input $SCRIPTS_PATH/moma_ros_deps.repos
 
