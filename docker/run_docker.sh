@@ -27,8 +27,9 @@ ls -FAlh $XAUTH
 echo ""
 echo "Running docker..."
 
-docker run -it\
+docker run -it --rm \
     --env="DISPLAY=$DISPLAY" \
+    --env="FRANKA_IP=$FRANKA_IP" \
     --env="QT_X11_NO_MITSHM=1" \
     --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
     --env="XAUTHORITY=$XAUTH" \
