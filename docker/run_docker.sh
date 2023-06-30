@@ -3,6 +3,56 @@
 # If not working, first do: sudo rm -rf /tmp/.docker.xauth
 # It still not working, try running the script as root.
 
+# Default options
+DOCKER=moma_dev
+DOCKERFILE=dev.Dockerfile
+BUILD=false
+
+help()
+{
+    echo "Usage: run_docker.sh [ -d | --docker <image name> ]
+               [ -b | --build <dockerfile name> ]
+               [ -h | --help  ]"
+    exit 2
+}
+
+SHORT=d:,b:,h
+LONG=docker:,build:,help
+OPTS=$(getopt -a -n run_docker --options $SHORT --longoptions $LONG -- "$@")
+echo $OPTS
+
+eval set -- "$OPTS"
+
+while :
+do
+  case "$1" in
+    -d | --docker )
+      DOCKER="$2"
+      shift 2
+      ;;
+    -b | --build )
+      BUILD="true"
+      DOCKERFILE="$2"
+      shift 2
+      ;;
+    -h | --help)
+      help
+      ;;
+    --)
+      shift;
+      break
+      ;;
+    *)
+      echo "Unexpected option: $1"
+      help
+      ;;
+  esac
+done
+
+if [ "$BUILD" = true ]; then
+     docker build -f $DOCKERFILE -t $DOCKER .
+fi
+
 XAUTH=/tmp/.docker.xauth
 
 echo "Preparing Xauthority data..."
@@ -30,16 +80,15 @@ echo "Running docker..."
 docker run -it --rm \
     --env="DISPLAY=$DISPLAY" \
     --env="FRANKA_IP=$FRANKA_IP" \
-    --env="QT_X11_NO_MITSHM=1" \
+    --volume=/home/$USER/moma_ws:/root/moma_ws \
+    --volume=/home/$USER/data:/root/data \
     --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
     --env="XAUTHORITY=$XAUTH" \
     --volume="$XAUTH:$XAUTH" \
-    --volume=/home/$USER/moma_ws:/root/moma_ws \
-    --volume="/dev/dri:/dev/dri" \
-    --privileged \
     --net=host \
+    --privileged \
     --name moma \
-    ethz-asl/moma_robot \
+    ${DOCKER} \
     bash
 
 echo "Done."
