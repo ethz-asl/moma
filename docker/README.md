@@ -21,7 +21,7 @@ The general idea is a 3-level overlay:
 **TODO: add a building script to build the dockers.**  
 First, select which of the dockers above you want to use. Then build it with:
 ```
-build -f robot.Dockerfile -t ethz-asl/moma_robot .
+docker build -f robot.Dockerfile -t ethz-asl/moma_robot .
 ```
 Once the file is built then you can run it with:
 ```
