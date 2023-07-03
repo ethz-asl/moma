@@ -16,6 +16,7 @@ The general idea is a 3-level overlay:
 - **dev.Dockerfile** Dev environment (WITH GAZEBO) and without CUDA.
 - **dev-cuda.Dockerfile** Same as above but also with CUDA.
 - **jetson.Dockerfile** For the robot, for the Jetson. No Gazebo.
+- **demo.Dockerfile** Grasping demo, based on robot.Dockerfile just with extra demo steps. Includes a "rundemo" alias.
 
 ## How to use
 `run_docker.sh` will both build and run any of the above dockers for you.
@@ -50,7 +51,3 @@ The install files are executed in the order shown in the table below.
 | `simulation`   |           |    x    |       x      |            |
 | `build_ros`    |     x     |    x    |       x      |      x     |
 
-### Helen notes
-export FRANKA_IP=172.16.0.2
-
-roslaunch franka_example_controllers cartesian_impedance_example_controller.launch robot_ip:=${FRANKA_IP}

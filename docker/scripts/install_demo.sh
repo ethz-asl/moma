@@ -26,4 +26,7 @@ unzip data.zip -d vgn_data
 mv vgn_data/data/* vgn/assets/
 rm -r vgn_data
 
+# Add a rundemo alias:
+echo 'alias rundemo="roslaunch grasp_demo grasp_demo.launch launch_rviz:=true"' >> ~/.bashrc
+
 # Hope that's it! :)
