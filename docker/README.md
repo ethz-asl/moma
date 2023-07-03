@@ -31,11 +31,22 @@ In the future you can run this with:
 ./run_docker.sh -d moma_robot
 ```
 
+You can also specify a name for the docker instance with `-n name`, otherwise it's `moma` by default. To launch another terminal in the same docker, use:
+```
+docker exec -it moma bash
+```
+Or with a custom name:
+```
+docker exec -it YOUR_NAME bash
+```
+
 What's important to note:
  - This mounts `~/moma_ws` as `~/moma_ws` inside the docker. Update accordingly depending on where the moma repo is checked out in on your home folder.
  - Mount additional volumes with `--volume /home/$USER/data:/root/data` for example.
  - `--net=host` is very important or the networking won't work
  - X forwarding is set up so that you can run rviz and stuff within the docker.
+
+
 
 ## How to add new deps
 The deps should go into one of several categories: `sys_deps`, `ros_deps`, `drivers`, `simulation`, etc. You can find the `install_*.sh` files in the `scripts` subfolder.
