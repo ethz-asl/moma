@@ -16,6 +16,7 @@ The general idea is a 3-level overlay:
 - **dev.Dockerfile** Dev environment (WITH GAZEBO) and without CUDA.
 - **dev-cuda.Dockerfile** Same as above but also with CUDA.
 - **jetson.Dockerfile** For the robot, for the Jetson. No Gazebo.
+- **demo.Dockerfile** Grasping demo, based on robot.Dockerfile just with extra demo steps. Includes a "rundemo" alias.
 
 ## How to use
 `run_docker.sh` will both build and run any of the above dockers for you.
@@ -30,11 +31,22 @@ In the future you can run this with:
 ./run_docker.sh -d moma_robot
 ```
 
+You can also specify a name for the docker instance with `-n name`, otherwise it's `moma` by default. To launch another terminal in the same docker, use:
+```
+docker exec -it moma bash
+```
+Or with a custom name:
+```
+docker exec -it YOUR_NAME bash
+```
+
 What's important to note:
  - This mounts `~/moma_ws` as `~/moma_ws` inside the docker. Update accordingly depending on where the moma repo is checked out in on your home folder.
  - Mount additional volumes with `--volume /home/$USER/data:/root/data` for example.
  - `--net=host` is very important or the networking won't work
  - X forwarding is set up so that you can run rviz and stuff within the docker.
+
+
 
 ## How to add new deps
 The deps should go into one of several categories: `sys_deps`, `ros_deps`, `drivers`, `simulation`, etc. You can find the `install_*.sh` files in the `scripts` subfolder.
@@ -50,7 +62,3 @@ The install files are executed in the order shown in the table below.
 | `simulation`   |           |    x    |       x      |            |
 | `build_ros`    |     x     |    x    |       x      |      x     |
 
-### Helen notes
-export FRANKA_IP=172.16.0.2
-
-roslaunch franka_example_controllers cartesian_impedance_example_controller.launch robot_ip:=${FRANKA_IP}

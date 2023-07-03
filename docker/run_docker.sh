@@ -1,23 +1,27 @@
 #!/bin/bash
 
+# Based on the ETH Robotics Summer school docker: 
+# https://github.com/ETHZ-RobotX/smb_docker/
+
 # If not working, first do: sudo rm -rf /tmp/.docker.xauth
 # It still not working, try running the script as root.
 
 # Default options
 DOCKER=moma_dev
 DOCKERFILE=dev.Dockerfile
+NAME=moma
 BUILD=false
 
 help()
 {
     echo "Usage: run_docker.sh [ -d | --docker <image name> ]
-               [ -b | --build <dockerfile name> ]
+               [ -b | --build <dockerfile name> ] [ -n | --name <docker name> ]
                [ -h | --help  ]"
     exit 2
 }
 
-SHORT=d:,b:,h
-LONG=docker:,build:,help
+SHORT=d:,b:,n:,h
+LONG=docker:,build:,name:,help
 OPTS=$(getopt -a -n run_docker --options $SHORT --longoptions $LONG -- "$@")
 echo $OPTS
 
@@ -33,6 +37,10 @@ do
     -b | --build )
       BUILD="true"
       DOCKERFILE="$2"
+      shift 2
+      ;;
+    -n | --name )
+      NAME="$2"
       shift 2
       ;;
     -h | --help)
@@ -58,7 +66,7 @@ XAUTH=/tmp/.docker.xauth
 echo "Preparing Xauthority data..."
 xauth_list=$(xauth nlist :0 | tail -n 1 | sed -e 's/^..../ffff/')
 if [ ! -f $XAUTH ]; then
-    if [ ! -z "$xauth_list" ]; then
+    if [ -n "$xauth_list" ]; then
         echo $xauth_list | xauth -f $XAUTH nmerge -
     else
         touch $XAUTH
@@ -87,7 +95,7 @@ docker run -it --rm \
     --volume="$XAUTH:$XAUTH" \
     --net=host \
     --privileged \
-    --name moma \
+    --name=$NAME \
     ${DOCKER} \
     bash
 
