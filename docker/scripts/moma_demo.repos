@@ -2,8 +2,12 @@ repositories:
   robot_helpers:
     type: git
     url: https://github.com/mbreyer/robot_helpers
-    version: main
+    version: ba6e7afeda5e74afdf509384d4f3aad895396b19
   vgn:
     type: git
     url: https://github.com/ethz-asl/vgn.git
-    version: devel
+    version: 389a808499d68d8db9dc84fafb5b98323a7971ab
+  moma:
+    type: git
+    url: https://github.com/ethz-asl/moma.git
+    version: feature/grasp_helen
