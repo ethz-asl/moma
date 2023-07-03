@@ -30,3 +30,6 @@ rm -r vgn_data
 echo 'alias rundemo="roslaunch grasp_demo grasp_demo.launch launch_rviz:=true"' >> ~/.bashrc
 
 # Hope that's it! :)
+
+# Clear cache to keep layer size down
+rm -rf /var/lib/apt/lists/*
