@@ -18,20 +18,23 @@ The general idea is a 3-level overlay:
 - **jetson.Dockerfile** For the robot, for the Jetson. No Gazebo.
 
 ## How to use
-**TODO: add a building script to build the dockers.**  
-First, select which of the dockers above you want to use. Then build it with:
+`run_docker.sh` will both build and run any of the above dockers for you.
+
+To build and run the first time, use:
 ```
-docker build -f robot.Dockerfile -t ethz-asl/moma_robot .
+./run_docker.sh -b robot.Dockerfile -d moma_robot
 ```
-Once the file is built then you can run it with:
+
+In the future you can run this with:
 ```
-./run_docker.sh
+./run_docker.sh -d moma_robot
 ```
 
 What's important to note:
  - This mounts `~/moma_ws` as `~/moma_ws` inside the docker. Update accordingly depending on where the moma repo is checked out in on your home folder.
  - Mount additional volumes with `--volume /home/$USER/data:/root/data` for example.
  - `--net=host` is very important or the networking won't work
+ - X forwarding is set up so that you can run rviz and stuff within the docker.
 
 ## How to add new deps
 The deps should go into one of several categories: `sys_deps`, `ros_deps`, `drivers`, `simulation`, etc. You can find the `install_*.sh` files in the `scripts` subfolder.
