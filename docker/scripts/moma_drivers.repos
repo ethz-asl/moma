@@ -1,0 +1,11 @@
+repositories:
+  franka_lock_unlock:
+    type: git
+    url: git@github.com:jk-ethz/franka_lock_unlock.git
+    version: 5bc1621cadc2f39ef7abe4a5d06e4af4c0bbdeb2
+
+  realsense-ros:
+    type: git
+    local-name: realsense-ros
+    url: git@github.com:IntelRealSense/realsense-ros.git
+    version: e4938bbbfd7b285fe71f81fe69cebcc76dbf72fc
