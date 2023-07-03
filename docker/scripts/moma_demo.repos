@@ -1,0 +1,9 @@
+repositories:
+  robot_helpers:
+    type: git
+    url: https://github.com/mbreyer/robot_helpers
+    version: main
+  vgn:
+    type: git
+    url: https://github.com/ethz-asl/vgn.git
+    version: devel
