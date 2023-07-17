@@ -1,19 +1,26 @@
 base_frame_id: panda_link0
-ee_grasp_offset_z: -0.04
-scan_joints: 
-  - [0.010, -1.479, 0.100, -2.416, 0.089, 1.402, 0.851]
-  - [-0.520, -0.796, 0.912, -1.672, 0.091, 1.281, 0.871]
-  - [0.032, 0.459, 0.074, -0.839, 0.015, 0.777, 0.833]
-  - [0.092, -0.626, -0.551, -1.837, 0.165, 1.238, 0.900]
-drop_joints: [-0.329, -0.285, -0.289, -1.878, -0.070, 1.635, 0.801]
+ee_grasp_offset_z: -0.04 #-0.04
 
 task_frame_id: task
-table_height: 0.01  # Measured from the base frame specified above
+table_height: 0.14  # Measured from the base frame specified above
+
+workspaces:
+- scan_joints: 
+    - [0.010, -1.479, 0.100, -2.416, 0.089, 1.402, 0.851]
+    - [-0.520, -0.796, 0.912, -1.672, 0.091, 1.281, 0.871]
+    - [0.092, -0.626, -0.551, -1.837, 0.165, 1.238, 0.900]
+  # drop_joints: [0.580, -0.256, -0.151, -2.438, -0.025, 2.206, 1.196]
+  drop_joints: [0.605, -0.311, -0.163, -2.341, -0.077, 2.133, 1.248]
+- scan_joints: 
+    - [0.010, -1.479, 0.100, -2.416, 0.089, 1.402, 0.851]
+    - [-0.520, -0.796, 0.912, -1.672, 0.091, 1.281, 0.871]
+    - [0.092, -0.626, -0.551, -1.837, 0.165, 1.238, 0.900]
+  # drop_joints: [0.062, -0.278, -0.368, -2.50, -0.135, 2.277, 0.5203]
+  drop_joints:  [0.297, -0.503, -0.634, -2.501, -0.301, 2.152, 0.642]
+
+
 
 grasp_selection: "auto"  # Choice: manual, auto
 
 arm_velocity_scaling_drop: 0.3
 arm_velocity_scaling_grasp: 0.2
-
-vgn:
-  model: $(find vgn)/assets/models/vgn_conv.pth

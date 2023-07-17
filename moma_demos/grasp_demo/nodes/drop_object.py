@@ -17,7 +17,6 @@ class DropActionNode(object):
         self.load_parameters()
         self.moveit = MoveItClient("panda_arm")
         self.gripper = PandaGripperClient()
-        self.drop_joints = rospy.get_param("moma_demo/drop_joints")
         self.action_server = SimpleActionServer(
             "drop_action",
             DropAction,
@@ -33,7 +32,9 @@ class DropActionNode(object):
 
     def drop_object(self, goal):
         rospy.loginfo("Dropping object")
-        self.moveit.goto(self.drop_joints, velocity_scaling=self.velocity_scaling)
+        i = rospy.get_param("moma_demo/workspace", 0)
+        drop_joints = rospy.get_param("moma_demo/workspaces")[i]["drop_joints"]
+        self.moveit.goto(drop_joints, velocity_scaling=self.velocity_scaling)
         self.gripper.release()
         self.action_server.set_succeeded(DropResult())
 
