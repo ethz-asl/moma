@@ -11,17 +11,19 @@ DOCKER=moma_dev
 DOCKERFILE=dev.Dockerfile
 NAME=moma
 BUILD=false
+WORKSPACE=/home/$USER/moma_ws
 
 help()
 {
     echo "Usage: run_docker.sh [ -d | --docker <image name> ]
                [ -b | --build <dockerfile name> ] [ -n | --name <docker name> ]
+               [ -w | --workspace </workspace/path> ]
                [ -h | --help  ]"
     exit 2
 }
 
-SHORT=d:,b:,n:,h
-LONG=docker:,build:,name:,help
+SHORT=d:,b:,n:,w:,h
+LONG=docker:,build:,name:,workspace:,help
 OPTS=$(getopt -a -n run_docker --options $SHORT --longoptions $LONG -- "$@")
 echo $OPTS
 
@@ -41,6 +43,10 @@ do
       ;;
     -n | --name )
       NAME="$2"
+      shift 2
+      ;;
+    -w | --workspace )
+      WORKSPACE="$2"
       shift 2
       ;;
     -h | --help)
@@ -88,7 +94,7 @@ echo "Running docker..."
 docker run -it --rm \
     --env="DISPLAY=$DISPLAY" \
     --env="FRANKA_IP=$FRANKA_IP" \
-    --volume=/home/$USER/moma_ws:/root/moma_ws \
+    --volume=$WORKSPACE:/root/moma_ws \
     --volume=/home/$USER/data:/root/data \
     --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
     --env="XAUTHORITY=$XAUTH" \
