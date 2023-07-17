@@ -16,12 +16,13 @@ help()
 {
     echo "Usage: run_docker.sh [ -d | --docker <image name> ]
                [ -b | --build <dockerfile name> ] [ -n | --name <docker name> ]
+               [ -w | --workspace </workspace/path> ]
                [ -h | --help  ]"
     exit 2
 }
 
-SHORT=d:,b:,n:,h
-LONG=docker:,build:,name:,help
+SHORT=d:,b:,n:,w:,h
+LONG=docker:,build:,name:,workspace:,help
 OPTS=$(getopt -a -n run_docker --options $SHORT --longoptions $LONG -- "$@")
 echo $OPTS
 
@@ -41,6 +42,10 @@ do
       ;;
     -n | --name )
       NAME="$2"
+      shift 2
+      ;;
+    -w | --workspace )
+      WORKSPACE="$2"
       shift 2
       ;;
     -h | --help)
