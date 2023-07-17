@@ -11,6 +11,7 @@ DOCKER=moma_dev
 DOCKERFILE=dev.Dockerfile
 NAME=moma
 BUILD=false
+WORKSPACE=/home/$USER/moma_ws
 
 help()
 {
@@ -93,7 +94,7 @@ echo "Running docker..."
 docker run -it --rm \
     --env="DISPLAY=$DISPLAY" \
     --env="FRANKA_IP=$FRANKA_IP" \
-    --volume=/home/$USER/moma_ws:/root/moma_ws \
+    --volume=$WORKSPACE:/root/moma_ws \
     --volume=/home/$USER/data:/root/data \
     --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
     --env="XAUTHORITY=$XAUTH" \
