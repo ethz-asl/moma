@@ -11,7 +11,7 @@
   <!-- Robot Customization -->
   <arg name="arm_id"      default="panda" doc="Name of the panda robot to spawn" />
   <arg name="use_gripper" default="true"  doc="Should a franka hand be mounted on the flange?" />
-  <arg name="controller"  default="cartesian_impedance_example_controller"     doc="Which example controller should be started? (One of {cartesian_impedance,model,force,joint_position,joint_velocity}_example_controller)" />
+  <arg name="controller"  default=" "     doc="Which example controller should be started? (One of {cartesian_impedance,model,force,joint_position,joint_velocity}_example_controller)" />
   <arg name="xacro_args"  default=""      doc="Additional arguments to pass to panda.urdf.xacro" />
   <arg name="initial_joint_positions"
        doc="Initial joint configuration of the panda. Specify as a list of name/value pairs in form of '-J [name-of-joint] [value-in-rad]'. Default is a 90 degree bend in the elbow"
@@ -41,6 +41,7 @@
     <arg name="load_gripper" value="$(arg use_gripper)" />
     <arg name="arm_id" value="$(arg arm_id)" />
     <arg name="gazebo" value="$(arg gazebo)" />
+    <arg name="xacro_args" value="$(arg xacro_args)" />
   </include>
 
   <rosparam file="$(find franka_gazebo)/config/franka_hw_sim.yaml" subst_value="true" />

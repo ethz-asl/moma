@@ -22,4 +22,5 @@
     use_wrist_camera="$(arg use_wrist_camera)"
     use_bota="$(arg use_bota)"
     include_control_plugin="$(arg include_control_plugin)" />
+
 </robot>
