@@ -1,23 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="panda">
-  <xacro:arg name="arm_id" default="panda"/>
-  <xacro:arg name="hand" default="true"/>
-  <xacro:arg name="gazebo" default="false"/>
-  <xacro:arg name="xyz" default="0 0 0"/>
-  <xacro:arg name="rpy" default="0 0 0"/>
-  <xacro:arg name="use_fixed_camera" default="true"/>
-  <xacro:arg name="use_wrist_camera" default="true"/>
-  <xacro:arg name="include_control_plugin" default="false"/>
-  <xacro:arg name="parent" default="world"/>
+  <xacro:arg name="arm_id" default="panda" />
+  <xacro:arg name="hand" default="true" />
+  <xacro:arg name="gazebo" default="false" />
+  <xacro:arg name="xyz" default="0 0 0" />
+  <xacro:arg name="rpy" default="0 0 0" />
+  <xacro:arg name="use_fixed_camera" default="true" />
+  <xacro:arg name="use_wrist_camera" default="true" />
+  <xacro:arg name="use_bota" default="true" />
+  <xacro:arg name="include_control_plugin" default="true" />
+  <xacro:arg name="parent" default="world" />
 
-  <xacro:include filename="$(find moma_description)/urdf/panda_arm.xacro"/>
+  <xacro:include filename="$(find moma_description)/urdf/panda_arm.xacro" />
   <xacro:moma_panda arm_id="$(arg arm_id)"
-                    hand="$(arg hand)"
-                    gazebo="$(arg gazebo)"
-                    parent="$(arg parent)"
-                    xyz="$(arg xyz)"
-                    rpy="$(arg rpy)"
-                    use_fixed_camera="$(arg use_fixed_camera)"
-                    use_wrist_camera="$(arg use_wrist_camera)"
-                    include_control_plugin="$(arg include_control_plugin)"/>
+    hand="$(arg hand)"
+    gazebo="$(arg gazebo)"
+    parent="$(arg parent)"
+    xyz="$(arg xyz)"
+    rpy="$(arg rpy)"
+    use_fixed_camera="$(arg use_fixed_camera)"
+    use_wrist_camera="$(arg use_wrist_camera)"
+    use_bota="$(arg use_bota)"
+    include_control_plugin="$(arg include_control_plugin)" />
 </robot>
