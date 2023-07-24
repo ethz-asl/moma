@@ -3,23 +3,21 @@
   <xacro:arg name="arm_id" default="panda"/>
   <xacro:arg name="hand" default="true"/>
   <xacro:arg name="gazebo" default="false"/>
-  <xacro:arg name="fixed_to_world" default="false"/>
-  <xacro:arg name="connected_to" default=""/>
   <xacro:arg name="xyz" default="0 0 0"/>
   <xacro:arg name="rpy" default="0 0 0"/>
-  <xacro:arg name="use_fixed_realsense" default="false"/>
-  <xacro:arg name="use_nominal_extrinsics" default="false"/>
+  <xacro:arg name="use_fixed_camera" default="true"/>
+  <xacro:arg name="use_wrist_camera" default="true"/>
   <xacro:arg name="include_control_plugin" default="false"/>
+  <xacro:arg name="parent" default="world"/>
 
   <xacro:include filename="$(find moma_description)/urdf/panda_arm.xacro"/>
   <xacro:moma_panda arm_id="$(arg arm_id)"
                     hand="$(arg hand)"
                     gazebo="$(arg gazebo)"
-                    fixed_to_world="$(arg fixed_to_world)"
-                    connected_to="$(arg connected_to)"
+                    parent="$(arg parent)"
                     xyz="$(arg xyz)"
                     rpy="$(arg rpy)"
-                    use_fixed_realsense="$(arg use_fixed_realsense)"
-                    use_nominal_extrinsics="$(arg use_nominal_extrinsics)"
+                    use_fixed_camera="$(arg use_fixed_camera)"
+                    use_wrist_camera="$(arg use_wrist_camera)"
                     include_control_plugin="$(arg include_control_plugin)"/>
 </robot>

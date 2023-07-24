@@ -4,12 +4,13 @@ set -o pipefail
 # Set up a ROS workspace
 mkdir -p $MOMA_DEP_WS/src
 cd $MOMA_DEP_WS
+source /opt/ros/noetic/setup.bash
 catkin init
 catkin config --extend /opt/ros/noetic
 catkin config --cmake-args -DCMAKE_BUILD_TYPE=Release
 
 # Install ROS packages from apt
-apt-get install -y \
+apt-get update && apt-get install -y \
 	ros-noetic-ros-control \
 	ros-noetic-ros-controllers \
 	ros-noetic-moveit \
@@ -28,7 +29,9 @@ apt-get install -y \
 	ros-noetic-tf-conversions \
 	ros-noetic-rviz-visual-tools \
   ros-noetic-fkie-multimaster \
-  ros-noetic-fkie-node-manager
+  ros-noetic-fkie-node-manager \
+	ros-noetic-moveit-resources-panda-description \
+	ros-noetic-moveit-visual-tools
 
 # Install all the other dependencies in the moma_dep_ws
 cd $MOMA_DEP_WS/src || exit 1

@@ -14,7 +14,7 @@ git config --global advice.detachedHead false
 apt-get -qq update && apt-get install -y python3-catkin-tools python3-vcstool python3-pip
 
 # Install other system deps
-apt-get -qq update && apt-get install -y qtbase5-dev
+apt-get -qq update && apt-get install -y qtbase5-dev bash-completion
 
 # This is for nvblox
 pip install --upgrade cmake

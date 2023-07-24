@@ -3,9 +3,10 @@ Panels:
     Help Height: 78
     Name: Displays
     Property Tree Widget:
-      Expanded: ~
+      Expanded:
+        - /Global Options1
       Splitter Ratio: 0.5
-    Tree Height: 728
+    Tree Height: 722
   - Class: rviz/Selection
     Name: Selection
   - Class: rviz/Tool Properties
@@ -21,7 +22,6 @@ Panels:
     Name: Views
     Splitter Ratio: 0.5
   - Class: rviz/Time
-    Experimental: false
     Name: Time
     SyncMode: 0
     SyncSource: ""
@@ -60,203 +60,192 @@ Visualization Manager:
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
-        axle_link:
+        fixed_camera_bottom_screw_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        fixed_camera_color_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        fixed_camera_color_optical_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        fixed_camera_depth_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        fixed_camera_depth_optical_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        fixed_camera_infra1_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        fixed_camera_infra1_optical_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        fixed_camera_infra2_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        fixed_camera_infra2_optical_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        fixed_camera_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        base_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        chassis_link:
+        panda_hand:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        front_cover_link:
+        panda_hand_sc:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        front_left_wheel_link:
+        panda_hand_tcp:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        panda_leftfinger:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        front_lights_link:
+        panda_link0:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        front_right_wheel_link:
+        panda_link0_sc:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        front_rocker_link:
+        panda_link1:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        gripper_l_base:
+        panda_link1_sc:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        gripper_l_finger_l:
+        panda_link2:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        gripper_l_finger_r:
+        panda_link2_sc:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        gripper_r_base:
+        panda_link3:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        gripper_r_finger_l:
+        panda_link3_sc:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        gripper_r_finger_r:
+        panda_link4:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        imu_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        left_side_cover_link:
+        panda_link4_sc:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        mid_mount:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        rear_cover_link:
+        panda_link5:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        rear_left_wheel_link:
+        panda_link5_sc:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        rear_lights_link:
+        panda_link6:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        rear_right_wheel_link:
+        panda_link6_sc:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        rear_rocker_link:
+        panda_link7:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        right_side_cover_link:
+        panda_link7_sc:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        top_link:
+        panda_link8:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        panda_rightfinger:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        yumi_base_link:
+        wrist_camera_bottom_screw_frame:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-        yumi_body:
+        wrist_camera_color_frame:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-          Value: true
-        yumi_link_1_l:
+        wrist_camera_color_optical_frame:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-          Value: true
-        yumi_link_1_r:
+        wrist_camera_depth_frame:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-          Value: true
-        yumi_link_2_l:
+        wrist_camera_depth_optical_frame:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-          Value: true
-        yumi_link_2_r:
+        wrist_camera_infra1_frame:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-          Value: true
-        yumi_link_3_l:
+        wrist_camera_infra1_optical_frame:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-          Value: true
-        yumi_link_3_r:
+        wrist_camera_infra2_frame:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-          Value: true
-        yumi_link_4_l:
+        wrist_camera_infra2_optical_frame:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-          Value: true
-        yumi_link_4_r:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        yumi_link_5_l:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        yumi_link_5_r:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        yumi_link_6_l:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        yumi_link_6_r:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        yumi_link_7_l:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        yumi_link_7_r:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        yumi_mount_link:
+        wrist_camera_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -269,9 +258,12 @@ Visualization Manager:
       Visual Enabled: true
     - Class: rviz/TF
       Enabled: false
+      Filter (blacklist): ""
+      Filter (whitelist): ""
       Frame Timeout: 15
       Frames:
         All Enabled: true
+      Marker Alpha: 1
       Marker Scale: 1
       Name: TF
       Show Arrows: true
@@ -285,7 +277,7 @@ Visualization Manager:
   Global Options:
     Background Color: 48; 48; 48
     Default Light: true
-    Fixed Frame: base_link
+    Fixed Frame: panda_link0
     Frame Rate: 30
   Name: root
   Tools:
@@ -309,33 +301,33 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 4.908139228820801
+      Distance: 2.425589084625244
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
+      Field of View: 0.7853981852531433
       Focal Point:
-        X: 0.039467256516218185
-        Y: 0.3380158543586731
-        Z: 0.3718871474266052
+        X: 0.18968646228313446
+        Y: 0.4172348976135254
+        Z: 0.4589958190917969
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.34039852023124695
+      Pitch: 0.18039840459823608
       Target Frame: <Fixed Frame>
-      Value: Orbit (rviz)
-      Yaw: 5.378580570220947
+      Yaw: 4.743579387664795
     Saved: ~
 Window Geometry:
   Displays:
     collapsed: false
-  Height: 1025
+  Height: 1013
   Hide Left Dock: false
   Hide Right Dock: false
-  QMainWindow State: 000000ff00000000fd00000004000000000000015600000363fc0200000008fb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073010000003d00000363000000c900fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261000000010000010f00000363fc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073010000003d00000363000000a400fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e100000197000000030000073d0000003efc0100000002fb0000000800540069006d006501000000000000073d000002eb00fffffffb0000000800540069006d00650100000000000004500000000000000000000004cc0000036300000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd0000000400000000000001560000035bfc0200000008fb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073010000003b0000035b000000c700fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261000000010000010f0000035bfc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073010000003b0000035b000000a000fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e10000019700000003000006900000003efc0100000002fb0000000800540069006d00650100000000000006900000030700fffffffb0000000800540069006d006501000000000000045000000000000000000000041f0000035b00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Selection:
     collapsed: false
   Time:
@@ -344,6 +336,6 @@ Window Geometry:
     collapsed: false
   Views:
     collapsed: false
-  Width: 1853
-  X: 1987
-  Y: 27
+  Width: 1680
+  X: 1920
+  Y: 30
