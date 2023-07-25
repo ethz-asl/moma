@@ -16,4 +16,13 @@
   <depend>ridgeback_control</depend>
   <depend>royalpanda_moveit_config</depend>
 
+  <exec_depend>gazebo_ros</exec_depend>
+
+  <export>
+    <gazebo_ros gazebo_model_path="${prefix}/models"/>
+    <gazebo_ros gazebo_media_path="${prefix}/models"/>
+    <gazebo_ros gazebo_model_path="${prefix}/models/apriltags"/>
+    <gazebo_ros gazebo_media_path="${prefix}/models/apriltags"/>
+  </export>
+
 </package>
