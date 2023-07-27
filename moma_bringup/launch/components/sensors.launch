@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <launch>
-  <arg name="wrist_camera" value="true" />
-  <arg name="fixed_camera" value="false" />
+  <arg name="wrist_camera" default="true" />
+  <arg name="fixed_camera" default="false" />
 
   <!-- Launch wrist camera -->
   <include if="$(arg wrist_camera)"
@@ -12,6 +12,7 @@
     <arg name="depth_fps" value="30" />
     <arg name="enable_pointcloud" value="true" />
     <arg name="publish_tf" value="true" />
+    <arg name="serial_no" value="828112072238" />
   </include>
 
   <include if="$(arg fixed_camera)"
@@ -22,5 +23,6 @@
     <arg name="depth_fps" value="30" />
     <arg name="enable_pointcloud" value="true" />
     <arg name="publish_tf" value="true" />
+    <arg name="serial_no" value="231522070510" />
   </include>
 </launch>
