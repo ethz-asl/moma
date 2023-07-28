@@ -1,9 +1,10 @@
 <launch>
   <!-- configure camera input -->
-  <arg name="eye_on_hand" value="true" />
+  <arg name="eye_on_hand" default="true" />
   <arg name="camera_name" default="/wrist_camera/color" />
   <arg name="image_topic" default="image_raw" />
   <arg name="queue_size" default="1" />
+  <arg name="handeye" default="true" />
 
   <!-- apriltag_ros continuous detection node -->
   <node pkg="apriltag_ros" type="apriltag_ros_continuous_node" name="apriltag_ros_continuous_node" clear_params="true" output="screen">
@@ -19,7 +20,7 @@
     <rosparam command="load" file="$(find moma_bringup)/config/apriltags.yaml"/>
   </node>
 
-  <include file="$(find easy_handeye)/launch/calibrate.launch">
+  <include if="$(arg handeye)" file="$(find easy_handeye)/launch/calibrate.launch">
     <arg name="eye_on_hand" value="true"/>
 
     <!-- you can choose any identifier, as long as you use the same for publishing the calibration -->
