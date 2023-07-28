@@ -1,0 +1,11 @@
+[Unit]
+Description=Piloting router
+After=network.target
+
+[Service]
+ExecStart=/home/smb/router.sh
+RemainAfterExit=true
+Type=oneshot
+
+[Install]
+WantedBy=multi-user.target

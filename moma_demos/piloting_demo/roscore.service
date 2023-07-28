@@ -1,0 +1,8 @@
+[Unit]
+After=network-online.target
+[Service]
+Type=forking
+User=piloting
+ExecStart=/bin/sh -c ". /opt/ros/noetic/setup.sh; export ROS_MASTER_URI=http://192.168.195.5:11311; export ROS_IP=192.168.195.5; echo $ROS_MASTER_URI; roscore & while ! echo exit | nc localhost 11311 > /dev/null; do sleep 1; done"
+[Install]
+WantedBy=multi-user.target
