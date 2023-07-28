@@ -88,6 +88,7 @@ REACH_DETECTION_HOTSPOT_CLOSE:
 WAYPOINT_BROADCAST:
   default_outcome: None
   action_visual_waypoint_frame: valve_gt
+  action_gauge_waypoint_frame: gauge
 
 WAYPOINT_FOLLOWING:
   default_outcome: None
@@ -290,3 +291,38 @@ BACKOFF_VALVE:
   linear_tolerance: 0.05
   angular_tolerance: 0.3
   delay: 0.0
+
+OBSERVATION_POSE_GAUGE:
+  default_outcome: None
+  sample_name: observation_gauge
+  map_frame: tracking_camera_odom
+  object_frame: gauge
+  camera_frame: hand_eye_color_optical_frame
+  controlled_frame: tool_frame
+  object_size: 0.20
+  camera_info_topic: "/camera_info"
+  num_samples: 32
+  theta_range_deg: [-45, 45]
+  phi_range_deg: [10, 30]
+  image_fill_ratio_range: [0.4, 0.6]
+  heading: "range"
+  heading_range_deg: [30, 150] # Don't make this too large (e.g. [0, 180]) since the head orientation could get flipped when going from one extreme to the other
+
+OBSERVATION_APPROACH_GAUGE:
+  default_outcome: None
+  duration: 1.0
+  timeout: 10.0
+  control_frame: tracking_camera_odom
+  target_frame: observation_gauge
+  startlist: ["mpc_controller", "path_passthrough_controller"] #, 'path_admittance_controller' ]
+  stoplist:
+    [
+      "mpc_wholebody_controller",
+      "cartesian_impedance_controller",
+      "joint_space_controller",
+    ]
+  manager_namespace: panda
+
+READ_GAUGE:
+  default_outcome: None
+  min_successful_readings: 3

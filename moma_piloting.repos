@@ -1,4 +1,9 @@
 repositories:
+  analog_gauge_reader:
+    type: git
+    url: git@github.com:ethz-asl/analog_gauge_reader.git
+    version: 744da64d597e696463b072023ece34bef0ff74d8
+
   ocs2:
     type: git
     url: git@github.com:ethz-asl/ocs2.git

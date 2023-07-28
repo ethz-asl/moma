@@ -238,10 +238,19 @@
           "layout": {
             "first": {
               "first": "joystick!2htxtix",
-              "second": "Gauge!1ts1ysc",
+              "second": {
+                "first": "Gauge!1ts1ysc",
+                "second": "Indicator!3wqjpt4",
+                "direction": "column",
+                "splitPercentage": 71.85473312199811
+              },
               "direction": "row"
             },
-            "second": "Plot!44yv2h0",
+            "second": {
+              "first": "Plot!44yv2h0",
+              "second": "Plot!2wibr6x",
+              "direction": "row"
+            },
             "direction": "row"
           }
         }
@@ -267,7 +276,7 @@
       "maxAngularSpeed": 0.15
     },
     "Gauge!1ts1ysc": {
-      "path": "/smb/base_battery_state.percentage",
+      "path": "/smb_powerstatus/base.percentage",
       "minValue": 0,
       "maxValue": 1,
       "colorMap": "red-yellow-green",
@@ -275,7 +284,42 @@
       "gradient": ["#0000ff", "#ff00ff"],
       "reverse": false
     },
+    "Indicator!3wqjpt4": {
+      "path": "/smb_powerstatus/base.current",
+      "style": "background",
+      "fallbackColor": "#a0a0a0",
+      "fallbackLabel": "Not Charging",
+      "rules": [
+        {
+          "operator": ">",
+          "rawValue": "1",
+          "color": "#68e24a",
+          "label": "Charging"
+        }
+      ]
+    },
     "Plot!44yv2h0": {
+      "title": "Current",
+      "paths": [
+        {
+          "value": "/smb_powerstatus/base.current",
+          "enabled": true,
+          "timestampMethod": "receiveTime"
+        }
+      ],
+      "minYValue": -20,
+      "maxYValue": 0,
+      "showXAxisLabels": true,
+      "showYAxisLabels": true,
+      "showLegend": false,
+      "legendDisplay": "floating",
+      "showPlotValuesInLegend": false,
+      "isSynced": true,
+      "xAxisVal": "timestamp",
+      "sidebarDimension": 240,
+      "followingViewWidth": 20
+    },
+    "Plot!2wibr6x": {
       "title": "Wheel Speeds",
       "paths": [
         {
@@ -375,7 +419,11 @@
           "layout": {
             "first": "Tab!2r309x2",
             "second": {
-              "first": "RawMessages!3fwcvto",
+              "first": {
+                "first": "RawMessages!3fwcvto",
+                "second": "RawMessages!3i3bk4y",
+                "direction": "row"
+              },
               "second": "Publish!2619o6s",
               "direction": "row"
             },
@@ -447,9 +495,17 @@
               "direction": "row"
             },
             "second": {
-              "first": "ImageViewPanel!4335kpp",
-              "second": "ImageViewPanel!2ewghlr",
-              "direction": "row"
+              "first": {
+                "first": "ImageViewPanel!4335kpp",
+                "second": "ImageViewPanel!3c2ynxh",
+                "direction": "row"
+              },
+              "second": {
+                "first": "ImageViewPanel!33d1a21",
+                "second": "ImageViewPanel!2kw23dn",
+                "direction": "row"
+              },
+              "direction": "column"
             },
             "direction": "row"
           }
@@ -462,10 +518,17 @@
       "diffMethod": "custom",
       "diffTopicPath": "",
       "showFullMessageForDiff": false,
-      "topicPath": "/analog_gauge_meter_reader_ml/readings"
+      "topicPath": "/analog_gauge_reader/readings.readings[0].value.data"
+    },
+    "RawMessages!3i3bk4y": {
+      "diffEnabled": false,
+      "diffMethod": "custom",
+      "diffTopicPath": "",
+      "showFullMessageForDiff": false,
+      "topicPath": "/analog_gauge_reader/readings.readings[0].unit.data"
     },
     "Publish!2619o6s": {
-      "topicName": "/analog_gauge_meter_reader_ml/read",
+      "topicName": "/analog_gauge_reader/read",
       "datatype": "",
       "buttonText": "Read Gauge",
       "buttonTooltip": "",
@@ -476,7 +539,7 @@
       "service": true
     },
     "ImageViewPanel!3wn9erh": {
-      "cameraTopic": "/analog_gauge_meter_reader_ml/det",
+      "cameraTopic": "/analog_gauge_reader/original_image",
       "enabledMarkerTopics": [],
       "mode": "fit",
       "pan": {
@@ -489,7 +552,7 @@
       "zoom": 1
     },
     "ImageViewPanel!c9du95": {
-      "cameraTopic": "/analog_gauge_meter_reader_ml/ocr_plot",
+      "cameraTopic": "/analog_gauge_reader/ellipse_results_final",
       "enabledMarkerTopics": [],
       "mode": "fit",
       "pan": {
@@ -502,7 +565,7 @@
       "zoom": 1
     },
     "ImageViewPanel!4l86y2n": {
-      "cameraTopic": "/analog_gauge_meter_reader_ml/seg_eroded_img",
+      "cameraTopic": "/analog_gauge_reader/bbox_results",
       "enabledMarkerTopics": [],
       "mode": "fit",
       "pan": {
@@ -515,7 +578,7 @@
       "zoom": 1
     },
     "ImageViewPanel!23p02q8": {
-      "cameraTopic": "/analog_gauge_meter_reader_ml/seg_rectified",
+      "cameraTopic": "/analog_gauge_reader/key_point_results",
       "enabledMarkerTopics": [],
       "mode": "fit",
       "pan": {
@@ -528,7 +591,7 @@
       "zoom": 1
     },
     "ImageViewPanel!2j0sjvk": {
-      "cameraTopic": "/analog_gauge_meter_reader_ml/original",
+      "cameraTopic": "/analog_gauge_reader/ellipse_results_key_points",
       "enabledMarkerTopics": [],
       "mode": "fit",
       "pan": {
@@ -541,7 +604,7 @@
       "zoom": 1
     },
     "ImageViewPanel!4335kpp": {
-      "cameraTopic": "/analog_gauge_meter_reader_ml/scale_skeleton",
+      "cameraTopic": "/analog_gauge_reader/segmentation_results",
       "enabledMarkerTopics": [],
       "mode": "fit",
       "pan": {
@@ -553,8 +616,34 @@
       "transformMarkers": false,
       "zoom": 1
     },
-    "ImageViewPanel!2ewghlr": {
-      "cameraTopic": "/analog_gauge_meter_reader_ml/ocr_plot_inliers",
+    "ImageViewPanel!3c2ynxh": {
+      "cameraTopic": "/analog_gauge_reader/image_rotated_zero_point",
+      "enabledMarkerTopics": [],
+      "mode": "fit",
+      "pan": {
+        "x": 0,
+        "y": 0
+      },
+      "rotation": 0,
+      "synchronize": false,
+      "transformMarkers": false,
+      "zoom": 1
+    },
+    "ImageViewPanel!33d1a21": {
+      "cameraTopic": "/analog_gauge_reader/ellipse_results_projected",
+      "enabledMarkerTopics": [],
+      "mode": "fit",
+      "pan": {
+        "x": 0,
+        "y": 0
+      },
+      "rotation": 0,
+      "synchronize": false,
+      "transformMarkers": false,
+      "zoom": 1
+    },
+    "ImageViewPanel!2kw23dn": {
+      "cameraTopic": "/analog_gauge_reader/reading_line_fit",
       "enabledMarkerTopics": [],
       "mode": "fit",
       "pan": {

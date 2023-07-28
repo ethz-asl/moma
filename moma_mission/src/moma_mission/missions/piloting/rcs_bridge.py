@@ -683,6 +683,13 @@ class RCSBridge:
         hl_action.index = 3
         req.hl_actions.append(hl_action)
 
+        hl_action = HLActionItem()
+        hl_action.command = 42008  # TODO
+        hl_action.description = "Read an analog gauge."
+        hl_action.name = "READ_GAUGE"
+        hl_action.index = 4
+        req.hl_actions.append(hl_action)
+
         # hl_action = HLActionItem()
         # hl_action.command = 42001
         # hl_action.description = "Go to home position."
