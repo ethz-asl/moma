@@ -39,7 +39,7 @@ cd $MOMA_DEP_WS/src || exit 1
 vcs import --recursive --input $SCRIPTS_PATH/moma_ros_deps.repos
 
 # Pip install some stuff.
-pip3 install transforms3d
+pip3 install transforms3d scipy
 
 # Clear cache to keep layer size down
 rm -rf /var/lib/apt/lists/*
