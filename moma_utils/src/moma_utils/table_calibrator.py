@@ -34,7 +34,7 @@ class TableCalibrator:
         self._global_frame = rospy.get_param('~global_frame', 'world')
         self._table_frame = rospy.get_param('~table_frame', 'table')
         self._tag_frame = rospy.get_param('~tag_frame', 'tag_0')
-        self._camera_base_frame = rospy.get_param('~camera_base_frame', 'fixed_camera_bottom_screw_frame')
+        self._camera_base_frame = rospy.get_param('~camera_base_frame', 'fixed_camera_link')
         self._calibration_file_path = rospy.get_param('~file_path', 'calibration.yaml')
         self._load_from_params = rospy.get_param('~load_from_params', False)
 
@@ -47,25 +47,29 @@ class TableCalibrator:
             line = line.replace('T_w_t: ', '')
             line = line.replace('\"', '')
             list_var = json.loads(line)
+            print("T_w_t: ", list_var)
             self._T_w_t = Transform.from_list(list_var)
 
             line = file.readline()
             line = line.replace('T_t_c: ', '')
             line = line.replace('\"', '')
             list_var = json.loads(line)
+            print("T_t_c: ", list_var)
             self._T_t_c = Transform.from_list(list_var)
 
             rospy.loginfo('Read calibration file from: %s', path)
+        self.publish_transforms()
 
     def load_from_parameters(self):
         try:
             T_w_t_str = rospy.get_param('~T_w_t')
             T_t_c_str = rospy.get_param('~T_t_c')
-
             self._T_w_t = Transform.from_list(json.loads(T_w_t_str))
             self._T_t_c = Transform.from_list(json.loads(T_t_c_str))
         except (KeyError, json.JSONDecodeError):
             rospy.logwarn("Couldn't look up transforms from the parameter server!")
+
+        self.publish_transforms()
 
     def write_to_file(self, path):
         with open(path, 'w') as file:
@@ -75,7 +79,7 @@ class TableCalibrator:
             file.write(']\"\n')
 
             file.write('T_t_c: \"[')
-            list_var = self._T_w_c.to_list()
+            list_var = self._T_t_c.to_list()
             file.write(', '.join(map(str, list_var)))
             file.write(']\"\n')
             rospy.loginfo('Output calibration file to: %s', path)
@@ -115,7 +119,7 @@ class TableCalibrator:
             rospy.logwarn("Couldn't look up transform from camera to tag. Is the tag in view?")
             return False
 
-        self._T_t_c = from_transform_msg(T_t_c_msg.transform)
+        self._T_t_c = from_transform_msg(T_t_c_msg.transform).inverse()
 
         # We should already have the transform from the table frame to the global frame, otherwise identity.
         T_w_c = self._T_w_t *  self._T_t_c

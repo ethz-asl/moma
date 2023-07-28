@@ -4,7 +4,11 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
-        - /PointCloud21
+        - /MoveIt1
+        - /Controller1
+        - /Sensors1
+        - /Sensors1/PointCloud21
+        - /TF1
       Splitter Ratio: 0.7425600290298462
     Tree Height: 871
   - Class: rviz/Help
@@ -41,1121 +45,658 @@ Visualization Manager:
       Plane Cell Count: 10
       Reference Frame: <Fixed Frame>
       Value: true
-    - Class: rviz/MarkerArray
+    - Class: rviz/Group
+      Displays:
+        - Class: rviz/MarkerArray
+          Enabled: true
+          Marker Topic: /rviz_visual_tools
+          Name: MarkerArray
+          Namespaces:
+            {}
+          Queue Size: 100
+          Value: true
+        - Class: moveit_rviz_plugin/Trajectory
+          Color Enabled: false
+          Enabled: true
+          Interrupt Display: false
+          Links:
+            All Links Enabled: true
+            Expand Joint Details: false
+            Expand Link Details: false
+            Expand Tree: false
+            Link Tree Style: Links in Alphabetic Order
+            panda_hand:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            panda_hand_sc:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            panda_hand_tcp:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            panda_leftfinger:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            panda_link0:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            panda_link0_sc:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            panda_link1:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            panda_link1_sc:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            panda_link2:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            panda_link2_sc:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            panda_link3:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            panda_link3_sc:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            panda_link4:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            panda_link4_sc:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            panda_link5:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            panda_link5_sc:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            panda_link6:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            panda_link6_sc:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            panda_link7:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            panda_link7_sc:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            panda_link8:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            panda_rightfinger:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            wrist_camera_bottom_screw_frame:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            wrist_camera_color_frame:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            wrist_camera_color_optical_frame:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            wrist_camera_depth_frame:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            wrist_camera_depth_optical_frame:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            wrist_camera_infra1_frame:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            wrist_camera_infra1_optical_frame:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            wrist_camera_infra2_frame:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            wrist_camera_infra2_optical_frame:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            wrist_camera_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+          Loop Animation: false
+          Name: Trajectory
+          Robot Alpha: 0.5
+          Robot Color: 150; 50; 150
+          Robot Description: robot_description
+          Show Robot Collision: false
+          Show Robot Visual: true
+          Show Trail: false
+          State Display Time: 0.05 s
+          Trail Step Size: 1
+          Trajectory Topic: /move_group/display_planned_path
+          Use Sim Time: false
+          Value: true
+        - Class: moveit_rviz_plugin/PlanningScene
+          Enabled: false
+          Move Group Namespace: ""
+          Name: PlanningScene
+          Planning Scene Topic: /move_group/monitored_planning_scene
+          Robot Description: robot_description
+          Scene Geometry:
+            Scene Alpha: 0.8999999761581421
+            Scene Color: 50; 230; 50
+            Scene Display Time: 0.20000000298023224
+            Show Scene Geometry: true
+            Voxel Coloring: Z-Axis
+            Voxel Rendering: Occupied Voxels
+          Scene Robot:
+            Attached Body Color: 150; 50; 150
+            Links:
+              All Links Enabled: true
+              Expand Joint Details: false
+              Expand Link Details: false
+              Expand Tree: false
+              Link Tree Style: Links in Alphabetic Order
+            Robot Alpha: 1
+            Show Robot Collision: false
+            Show Robot Visual: false
+          Value: false
+        - Acceleration_Scaling_Factor: 0.1
+          Class: moveit_rviz_plugin/MotionPlanning
+          Enabled: false
+          Move Group Namespace: ""
+          MoveIt_Allow_Approximate_IK: false
+          MoveIt_Allow_External_Program: false
+          MoveIt_Allow_Replanning: false
+          MoveIt_Allow_Sensor_Positioning: false
+          MoveIt_Planning_Attempts: 10
+          MoveIt_Planning_Time: 5
+          MoveIt_Use_Cartesian_Path: false
+          MoveIt_Use_Constraint_Aware_IK: false
+          MoveIt_Workspace:
+            Center:
+              X: 0
+              Y: 0
+              Z: 0
+            Size:
+              X: 2
+              Y: 2
+              Z: 2
+          Name: MotionPlanning
+          Planned Path:
+            Color Enabled: false
+            Interrupt Display: false
+            Links:
+              All Links Enabled: true
+              Expand Joint Details: false
+              Expand Link Details: false
+              Expand Tree: false
+              Link Tree Style: Links in Alphabetic Order
+            Loop Animation: false
+            Robot Alpha: 0.5
+            Robot Color: 150; 50; 150
+            Show Robot Collision: false
+            Show Robot Visual: true
+            Show Trail: false
+            State Display Time: 0.05 s
+            Trail Step Size: 1
+            Trajectory Topic: /panda/move_group/display_planned_path
+            Use Sim Time: false
+          Planning Metrics:
+            Payload: 1
+            Show Joint Torques: false
+            Show Manipulability: false
+            Show Manipulability Index: false
+            Show Weight Limit: false
+            TextHeight: 0.07999999821186066
+          Planning Request:
+            Colliding Link Color: 255; 0; 0
+            Goal State Alpha: 1
+            Goal State Color: 250; 128; 0
+            Interactive Marker Size: 0
+            Joint Violation Color: 255; 0; 255
+            Planning Group: ""
+            Query Goal State: true
+            Query Start State: false
+            Show Workspace: false
+            Start State Alpha: 1
+            Start State Color: 0; 255; 0
+          Planning Scene Topic: move_group/monitored_planning_scene
+          Robot Description: robot_description
+          Scene Geometry:
+            Scene Alpha: 0.8999999761581421
+            Scene Color: 50; 230; 50
+            Scene Display Time: 0.009999999776482582
+            Show Scene Geometry: true
+            Voxel Coloring: Z-Axis
+            Voxel Rendering: Occupied Voxels
+          Scene Robot:
+            Attached Body Color: 150; 50; 150
+            Links:
+              All Links Enabled: true
+              Expand Joint Details: false
+              Expand Link Details: false
+              Expand Tree: false
+              Link Tree Style: Links in Alphabetic Order
+            Robot Alpha: 1
+            Show Robot Collision: false
+            Show Robot Visual: true
+          Value: false
+          Velocity_Scaling_Factor: 0.1
       Enabled: true
-      Marker Topic: /rviz_visual_tools
-      Name: MarkerArray
-      Namespaces:
-        {}
-      Queue Size: 100
-      Value: true
-    - Class: moveit_rviz_plugin/Trajectory
-      Color Enabled: false
+      Name: MoveIt
+    - Class: rviz/Group
+      Displays:
+        - Alpha: 1
+          Class: rviz/RobotModel
+          Collision Enabled: false
+          Enabled: true
+          Links:
+            All Links Enabled: true
+            Expand Joint Details: false
+            Expand Link Details: false
+            Expand Tree: false
+            Link Tree Style: Links in Alphabetic Order
+            panda_hand:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            panda_hand_sc:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            panda_hand_tcp:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            panda_leftfinger:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            panda_link0:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            panda_link0_sc:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            panda_link1:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            panda_link1_sc:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            panda_link2:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            panda_link2_sc:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            panda_link3:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            panda_link3_sc:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            panda_link4:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            panda_link4_sc:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            panda_link5:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            panda_link5_sc:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            panda_link6:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            panda_link6_sc:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            panda_link7:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            panda_link7_sc:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            panda_link8:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            panda_rightfinger:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            wrist_camera_bottom_screw_frame:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            wrist_camera_color_frame:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            wrist_camera_color_optical_frame:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            wrist_camera_depth_frame:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            wrist_camera_depth_optical_frame:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            wrist_camera_infra1_frame:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            wrist_camera_infra1_optical_frame:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            wrist_camera_infra2_frame:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            wrist_camera_infra2_optical_frame:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+            wrist_camera_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+          Name: RobotModel
+          Robot Description: robot_description
+          TF Prefix: ""
+          Update Interval: 0
+          Value: true
+          Visual Enabled: true
+        - Class: rviz/InteractiveMarkers
+          Enable Transparency: true
+          Enabled: true
+          Name: InteractiveMarkers
+          Show Axes: false
+          Show Descriptions: true
+          Show Visual Aids: false
+          Update Topic: /equilibrium_pose_marker/update
+          Value: true
       Enabled: true
-      Interrupt Display: false
-      Links:
-        All Links Enabled: true
-        Expand Joint Details: false
-        Expand Link Details: false
-        Expand Tree: false
-        Link Tree Style: Links in Alphabetic Order
+      Name: Controller
+    - Class: rviz/Group
+      Displays:
+        - Alpha: 1
+          Autocompute Intensity Bounds: true
+          Autocompute Value Bounds:
+            Max Value: 10
+            Min Value: -10
+            Value: true
+          Axis: Z
+          Channel Name: intensity
+          Class: rviz/PointCloud2
+          Color: 255; 255; 255
+          Color Transformer: RGB8
+          Decay Time: 0
+          Enabled: true
+          Invert Rainbow: false
+          Max Color: 255; 255; 255
+          Min Color: 0; 0; 0
+          Name: PointCloud2
+          Position Transformer: XYZ
+          Queue Size: 10
+          Selectable: true
+          Size (Pixels): 3
+          Size (m): 0.009999999776482582
+          Style: Points
+          Topic: /wrist_camera/depth/color/points
+          Unreliable: false
+          Use Fixed Frame: true
+          Use rainbow: true
+          Value: true
+      Enabled: true
+      Name: Sensors
+    - Class: rviz/TF
+      Enabled: true
+      Filter (blacklist): ""
+      Filter (whitelist): ""
+      Frame Timeout: 15
+      Frames:
+        All Enabled: true
         fixed_camera_bottom_screw_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        fixed_camera_color_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        fixed_camera_color_optical_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        fixed_camera_depth_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        fixed_camera_depth_optical_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        fixed_camera_infra1_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        fixed_camera_infra1_optical_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        fixed_camera_infra2_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        fixed_camera_infra2_optical_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        fixed_camera_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
+          Value: true
+        panda_EE:
+          Value: true
+        panda_K:
+          Value: true
+        panda_NE:
           Value: true
         panda_hand:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
           Value: true
         panda_hand_sc:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
+          Value: true
         panda_hand_tcp:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
+          Value: true
         panda_leftfinger:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
           Value: true
         panda_link0:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
           Value: true
         panda_link0_sc:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
+          Value: true
         panda_link1:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
           Value: true
         panda_link1_sc:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
+          Value: true
         panda_link2:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
           Value: true
         panda_link2_sc:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
+          Value: true
         panda_link3:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
           Value: true
         panda_link3_sc:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
+          Value: true
         panda_link4:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
           Value: true
         panda_link4_sc:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
+          Value: true
         panda_link5:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
           Value: true
         panda_link5_sc:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
+          Value: true
         panda_link6:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
           Value: true
         panda_link6_sc:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
+          Value: true
         panda_link7:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
           Value: true
         panda_link7_sc:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
+          Value: true
         panda_link8:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
+          Value: true
         panda_rightfinger:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
+          Value: true
+        table:
+          Value: true
+        tag_0:
           Value: true
         world:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
+          Value: true
         wrist_camera_bottom_screw_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
+          Value: true
         wrist_camera_color_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
+          Value: true
         wrist_camera_color_optical_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
+          Value: true
         wrist_camera_depth_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
+          Value: true
         wrist_camera_depth_optical_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
+          Value: true
         wrist_camera_infra1_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
+          Value: true
         wrist_camera_infra1_optical_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
+          Value: true
         wrist_camera_infra2_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
+          Value: true
         wrist_camera_infra2_optical_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
+          Value: true
         wrist_camera_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
           Value: true
-      Loop Animation: false
-      Name: Trajectory
-      Robot Alpha: 0.5
-      Robot Color: 150; 50; 150
-      Robot Description: robot_description
-      Show Robot Collision: false
-      Show Robot Visual: true
-      Show Trail: false
-      State Display Time: 0.05 s
-      Trail Step Size: 1
-      Trajectory Topic: /move_group/display_planned_path
-      Use Sim Time: false
-      Value: true
-    - Class: moveit_rviz_plugin/PlanningScene
-      Enabled: false
-      Move Group Namespace: ""
-      Name: PlanningScene
-      Planning Scene Topic: /move_group/monitored_planning_scene
-      Robot Description: robot_description
-      Scene Geometry:
-        Scene Alpha: 0.8999999761581421
-        Scene Color: 50; 230; 50
-        Scene Display Time: 0.20000000298023224
-        Show Scene Geometry: true
-        Voxel Coloring: Z-Axis
-        Voxel Rendering: Occupied Voxels
-      Scene Robot:
-        Attached Body Color: 150; 50; 150
-        Links:
-          All Links Enabled: true
-          Expand Joint Details: false
-          Expand Link Details: false
-          Expand Tree: false
-          Link Tree Style: Links in Alphabetic Order
-          fixed_camera_bottom_screw_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          fixed_camera_color_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          fixed_camera_color_optical_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          fixed_camera_depth_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          fixed_camera_depth_optical_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          fixed_camera_infra1_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          fixed_camera_infra1_optical_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          fixed_camera_infra2_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          fixed_camera_infra2_optical_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          fixed_camera_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          panda_hand:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          panda_hand_sc:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          panda_hand_tcp:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          panda_leftfinger:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          panda_link0:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          panda_link0_sc:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          panda_link1:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          panda_link1_sc:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          panda_link2:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          panda_link2_sc:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          panda_link3:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          panda_link3_sc:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          panda_link4:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          panda_link4_sc:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          panda_link5:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          panda_link5_sc:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          panda_link6:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          panda_link6_sc:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          panda_link7:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          panda_link7_sc:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          panda_link8:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          panda_rightfinger:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          world:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          wrist_camera_bottom_screw_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          wrist_camera_color_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          wrist_camera_color_optical_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          wrist_camera_depth_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          wrist_camera_depth_optical_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          wrist_camera_infra1_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          wrist_camera_infra1_optical_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          wrist_camera_infra2_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          wrist_camera_infra2_optical_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          wrist_camera_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-        Robot Alpha: 1
-        Show Robot Collision: false
-        Show Robot Visual: false
-      Value: false
-    - Acceleration_Scaling_Factor: 0.1
-      Class: moveit_rviz_plugin/MotionPlanning
-      Enabled: false
-      Move Group Namespace: ""
-      MoveIt_Allow_Approximate_IK: false
-      MoveIt_Allow_External_Program: false
-      MoveIt_Allow_Replanning: false
-      MoveIt_Allow_Sensor_Positioning: false
-      MoveIt_Planning_Attempts: 10
-      MoveIt_Planning_Time: 5
-      MoveIt_Use_Cartesian_Path: false
-      MoveIt_Use_Constraint_Aware_IK: false
-      MoveIt_Workspace:
-        Center:
-          X: 0
-          Y: 0
-          Z: 0
-        Size:
-          X: 2
-          Y: 2
-          Z: 2
-      Name: MotionPlanning
-      Planned Path:
-        Color Enabled: false
-        Interrupt Display: false
-        Links:
-          All Links Enabled: true
-          Expand Joint Details: false
-          Expand Link Details: false
-          Expand Tree: false
-          Link Tree Style: Links in Alphabetic Order
-          fixed_camera_bottom_screw_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          fixed_camera_color_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          fixed_camera_color_optical_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          fixed_camera_depth_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          fixed_camera_depth_optical_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          fixed_camera_infra1_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          fixed_camera_infra1_optical_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          fixed_camera_infra2_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          fixed_camera_infra2_optical_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          fixed_camera_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          panda_hand:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          panda_hand_sc:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          panda_hand_tcp:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          panda_leftfinger:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          panda_link0:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          panda_link0_sc:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          panda_link1:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          panda_link1_sc:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          panda_link2:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          panda_link2_sc:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          panda_link3:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          panda_link3_sc:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          panda_link4:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          panda_link4_sc:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          panda_link5:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          panda_link5_sc:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          panda_link6:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          panda_link6_sc:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          panda_link7:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          panda_link7_sc:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          panda_link8:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          panda_rightfinger:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          world:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          wrist_camera_bottom_screw_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          wrist_camera_color_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          wrist_camera_color_optical_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          wrist_camera_depth_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          wrist_camera_depth_optical_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          wrist_camera_infra1_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          wrist_camera_infra1_optical_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          wrist_camera_infra2_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          wrist_camera_infra2_optical_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          wrist_camera_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-        Loop Animation: false
-        Robot Alpha: 0.5
-        Robot Color: 150; 50; 150
-        Show Robot Collision: false
-        Show Robot Visual: true
-        Show Trail: false
-        State Display Time: 0.05 s
-        Trail Step Size: 1
-        Trajectory Topic: /panda/move_group/display_planned_path
-        Use Sim Time: false
-      Planning Metrics:
-        Payload: 1
-        Show Joint Torques: false
-        Show Manipulability: false
-        Show Manipulability Index: false
-        Show Weight Limit: false
-        TextHeight: 0.07999999821186066
-      Planning Request:
-        Colliding Link Color: 255; 0; 0
-        Goal State Alpha: 1
-        Goal State Color: 250; 128; 0
-        Interactive Marker Size: 0
-        Joint Violation Color: 255; 0; 255
-        Planning Group: ""
-        Query Goal State: true
-        Query Start State: false
-        Show Workspace: false
-        Start State Alpha: 1
-        Start State Color: 0; 255; 0
-      Planning Scene Topic: move_group/monitored_planning_scene
-      Robot Description: robot_description
-      Scene Geometry:
-        Scene Alpha: 0.8999999761581421
-        Scene Color: 50; 230; 50
-        Scene Display Time: 0.009999999776482582
-        Show Scene Geometry: true
-        Voxel Coloring: Z-Axis
-        Voxel Rendering: Occupied Voxels
-      Scene Robot:
-        Attached Body Color: 150; 50; 150
-        Links:
-          All Links Enabled: true
-          Expand Joint Details: false
-          Expand Link Details: false
-          Expand Tree: false
-          Link Tree Style: Links in Alphabetic Order
-          fixed_camera_bottom_screw_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          fixed_camera_color_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          fixed_camera_color_optical_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          fixed_camera_depth_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          fixed_camera_depth_optical_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          fixed_camera_infra1_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          fixed_camera_infra1_optical_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          fixed_camera_infra2_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          fixed_camera_infra2_optical_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          fixed_camera_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          panda_hand:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          panda_hand_sc:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          panda_hand_tcp:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          panda_leftfinger:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          panda_link0:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          panda_link0_sc:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          panda_link1:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          panda_link1_sc:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          panda_link2:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          panda_link2_sc:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          panda_link3:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          panda_link3_sc:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          panda_link4:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          panda_link4_sc:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          panda_link5:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          panda_link5_sc:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          panda_link6:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          panda_link6_sc:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          panda_link7:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          panda_link7_sc:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          panda_link8:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          panda_rightfinger:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-          world:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          wrist_camera_bottom_screw_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          wrist_camera_color_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          wrist_camera_color_optical_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          wrist_camera_depth_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          wrist_camera_depth_optical_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          wrist_camera_infra1_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          wrist_camera_infra1_optical_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          wrist_camera_infra2_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          wrist_camera_infra2_optical_frame:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-          wrist_camera_link:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
-        Robot Alpha: 1
-        Show Robot Collision: false
-        Show Robot Visual: true
-      Value: false
-      Velocity_Scaling_Factor: 0.1
-    - Alpha: 1
-      Class: rviz/RobotModel
-      Collision Enabled: false
-      Enabled: true
-      Links:
-        All Links Enabled: true
-        Expand Joint Details: false
-        Expand Link Details: false
-        Expand Tree: false
-        Link Tree Style: Links in Alphabetic Order
-        fixed_camera_bottom_screw_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        fixed_camera_color_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        fixed_camera_color_optical_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        fixed_camera_depth_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        fixed_camera_depth_optical_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        fixed_camera_infra1_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        fixed_camera_infra1_optical_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        fixed_camera_infra2_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        fixed_camera_infra2_optical_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        fixed_camera_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        panda_hand:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        panda_hand_sc:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        panda_hand_tcp:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        panda_leftfinger:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        panda_link0:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        panda_link0_sc:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        panda_link1:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        panda_link1_sc:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        panda_link2:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        panda_link2_sc:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        panda_link3:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        panda_link3_sc:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        panda_link4:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        panda_link4_sc:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        panda_link5:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        panda_link5_sc:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        panda_link6:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        panda_link6_sc:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        panda_link7:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        panda_link7_sc:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        panda_link8:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        panda_rightfinger:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
+      Marker Alpha: 1
+      Marker Scale: 1
+      Name: TF
+      Show Arrows: true
+      Show Axes: true
+      Show Names: true
+      Tree:
         world:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        wrist_camera_bottom_screw_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        wrist_camera_color_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        wrist_camera_color_optical_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        wrist_camera_depth_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        wrist_camera_depth_optical_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        wrist_camera_infra1_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        wrist_camera_infra1_optical_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        wrist_camera_infra2_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        wrist_camera_infra2_optical_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        wrist_camera_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-      Name: RobotModel
-      Robot Description: robot_description
-      TF Prefix: ""
+          fixed_camera_bottom_screw_frame:
+            {}
+          panda_link0:
+            panda_link0_sc:
+              {}
+            panda_link1:
+              panda_link1_sc:
+                {}
+              panda_link2:
+                panda_link2_sc:
+                  {}
+                panda_link3:
+                  panda_link3_sc:
+                    {}
+                  panda_link4:
+                    panda_link4_sc:
+                      {}
+                    panda_link5:
+                      panda_link5_sc:
+                        {}
+                      panda_link6:
+                        panda_link6_sc:
+                          {}
+                        panda_link7:
+                          panda_link7_sc:
+                            {}
+                          panda_link8:
+                            panda_NE:
+                              panda_EE:
+                                panda_K:
+                                  {}
+                            panda_hand:
+                              panda_hand_sc:
+                                {}
+                              panda_hand_tcp:
+                                {}
+                              panda_leftfinger:
+                                {}
+                              panda_rightfinger:
+                                {}
+                            wrist_camera_bottom_screw_frame:
+                              wrist_camera_link:
+                                wrist_camera_color_frame:
+                                  wrist_camera_color_optical_frame:
+                                    tag_0:
+                                      {}
+                                wrist_camera_depth_frame:
+                                  wrist_camera_depth_optical_frame:
+                                    {}
+                                wrist_camera_infra1_frame:
+                                  wrist_camera_infra1_optical_frame:
+                                    {}
+                                wrist_camera_infra2_frame:
+                                  wrist_camera_infra2_optical_frame:
+                                    {}
+          table:
+            {}
       Update Interval: 0
-      Value: true
-      Visual Enabled: true
-    - Alpha: 1
-      Autocompute Intensity Bounds: true
-      Autocompute Value Bounds:
-        Max Value: 10
-        Min Value: -10
-        Value: true
-      Axis: Z
-      Channel Name: intensity
-      Class: rviz/PointCloud2
-      Color: 255; 255; 255
-      Color Transformer: RGB8
-      Decay Time: 0
-      Enabled: true
-      Invert Rainbow: false
-      Max Color: 255; 255; 255
-      Min Color: 0; 0; 0
-      Name: PointCloud2
-      Position Transformer: XYZ
-      Queue Size: 10
-      Selectable: true
-      Size (Pixels): 3
-      Size (m): 0.009999999776482582
-      Style: Points
-      Topic: /wrist_camera/depth/color/points
-      Unreliable: false
-      Use Fixed Frame: true
-      Use rainbow: true
-      Value: true
-    - Class: rviz/InteractiveMarkers
-      Enable Transparency: true
-      Enabled: true
-      Name: InteractiveMarkers
-      Show Axes: false
-      Show Descriptions: true
-      Show Visual Aids: false
-      Update Topic: /equilibrium_pose_marker/update
       Value: true
   Enabled: true
   Global Options:
@@ -1174,7 +715,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/XYOrbit
-      Distance: 1.6961188316345215
+      Distance: 2.661655902862549
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -1190,9 +731,9 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.320203959941864
+      Pitch: 0.030204307287931442
       Target Frame: panda_link0
-      Yaw: 0.7567765712738037
+      Yaw: 6.214978218078613
     Saved: ~
 Window Geometry:
   Displays:

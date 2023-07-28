@@ -21,7 +21,8 @@
         fixed_calibration_xyz:='1 0 1'
         fixed_camera_parent_link:='panda_link0'
         use_bota:=false
-        include_control_plugin:=true">
+        include_control_plugin:=true,
+        publish_realsense_extrinsics:=true">
 
     <xacro:include filename="$(find franka_description)/robots/common/utils.xacro" />
     <xacro:include filename="$(find franka_description)/robots/common/franka_arm.xacro" />
@@ -60,7 +61,7 @@
     <xacro:if value="${use_wrist_camera}">
       <xacro:realsense_gazebo_plugin camera_name="wrist_camera" />
       <xacro:sensor_d435 parent="${wrist_camera_parent_link}" name="wrist_camera"
-        use_nominal_extrinsics="true">
+        use_nominal_extrinsics="${publish_realsense_extrinsics}">
         <origin rpy="${wrist_calibration_rpy}"
           xyz="${wrist_calibration_xyz}" />
       </xacro:sensor_d435>
@@ -70,7 +71,7 @@
     <xacro:if value="${use_fixed_camera}">
       <xacro:realsense_gazebo_plugin camera_name="fixed_camera" />
       <xacro:sensor_d435 parent="${fixed_camera_parent_link}" name="fixed_camera"
-        use_nominal_extrinsics="true">
+        use_nominal_extrinsics="${publish_realsense_extrinsics}">
         <origin rpy="${fixed_calibration_rpy}"
           xyz="${fixed_calibration_xyz}" />
       </xacro:sensor_d435>

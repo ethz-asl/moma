@@ -22,7 +22,7 @@ class Transform(object):
 
     @classmethod
     def from_list(cls, l):
-        return cls(Rotation.from_quat(l[:4]), l[4:])
+        return cls(Rotation.from_quat(l[3:]), l[:3])
 
     def as_matrix(self):
         return np.vstack(

@@ -15,6 +15,7 @@
   <!-- Launch control -->
   <include file="$(find moma_bringup)/launch/components/franka_control.launch">
     <arg name="robot_ip" value="$(arg robot_ip)" />
+    <arg name="xacro_args" value="use_fixed_camera:=false use_wrist_camera:=true publish_realsense_extrinsics:=false" />
   </include>
 
   <rosparam command="load" file="$(find franka_example_controllers)/config/franka_example_controllers.yaml" subst_value="true" />

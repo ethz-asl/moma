@@ -10,6 +10,7 @@
   <xacro:arg name="use_bota" default="true" />
   <xacro:arg name="include_control_plugin" default="true" />
   <xacro:arg name="parent" default="world" />
+  <xacro:arg name="publish_realsense_extrinsics" default="true" />
 
   <xacro:include filename="$(find moma_description)/urdf/panda_arm.xacro" />
   <xacro:moma_panda arm_id="$(arg arm_id)"
