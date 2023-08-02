@@ -11,7 +11,7 @@ git config --global url.https://github.com/.insteadOf git@github.com:
 git config --global advice.detachedHead false
 
 # get install tools
-apt-get -qq update && apt-get install -y python3-catkin-tools python3-vcstool python3-pip
+apt-get -qq update && apt-get install -y python3-catkin-tools python3-vcstool python3-pip python-is-python3
 
 # Install other system deps
 apt-get -qq update && apt-get install -y qtbase5-dev bash-completion
