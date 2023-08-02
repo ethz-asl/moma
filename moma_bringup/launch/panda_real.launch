@@ -6,6 +6,7 @@
   <arg name="moveit" default="true" />
   <arg name="arm_id" default="panda" />
   <arg name="controller" default="effort_joint_trajectory_controller" />
+  <arg name="table" default="true" />
 
   <!-- If we don't do moveit, start the interactive markers. -->
   <arg name="interactive_marker"
@@ -15,10 +16,14 @@
   <!-- Launch control -->
   <include file="$(find moma_bringup)/launch/components/franka_control.launch">
     <arg name="robot_ip" value="$(arg robot_ip)" />
-    <arg name="xacro_args" value="use_fixed_camera:=false use_wrist_camera:=true publish_realsense_extrinsics:=false" />
+    <arg name="xacro_args"
+      value="use_fixed_camera:=false use_wrist_camera:=true publish_realsense_extrinsics:=false" />
   </include>
 
-  <rosparam command="load" file="$(find franka_example_controllers)/config/franka_example_controllers.yaml" subst_value="true" />
+  <!-- Controller settings. -->
+  <rosparam command="load"
+    file="$(find franka_example_controllers)/config/franka_example_controllers.yaml"
+    subst_value="true" />
 
   <!-- Start required controller -->
   <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false"
@@ -46,5 +51,11 @@
     if="$(arg interactive_marker)">
     <param name="link_name" value="$(arg arm_id)_link0" />
     <remap to="cartesian_impedance_example_controller/equilibrium_pose" from="equilibrium_pose" />
+  </node>
+
+  <!-- Start up table calibrator (which publishes the transforms to the table) unless requested not
+  to. -->
+  <node if="$(arg table)" name="table_calibrator" pkg="moma_utils" type="table_calibrator.py">
+    <param name="file_path" value="$(find moma_bringup)/config/table.yaml" />
   </node>
 </launch>

@@ -15,6 +15,7 @@
     <arg name="serial_no" value="828112072238" />
   </include>
 
+  <!-- Luanch fixed camera -->
   <include if="$(arg fixed_camera)"
     file="$(find realsense2_camera)/launch/rs_camera.launch">
     <arg name="camera" value="fixed_camera" />
