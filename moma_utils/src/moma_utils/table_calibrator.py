@@ -47,7 +47,7 @@ class TableCalibrator:
         if self._load_from_params:
             self.load_from_parameters()
         else:
-            self.load_from_file()
+            self.load_from_file(self._calibration_file_path)
 
     def load_from_file(self, path):
         with open(path, 'r') as file:
