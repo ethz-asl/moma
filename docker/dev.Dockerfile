@@ -20,6 +20,9 @@ RUN scripts/install_sys_deps.sh
 # Run the ROS workspace set-up and dep installation
 RUN scripts/install_ros_deps.sh
 
+# Install realsense and friends
+RUN scripts/install_drivers.sh
+
 # Run the gazebo simulation installation
 RUN scripts/install_simulation.sh
 

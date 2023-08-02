@@ -3,3 +3,4 @@ repositories:
     type: git
     url: git@github.com:roboticsgroup/roboticsgroup_gazebo_plugins.git
     version: 4d93ecd
+    

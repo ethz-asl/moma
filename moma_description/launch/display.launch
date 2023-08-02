@@ -6,7 +6,7 @@
 <launch>
   <arg name="robot_name" default="mopa"/>
 
-  <param name="robot_description" command="$(find xacro)/xacro $(find moma_description)/urdf/$(arg robot_name).urdf.xacro use_nominal_extrinsics:=true"/>
+  <param name="robot_description" command="$(find xacro)/xacro $(find moma_description)/urdf/$(arg robot_name).urdf.xacro"/>
 
   <node name="joint_state_publisher" pkg="joint_state_publisher_gui" type="joint_state_publisher_gui"/>
 

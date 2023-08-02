@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<sdf version="1.4">
+  <world name="default">
+    <!-- A global light source -->
+    <include>
+      <uri>model://sun</uri>
+    </include>
+    <!-- A ground plane -->
+    <include>
+      <uri>model://ground_plane</uri>
+    </include>
+    <!-- Our table. -->
+    <model name='table'>
+      <link name='main'>
+        <pose>0 0 0 0 -0 0</pose>
+          <collision name='collision'>
+          <geometry>
+            <box>
+              <size>0.8 1.4 0.2</size>
+            </box>
+          </geometry>
+          <max_contacts>10</max_contacts>
+          <surface>
+            <contact>
+              <ode/>
+            </contact>
+            <bounce/>
+            <friction>
+              <torsional>
+                <ode/>
+              </torsional>
+              <ode/>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <geometry>
+            <box>
+              <size>0.8 1.4 0.2</size>
+            </box>
+          </geometry>
+          <material>
+            <script>
+              <uri>file://media/materials/scripts/gazebo.material</uri>
+              <name>Gazebo/White</name>
+            </script>
+          </material>
+        </visual>
+        <self_collide>0</self_collide>
+        <enable_wind>0</enable_wind>
+        <kinematic>0</kinematic>
+      </link>
+      <static>1</static>
+      <pose>0.6 0 0.1 0 0 0</pose>
+    </model>
+
+    <!-- Apriltag -->
+    <model name='apriltag'>
+      <link name='main'>
+        <pose>0 0 0 0 -0 0</pose>
+        <visual name='visual'>
+          <geometry>
+            <box>
+              <size>0.20 0.20 0.001</size>
+            </box>
+          </geometry>
+          <material>
+            <script>
+              <uri>model://Apriltag36_11_00000/materials/scripts</uri>
+              <uri>model://Apriltag36_11_00000/materials/textures</uri>
+              <name>Apriltag36_11_00000</name>
+            </script>
+          </material>
+        </visual>
+        <self_collide>0</self_collide>
+        <enable_wind>0</enable_wind>
+        <kinematic>0</kinematic>
+      </link>
+      <static>1</static>
+      <pose>0.9 -0.6 0.2 0 -0 0</pose>
+    </model>
+
+    <!-- Physics -->
+    <physics type="ode">
+      <gravity>0 0 -9.81</gravity>
+      <ode>
+        <solver>
+          <type>quick</type>
+          <iters>10</iters>
+          <sor>1.3</sor>
+        </solver>
+        <constraints>
+          <cfm>0.0</cfm>
+          <erp>0.2</erp>
+          <contact_max_correcting_vel>10</contact_max_correcting_vel>
+          <contact_surface_layer>0.001</contact_surface_layer>
+        </constraints>
+      </ode>
+      <max_step_size>0.001</max_step_size>
+    </physics>
+  </world>
+</sdf>

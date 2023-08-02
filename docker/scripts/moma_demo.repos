@@ -10,4 +10,4 @@ repositories:
   moma:
     type: git
     url: https://github.com/ethz-asl/moma.git
-    version: feature/grasp_helen
+    version: 6730e11ca580dd80fb49a553db5394111bf232ff
