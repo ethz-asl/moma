@@ -1,0 +1,40 @@
+<launch>
+  <!-- configure camera input -->
+  <arg name="eye_on_hand" default="true" />
+  <arg name="camera_name" default="/wrist_camera/color" />
+  <arg name="image_topic" default="image_raw" />
+  <arg name="queue_size" default="1" />
+  <arg name="handeye" default="true" />
+
+  <!-- apriltag_ros continuous detection node -->
+  <node pkg="apriltag_ros" type="apriltag_ros_continuous_node" name="apriltag_ros_continuous_node" clear_params="true" output="screen">
+    <!-- Remap topics from those used in code to those on the ROS network -->
+    <remap from="image_rect" to="$(arg camera_name)/$(arg image_topic)" />
+    <remap from="camera_info" to="$(arg camera_name)/camera_info" />
+
+    <param name="publish_tag_detections_image" type="bool" value="true" /><!-- default: false -->
+    <param name="queue_size" type="int" value="$(arg queue_size)" />
+
+    <!-- load parameters (incl. tag family, tags, etc.) -->
+    <rosparam command="load" file="$(find apriltag_ros)/config/settings.yaml"/>
+    <rosparam command="load" file="$(find moma_bringup)/config/apriltags.yaml"/>
+  </node>
+
+  <include if="$(arg handeye)" file="$(find easy_handeye)/launch/calibrate.launch">
+    <arg name="eye_on_hand" value="true"/>
+
+    <!-- you can choose any identifier, as long as you use the same for publishing the calibration -->
+    <arg name="namespace_prefix" value="wrist_cam_calib"/>
+
+    <!-- fill in the following parameters according to your robot's published tf frames -->
+    <arg name="robot_base_frame" value="panda_link0"/>
+    <arg name="robot_effector_frame" value="panda_link8"/>
+
+    <!-- fill in the following parameters according to your tracking system's published tf frames -->
+    <arg name="tracking_base_frame" value="wrist_camera_bottom_screw_frame"/>
+    <arg name="tracking_marker_frame" value="tag_0"/>
+    <arg name="start_rviz" value="false" />
+    <arg name="freehand_robot_movement" value="true"/>
+    <arg name="publish_dummy" value="false" />
+  </include>
+</launch>
