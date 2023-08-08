@@ -20,7 +20,7 @@ jobs:
         name: Build and push
         uses: docker/build-push-action@v4
         with:
-          context: ./docker/scripts/
-          file: ./docker/scripts/dev.Dockerfile
+          context: ./docker/
+          file: ./docker/dev.Dockerfile
           push: false
           tags: moma_dev:latest
