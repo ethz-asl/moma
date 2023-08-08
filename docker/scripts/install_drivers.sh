@@ -13,6 +13,9 @@ apt-get update -qq && apt-get install -y librealsense2-dkms librealsense2-utils 
 # Install Franka stuff
 apt-get -qq update && apt-get install -y ros-noetic-franka-ros 
 
+# Install Bota stuff
+apt install ros-noetic-bota-driver
+
 # Install the source code in ROS
 cd $MOMA_DEP_WS/src
 vcs import --recursive --input $SCRIPTS_PATH/moma_drivers.repos
