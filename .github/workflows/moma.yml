@@ -23,4 +23,4 @@ jobs:
           context: .
           file: ./docker/scripts/dev.Dockerfile
           push: false
-          tags: moma_dev:$(date +%s)
+          tags: moma_dev:latest
