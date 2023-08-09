@@ -12,14 +12,14 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+      uses: docker/setup-buildx-action@v2
     - name: Build and push docker
-        uses: docker/build-push-action@v4
-        with:
-          context: ./docker/
-          file: ./docker/dev.Dockerfile
-          push: false
-          tags: moma_dev:latest
+      uses: docker/build-push-action@v4
+      with:
+        context: ./docker/
+        file: ./docker/dev.Dockerfile
+        push: false
+        tags: moma_dev:latest
   build-catkin:
     needs: build-docker
     runs-on: ubuntu-latest
