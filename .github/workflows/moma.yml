@@ -46,4 +46,4 @@ jobs:
     container: ${{ steps.meta.outputs.tags }}
     steps:
     - run: echo "${{ steps.meta.outputs.tags }}"
-    - run: ls ~/
+#    - run: ls ~/
