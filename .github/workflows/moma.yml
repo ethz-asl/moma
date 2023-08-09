@@ -15,6 +15,8 @@ env:
 jobs:
   build-docker:
     runs-on: ubuntu-latest
+    outputs:
+      docker_image_name: ${{ steps.meta.outputs.tags }}
     steps:
     - uses: actions/checkout@v3
     - name: Set up Docker Buildx
@@ -40,10 +42,11 @@ jobs:
         labels: ${{ steps.meta.outputs.labels }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
+        
   build-catkin:
     needs: build-docker
     runs-on: ubuntu-latest
-    container: ${{ build-docker.steps.meta.outputs.tags }}
+    container: ${{ needs.build-docker.outputs.docker_image_name }}
     steps:
-    - run: echo "${{ build-docker.steps.meta.outputs.tags }}"
-#    - run: ls ~/
+    - run: echo "${{ needs.build-docker.outputs.docker_image_name }}"
+    - run: ls ~/
