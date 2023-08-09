@@ -43,7 +43,7 @@ jobs:
   build-catkin:
     needs: build-docker
     runs-on: ubuntu-latest
-    container: ${{ steps.meta.outputs.tags }}
+    container: ${{ build-docker.steps.meta.outputs.tags }}
     steps:
-    - run: echo "${{ steps.meta.outputs.tags }}"
+    - run: echo "${{ build-docker.steps.meta.outputs.tags }}"
 #    - run: ls ~/
