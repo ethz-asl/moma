@@ -2,6 +2,7 @@
 <launch>
   <arg name="wrist_camera" default="true" />
   <arg name="fixed_camera" default="false" />
+  <arg name="fixed_pico" default="false" />
 
   <!-- Launch wrist camera -->
   <include if="$(arg wrist_camera)"
@@ -26,4 +27,21 @@
     <arg name="publish_tf" value="true" />
     <arg name="serial_no" value="231522070510" />
   </include>
+
+  <!-- Luanch pico monster -->
+  <!-- <include if="$(arg fixed_pico)" file="$(find pico_flexx_driver)/launch/pico_flexx_driver.launch">
+    <arg name="publish_tf" value="true" />
+    <arg name="base_name" value="pico_monstar"/>
+    <!- taken from Victor's wavemap ->
+    <arg name="max_noise" value="0.03"/>
+    <arg name="filter_level" value="255"/>
+  </include> -->
+
+  <!-- Luanch pico monster -->
+  <include if="$(arg fixed_pico)" file="$(find moma_bringup)/launch/components/pico_monstar.launch">
+    <arg name="publish_tf" value="true" />
+    <arg name="base_name" value="pico_monstar" />
+    <arg name="base_name_tf" value="pico_monstar"/>
+  </include>
+
 </launch>

@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<launch>
+
+  <arg name="publish_tf" default="true" />
+  <arg name="base_name" default="pico_monstar" />
+  <arg name="base_name_tf" default="$(arg base_name)"/>
+
+  <!-- Static TF publisher.  -->
+  <node pkg="tf" type="static_transform_publisher" name="$(arg base_name)_static_tf" if="$(arg publish_tf) "
+        args="0 0 0 0 0 -1.57079632679489661923 $(arg base_name_tf)_link $(arg base_name_tf)_optical_frame 100" />
+
+  <!-- Luanch pico monster -->
+  <node pkg="nodelet" type="nodelet" name="manager" args="manager">
+    <param name="num_worker_threads" value="4"/>
+  </node>
+  <node pkg="nodelet" type="nodelet" name="pico_flexx_driver"
+        args="load pico_flexx_driver/pico_flexx_nodelet manager true"
+        respawn="true" output="screen">
+    <param name="base_name" type="str" value="pico_monstar"/>
+    <param name="publish" type="str" value="pico_monstar"/>
+    <param name="sensor" type="str" value=""/>
+    <param name="use_case" type="int" value="0"/>
+    <param name="automatic_exposure" type="bool" value="true"/>
+    <param name="exposure_time" type="int" value="1000"/>
+    <param name="exposure_mode" type="int" value="1"/>
+    <param name="exposure_time_stream2" type="int" value="1000"/>
+    <param name="exposure_mode_stream2" type="int" value="1"/>
+    <param name="max_noise" type="double" value="0.03"/>
+    <param name="filter_level" type="int" value="255"/>
+    <param name="range_factor" type="double" value="2.0"/>
+    <param name="queue_size" type="int" value="5"/>
+    <param name="publish_tf" type="bool" value="true"/>
+  </node> 
+
+</launch>
