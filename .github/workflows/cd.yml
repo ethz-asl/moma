@@ -39,6 +39,7 @@ jobs:
       with:
         images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
         flavor: prefix=${{ matrix.dockerfile }}
+        tags: type=raw,value=${{ matrix.dockerfile }}
     - name: Build and push docker
       uses: docker/build-push-action@v4
       with:
