@@ -52,9 +52,9 @@ jobs:
     container:
       image: ${{ needs.build-docker.outputs.docker_image_name }}
       volumes:
-        - $GITHUB_WORKSPACE/moma_ws:/root/moma_ws
+        - ${{ github.workspace }}/moma_ws:/root/moma_ws
     steps:
     - run: echo "${{ needs.build-docker.outputs.docker_image_name }}"
-    - run: echo $GITHUB_WORKSPACE
+    - run: echo "${{ github.workspace }}"
     - run: cd ~/moma_ws && catkin init && catkin config --cmake-args -DCMAKE_BUILD_TYPE=Release
     - run: catkin build --continue
