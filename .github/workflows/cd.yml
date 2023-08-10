@@ -1,4 +1,4 @@
-name: moma CD
+name: moma CI
 
 on:
   push:
@@ -13,10 +13,12 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  build-docker:
+  build-dockers:
+    name: Build docker images
+    strategy:
+      matrix:
+        dockerfile: [dev, robot, demo]
     runs-on: ubuntu-latest
-    outputs:
-      docker_image_name: ${{ steps.meta.outputs.tags }}
     steps:
     - name: Check out moma repo
       uses: actions/checkout@v3
@@ -33,46 +35,17 @@ jobs:
         password: ${{ secrets.GITHUB_TOKEN }}
     - name: Extract Docker metadata
       id: meta
-      uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
+      uses: docker/metadata-action@v4
       with:
         images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+        flavor: prefix=${{ matrix.dockerfile }}
     - name: Build and push docker
       uses: docker/build-push-action@v4
       with:
         context: ./moma_ws/src/moma/docker/
-        file: ./moma_ws/src/moma/docker/dev.Dockerfile
+        file: ./moma_ws/src/moma/docker/${{ matrix.dockerfile }}.Dockerfile
         push: true
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
-
-  build-catkin:
-    needs: build-docker
-    runs-on: ubuntu-latest
-    container:
-      image: ${{ needs.build-docker.outputs.docker_image_name }}
-    steps:
-    - run: echo "${{ needs.build-docker.outputs.docker_image_name }}"
-    - run: echo "${{ github.workspace }}"
-    - name: Check out moma repo
-      uses: actions/checkout@v3
-      with:
-        path: moma_ws/src/moma
-        submodules: recursive
-    - run: ls
-      shell: bash
-    - name: Set up Catkin workspace
-      run: |
-        cd  ${{ env.CATKIN_WS_PATH }}
-        source /root/.bashrc
-        catkin init
-        catkin config --extend /root/moma_dep_ws/devel
-        catkin config --cmake-args -DCMAKE_BUILD_TYPE=Release
-      shell: bash
-    - name: Build the workspace
-      run: |
-        cd  ${{ env.CATKIN_WS_PATH }}
-        source /root/.bashrc
-        catkin build --continue
-      shell: bash
