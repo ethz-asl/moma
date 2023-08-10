@@ -52,14 +52,18 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: ${{ needs.build-docker.outputs.docker_image_name }}
-      volumes:
-        - ${{ github.workspace }}/moma_ws:/root/moma_ws
-        - ${{ github.workspace }}/moma_ws:/github/home/moma_ws
     steps:
     - run: echo "${{ needs.build-docker.outputs.docker_image_name }}"
     - run: echo "${{ github.workspace }}"
     - run: ls -la /root/moma_ws
     - run: cat /root/.bashrc
+    - name: Check out moma repo
+      uses: actions/checkout@v3
+      with:
+        path: moma_ws/src/moma
+        submodules: recursive
+    - run: ls
+      shell: bash
     - name: Set up Catkin workspace
       run: cd /root/moma_ws && catkin init && catkin config --cmake-args -DCMAKE_BUILD_TYPE=Release
       shell: bash
