@@ -22,6 +22,7 @@ jobs:
       uses: actions/checkout@v3
       with:
         path: moma_ws/src/moma
+        submodules: recursive
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v2
     - name: Log into registry ${{ env.REGISTRY }}
@@ -53,8 +54,13 @@ jobs:
       image: ${{ needs.build-docker.outputs.docker_image_name }}
       volumes:
         - ${{ github.workspace }}/moma_ws:/root/moma_ws
+        - ${{ github.workspace }}/moma_ws:/github/home/moma_ws
     steps:
     - run: echo "${{ needs.build-docker.outputs.docker_image_name }}"
     - run: echo "${{ github.workspace }}"
-    - run: cd /root/moma_ws && catkin init && catkin config --cmake-args -DCMAKE_BUILD_TYPE=Release
-    - run: catkin build --continue
+    - name: Set up Catkin workspace
+      run: cd ~/moma_ws && catkin init && catkin config --cmake-args -DCMAKE_BUILD_TYPE=Release
+      shell: bash
+    - name: Build the workspace
+      run: cd ~/moma_ws && catkin build --continue
+      shell: bash
