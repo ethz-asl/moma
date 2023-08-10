@@ -18,7 +18,10 @@ jobs:
     outputs:
       docker_image_name: ${{ steps.meta.outputs.tags }}
     steps:
-    - uses: actions/checkout@v3
+    - name: Check out moma repo
+      uses: actions/checkout@v3
+      with:
+        path: moma_ws/src
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v2
     - name: Log into registry ${{ env.REGISTRY }}
@@ -42,11 +45,16 @@ jobs:
         labels: ${{ steps.meta.outputs.labels }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
-        
+
   build-catkin:
     needs: build-docker
     runs-on: ubuntu-latest
-    container: ${{ needs.build-docker.outputs.docker_image_name }}
+    container:
+      image: ${{ needs.build-docker.outputs.docker_image_name }}
+      volumes:
+        - $GITHUB_WORKSPACE/moma_ws:/root/moma_ws
     steps:
     - run: echo "${{ needs.build-docker.outputs.docker_image_name }}"
-    - run: ls ~/
+    - run: echo $GITHUB_WORKSPACE
+    - run: cd ~/moma_ws && catkin init && catkin config --cmake-args -DCMAKE_BUILD_TYPE=Release
+    - run: catkin build --continue
