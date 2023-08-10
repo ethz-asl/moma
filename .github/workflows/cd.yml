@@ -1,4 +1,4 @@
-name: moma CI
+name: moma CD
 
 on:
   push:
