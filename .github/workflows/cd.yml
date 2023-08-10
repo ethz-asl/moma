@@ -1,4 +1,4 @@
-name: moma CI & Docker
+name: moma CD
 
 on:
   push:
@@ -11,7 +11,6 @@ env:
   REGISTRY: ghcr.io
   # github.repository as <account>/<repo>
   IMAGE_NAME: ${{ github.repository }}
-  CATKIN_WS_PATH: /__w/moma/moma/moma_ws
 
 jobs:
   build-docker:
