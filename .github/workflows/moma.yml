@@ -21,7 +21,7 @@ jobs:
     - name: Check out moma repo
       uses: actions/checkout@v3
       with:
-        path: moma_ws/src
+        path: moma_ws/src/moma
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v2
     - name: Log into registry ${{ env.REGISTRY }}
@@ -38,8 +38,8 @@ jobs:
     - name: Build and push docker
       uses: docker/build-push-action@v4
       with:
-        context: ./docker/
-        file: ./docker/dev.Dockerfile
+        context: ./moma_ws/src/moma/docker/
+        file: ./moma_ws/src/moma/docker/dev.Dockerfile
         push: true
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
