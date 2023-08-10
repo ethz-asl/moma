@@ -16,6 +16,7 @@ pip install -r vgn/requirements.txt
 pip install gdown
 
 # Make sure we can unzip too
+apt-get update
 apt-get install unzip
 
 # Download the data file from google drive
