@@ -68,11 +68,12 @@ jobs:
         cd  ${{ env.CATKIN_WS_PATH }}
         source /root/.bashrc
         catkin init
+        catkin config --extend /root/moma_dep_ws/devel
         catkin config --cmake-args -DCMAKE_BUILD_TYPE=Release
       shell: bash
     - name: Build the workspace
       run: |
-        cd  ${{ env.CATKIN_WS_PATH }} |
+        cd  ${{ env.CATKIN_WS_PATH }}
         source /root/.bashrc
         catkin build --continue
       shell: bash
