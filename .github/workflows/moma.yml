@@ -55,8 +55,6 @@ jobs:
     steps:
     - run: echo "${{ needs.build-docker.outputs.docker_image_name }}"
     - run: echo "${{ github.workspace }}"
-    - run: ls -la /root/moma_ws
-    - run: cat /root/.bashrc
     - name: Check out moma repo
       uses: actions/checkout@v3
       with:
