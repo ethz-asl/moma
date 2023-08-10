@@ -11,6 +11,7 @@ env:
   REGISTRY: ghcr.io
   # github.repository as <account>/<repo>
   IMAGE_NAME: ${{ github.repository }}
+  CATKIN_WS_PATH: /__w/moma/moma/moma_ws
 
 jobs:
   build-docker:
@@ -63,8 +64,15 @@ jobs:
     - run: ls
       shell: bash
     - name: Set up Catkin workspace
-      run: cd /root/moma_ws && catkin init && catkin config --cmake-args -DCMAKE_BUILD_TYPE=Release
+      run: |
+        cd  ${{ env.CATKIN_WS_PATH }}
+        source /root/.bashrc
+        catkin init
+        catkin config --cmake-args -DCMAKE_BUILD_TYPE=Release
       shell: bash
     - name: Build the workspace
-      run: cd /root/moma_ws && catkin build --continue
+      run: |
+        cd  ${{ env.CATKIN_WS_PATH }} |
+        source /root/.bashrc
+        catkin build --continue
       shell: bash
