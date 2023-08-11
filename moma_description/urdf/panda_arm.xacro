@@ -35,6 +35,7 @@
     <xacro:franka_hand
         arm_id="${arm_id}"
         rpy="0 0 ${-pi/4}"
+        xyz="0 0 0.035"
         tcp_xyz="$(arg tcp_xyz)"
         tcp_rpy="$(arg tcp_rpy)"
         connected_to="${arm_id}_link8"
@@ -118,10 +119,10 @@
   <xacro:include filename="$(find realsense2_description)/urdf/_d435.urdf.xacro" />
   <xacro:include filename="$(find moma_description)/urdf/realsense.gazebo.xacro" />
   <xacro:realsense_gazebo_plugin camera_name="wrist_camera"/>
-  <xacro:property name="panda_link7_camera_bottom_screw_frame_rpy" value="-0.891 -1.562 -3.040" />
-  <xacro:property name="panda_link7_camera_bottom_screw_frame_xyz" value="0.0306 -0.0267  0.1604" />
-  <xacro:sensor_d435 parent="${arm_id}_link7" name="wrist_camera" use_nominal_extrinsics="${use_nominal_extrinsics}">
-    <origin rpy="${panda_link7_camera_bottom_screw_frame_rpy}" xyz="${panda_link7_camera_bottom_screw_frame_xyz}" />
+  <xacro:property name="panda_link8_camera_bottom_screw_frame_rpy" value="-1.8496651 -1.5663079 -2.0611032" />
+  <xacro:property name="panda_link8_camera_bottom_screw_frame_xyz" value="0.019939866636952783 -0.024666706576001673 0.08173953529353692" />
+  <xacro:sensor_d435 parent="${arm_id}_link8" name="wrist_camera" use_nominal_extrinsics="${use_nominal_extrinsics}">
+    <origin rpy="${panda_link8_camera_bottom_screw_frame_rpy}" xyz="${panda_link8_camera_bottom_screw_frame_xyz}" />
   </xacro:sensor_d435>
 
   <!-- fixed realsense -->
