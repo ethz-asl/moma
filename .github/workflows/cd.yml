@@ -18,7 +18,7 @@ jobs:
     strategy:
       matrix:
         dockerfile: [dev, robot, demo]
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
     - name: Check out moma repo
       uses: actions/checkout@v3
