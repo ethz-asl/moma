@@ -18,21 +18,13 @@ jobs:
     strategy:
       matrix:
         dockerfile: [dev, robot, demo]
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     steps:
-    - name: Fix other git issues
-      run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
     - name: Check out moma repo
       uses: actions/checkout@v3
       with:
         path: moma_ws/src/moma
-    - name: Workaround for older git client on self-hosted runners
-      run: |
-        ls
-        pwd
-        cd moma_ws/src/moma
-        ls
-        git submodule update --init --recursive
+        submodule: recursive
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v2
     - name: Log into registry ${{ env.REGISTRY }}

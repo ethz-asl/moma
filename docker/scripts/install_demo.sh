@@ -14,6 +14,7 @@ export TMPDIR='/var/tmp'
 
 # Pip install VGN requirements
 pip install --cache-dir=$TMPDIR --build $TMPDIR -r vgn/requirements.txt
+pip install --no-cache-dir torch
 
 # Pip install gdown to get google drive files
 pip install gdown
