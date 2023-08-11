@@ -9,8 +9,11 @@ vcs import --recursive --input $SCRIPTS_PATH/moma_demo.repos
 # Upgrade numpy version
 pip install --upgrade numpy==1.23.0
 
+# This helps torch download on Github Actions :)
+export TMPDIR='/var/tmp'
+
 # Pip install VGN requirements
-pip install -r vgn/requirements.txt
+pip install --cache-dir=$TMPDIR --build $TMPDIR -r vgn/requirements.txt
 
 # Pip install gdown to get google drive files
 pip install gdown
