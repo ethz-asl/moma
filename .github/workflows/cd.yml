@@ -30,7 +30,7 @@ jobs:
       uses: actions/checkout@v3
       with:
         path: moma_ws/src/moma
-        submodule: recursive
+        submodules: recursive
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v2
     - name: Log into registry ${{ env.REGISTRY }}
