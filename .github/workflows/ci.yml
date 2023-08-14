@@ -54,8 +54,6 @@ jobs:
     container:
       image: ${{ needs.build-docker.outputs.docker_image_name }}
     steps:
-    - run: echo "${{ needs.build-docker.outputs.docker_image_name }}"
-    - run: echo "${{ github.workspace }}"
     - name: Check out moma repo
       uses: actions/checkout@v3
       with:
