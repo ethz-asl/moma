@@ -5,7 +5,7 @@ set -o pipefail
 apt-get -qq update && apt-get -qq upgrade
 
 # update git and set to always point to https
-apt-get -qq update && apt-get install -y curl apt-utils
+apt-get -qq update && apt-get install -y curl apt-utils tmux usbutils
 apt-get -qq update && apt-get install -y git git-lfs
 git config --global url.https://github.com/.insteadOf git@github.com:
 git config --global advice.detachedHead false
