@@ -13,7 +13,7 @@ pip install --upgrade numpy==1.23.0
 export TMPDIR='/var/tmp'
 
 # Pip install VGN requirements
-pip install --cache-dir=$TMPDIR --build $TMPDIR -r vgn/requirements.txt
+pip install --no-cache-dir -r vgn/requirements.txt
 pip install --no-cache-dir torch
 
 # Pip install gdown to get google drive files
