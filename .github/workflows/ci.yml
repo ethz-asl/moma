@@ -15,7 +15,7 @@ env:
 
 jobs:
   build-docker:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux]
     outputs:
       docker_image_name: ${{ steps.meta.outputs.tags }}
     steps:
@@ -50,7 +50,7 @@ jobs:
 
   build-catkin:
     needs: build-docker
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux]
     container:
       image: ${{ needs.build-docker.outputs.docker_image_name }}
     steps:
