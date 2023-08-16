@@ -24,6 +24,8 @@ jobs:
       with:
         path: moma_ws/src/moma
         submodules: recursive
+    - name: Git safe directory
+      run: git config --system --add safe.directory .
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v2
     - name: Log into registry ${{ env.REGISTRY }}
