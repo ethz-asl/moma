@@ -299,14 +299,14 @@ OBSERVATION_POSE_GAUGE:
   object_frame: gauge
   camera_frame: hand_eye_color_optical_frame
   controlled_frame: tool_frame
-  object_size: 0.20
+  object_size: 0.10
   camera_info_topic: "/camera_info"
   num_samples: 32
-  theta_range_deg: [-45, 45]
-  phi_range_deg: [10, 30]
+  theta_range_deg: [-20, 20]
+  phi_range_deg: [80, 100]
   image_fill_ratio_range: [0.4, 0.6]
   heading: "range"
-  heading_range_deg: [30, 150] # Don't make this too large (e.g. [0, 180]) since the head orientation could get flipped when going from one extreme to the other
+  heading_range_deg: [45, 45] # Don't make this too large (e.g. [0, 180]) since the head orientation could get flipped when going from one extreme to the other
 
 OBSERVATION_APPROACH_GAUGE:
   default_outcome: None

@@ -31,6 +31,7 @@ IMAGES_DELTA_TIME = 0  # take a picture every ... seconds
 BASE_LINK_FRAME = "base_link"
 ODOM_TOPIC = "/mavsdk_ros/local_position"
 GAUGE_TOPIC = "/gauges_read"
+GAUGE_IMAGE_TOPIC = "/analog_gauge_reader/ellipse_results_final"
 ROBOT_UUID = "2b565591-d688-4634-9e87-0613fc0d1ef2"
 CAMERA_FOV = {  # https://www.intelrealsense.com/depth-camera-d435i/
     "horizontal": 69.0,
@@ -502,17 +503,18 @@ class ReportGenerator:
             # )
             img_idx = 0
             for topic, message, t in self.bag.read_messages(
-                topics=[IMAGE_TOPIC, VALVE_IMAGE_TOPIC]
+                topics=[IMAGE_TOPIC, VALVE_IMAGE_TOPIC, GAUGE_IMAGE_TOPIC]
             ):
                 if (t.to_sec() - t_prev) > IMAGES_DELTA_TIME:
                     t_prev = t.to_sec()
 
                     obj_ref = 0
-                    if topic == VALVE_IMAGE_TOPIC:
+                    if topic in [VALVE_IMAGE_TOPIC, GAUGE_IMAGE_TOPIC]:
+                        next = True if topic == VALVE_IMAGE_TOPIC else False
                         # Get the corresponding object of this image
                         # Note that it might also be a different object due to a failed perception
                         # This is why we take into account only the very last image before a successful perception
-                        obj_ref = self.get_obj_ref(t, allow_empty=True, next=True)
+                        obj_ref = self.get_obj_ref(t, allow_empty=True, next=next)
                         # A failed perception at the end of the task
                         if obj_ref is None:
                             continue
@@ -521,7 +523,7 @@ class ReportGenerator:
                         found_another_matching_image = False
                         for i, (_, _, inner_t) in enumerate(
                             self.bag.read_messages(
-                                topics=VALVE_IMAGE_TOPIC,
+                                topics=topic,
                                 start_time=t,
                             )
                         ):
@@ -530,7 +532,7 @@ class ReportGenerator:
                                 continue
                             # Note that get_obj_ref also ensures that the object is within the same task_uuid
                             if (
-                                self.get_obj_ref(inner_t, allow_empty=True, next=True)
+                                self.get_obj_ref(inner_t, allow_empty=True, next=next)
                                 == obj_ref
                             ):
                                 found_another_matching_image = True
@@ -580,7 +582,10 @@ class ReportGenerator:
                     img_idx += 1
 
                     # Save the image as well
-                    cv2_img = bridge.imgmsg_to_cv2(message, "rgb8")
+                    try:
+                        cv2_img = bridge.imgmsg_to_cv2(message, "rgb8")
+                    except:
+                        cv2_img = bridge.imgmsg_to_cv2(message)
                     # Enforce the image size to match the metadata in config
                     cv2_img = cv2.resize(
                         cv2_img,
@@ -673,21 +678,20 @@ class ReportGenerator:
                     GAUGE_TOPIC,
                 ]
             ):
-                if topic == WRENCH_TOPIC:
-                    task_uuid = self.get_task_uuid(t, True)
-                    if task_uuid is None:
-                        rospy.loginfo(
-                            f"Skipping gauge reading at time {t} as there is no corresponding task running"
-                        )
-                        continue
+                task_uuid = self.get_task_uuid(t, True)
+                if task_uuid is None:
+                    rospy.loginfo(
+                        f"Skipping gauge reading at time {t} as there is no corresponding task running"
+                    )
+                    continue
 
-                    obj_ref = self.get_obj_ref(t)
+                obj_ref = self.get_obj_ref(t)
 
-                    value = msg.value
-                    unit = msg.unit
+                value = msg.value.data
+                unit = msg.unit.data
 
-                    entry = [t.to_sec(), task_uuid] + [obj_ref] + [value] + [unit]
-                    writer.writerow(entry)
+                entry = [t.to_sec(), task_uuid] + [obj_ref] + [value] + [unit]
+                writer.writerow(entry)
 
     def run(self):
         self.extract_config()

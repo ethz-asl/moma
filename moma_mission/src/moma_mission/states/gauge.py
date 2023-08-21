@@ -1,4 +1,5 @@
 import rospy
+import numpy as np
 
 from analog_gauge_reader.msg import GaugeReading, GaugeReadings
 from analog_gauge_reader.srv import (
@@ -29,21 +30,19 @@ class GaugeReaderState(StateRos):
 
         self.min_successful_readings = self.get_scoped_param("min_successful_readings")
 
-        self.successful_readings = None
         self.readings = None
         self.reading_pub = rospy.Publisher("/gauges_read", GaugeReading, queue_size=1)
 
     def init(self):
-        self.successful_readings = 0
         self.readings = []
 
     def _request_reading(self):
         try:
-            self.perception_srv_client.wait_for_service(timeout=10)
+            self.gauge_reader_srv_client.wait_for_service(timeout=10)
         except rospy.ROSException as exc:
             rospy.logwarn(
                 "Service {} not available yet".format(
-                    self.perception_srv_client.resolved_name
+                    self.gauge_reader_srv_client.resolved_name
                 )
             )
             return False
@@ -55,31 +54,48 @@ class GaugeReaderState(StateRos):
             rospy.logerr(e)
             return False
 
+        if len(res.result.readings) > 1:
+            rospy.logwarn(
+                "Detected more than one gauge in the image, using the first one that got detected"
+            )
+
         rospy.loginfo(
-            f"New gauge reading is {res.result[0].value} {res.result[0].unit}"
+            f"New gauge reading is {res.result.readings[0].value.data} {res.result.readings[0].unit.data}"
         )
 
-        self.readings.append(res.result[0])
+        self.readings.append(res.result.readings[0])
         return True
 
     def run_with_userdata(self, userdata):
         if not userdata.continue_gauge_reading:
             self.init()
 
-        if self._request_reading():
-            self.successful_detections += 1
-        else:
+        if not self._request_reading():
             rospy.logwarn("Failed to read gauge")
 
+        rospy.loginfo(f"Current successful gauge readings:\n{self.readings}")
         rospy.loginfo(
-            f"Current number of successful gauge readings: {self.successful_detections}"
+            f"Current number of successful gauge readings: {len(self.readings)}"
         )
 
-        if self.successful_detections < self.min_successful_readings:
+        if len(self.readings) < self.min_successful_readings:
             return "NextDetection"
 
-        # TODO publish reading
-        rospy.loginfo("Gauge reading completed successfully, final reading is ...")
-        self.reading_publisher.publish(self.readings[0])
+        final_reading = GaugeReading()
+
+        values = [reading.value.data for reading in self.readings]
+        final_reading.value.data = np.median(values)
+
+        units = set([reading.unit.data for reading in self.readings])
+        if "" in units:
+            units.remove("")
+        final_reading.unit.data = ""
+        if len(units) == 1:
+            final_reading.unit.data = units.pop()
+
+        rospy.loginfo(
+            f"Gauge reading completed successfully, final reading is {final_reading.value.data} {final_reading.unit.data}"
+        )
+        self.reading_pub.publish(final_reading)
         rospy.sleep(2.0)
         return "Completed"

@@ -2,7 +2,7 @@ repositories:
   analog_gauge_reader:
     type: git
     url: git@github.com:ethz-asl/analog_gauge_reader.git
-    version: 744da64d597e696463b072023ece34bef0ff74d8
+    version: daa890379514bdd361d3a821d8645af315e720fe
 
   ocs2:
     type: git

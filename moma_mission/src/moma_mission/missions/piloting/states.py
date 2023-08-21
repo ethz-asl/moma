@@ -86,7 +86,7 @@ class Idle(StateRos):
                 rospy.loginfo("Reading gauge...")
 
                 # TODO Hack to get some orientation of the gauge from a "reserved" parameter (undocumented)
-                yaw_rad = info.param3
+                yaw_rad = info.param4
                 quaternion = tf.transformations.quaternion_from_euler(0.0, 0.0, yaw_rad)
 
                 gauge_pose = TransformStamped()

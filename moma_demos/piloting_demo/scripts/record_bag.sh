@@ -13,4 +13,5 @@ rosbag record --repeat-latched \
 /valve_path_inverted \
 /valve_angle \
 /photos_taken \
-/gauges_read
+/gauges_read \
+/analog_gauge_reader/ellipse_results_final

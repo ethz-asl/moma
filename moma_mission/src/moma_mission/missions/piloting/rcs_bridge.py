@@ -19,6 +19,7 @@ from moma_mission.missions.piloting.frames import Frames
 from moma_mission.states.waypoint_bridge import (
     TASK_TYPE_POSE_UUID,
     TASK_TYPE_ACTION_VISUAL_UUID,
+    TASK_TYPE_ACTION_GAUGE_UUID,
 )
 
 from mavsdk_ros.msg import CommandLong, CommandAck, WaypointList, WaypointsAck
@@ -455,13 +456,19 @@ class RCSBridge:
             if waypoint.task_type_uuid == TASK_TYPE_POSE_UUID:
                 waypoint.z = 0
 
-            # Remove this hack as soon as we can adjust height of ACTION waypoints in gRCS
+            # TODO Remove this hack as soon as we can adjust height of ACTION waypoints in gRCS
             if (
                 waypoint.task_type_uuid == TASK_TYPE_ACTION_VISUAL_UUID
                 and waypoint.z < 0.1
             ):
-                rospy.logwarn("Applying hack on action waypoint height.")
+                rospy.logwarn("Applying hack on visual action waypoint height.")
                 waypoint.z = 0.5
+            if (
+                waypoint.task_type_uuid == TASK_TYPE_ACTION_GAUGE_UUID
+                and waypoint.z < 0.1
+            ):
+                rospy.logwarn("Applying hack on gauge action waypoint height.")
+                waypoint.z = 1.4
 
             explicit_quat = [
                 waypoint.param2,
@@ -474,14 +481,25 @@ class RCSBridge:
             )
 
             # Hack for getting correct action waypoint heading, since heading is not supported for action types by gRCS
-            if waypoint.task_type_uuid == TASK_TYPE_ACTION_VISUAL_UUID:
-                rospy.loginfo(
-                    "Calculating action waypoint heading based on previous waypoint."
-                )
-                heading = tf.transformations.unit_vector(
-                    [previous_waypoint.x - waypoint.x, previous_waypoint.y - waypoint.y]
-                )
-                yaw_rad = np.arctan2(heading[1], heading[0])
+            if waypoint.task_type_uuid in [
+                TASK_TYPE_ACTION_VISUAL_UUID,
+                TASK_TYPE_ACTION_GAUGE_UUID,
+            ]:
+                if previous_waypoint is None:
+                    rospy.logwarn(
+                        "Could not calculate action waypoint heading based on previous waypoint, since no previous waypoint exists."
+                    )
+                else:
+                    rospy.loginfo(
+                        "Calculating action waypoint heading based on previous waypoint."
+                    )
+                    heading = tf.transformations.unit_vector(
+                        [
+                            previous_waypoint.x - waypoint.x,
+                            previous_waypoint.y - waypoint.y,
+                        ]
+                    )
+                    yaw_rad = np.arctan2(heading[1], heading[0])
 
             quaternion = tf.transformations.quaternion_from_euler(0.0, 0.0, yaw_rad)
             waypoint.param2 = quaternion[0]  # x
