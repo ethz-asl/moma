@@ -7,12 +7,14 @@ class Frames:
     base_frame = "tracking_camera_odom"
     valve_frame = "valve"
     valve_haptic_frame = "valve_estimated"
+    gauge_frame = "gauge"
 
     @classmethod
     def init_from_ros(cls):
         try:
             cls.map_frame = rospy.get_param("/piloting/map_frame")
             cls.valve_frame = rospy.get_param("/piloting/valve_frame")
+            cls.gauge_frame = rospy.get_param("/piloting/gauge_frame")
             cls.tool_frame = rospy.get_param("/piloting/tool_frame")
             cls.base_frame = rospy.get_param("/piloting/base_frame")
             cls.odom_frame = rospy.get_param("/piloting/odom_frame")

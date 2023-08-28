@@ -5,3 +5,4 @@ piloting:
   base_frame: world # panda_link0
   valve_frame: valve
   valve_haptic_frame: valve_estimated
+  gauge_frame: gauge

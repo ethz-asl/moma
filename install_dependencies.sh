@@ -141,6 +141,11 @@ install_object_keypoints() {
 }
 
 
+install_analog_gauge_reader() {
+  curl -sSL https://install.python-poetry.org | python3 -
+}
+
+
 install_control() {
   #ROBOTPKG_NAMES=("robotpkg-octomap" "robotpkg-hpp-fcl")
   #dpkg -s "${ROBOTPKG_NAMES[@]}" >/dev/null 2>&1 || install_robotpkg
@@ -153,6 +158,7 @@ install_piloting() {
   pip3 install -r ${CATKIN_WS}/src/moma/moma_mission/requirements.txt
   install_mavsdk
   install_object_keypoints
+  install_analog_gauge_reader
   info "Piloting dependencies installation successful"
 }
 

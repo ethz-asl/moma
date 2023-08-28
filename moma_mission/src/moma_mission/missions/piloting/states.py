@@ -58,12 +58,15 @@ class Idle(StateRos):
                 "ExecuteInspectionPlan",
                 "ExecuteDummyPlan",
                 "ManipulateValve",
+                "ReadGauge",
                 "Failure",
             ],
         )
         self.valve_pose_broadcaster = tf2_ros.StaticTransformBroadcaster()
+        self.gauge_pose_broadcaster = tf2_ros.StaticTransformBroadcaster()
         self.map_frame = self.get_scoped_param("map_frame", Frames.map_frame)
         self.valve_frame = self.get_scoped_param("valve_frame", "valve_gt")
+        self.gauge_frame = self.get_scoped_param("gauge_frame", "gauge")
 
     def run(self):
         gRCS = self.global_context.ctx.gRCS
@@ -79,6 +82,28 @@ class Idle(StateRos):
             command, info = gRCS.get_current_hl_command()
             if command == "PLACE_OBJECT":
                 rospy.loginfo("Placing an object...")
+            elif command == "READ_GAUGE":
+                rospy.loginfo("Reading gauge...")
+
+                # TODO Hack to get some orientation of the gauge from a "reserved" parameter (undocumented)
+                yaw_rad = info.param4
+                quaternion = tf.transformations.quaternion_from_euler(0.0, 0.0, yaw_rad)
+
+                gauge_pose = TransformStamped()
+                gauge_pose.header.frame_id = self.map_frame
+                gauge_pose.header.stamp = rospy.get_rostime()
+                gauge_pose.transform.translation.x = info.param5
+                gauge_pose.transform.translation.y = info.param6
+                gauge_pose.transform.translation.z = info.param7
+                gauge_pose.transform.rotation.x = quaternion[0]
+                gauge_pose.transform.rotation.y = quaternion[1]
+                gauge_pose.transform.rotation.z = quaternion[2]
+                gauge_pose.transform.rotation.w = quaternion[3]
+                gauge_pose.child_frame_id = self.gauge_frame
+                self.gauge_pose_broadcaster.sendTransform(gauge_pose)
+                rospy.sleep(2.0)
+
+                return "ReadGauge"
             elif command == "MANIPULATE_VALVE":
                 rospy.loginfo("Manipulating valve...")
                 desired_angle = info.param1

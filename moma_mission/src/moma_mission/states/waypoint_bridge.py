@@ -7,7 +7,8 @@ from moma_mission.missions.piloting.frames import Frames
 
 
 TASK_TYPE_POSE_UUID = ""
-TASK_TYPE_ACTION_VISUAL_UUID = "5b186846-f73a-44b7-8f19-267e382fbea7"
+TASK_TYPE_ACTION_VISUAL_UUID = "1b2499a6-9606-47b7-afa3-6d9db9e2db5c"
+TASK_TYPE_ACTION_GAUGE_UUID = "ec23cb23-89a1-42c9-9c00-1f4698947e81"
 
 
 class WaypointBroadcasterState(StateRos):
@@ -15,7 +16,9 @@ class WaypointBroadcasterState(StateRos):
     Broadcast waypoints from the gRCS inspection plan as ROS transforms
     """
 
-    def __init__(self, ns, outcomes=["POSE", "ACTION_VISUAL", "Failure"]):
+    def __init__(
+        self, ns, outcomes=["POSE", "ACTION_VISUAL", "ACTION_GAUGE", "Failure"]
+    ):
         StateRos.__init__(self, ns=ns, outcomes=outcomes)
         self.waypoint_pose_broadcaster = tf2_ros.StaticTransformBroadcaster()
         self.map_frame = self.get_scoped_param("map_frame", Frames.map_frame)
@@ -24,6 +27,9 @@ class WaypointBroadcasterState(StateRos):
         )
         self.action_visual_waypoint_frame = self.get_scoped_param(
             "action_visual_waypoint_frame", "action_visual"
+        )
+        self.action_gauge_waypoint_frame = self.get_scoped_param(
+            "action_gauge_waypoint_frame", "action_gauge"
         )
 
     def run(self):
@@ -49,7 +55,18 @@ class WaypointBroadcasterState(StateRos):
         elif waypoint.task_type_uuid == TASK_TYPE_ACTION_VISUAL_UUID:
             rospy.loginfo("Current waypoint is an ACTION_VISUAL waypoint.")
             waypoint_pose.child_frame_id = self.action_visual_waypoint_frame
+
+            # TODO HACK pass on waypoint param as desired turning angle
+            rospy.loginfo(
+                f"Passing action visual waypoint param1 ({waypoint.param1} rad) to valve turning controller."
+            )
+            self.set_context("valve_desired_angle", waypoint.param1)
+
             result = "ACTION_VISUAL"
+        elif waypoint.task_type_uuid == TASK_TYPE_ACTION_GAUGE_UUID:
+            rospy.loginfo("Current waypoint is an ACTION_GAUGE waypoint.")
+            waypoint_pose.child_frame_id = self.action_gauge_waypoint_frame
+            result = "ACTION_GAUGE"
         else:
             rospy.logerr(f"Unknown waypoint task type uuid {waypoint.task_type_uuid}")
             return "Failure"

@@ -14,6 +14,7 @@ from moma_mission.states.waypoint_bridge import (
     WaypointReachedState,
 )
 from moma_mission.states.manipulation import JointsConfigurationAction
+from moma_mission.states.gauge import GaugeReaderState
 
 
 # Init ros
@@ -75,6 +76,7 @@ try:
                 "ExecuteInspectionPlan": "WAYPOINT_BROADCAST",
                 "ExecuteDummyPlan": "REACH_DETECTION_HOTSPOT_FAR",
                 "ManipulateValve": "VALVE_SEQUENCE",
+                "ReadGauge": "GAUGE_SEQUENCE",
                 "Failure": "Failure",
             },
         )
@@ -86,6 +88,7 @@ try:
             transitions={
                 "POSE": "WAYPOINT_FOLLOWING",
                 "ACTION_VISUAL": "VALVE_SEQUENCE",
+                "ACTION_GAUGE": "GAUGE_SEQUENCE",
                 "Failure": "Failure",
             },
         )
@@ -181,7 +184,7 @@ try:
 
             # On retrying the DETECTION_DECISION, the robot is not homed -> Do it now
             rospy.loginfo("Homing detection")
-            state_machine.add(
+            valve_sequence.add(
                 "HOMING_DETECTION",
                 homing_sequence_factory(),
                 transitions={
@@ -248,7 +251,7 @@ try:
 
             # On retrying the DETECTION_DECISION, the robot is not homed -> Do it now
             rospy.loginfo("Homing detection")
-            state_machine.add(
+            valve_sequence.add(
                 "APPROACH_HOMING",
                 JointsConfigurationAction,
                 transitions={
@@ -339,7 +342,7 @@ try:
             )
 
             rospy.loginfo("Homing final")
-            state_machine.add(
+            valve_sequence.add(
                 "HOMING_FINAL",
                 homing_sequence_factory(),
                 transitions={
@@ -369,6 +372,95 @@ try:
                 "Next": "HOMING_START",  # To ensure that the robot is homed even after a "warning" state, we issue another homing command
                 "Completed": "HOMING_START",  # To ensure that the robot is homed even after a "warning" state, we issue another homing command
                 "Failure": "HOMING_START",  # Can happen if the valve manipulation is triggered manually by a high-level action and not by an ACTION waypoint
+            },
+        )
+
+        gauge_sequence = StateMachineRos(outcomes=["Success", "Failure", "Warning"])
+        with gauge_sequence:
+            # Hacky, but avoids to define an almost empty class with additional outcomes
+            rospy.loginfo("Init gauge reading")
+            gauge_sequence.add(
+                "INIT_GAUGE_READING",
+                StateRosDummy,
+                transitions={
+                    "Completed": "OBSERVATION_POSE_GAUGE",
+                    "Failure": "Failure",
+                },
+                constants={"get_next_pose": False, "continue_gauge_reading": False},
+            )
+
+            rospy.loginfo("Observation pose for gauge")
+            gauge_sequence.add(
+                "OBSERVATION_POSE_GAUGE",
+                FOVSamplerState,
+                transitions={
+                    "Completed": "OBSERVATION_APPROACH_GAUGE",
+                    "Failure": "Warning",
+                },
+            )
+
+            rospy.loginfo("Observation approach for gauge")
+            gauge_sequence.add(
+                "OBSERVATION_APPROACH_GAUGE",
+                TransformVisitorState,
+                transitions={
+                    "Completed": "READ_GAUGE",
+                    "Failure": "OBSERVATION_POSE_GAUGE",
+                },
+                constants={"get_next_pose": True},
+            )
+
+            rospy.loginfo("Read gauge")
+            gauge_sequence.add(
+                "READ_GAUGE",
+                GaugeReaderState,
+                transitions={
+                    "Completed": "HOMING_FINAL_GAUGE",
+                    "NextDetection": "CONTINUE_GAUGE_READING",
+                    "Failure": "Warning",
+                },
+            )
+
+            rospy.loginfo("Continue gauge reading")
+            gauge_sequence.add(
+                "CONTINUE_GAUGE_READING",
+                StateRosDummy,
+                transitions={
+                    "Completed": "OBSERVATION_POSE_GAUGE",
+                    "Failure": "Failure",
+                },
+                constants={"get_next_pose": False, "continue_gauge_reading": True},
+            )
+
+            rospy.loginfo("Homing final after gauge reading")
+            gauge_sequence.add(
+                "HOMING_FINAL_GAUGE",
+                homing_sequence_factory(),
+                transitions={
+                    "Success": "Success",
+                    "Failure": "Failure",
+                },
+            )
+
+        rospy.loginfo("Gauge sequence")
+        state_machine.add(
+            "GAUGE_SEQUENCE",
+            gauge_sequence,
+            transitions={
+                "Success": "WAYPOINT_GAUGE_REACHED",
+                "Warning": "WAYPOINT_GAUGE_REACHED",
+                "Failure": "Failure",
+            },
+        )
+
+        rospy.loginfo("Waypoint gauge reached")
+        state_machine.add(
+            "WAYPOINT_GAUGE_REACHED",
+            WaypointReachedState,
+            transitions={
+                "Next": "HOMING_START",  # To ensure that the robot is homed even after a "warning" state, we issue another homing command
+                "Completed": "HOMING_START",  # To ensure that the robot is homed even after a "warning" state, we issue another homing command
+                "Failure": "HOMING_START",  # Can happen if the gauge reading is triggered manually by a high-level action and not by an ACTION waypoint
             },
         )
 
