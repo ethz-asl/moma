@@ -7,10 +7,8 @@ from moma_mission.missions.piloting.frames import Frames
 
 
 TASK_TYPE_POSE_UUID = ""
-TASK_TYPE_ACTION_VISUAL_UUID = "5b186846-f73a-44b7-8f19-267e382fbea7"
-TASK_TYPE_ACTION_GAUGE_UUID = (
-    "9e3a4325-61c6-4d5a-9636-5cb6581cbe3a"  # Structured Light UUID
-)
+TASK_TYPE_ACTION_VISUAL_UUID = "1b2499a6-9606-47b7-afa3-6d9db9e2db5c"
+TASK_TYPE_ACTION_GAUGE_UUID = "ec23cb23-89a1-42c9-9c00-1f4698947e81"
 
 
 class WaypointBroadcasterState(StateRos):
