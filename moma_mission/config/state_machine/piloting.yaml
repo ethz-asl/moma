@@ -236,13 +236,15 @@ GRASP_VALVE:
   section: "first"
   timeout: 15.0
   delay: 1.0
-  linear_speed: 0.01
+  linear_speed: 0.05
 
 MANIPULATE_VALVE:
   default_outcome: None
   mode: pose
-  linear_speed: 0.1
-  angular_speed: 1.0
+  linear_speed: 0.4
+  angular_speed: 1.5
+  linear_tolerance: 0.05
+  angular_tolerance: 0.18
   control_frame: panda_link0
   pose_topic: "/panda/cartesian_impedance_controller/equilibrium_pose"
   manager_namespace: panda

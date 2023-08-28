@@ -167,7 +167,7 @@ class GripperGrasp(GripperAction):
         self.gripper_goal.epsilon.outer = (
             1.0  # how much fingers can open more than specified
         )
-        self.gripper_goal.speed = 0.01
+        self.gripper_goal.speed = 0.1
         self.gripper_goal.width = self.position
         self.gripper_goal.force = self.max_effort
 
