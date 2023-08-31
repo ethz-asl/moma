@@ -2,28 +2,47 @@
 <launch>
   <arg name="wrist_camera" default="true" />
   <arg name="fixed_camera" default="false" />
+  <arg name="sensor" default="rs_d435"/> <!-- Options: rs_d435 | pmd_monstar-->
 
-  <!-- Launch wrist camera -->
-  <include if="$(arg wrist_camera)"
-    file="$(find realsense2_camera)/launch/rs_camera.launch">
-    <arg name="camera" value="wrist_camera" />
-    <arg name="depth_width" value="640" />
-    <arg name="depth_height" value="480" />
-    <arg name="depth_fps" value="30" />
-    <arg name="enable_pointcloud" value="true" />
-    <arg name="publish_tf" value="true" />
-    <arg name="serial_no" value="828112072238" />
-  </include>
+  <!-- Intel RealSense D435 -->
+  <group if="$(eval arg('sensor') == 'rs_d435')">
+    <!-- Launch wrist camera -->
+    <include if="$(arg wrist_camera)"
+      file="$(find realsense2_camera)/launch/rs_camera.launch">
+      <arg name="camera" value="wrist_camera" />
+      <arg name="depth_width" value="640" />
+      <arg name="depth_height" value="480" />
+      <arg name="depth_fps" value="30" />
+      <arg name="enable_pointcloud" value="true" />
+      <arg name="publish_tf" value="true" />
+      <arg name="serial_no" value="828112072238" />
+    </include>
 
-  <!-- Luanch fixed camera -->
-  <include if="$(arg fixed_camera)"
-    file="$(find realsense2_camera)/launch/rs_camera.launch">
-    <arg name="camera" value="fixed_camera" />
-    <arg name="depth_width" value="640" />
-    <arg name="depth_height" value="480" />
-    <arg name="depth_fps" value="30" />
-    <arg name="enable_pointcloud" value="true" />
-    <arg name="publish_tf" value="true" />
-    <arg name="serial_no" value="231522070510" />
-  </include>
+    <!-- Launch fixed camera -->
+    <include if="$(arg fixed_camera)"
+      file="$(find realsense2_camera)/launch/rs_camera.launch">
+      <arg name="camera" value="fixed_camera" />
+      <arg name="depth_width" value="640" />
+      <arg name="depth_height" value="480" />
+      <arg name="depth_fps" value="30" />
+      <arg name="enable_pointcloud" value="true" />
+      <arg name="publish_tf" value="true" />
+      <arg name="serial_no" value="231522070510" />
+    </include>
+  </group>
+
+  <!-- PMD PicoMonstar -->
+  <group if="$(eval arg('sensor') == 'pmd_monstar')">
+    <!-- ToDo: Launch wrist camera -->
+    <!-- <include if="$(arg wrist_camera)"
+      file="$(find pico_flexx_driver)/launch/pico_flexx_driver.launch">
+      <arg name="publish_tf" value="true" />
+    </include> -->
+
+    <!-- Launch fixed camera -->
+    <include if="$(arg fixed_camera)"
+      file="$(find pico_flexx_driver)/launch/pico_flexx_driver.launch">
+      <arg name="publish_tf" value="true" />
+    </include>
+  </group>
 </launch>
