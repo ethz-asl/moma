@@ -20,5 +20,8 @@ apt-get -qq update && apt-get install -y qtbase5-dev bash-completion
 pip install --upgrade cmake
 apt-get -qq update &&  apt-get install -y libgoogle-glog-dev libgtest-dev libgflags-dev python3-dev libsqlite3-dev
 
+# This is for Heron.
+pip install pyransac3d
+
 # Clear cache to keep layer size down
 rm -rf /var/lib/apt/lists/*
