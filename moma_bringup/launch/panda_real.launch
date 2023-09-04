@@ -4,6 +4,7 @@
   <arg name="robot_ip" default="$(env FRANKA_IP)" />
   <arg name="publish_world_link" default="true" />
   <arg name="moveit" default="true" />
+  <arg name="moveit_pipeline" default="ompl"/> <!-- Options: ompl | chomp | pilz_industrial_motion_planner-->
   <arg name="arm_id" default="panda" />
   <arg name="controller" default="effort_joint_trajectory_controller" />
   <arg name="table" default="true" />
@@ -36,6 +37,7 @@
   <!-- Launch MoveIt -->
   <include if="$(arg moveit)" file="$(find panda_moveit_config)/launch/move_group.launch">
     <arg name="load_robot_description" value="false" />
+    <arg name="pipeline" value="$(arg moveit_pipeline)"/>
   </include>
 
   <!-- If desired, launch a preconfigured Rviz -->
