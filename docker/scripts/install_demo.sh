@@ -13,8 +13,9 @@ pip install --no-cache-dir --upgrade numpy==1.23.0
 export TMPDIR='/var/tmp'
 
 # Pip install VGN requirements
-pip install --no-cache-dir -r vgn/requirements.txt
-pip install --no-cache-dir torch
+pip install --no-cache-dir catkin_pkg scipy pandas matplotlib mpi4py open3d pybullet==2.7.9 tqdm
+pip cache purge
+pip install --no-cache-dir torch pytorch-ignite tensorboard
 
 # Pip install gdown to get google drive files
 pip install gdown
