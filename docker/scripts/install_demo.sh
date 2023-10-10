@@ -7,7 +7,7 @@ cd $MOMA_DEP_WS/src || exit 1
 vcs import --recursive --input $SCRIPTS_PATH/moma_demo.repos
 
 # Upgrade numpy version
-pip install --upgrade numpy==1.23.0
+pip install --no-cache-dir --upgrade numpy==1.23.0
 
 # This helps torch download on Github Actions :)
 export TMPDIR='/var/tmp'
@@ -30,6 +30,7 @@ gdown 1MysYHve3ooWiLq12b58Nm8FWiFBMH-bJ
 unzip data.zip -d vgn_data
 mv vgn_data/data/* vgn/assets/
 rm -r vgn_data
+rm data.zip
 
 # Add a rundemo alias:
 echo 'alias rundemo="roslaunch grasp_demo grasp_demo.launch launch_rviz:=true"' >> ~/.bashrc
