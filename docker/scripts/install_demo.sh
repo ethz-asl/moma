@@ -16,11 +16,10 @@ export TMPDIR='/var/tmp'
 pip install --no-cache-dir catkin_pkg scipy matplotlib mpi4py pybullet==2.7.9 tqdm
 pip install --no-cache-dir torch==1.12.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
 pip install --no-cache-dir tensorboard
-pip install --no-cache-dir open3d-cpu==0.17.0
-
+pip install --no-cache-dir open3d==0.13.0
 
 # Pip install gdown to get google drive files
-pip install gdown
+pip install --no-cache-dir gdown
 
 # Make sure we can unzip too
 apt-get update
