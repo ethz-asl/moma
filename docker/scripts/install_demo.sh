@@ -15,7 +15,7 @@ export TMPDIR='/var/tmp'
 # Pip install VGN requirements
 pip install --no-cache-dir catkin_pkg scipy pandas==0.22.0 matplotlib mpi4py open3d pybullet==2.7.9 tqdm
 pip cache purge
-pip install --no-cache-dir torch==1.2.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
+pip install --no-cache-dir torch==1.12.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
 pip install tensorboard #pytorch-ignite
 
 # Pip install gdown to get google drive files
