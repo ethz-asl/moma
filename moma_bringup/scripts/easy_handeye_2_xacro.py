@@ -17,7 +17,10 @@ To replace manual copy/paste procedure.
 2. create easy_handeye_file.txt with the easy handeye result after calibration
 """
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 963f63814dbbf596f1c0be17b5ca38abf9b64743
 class CommandLineArgs:
     """
     Take arguments from command line
@@ -63,7 +66,10 @@ class CommandLineArgs:
             print("-------------------------------------------")
             raise FileNotFoundError
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 963f63814dbbf596f1c0be17b5ca38abf9b64743
 def from_easy_handeye(easy_handeye_file):
     """
     Opens file of result from easy handeye, and converts to dict.
@@ -95,7 +101,10 @@ def from_easy_handeye(easy_handeye_file):
     except Exception as err:
         print(f"an error occured: {str(err)}")
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 963f63814dbbf596f1c0be17b5ca38abf9b64743
 def convert_quat_euler(quat, typ="xyz"):
     """
     Converts from quaternion to Euler representation.
@@ -168,6 +177,7 @@ def main():
     quat = [val for val in result["rotation"].values()]
     rotation = convert_quat_euler(quat)
 
+<<<<<<< HEAD
     print(
         "Translation x: %.3f y: %.3f z: %.3f"
         % (translation[0], translation[1], translation[2])
@@ -180,6 +190,11 @@ def main():
         "Euler Rotation x: %.3f y: %.3f z: %.3f"
         % (rotation[0], rotation[1], rotation[2])
     )
+=======
+    print("Translation x: %.3f y: %.3f z: %.3f" % (translation[0], translation[1], translation[2]))
+    print("Quaternion x: %.3f y: %.3f z: %.3f, w: %.3f" % (quat[0], quat[1], quat[2], quat[3]))
+    print("Euler Rotation x: %.3f y: %.3f z: %.3f" % (rotation[0], rotation[1], rotation[2]))
+>>>>>>> 963f63814dbbf596f1c0be17b5ca38abf9b64743
 
     confirm = (
         input(
