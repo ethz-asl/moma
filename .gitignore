@@ -6,6 +6,7 @@ __pycache__/
 # Editor files
 .idea
 .vscode
+cmake-build-*
 
 # Environments
 .env
