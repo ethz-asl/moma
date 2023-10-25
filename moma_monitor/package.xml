@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>moma_monitor</name>
+  <version>0.0.0</version>
+  <description>The moma_monitor package</description>
+  <maintainer email="todo@todo.todo">4c3y</maintainer>
+  <license>TODO</license>
+  <buildtool_depend>catkin</buildtool_depend>
+  <depend>sensor_msgs</depend>
+  <depend>state_monitor_sdk</depend>
+  <export>
+  </export>
+</package>
