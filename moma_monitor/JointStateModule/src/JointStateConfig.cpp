@@ -14,8 +14,8 @@ JointStateConfig::JointStateConfig(std::function<void()> fn)
   for (int i = 0; i < getValue<int>(DIAL_COUNT); ++i) {
     std::string min_key = "dial_min_" + std::to_string(i);
     std::string max_key = "dial_max_" + std::to_string(i);
-    setValue<double>(min_key, 0.0);
-    setValue<double>(max_key, 1.0);
+    setValue<double>(min_key, DIAL_MIN_DEFAULT);
+    setValue<double>(max_key, DIAL_MAX_DEFAULT);
 
   }
 }
@@ -25,8 +25,8 @@ void JointStateConfig::reload() {
   for (int i = 0; i < num_dials; ++i) {
     std::string min_key = "dial_min_" + std::to_string(i);
     std::string max_key = "dial_max_" + std::to_string(i);
-    setValue(min_key, getOptValue<double>(min_key).value_or(0.0));
-    setValue(max_key, getOptValue<double>(max_key).value_or(1.0));
+    setValue(min_key, getOptValue<double>(min_key).value_or(DIAL_MIN_DEFAULT));
+    setValue(max_key, getOptValue<double>(max_key).value_or(DIAL_MAX_DEFAULT));
   }
   config_change_callback_();
 }
@@ -38,8 +38,8 @@ void JointStateConfig::load(const YAML::Node &node) {
   for (int i = 0; i < getValue<int>(DIAL_COUNT); ++i) {
     std::string min_key = "dial_min_" + std::to_string(i);
     std::string max_key = "dial_max_" + std::to_string(i);
-    setValue<double>(min_key, node[min_key].as<double>(0.0));
-    setValue<double>(max_key, node[max_key].as<double>(1.0));
+    setValue<double>(min_key, node[min_key].as<double>(DIAL_MIN_DEFAULT));
+    setValue<double>(max_key, node[max_key].as<double>(DIAL_MAX_DEFAULT));
   }
   config_change_callback_();
 }

@@ -17,6 +17,8 @@ public:
 
   inline static constexpr const char* DIAL_COUNT = "dial_count";
   inline static constexpr const int DIAL_COUNT_DEFAULT = 9;
+  inline static constexpr const double DIAL_MIN_DEFAULT = 0.0;
+  inline static constexpr const double DIAL_MAX_DEFAULT = 1.0;
   inline static constexpr const char* TOPIC = "topic";
 };
 
