@@ -19,4 +19,12 @@ add_library(${PROJECT_NAME}
 
 target_link_libraries(${PROJECT_NAME} PUBLIC Qt5::Widgets ${catkin_LIBRARIES} yaml-cpp)
 
+catkin_add_gtest(${PROJECT_NAME}_test
+        test/test_entry_point.cc
+        test/TestJointStateConfig.cpp
+)
+
+target_link_libraries(${PROJECT_NAME}_test ${PROJECT_NAME} gtest_main)
+
+
 install(TARGETS ${PROJECT_NAME} DESTINATION ${STATE_MONITOR_MODULE_INSTALL_DIR})
