@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import argparse
 import geometry_msgs.msg
 import rospy
 import std_srvs.srv
@@ -16,7 +17,8 @@ from moma_utils.ros.panda import PandaArmClient, PandaGripperClient
 
 
 class ResetNode(object):
-    def __init__(self):
+    def __init__(self, arm_id):
+        self.arm_id = arm_id
         self.base_frame_id = rospy.get_param("moma_demo/base_frame_id")
         self.task_frame_id = rospy.get_param("moma_demo/task_frame_id")
         self.table_height = rospy.get_param("moma_demo/table_height")
@@ -32,7 +34,7 @@ class ResetNode(object):
         # Establish robot node connections
         self.arm = PandaArmClient()
         self.gripper = PandaGripperClient()
-        self.moveit = MoveItClient("panda_arm")
+        self.moveit = MoveItClient(f"{self.arm_id}_arm")
 
         # Reset gripper
         self.gripper.grasp()
@@ -79,8 +81,12 @@ class ResetNode(object):
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--arm_id", type=str, default="panda")
+    args = parser.parse_args()
+
     rospy.init_node("reset")
-    ResetNode()
+    ResetNode(arm_id=args.arm_id)
     rospy.spin()
 
 

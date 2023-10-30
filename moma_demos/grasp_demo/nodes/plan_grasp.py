@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import argparse
 from pathlib import Path
 from actionlib import SimpleActionServer
 import numpy as np
@@ -18,7 +19,9 @@ from vgn.utils import map_cloud_to_grid
 
 
 class PlanGraspNode(object):
-    def __init__(self):
+    def __init__(self, arm_id):
+        self.arm_id = arm_id
+
         self.listener = tf.TransformListener()
         self.read_parameters()
         self.init_tf()
@@ -49,11 +52,7 @@ class PlanGraspNode(object):
 
     def init_visualization(self):
         self.vis = Visualizer()
-        self.grasp_poses_pub = rospy.Publisher(
-            "grasp_poses",
-            PoseArray,
-            queue_size=10,
-        )
+        self.grasp_poses_pub = rospy.Publisher("grasp_poses", PoseArray, queue_size=10)
 
     def plan_grasp(self, goal):
         # Deserialize map cloud message
@@ -74,7 +73,7 @@ class PlanGraspNode(object):
 
         # Lookup task transform
         msg = self.tf_buffer.lookup_transform(
-            "panda_link0", "task", rospy.Time(), rospy.Duration(10.0)
+            f"{self.arm_id}_link0", "task", rospy.Time(), rospy.Duration(10.0)
         )
         T_base_task = from_transform_msg(msg.transform)
 
@@ -148,8 +147,12 @@ class PlanGraspNode(object):
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--arm_id", type=str, default="panda")
+    args = parser.parse_args()
+
     rospy.init_node("plan_grasps")
-    PlanGraspNode()
+    PlanGraspNode(args.arm_id)
     rospy.spin()
 
 

@@ -4,6 +4,7 @@
     <arg name="semantic" default="false" doc="use Voxblox++ for semantic scene reconstruction" />
     <arg name="launch_rviz" default="false"/>
     <arg name="simulation_mode" default="false"/>
+    <arg name="arm_id" default="panda" />
 
     <!-- ======== Launch everything ======== -->
 
@@ -20,11 +21,11 @@
     <node unless="$(arg semantic)" pkg="vgn" type="tsdf_server.py" name="tsdf_server" />
 
     <!-- Action nodes -->
-    <node pkg="grasp_demo" type="reset.py" name="reset" ns="manipulator" output="screen"/>
-    <node pkg="grasp_demo" type="reconstruct_scene.py" name="scan_action_node" args="$(arg semantic)" ns="manipulator" output="screen" />
-    <node pkg="grasp_demo" type="plan_grasp.py" name="plan_grasp" ns="manipulator" output="screen"/>
-    <node pkg="grasp_demo" type="execute_grasp.py" name="execute_grasp" ns="manipulator" output="screen"/>
-    <node pkg="grasp_demo" type="drop_object.py" name="drop_object" ns="manipulator" output="screen"/>
+    <node pkg="grasp_demo" type="reset.py" name="reset" args="--arm_id $(arg arm_id)" ns="manipulator" output="screen"/>
+    <node pkg="grasp_demo" type="reconstruct_scene.py" name="scan_action_node" args="$(arg semantic) $(arg arm_id)" ns="manipulator" output="screen" />
+    <node pkg="grasp_demo" type="plan_grasp.py" name="plan_grasp" args="--arm_id $(arg arm_id)" ns="manipulator" output="screen"/>
+    <node pkg="grasp_demo" type="execute_grasp.py" name="execute_grasp" args="--arm_id $(arg arm_id)" ns="manipulator" output="screen"/>
+    <node pkg="grasp_demo" type="drop_object.py" name="drop_object" args="--arm_id $(arg arm_id)" ns="manipulator" output="screen"/>
 
     <!-- Launch demo script-->
     <node pkg="grasp_demo" type="run_plan.py" name="grasp_demo" ns="manipulator" output="screen"/>

@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 
+import argparse
 from actionlib import SimpleActionServer
-import numpy as np
 import rospy
 
 from grasp_demo.msg import DropAction, DropResult
-from moma_utils.spatial import Rotation, Transform
 from moma_utils.ros.moveit import MoveItClient
 from moma_utils.ros.panda import PandaGripperClient
 
@@ -13,15 +12,12 @@ from moma_utils.ros.panda import PandaGripperClient
 class DropActionNode(object):
     """Drops the object back into the workspace with a random offset."""
 
-    def __init__(self):
+    def __init__(self, arm_id):
         self.load_parameters()
-        self.moveit = MoveItClient("panda_arm")
+        self.moveit = MoveItClient(f"{arm_id}_arm")
         self.gripper = PandaGripperClient()
         self.action_server = SimpleActionServer(
-            "drop_action",
-            DropAction,
-            execute_cb=self.drop_object,
-            auto_start=False,
+            "drop_action", DropAction, execute_cb=self.drop_object, auto_start=False
         )
         self.action_server.start()
 
@@ -40,8 +36,12 @@ class DropActionNode(object):
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--arm_id", type=str, default="panda")
+    args = parser.parse_args()
+
     rospy.init_node("drop_action_node")
-    DropActionNode()
+    DropActionNode(args.arm_id)
     rospy.spin()
 
 

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import argparse
 from actionlib import SimpleActionServer
 from geometry_msgs.msg import PoseStamped
 import rospy
@@ -14,9 +15,9 @@ from moma_utils.spatial import Transform
 class GraspExecutionAction(object):
     """Execute a grasp specified by the action goal using MoveIt."""
 
-    def __init__(self):
+    def __init__(self, arm_id):
         self.load_parameters()
-        self.moveit = MoveItClient("panda_arm")
+        self.moveit = MoveItClient(f"{arm_id}_arm")
         self.arm = PandaArmClient()
         self.gripper = PandaGripperClient()
 
@@ -56,7 +57,7 @@ class GraspExecutionAction(object):
         target = T_base_grasp * T_grasp_ee_offset
         self.moveit_target_pub.publish(to_pose_stamped_msg(target, self.base_frame))
         self.moveit.gotoL(target, self.velocity_scaling)
-    
+
         if self.arm.has_error:
             rospy.loginfo("Robot error. Aborting.")
             self.action_server.set_aborted()
@@ -84,6 +85,10 @@ class GraspExecutionAction(object):
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--arm_id", type=str, default="panda")
+    args = parser.parse_args()
+
     rospy.init_node("grasp_execution_node")
-    GraspExecutionAction()
+    GraspExecutionAction(args.arm_id)
     rospy.spin()

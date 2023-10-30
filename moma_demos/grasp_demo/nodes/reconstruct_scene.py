@@ -16,8 +16,8 @@ import vgn.srv
 class ReconstructSceneNode(object):
     """Reconstruct scene moving the camera along a fixed trajectory."""
 
-    def __init__(self, semantic):
-        self.moveit = MoveItClient("panda_arm")
+    def __init__(self, semantic, arm_id):
+        self.moveit = MoveItClient(f"{arm_id}_arm")
 
         if semantic:
             self.init_gsm_services()
@@ -37,40 +37,26 @@ class ReconstructSceneNode(object):
         rospy.loginfo("Scan action server ready")
 
     def init_gsm_services(self):
-        self.reset_map = rospy.ServiceProxy(
-            "/gsm_node/reset_map",
-            std_srvs.srv.Empty,
-        )
+        self.reset_map = rospy.ServiceProxy("/gsm_node/reset_map", std_srvs.srv.Empty)
         self.toggle_integration = rospy.ServiceProxy(
-            "/gsm_node/toggle_integration",
-            std_srvs.srv.SetBool,
+            "/gsm_node/toggle_integration", std_srvs.srv.SetBool
         )
         self.get_scene_cloud = rospy.ServiceProxy(
-            "/gsm_node/get_scene_pointcloud",
-            vpp_msgs.srv.GetScenePointcloud,
+            "/gsm_node/get_scene_pointcloud", vpp_msgs.srv.GetScenePointcloud
         )
         self.get_map_cloud = rospy.ServiceProxy(
-            "/gsm_node/get_map",
-            vpp_msgs.srv.GetMap,
+            "/gsm_node/get_map", vpp_msgs.srv.GetMap
         )
 
     def init_tsdf_services(self):
-        self.reset_map = rospy.ServiceProxy(
-            "/reset_map",
-            std_srvs.srv.Empty,
-        )
+        self.reset_map = rospy.ServiceProxy("/reset_map", std_srvs.srv.Empty)
         self.toggle_integration = rospy.ServiceProxy(
-            "/toggle_integration",
-            std_srvs.srv.SetBool,
+            "/toggle_integration", std_srvs.srv.SetBool
         )
         self.get_scene_cloud = rospy.ServiceProxy(
-            "/get_scene_cloud",
-            vgn.srv.GetSceneCloud,
+            "/get_scene_cloud", vgn.srv.GetSceneCloud
         )
-        self.get_map_cloud = rospy.ServiceProxy(
-            "/get_map_cloud",
-            vgn.srv.GetMapCloud,
-        )
+        self.get_map_cloud = rospy.ServiceProxy("/get_map_cloud", vgn.srv.GetMapCloud)
 
     def reconstruct_scene(self, goal):
         i = rospy.get_param("moma_demo/workspace")
@@ -118,7 +104,8 @@ class ReconstructSceneNode(object):
 def main():
     rospy.init_node("scan_action_node")
     semantic = sys.argv[1] in ["True", "true"]
-    ReconstructSceneNode(semantic)
+    arm_id = sys.argv[2]
+    ReconstructSceneNode(semantic, arm_id)
     rospy.spin()
 
 
