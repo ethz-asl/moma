@@ -5,11 +5,12 @@
     <arg name="launch_rviz" default="false"/>
     <arg name="simulation_mode" default="false"/>
     <arg name="arm_id" default="panda" />
+    <arg name="namespace" default="manipulator" />
 
     <!-- ======== Launch everything ======== -->
 
     <!-- Parameters -->
-    <rosparam command="load" file="$(find grasp_demo)/config/grasp_demo.yaml" ns="manipulator/moma_demo" subst_value="true"/>
+    <rosparam command="load" file="$(find grasp_demo)/config/grasp_demo.yaml" ns="$(arg namespace)/moma_demo" subst_value="true"/>
 
     <!-- Panda -->
     <include file="$(find moma_bringup)/launch/panda_moveit_real_camera.launch">
@@ -21,15 +22,15 @@
     <node unless="$(arg semantic)" pkg="vgn" type="tsdf_server.py" name="tsdf_server" />
 
     <!-- Action nodes -->
-    <node pkg="grasp_demo" type="reset.py" name="reset" args="--arm_id $(arg arm_id)" ns="manipulator" output="screen"/>
-    <node pkg="grasp_demo" type="reconstruct_scene.py" name="scan_action_node" args="$(arg semantic) $(arg arm_id)" ns="manipulator" output="screen" />
-    <node pkg="grasp_demo" type="plan_grasp.py" name="plan_grasp" args="--arm_id $(arg arm_id)" ns="manipulator" output="screen"/>
-    <node pkg="grasp_demo" type="execute_grasp.py" name="execute_grasp" args="--arm_id $(arg arm_id)" ns="manipulator" output="screen"/>
-    <node pkg="grasp_demo" type="drop_object.py" name="drop_object" args="--arm_id $(arg arm_id)" ns="manipulator" output="screen"/>
+    <node pkg="grasp_demo" type="reset.py" name="reset" args="--arm_id $(arg arm_id)" ns="$(arg namespace)" output="screen"/>
+    <node pkg="grasp_demo" type="reconstruct_scene.py" name="scan_action_node" args="$(arg semantic) $(arg arm_id)" ns="$(arg namespace)" output="screen" />
+    <node pkg="grasp_demo" type="plan_grasp.py" name="plan_grasp" args="--arm_id $(arg arm_id)" ns="$(arg namespace)" output="screen"/>
+    <node pkg="grasp_demo" type="execute_grasp.py" name="execute_grasp" args="--arm_id $(arg arm_id)" ns="$(arg namespace)" output="screen"/>
+    <node pkg="grasp_demo" type="drop_object.py" name="drop_object" args="--arm_id $(arg arm_id)" ns="$(arg namespace)" output="screen"/>
 
     <!-- Launch demo script-->
-    <node pkg="grasp_demo" type="run_plan.py" name="grasp_demo" ns="manipulator" output="screen"/>
+    <node pkg="grasp_demo" type="run_plan.py" name="grasp_demo" ns="$(arg namespace)" output="screen"/>
 
     <!-- Open rviz if desired -->
-    <node if="$(arg launch_rviz)" type="rviz" name="rviz" pkg="rviz" args="-d $(find grasp_demo)/config/grasp_demo.rviz" ns="manipulator"/>
+    <node if="$(arg launch_rviz)" type="rviz" name="rviz" pkg="rviz" args="-d $(find grasp_demo)/config/grasp_demo.rviz" ns="$(arg namespace)"/>
 </launch>
