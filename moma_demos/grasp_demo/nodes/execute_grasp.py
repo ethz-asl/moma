@@ -88,6 +88,6 @@ if __name__ == "__main__":
     rospy.init_node("grasp_execution_node")
     parser = argparse.ArgumentParser()
     parser.add_argument("--arm_id", type=str, default="panda")
-    args = parser.parse_known_args()
+    args, _ = parser.parse_known_args()
     GraspExecutionAction(args.arm_id)
     rospy.spin()

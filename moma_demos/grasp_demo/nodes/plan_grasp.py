@@ -150,7 +150,7 @@ def main():
     rospy.init_node("plan_grasps")
     parser = argparse.ArgumentParser()
     parser.add_argument("--arm_id", type=str, default="panda")
-    args = parser.parse_known_args()
+    args, _ = parser.parse_known_args()
     PlanGraspNode(args.arm_id)
     rospy.spin()
 
