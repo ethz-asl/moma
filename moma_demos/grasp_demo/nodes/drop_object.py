@@ -36,11 +36,10 @@ class DropActionNode(object):
 
 
 def main():
+    rospy.init_node("drop_action_node")
     parser = argparse.ArgumentParser()
     parser.add_argument("--arm_id", type=str, default="panda")
-    args = parser.parse_args()
-
-    rospy.init_node("drop_action_node")
+    args = parser.parse_known_args()
     DropActionNode(args.arm_id)
     rospy.spin()
 
