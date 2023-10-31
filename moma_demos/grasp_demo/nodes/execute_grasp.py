@@ -87,7 +87,7 @@ class GraspExecutionAction(object):
 if __name__ == "__main__":
     rospy.init_node("grasp_execution_node")
     parser = argparse.ArgumentParser()
-    parser.add_argument("--arm_id", type=str, default="panda")
+    parser.add_argument("-arm_id", type=str, default="panda")
     args, _ = parser.parse_known_args()
     GraspExecutionAction(args.arm_id)
     rospy.spin()

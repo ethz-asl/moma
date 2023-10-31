@@ -83,7 +83,7 @@ class ResetNode(object):
 def main():
     rospy.init_node("reset")
     parser = argparse.ArgumentParser()
-    parser.add_argument("--arm_id", type=str, default="panda")
+    parser.add_argument("-arm_id", type=str, default="panda")
     args, _ = parser.parse_known_args()
     ResetNode(arm_id=args.arm_id)
     rospy.spin()
