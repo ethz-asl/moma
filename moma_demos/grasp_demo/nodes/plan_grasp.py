@@ -73,7 +73,7 @@ class PlanGraspNode(object):
 
         # Lookup task transform
         msg = self.tf_buffer.lookup_transform(
-            f"{self.arm_id}_link0", "task", rospy.Time(), rospy.Duration(10.0)
+            self.base_frame_id, "task", rospy.Time(), rospy.Duration(10.0)
         )
         T_base_task = from_transform_msg(msg.transform)
 

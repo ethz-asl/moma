@@ -17,7 +17,8 @@ class GraspExecutionAction(object):
 
     def __init__(self, arm_id):
         self.load_parameters()
-        self.moveit = MoveItClient(f"{arm_id}_arm")
+        # self.moveit = MoveItClient(f"{arm_id}_arm")
+        self.moveit = MoveItClient(f"{arm_id}_manipulator")
         self.arm = PandaArmClient()
         self.gripper = PandaGripperClient()
 

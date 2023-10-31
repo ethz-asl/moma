@@ -8,8 +8,8 @@ from moma_utils.spatial import Transform
 class MoveItClient:
     def __init__(self, planning_group):
         self.planning_group = planning_group
-        # self.robot = moveit_commander.RobotCommander()
-        # self.scene = moveit_commander.PlanningSceneInterface()
+        self.robot = moveit_commander.RobotCommander()
+        self.scene = moveit_commander.PlanningSceneInterface()
         self.move_group = moveit_commander.MoveGroupCommander(self.planning_group)
 
     def goto(self, target, velocity_scaling=0.2, acceleration_scaling=0.2):

@@ -19,7 +19,8 @@ from moma_utils.ros.panda import PandaArmClient, PandaGripperClient
 class ResetNode(object):
     def __init__(self, arm_id):
         self.arm_id = arm_id
-        self.base_frame_id = rospy.get_param("moma_demo/base_frame_id")
+        # self.base_frame_id = rospy.get_param("moma_demo/base_frame_id")
+        self.base_frame_id = f"{self.arm_id}_link0"
         self.task_frame_id = rospy.get_param("moma_demo/task_frame_id")
         self.table_height = rospy.get_param("moma_demo/table_height")
         rospy.set_param("moma_demo/workspace", 0)

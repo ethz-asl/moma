@@ -17,7 +17,8 @@ class ReconstructSceneNode(object):
     """Reconstruct scene moving the camera along a fixed trajectory."""
 
     def __init__(self, semantic, arm_id):
-        self.moveit = MoveItClient(f"{arm_id}_arm")
+        # self.moveit = MoveItClient(f"{arm_id}_arm")
+        self.moveit = MoveItClient(f"{arm_id}_manipulator")
 
         if semantic:
             self.init_gsm_services()
