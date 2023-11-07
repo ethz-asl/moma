@@ -16,9 +16,5 @@ apt-get -qq update && apt-get install -y python3-catkin-tools python3-vcstool py
 # Install other system deps
 apt-get -qq update && apt-get install -y qtbase5-dev bash-completion
 
-# This is for nvblox
-pip install --upgrade cmake
-apt-get -qq update &&  apt-get install -y libgoogle-glog-dev libgtest-dev libgflags-dev python3-dev libsqlite3-dev
-
 # Clear cache to keep layer size down
 rm -rf /var/lib/apt/lists/*
