@@ -3,8 +3,7 @@
 
   <!-- Adapted from franka_description/robots/common/franka_robot.xacro -->
   <xacro:macro name="moma_panda"
-    params="
-        arm_id:='panda'
+    params="arm_id:='panda'
         parent:='world'
         xyz:='0 0 0'
         rpy:='0 0 0'
@@ -12,6 +11,7 @@
         tcp_rpy='0 0 0'
         hand:=true
         gazebo:=false
+        fixed_to_world:=false
         use_wrist_camera:=false
         wrist_calibration_rpy:='-1.117916 -1.5611535 -2.8045692'
         wrist_calibration_xyz:='0.03062033586096833 -0.025020246008959142 0.10095534939725603'
@@ -28,8 +28,13 @@
     <xacro:include filename="$(find franka_description)/robots/common/franka_arm.xacro" />
 
     <!-- Put in a basic arm. -->
-    <xacro:franka_arm arm_id="${arm_id}" safety_distance="0.03" gazebo="${gazebo}"
-      joint_limits="${xacro.load_yaml('$(find franka_description)/robots/panda/joint_limits.yaml')}" />
+    <xacro:franka_arm arm_id="${arm_id}" 
+        connected_to="${parent}"
+        xyz="${xyz}"
+        rpy="${rpy}"
+        safety_distance="0.03" 
+        gazebo="${gazebo}"
+        joint_limits="${xacro.load_yaml('$(find franka_description)/robots/panda/joint_limits.yaml')}" />
 
     <!-- Offset the hand if we have a bota sensor. -->
     <xacro:if value="${use_bota}">

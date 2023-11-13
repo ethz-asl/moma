@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="giraffe">
+    
+    <!-- <xacro:include filename="$(find gmp_robot)/config/urdf/gmp.urdf"/> -->
+
+    <!-- add link in z-link -->
+    <link name="franka_mount_link"/>
+    <!-- <joint name="arm_mount_joint" type="fixed"> -->
+        <!-- <parent link="z_axis_link"/> -->
+        <!-- <child link="franka_mount_link"/> -->
+        <!-- <origin xyz="0.0 0.3 0.3345" rpy="0 0 0" /> -->
+    <!-- </joint> -->
+
+    <xacro:include filename="$(find moma_description)/urdf/panda_arm.xacro"/>
+    <xacro:moma_panda gazebo="true"
+                      fixed_to_world="false"
+                      parent="franka_mount_link"
+                      use_wrist_camera="true"
+                      include_control_plugin="true"/>
+
+</robot>

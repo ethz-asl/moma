@@ -14,6 +14,9 @@ import numpy as np
 import scipy as sc
 from scipy.spatial.transform import Rotation
 
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import axes3d
+
 try:
     from math import pi, tau, dist, fabs, cos
 except:  # For Python 2 compatibility
@@ -71,74 +74,172 @@ class SampleSphericalPoses:
         # Set radius Z-distance from EE to tag
         self.radius = 0.5
 
-        # Set phi & theta limits
-        self.theta_limits = [0, np.pi / 2]
-        self.phi_limits = [-np.pi, np.pi]
+        # Set target (TODO get this from world//real tag)
+        self.target_centre = np.array([0.5, 0.0, 0.2])
 
-    def get_sample(self):
+        # Set sphere centre as offset from target
+        self.sphere_centre = self.target_centre + np.array([0.0, 0.0, 0.1])
+
+        # Set camera offset
+        self.cam_offset = np.array([0.0, -0.05, 0.0])
+
+        # Set phi & theta limits for sphere
+        self.theta_limits = [0.0, np.pi / 2]
+        self.phi_limits = [-5 * (np.pi/8), 5* (np.pi/8)]
+
+    def get_pose(self):
         """
-        Get randomely generated samples of spherical coordinate
+        Get randomely generated samples of spherical coordinate,
+        and get pose to target.
+
+        #TODO -> rearange the functions
+
+        @returns: tuple (pos, ori)
+            pos: A list of cartesian positions [x, y, z]
+            ori: A list of quaternion orientations [x, y, z, w]
         """
 
         # Get a randomely sampled phi & theta
         phi = self.get_phi(self.rng.random())
         theta = self.get_theta(self.rng.random())
-        
         print(f"(r, theta, phi) = ({self.radius}, {theta}, {phi})")
-        # The positional part of the pose in cartesian
-        x, y, z = self.spherical2cartesian(self.radius, theta, phi)
-        print(f"(x, y, z) = ({x}, {y}, {z})")
 
+        # The positional part of the pose in cartesian
+        pos = self.spherical2cartesian(self.radius, theta, -phi)
+        pos = self.add_offset(pos, self.sphere_centre)
+        print(f"(x, y, z) = ({pos[0]}, {pos[1]}, {pos[2]})")
+
+        rot_matrix = self.get_rotation_matrix(pos, self.target_centre)
+        if not self.is_rotation_matrix(rot_matrix):
+            raise ValueError("Rotation matrix is invalid")
+        else:
+            ori = self.rotation2quat(rot_matrix)
+            print(f"(x, y, z, w) = ({ori[0]}, {ori[1]}, {ori[2]}. {ori[3]})")
+
+            # return pos, ori
+            # adding cam offset
+            cam_point = self.apply_quat_rotation(ori, self.cam_offset)
+            pos_cam_centre = self.add_offset(pos, cam_point)
+            rot_matrix = self.get_rotation_matrix(pos_cam_centre, self.target_centre)
+            if not self.is_rotation_matrix(rot_matrix):
+                raise ValueError("Rotation matrix is invalid")
+            else:
+                ori = self.rotation2quat(rot_matrix)
+                print(f"Cam: (x, y, z, w) = ({ori[0]}, {ori[1]}, {ori[2]}. {ori[3]})")
+                return pos, ori
 
     def get_phi(self, rand):
         """
-        Longitude (EW) 
+        Longitude (EW)
         """
-        return ( self.phi_limits[1] - self.phi_limits[0] ) * rand + self.phi_limits[0]
+        return (self.phi_limits[1] - self.phi_limits[0]) * rand + self.phi_limits[0]
 
     def get_theta(self, rand):
         """
-        Latitude (NS) from equator 
+        Latitude (NS) from equator
         """
-        return ( self.theta_limits[1] - self.theta_limits[0] ) * rand + self.theta_limits[0]
+        return (self.theta_limits[1] - self.theta_limits[0]) * rand + self.theta_limits[
+            0
+        ]
 
     def spherical2cartesian(self, radius, theta, phi):
-        """
-        """
+        """ """
         # Taking equatorial theta, so need to caluate azimuth
-        azi = (np.pi / 2) - theta
+        azi = (np.pi / 2.0) - theta
 
         x = radius * np.sin(azi) * np.cos(phi)
         y = radius * np.sin(azi) * np.sin(phi)
         z = radius * np.cos(azi)
-        
+
         return np.array([x, y, z])
 
+    def add_offset(self, position, offset):
+        """ """
+        return position + offset
+
     def get_rotation_matrix(self, position, target):
-        
-        world_z = np.array([0,0,1])
+        """
+        NEED TO GET TARGET POSITION
+
+        MAYBE PUT IN EXAMPLE FROM SIM
+        """
+        world_z = np.array([0, 0, 1])
         # world X (1,0,0)
         # world Y (0,1,0)
 
         # target is 2 dimensions from world
         # find R3 (Z) as normalised difference to target
+        # target is down so negative needed TODO add in function
         R3 = position - target
-        R3 /= np.linalg.norm(R3)
+        R3 /= -np.linalg.norm(R3)
 
-        R1 = np.cross(R3, world_z)  
+        R1 = np.cross(R3, world_z)
         R1 /= np.linalg.norm(R1)
 
-        R2 = np.cross(R1, R3)
+        R2 = np.cross(R3, R1)
         R2 /= np.linalg.norm(R2)
 
         R = np.c_[R1, R2, R3]
         print("R : ", R)
-        
+
         return R
 
+    def is_rotation_matrix(self, R):
+        # square matrix test
+        if R.ndim != 2 or R.shape[0] != R.shape[1]:
+            return False
+
+        should_be_identity = np.allclose(
+            R.dot(R.T), np.identity(R.shape[0], np.float64)
+        )
+        should_be_one = np.allclose(np.linalg.det(R), 1)
+        return should_be_identity and should_be_one
+
     def rotation2quat(self, rotation):
+        """
+        Pass in rotation
+        """
         quat = Rotation.from_matrix(rotation).as_quat()
         return quat
+
+    def apply_quat_rotation(self, quat, point):
+        """ """
+        rot = Rotation.from_quat(quat)
+        return rot.apply(point)
+
+    def pointZAxisAt(self, point):
+        """!  Given a point, this function orients the object such that
+        its z-axis points at the given point
+        @param point point in world coordinates
+        """
+        z_axis_target = Vector(point) - self.getWorldPos()
+        self.alignZAxisTo(z_axis_target)
+
+    def pointZAxisAway(self, point):
+        """!  Given a point, this function orients the object such that
+        its z-axis points in the opposite direction of the given point
+        @param point point in world coordinates
+        """
+        z_axis_target = Vector(point) - self.getWorldPos()
+        self.alignZAxisTo(-z_axis_target)
+
+    def alignZAxisTo(self, direction):
+        """!  Given a direction vector, this function computes the
+        rotation quaternion, such that the new x-axis is horizontal
+        and the z-axis points in the specified direction
+        @param direction list/array/Vector of 3 values
+        @returns mathutils.Quaternion representation the rotation
+                 that is needed to rotate the object
+        """
+        world_z = np.array([0, 0, 1], dtype=np.float)
+        new_z = direction
+        new_x = np.cross(world_z, new_z)
+        new_x /= np.linalg.norm(new_x)
+        new_y = np.cross(new_z, new_x)
+        new_y /= np.linalg.norm(new_y)
+        rotmat = Matrix(np.array([new_x, new_y, new_z]).T)
+        self.setOrientation(rotmat.to_quaternion())
+
 
 class MoveGroupSphereSamples(object):
     """MoveGroupSphereSamples"""
@@ -207,11 +308,10 @@ class MoveGroupSphereSamples(object):
 
     def go_to_home_state(self):
         """
-        ## Planning to a Joint Goal
-        ## ^^^^^^^^^^^^^^^^^^^^^^^^
-        ## The Panda's zero configuration is at a `singularity <https://www.quora.com/Robotics-What-is-meant-by-kinematic-singularity>`_, so the first
-        ## thing we want to do is move it to a slightly better configuration.
-        ## We use the constant `tau = 2*pi <https://en.wikipedia.org/wiki/Turn_(angle)#Tau_proposals>`_ for convenience:
+        Planning to a Joint Goal
+        The Panda's zero configuration is at a `singularity <https://www.quora.com/Robotics-What-is-meant-by-kinematic-singularity>`_, so the first
+        thing we want to do is move it to a slightly better configuration.
+        We use the constant `tau = 2*pi <https://en.wikipedia.org/wiki/Turn_(angle)#Tau_proposals>`_ for convenience:
         """
         # We get the joint values from the group and change some of the values:
         joint_goal = self.move_group.get_current_joint_values()
@@ -231,40 +331,32 @@ class MoveGroupSphereSamples(object):
         self.move_group.stop()
 
         # For testing:
-        current_joints = move_group.get_current_joint_values()
+        current_joints = self.move_group.get_current_joint_values()
         return all_close(joint_goal, current_joints, 0.01)
 
-    def go_to_pose_goal(self):
-        ## BEGIN_SUB_TUTORIAL plan_to_pose
-        ##
-        ## Planning to a Pose Goal
-        ## ^^^^^^^^^^^^^^^^^^^^^^^
-        ## We can plan a motion for this group to a desired pose for the
-        ## end-effector:
-        pose_goal = geometry_msgs.msg.Pose()
-        pose_goal.orientation.w = 1.0
-        pose_goal.orientation.x = 0.0
-        pose_goal.orientation.y = 0.0
-        pose_goal.orientation.z = 0.0
+    def go_to_pose_goal(self, position, orientation):
+        """
+        Planning to a Pose Goal
+        Plan a motion for this group to a desired pose for the
+        end-effector:
+        """
 
-        pose_goal.position.x = 0.4
-        pose_goal.position.y = 0.1
-        pose_goal.position.z = 0.4
+        pose_goal = geometry_msgs.msg.Pose()
+        pose_goal.orientation.x = orientation[0]
+        pose_goal.orientation.y = orientation[1]
+        pose_goal.orientation.z = orientation[2]
+        pose_goal.orientation.w = orientation[3]
+
+        pose_goal.position.x = position[0]
+        pose_goal.position.y = position[1]
+        pose_goal.position.z = position[2]
 
         self.move_group.set_pose_target(pose_goal)
 
-        ## Now, we call the planner to compute the plan and execute it.
-        # `go()` returns a boolean indicating whether the planning and execution was successful.
         success = self.move_group.go(wait=True)
-        # Calling `stop()` ensures that there is no residual movement
         self.move_group.stop()
-        # It is always good to clear your targets after planning with poses.
-        # Note: there is no equivalent function for clear_joint_value_targets().
         self.move_group.clear_pose_targets()
 
-        # For testing:
-        # Note that since this section of code will not be included in the tutorials
-        # we use the class variable rather than the copied state variable
         current_pose = self.move_group.get_current_pose().pose
         return all_close(pose_goal, current_pose, 0.01)
 
@@ -329,75 +421,130 @@ class MoveGroupSphereSamples(object):
         ## **Note:** The robot's current joint state must be within some tolerance of the
         ## first waypoint in the `RobotTrajectory`_ or ``execute()`` will fail
 
+def plot_3D_no_truth(position_list):
+    # Extract x, y, and z coordinates
+    x = [pos[0] for pos in position_list]
+    y = [pos[1] for pos in position_list]
+    z = [pos[2] for pos in position_list]
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection="3d")
+    ax.plot_trisurf(x, y, z, color="white", edgecolors="grey", alpha=0.5)
+
+    ax.scatter(x, y, z, c="cyan", alpha=0.5)
+    # add here different colours for made position and didn't make position
+
+    # Set labels for the axes
+    ax.set_xlabel("X")
+    ax.set_ylabel("Y")
+    ax.set_zlabel("Z")
+
+    # Show the plot
+    plt.legend()
+    plt.show()
+
+
+def plot_3D(position_list, truth_list):
+    # Extract x, y, and z coordinates
+    x = [pos[0] for pos in position_list]
+    y = [pos[1] for pos in position_list]
+    z = [pos[2] for pos in position_list]
+
+    # Separate points into two lists based on the truth values
+    true_points = [position_list[i] for i in range(len(position_list)) if truth_list[i]]
+    false_points = [
+        position_list[i] for i in range(len(position_list)) if not truth_list[i]
+    ]
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection="3d")
+    ax.plot_trisurf(x, y, z, color="white", edgecolors="grey", alpha=0.5)
+
+    # add here different colours for made position and didn't make position
+    # Scatter plot for True points (in one color)
+    ax.scatter(
+        [pos[0] for pos in true_points],
+        [pos[1] for pos in true_points],
+        [pos[2] for pos in true_points],
+        c="cyan",
+        alpha=0.5,
+    )
+
+    # Scatter plot for False points (in another color)
+    ax.scatter(
+        [pos[0] for pos in false_points],
+        [pos[1] for pos in false_points],
+        [pos[2] for pos in false_points],
+        c="magenta",
+        label="did not reach",
+        alpha=0.5,
+    )
+    # Set labels for the axes
+    ax.set_xlabel("X")
+    ax.set_ylabel("Y")
+    ax.set_zlabel("Z")
+
+    # Show the plot
+    plt.legend()
+    plt.show()
+
 
 def main():
-    sample = SampleSphericalPoses()
-    
-    sample.get_sample()
-    sample.get_sample()
-    sample.get_sample()
-    """
-    try:
-        print("")
-        print("----------------------------------------------------------")
-        print("Sampling sphere coordinates for wrist calibration")
-        print("----------------------------------------------------------")
-        print("Press Ctrl-D to exit at any time")
-        print("")
-        input(
-            "============ Press `Enter` to begin by setting up the moveit_commander ..."
-        )
-        sampling = MoveGroupSphereSamples()
+    move = MoveGroupSphereSamples()
+    move.go_to_home_state()
 
-        input(
-            "============ Press `Enter` to execute a movement using a joint state goal ..."
-        )
-        sampling.go_to_home_state()
+    pos_list = []
+    truth_list = []
 
-        input("============ Press `Enter` to execute a movement using a pose goal ...")
-        sampling.go_to_pose_goal()
+    while True:
+        try:
+            print("")
+            print("----------------------------------------------------------")
+            print("Sampling sphere coordinates for wrist calibration")
+            print("----------------------------------------------------------")
+            print("Press 'h' to go to a home state")
+            print("----------------------------------------------------------")
+            print("Press 'enter' to go to the next sample point")
+            print("----------------------------------------------------------")
+            print("Press 'g' to plot a graph")
+            print("----------------------------------------------------------")
+            print("Press 'q' to stop sampling exit")
 
-        input("============ Press `Enter` to plan and display a Cartesian path ...")
-        cartesian_plan, fraction = sampling.plan_cartesian_path()
+            print("")
 
-        input(
-            "============ Press `Enter` to display a saved trajectory (this will replay the Cartesian path)  ..."
-        )
-        sampling.display_trajectory(cartesian_plan)
+            user_input = input("============ Choose an option: ")
+            print("")
 
-        input("============ Press `Enter` to execute a saved path ...")
-        sampling.execute_plan(cartesian_plan)
+            if user_input == "h":
+                move.go_to_home_state()
+            elif user_input == "g":
+                plot_3D(pos_list, truth_list)
+                #plot_3D_no_truth(pos_list)
+            elif user_input == "q":
+                print("============ Sampling complete!")
+                print("")
+                break
+            else:
+                sample = SampleSphericalPoses()
+                print("getting random pose on sphere")
+                print("")
+                pos, ori = sample.get_pose()
+                print("pos :", pos)
+                print("ori :", ori)
+                print("")
+                pos_list.append(pos)
+                if not move.go_to_pose_goal(pos, ori):
+                    print("Trajectory not executed")
+                    print("")
+                    truth_list.append(False)
+                else:
+                    truth_list.append(True)
 
-        print("============ Sampling complete!")
-    
-    except rospy.ROSInterruptException:
-        return
-    except KeyboardInterrupt:
-        return
+        except rospy.ROSInterruptException:
+            return
+        except KeyboardInterrupt:
+            return
 
-        """
 
 if __name__ == "__main__":
     main()
-
-## BEGIN_TUTORIAL
-## .. _moveit_commander:
-##    http://docs.ros.org/noetic/api/moveit_commander/html/namespacemoveit__commander.html
-##
-## .. _MoveGroupCommander:
-##    http://docs.ros.org/noetic/api/moveit_commander/html/classmoveit__commander_1_1move__group_1_1MoveGroupCommander.html
-##
-## .. _RobotCommander:
-##    http://docs.ros.org/noetic/api/moveit_commander/html/classmoveit__commander_1_1robot_1_1RobotCommander.html
-##
-## .. _PlanningSceneInterface:
-##    http://docs.ros.org/noetic/api/moveit_commander/html/classmoveit__commander_1_1planning__scene__interface_1_1PlanningSceneInterface.html
-##
-## .. _DisplayTrajectory:
-##    http://docs.ros.org/noetic/api/moveit_msgs/html/msg/DisplayTrajectory.html
-##
-## .. _RobotTrajectory:
-##    http://docs.ros.org/noetic/api/moveit_msgs/html/msg/RobotTrajectory.html
-##
-## .. _rospy:
-##    http://docs.ros.org/noetic/api/rospy/html/
