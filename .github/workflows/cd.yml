@@ -1,0 +1,49 @@
+name: moma CD
+
+on:
+  push:
+    branches: [ "master" ]
+
+env:
+  # Use docker.io for Docker Hub if empty
+  REGISTRY: ghcr.io
+  # github.repository as <account>/<repo>
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build-dockers:
+    name: Build docker images
+    strategy:
+      matrix:
+        dockerfile: [dev, robot, demo]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out moma repo
+      uses: actions/checkout@v3
+      with:
+        path: moma_ws/src/moma
+        submodules: recursive
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+    - name: Log into registry ${{ env.REGISTRY }}
+      uses: docker/login-action@v2
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    - name: Extract Docker metadata
+      id: meta
+      uses: docker/metadata-action@v4
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+        tags: type=raw,value=${{ matrix.dockerfile }}
+    - name: Build and push docker
+      uses: docker/build-push-action@v4
+      with:
+        context: ./moma_ws/src/moma/docker/
+        file: ./moma_ws/src/moma/docker/${{ matrix.dockerfile }}.Dockerfile
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
