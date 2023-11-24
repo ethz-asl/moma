@@ -1,0 +1,79 @@
+name: moma CI
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+env:
+  # Use docker.io for Docker Hub if empty
+  REGISTRY: ghcr.io
+  # github.repository as <account>/<repo>
+  IMAGE_NAME: ${{ github.repository }}
+  CATKIN_WS_PATH: moma_ws
+
+jobs:
+  build-docker:
+    runs-on: ubuntu-latest
+    outputs:
+      docker_image_name: ${{ steps.meta.outputs.tags }}
+    steps:
+    - name: Check out moma repo
+      uses: actions/checkout@v3
+      with:
+        path: moma_ws/src/moma
+        submodules: recursive
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+    - name: Log into registry ${{ env.REGISTRY }}
+      uses: docker/login-action@v2
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    - name: Extract Docker metadata
+      id: meta
+      uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+    - name: Build and push docker
+      uses: docker/build-push-action@v4
+      with:
+        context: ./moma_ws/src/moma/docker/
+        file: ./moma_ws/src/moma/docker/dev.Dockerfile
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+  build-catkin:
+    needs: build-docker
+    runs-on: ubuntu-latest
+    container:
+      image: ${{ needs.build-docker.outputs.docker_image_name }}
+    steps:
+    - name: Git safe directory (only for running within containers)
+      run: git config --system --add safe.directory '*'
+    - name: Check out moma repo
+      uses: actions/checkout@v3
+      with:
+        path: moma_ws/src/moma
+        submodules: recursive
+    - run: ls
+      shell: bash
+    - name: Set up Catkin workspace
+      run: |
+        cd  ${{ env.CATKIN_WS_PATH }}
+        source /root/.bashrc
+        catkin init
+        catkin config --extend /root/moma_dep_ws/devel
+        catkin config --cmake-args -DCMAKE_BUILD_TYPE=Release
+      shell: bash
+    - name: Build the workspace
+      run: |
+        cd  ${{ env.CATKIN_WS_PATH }}
+        source /root/.bashrc
+        catkin build --continue
+      shell: bash

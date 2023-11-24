@@ -1,6 +1,0 @@
-<?xml version="1.0" ?>
-<launch>
-  <include file="/home/ros_workspace/src/ridgeback_robot/ridgeback_bringup/launch/accessories.launch" />
-  <include file="/home/ros_workspace/src/ridgeback_robot/ridgeback_base/launch/base.launch" />
-  <include file="/home/launch/merge_laser.launch" />
-</launch>

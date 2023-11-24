@@ -13,8 +13,8 @@
         hand:=true
         gazebo:=false
         use_wrist_camera:=false
-        wrist_calibration_rpy:='0.4203903 -1.5337105 1.9568531'
-        wrist_calibration_xyz:='0.01185524852091389 -0.02569462330148611  0.07128557290494696'
+        wrist_calibration_rpy:='-0.0109077 -1.5469874 2.3727493'
+        wrist_calibration_xyz:='0.02144228129647578 -0.028987519327164604 0.04877543953719046'
         wrist_camera_parent_link:='panda_link8'
         use_fixed_camera:=false
         fixed_calibration_rpy:='-0.1566281 1.3870703 2.9725147'

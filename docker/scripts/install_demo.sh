@@ -7,15 +7,22 @@ cd $MOMA_DEP_WS/src || exit 1
 vcs import --recursive --input $SCRIPTS_PATH/moma_demo.repos
 
 # Upgrade numpy version
-pip install --upgrade numpy==1.23.0
+pip install --no-cache-dir --upgrade numpy==1.23.0
+
+# This helps torch download on Github Actions :)
+export TMPDIR='/var/tmp'
 
 # Pip install VGN requirements
-pip install -r vgn/requirements.txt
+pip install --no-cache-dir catkin_pkg scipy matplotlib mpi4py pybullet==2.7.9 tqdm
+pip install --no-cache-dir torch==1.12.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
+pip install --no-cache-dir tensorboard
+pip install --no-cache-dir open3d==0.13.0
 
 # Pip install gdown to get google drive files
-pip install gdown
+pip install --no-cache-dir gdown
 
 # Make sure we can unzip too
+apt-get update
 apt-get install unzip
 
 # Download the data file from google drive
@@ -25,6 +32,7 @@ gdown 1MysYHve3ooWiLq12b58Nm8FWiFBMH-bJ
 unzip data.zip -d vgn_data
 mv vgn_data/data/* vgn/assets/
 rm -r vgn_data
+rm data.zip
 
 # Add a rundemo alias:
 echo 'alias rundemo="roslaunch grasp_demo grasp_demo.launch launch_rviz:=true"' >> ~/.bashrc
