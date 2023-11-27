@@ -1,0 +1,277 @@
+<launch>
+  <!-- Debug commands  -->
+  <arg name="debug" default="true"/>
+
+  <!-- What part of robot to spawn? -->
+  <arg name="spawn_arm" default="true"/>
+  <arg name="spawn_base" default="true"/>
+  <arg name="start_controllers" default="true"/>
+
+  <!-- Gazebo & GUI Configuration -->
+  <arg name="gui" default="true" />
+  <arg name="moveit" default="true" />
+  <arg name="paused" default="false"/>
+  <arg name="rviz" default="true" />
+  <arg name="world_name" default=""/>
+
+  <!-- Robot -->
+  <arg name="robot_id" default="giraffe" />
+  <arg name="robot_description" default="robot_description" />
+  <arg name="x" default="0.0" doc="gazebo spawn loc"/>
+  <arg name="y" default="0.0" />
+  <arg name="z" default="0.0" />
+  <arg name="xacro_args" default="" />
+
+  <!-- Arm -->
+  <arg name="arm_id" default="panda" />
+  <arg name="use_gripper" default="true"/>
+  <arg name="use_fixed_camera" default="false"/>
+  <arg name="use_wrist_camera" default="true"/>
+  <arg name="use_bota" default="false"/>
+  <arg name="arm_controller" default="effort_joint_trajectory_controller" />
+  <arg name="initial_joint_positions"
+    default="-J $(arg arm_id)_joint1 0
+    -J $(arg arm_id)_joint2 -0.785398163
+    -J $(arg arm_id)_joint3 0
+    -J $(arg arm_id)_joint4 -1.57
+    -J $(arg arm_id)_joint5 0
+    -J $(arg arm_id)_joint6 1.047
+    -J $(arg arm_id)_joint7 0
+    -J $(arg arm_id)_finger_joint1 0.001
+    -J $(arg arm_id)_finger_joint2 0.001" />
+
+  <!-- Base -->
+  <arg name="base_id" default="gmp" />
+  <arg name="base_controller" 
+    default="swerve_controller z_axis_sim_controller joint_state_controller" />
+
+  <!-- MoveIt settings -->
+  <arg name="moveit_controller_manager" default="simple"/>
+  <arg name="transmission" default="effort" />
+  <arg name="pipeline" default="ompl"/>
+  <arg name="allow_trajectory_execution" default="true"/>
+  <arg name="fake_execution_type" default="interpolate"/>
+  <arg name="max_safe_path_cost" default="1"/>
+  <arg name="publish_monitored_planning_scene" default="true"/>
+
+  <!-- Include the world file  -->
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" default="$(arg world_name)" />
+    <arg name="paused" value="$(arg paused)" />
+    <arg name="gui" value="$(arg gui)" />
+    <arg name="use_sim_time" value="true" />
+  </include>
+
+  <!-- HERE ADD THE GIRAFFE.URDF  -->
+  <!-- MAKE SURE THE PANDA SEMANTIC CAN DEAL WITH COLLISION & NON-FIXED BASE -->
+
+  <param name="$(arg robot_description)"
+    command="xacro '$(find moma_description)/urdf/giraffe.urdf.xacro'
+      hand:=$(arg use_gripper) 
+      use_fixed_camera:=$(arg use_fixed_camera)
+      use_wrist_camera:=$(arg use_wrist_camera)
+      use_bota:=$(arg use_bota)
+      arm_id:=$(arg arm_id) 
+      gazebo:=$(arg gui) 
+      $(arg xacro_args)" />
+
+  <arg name="unpause" value="$(eval '' if arg('paused') else '-unpause')" />
+  <node name="$(arg robot_id)_model_spawner"
+      pkg="gazebo_ros"
+      type="spawn_model"
+      args="-param robot_description -urdf -model $(arg robot_id) $(arg unpause)
+      -x $(arg x) -y $(arg y) -z $(arg z)
+      $(arg initial_joint_positions) "/>
+
+  <!-- The semantic description that corresponds to the URDF -->
+  <param name="$(arg robot_description)_semantic"
+    command="xacro '$(find panda_moveit_config)/config/giraffe.srdf.xacro'
+    hand:=$(arg use_gripper) arm_id:=$(arg arm_id)" />
+
+  <!-- State publishing state -->
+  <node name="robot_state_publisher"
+    pkg="robot_state_publisher" type="robot_state_publisher" />
+
+  <group if="$(arg spawn_arm)" > <!-- ns="$(arg arm_id)"-->
+
+    <!-- robot_description.launch content -->
+    <!-- Load universal robot description format (URDF) -->
+    <!-- <param name="$(arg robot_description)" -->
+      <!-- command="xacro '$(find moma_description)/urdf/panda.urdf.xacro'  -->
+      <!-- hand:=$(arg use_gripper)  -->
+      <!-- use_fixed_camera:=$(arg use_fixed_camera) -->
+      <!-- use_wrist_camera:=$(arg use_wrist_camera) -->
+      <!-- use_bota:=$(arg use_bota) -->
+      <!-- arm_id:=$(arg arm_id)  -->
+      <!-- gazebo:=$(arg gui)  -->
+      <!-- $(arg xacro_args)" /> -->
+
+    <!-- gazebo.launch content -->
+    <rosparam file="$(find franka_gazebo)/config/franka_hw_sim.yaml" subst_value="true" />
+    <rosparam file="$(find franka_gazebo)/config/sim_controllers.yaml" subst_value="true" />
+
+    <param name="m_ee" value="0.76" if="$(arg use_gripper)" />
+
+    <!-- <node name="$(arg arm_id)_model_spawner" -->
+      <!-- pkg="gazebo_ros" -->
+      <!-- type="spawn_model" -->
+      <!-- args="-param robot_description -urdf -model $(arg arm_id) $(arg unpause) -->
+      <!-- $(arg initial_joint_positions) "/> -->
+
+    <!-- Spawn required ROS controllers -->
+    <node pkg="controller_manager"
+      type="spawner"
+      name="$(arg arm_id)_gripper_spawner"
+      if="$(arg use_gripper)"
+      args="franka_gripper"
+      respawn="false" />
+
+    <!-- spawns the controller after the robot was put into its initial joint pose -->
+    <node pkg="controller_manager"
+      type="spawner"
+      name="$(arg arm_id)_controller_spawner"
+      respawn="false" output="screen"
+      args=" ADD BACK TWO DASHES HERE
+      wait-for initialized franka_state_controller $(arg arm_controller)" /> -->
+
+    <!-- State publishing state -->
+    <!-- <node name="robot_state_publisher" -->
+      <!-- pkg="robot_state_publisher" type="robot_state_publisher" /> -->
+
+    <!-- <node name="joint_state_publisher"  -->
+      <!-- type="joint_state_publisher" pkg="joint_state_publisher"> -->
+      <!-- <rosparam param="source_list"> -->
+        <!-- [franka_state_controller/joint_states,  -->
+        <!-- franka_gripper/joint_states]  -->
+      <!-- </rosparam> -->
+      <!-- <param name="rate" value="30"/> -->
+    <!-- </node> -->
+
+    <!-- demo.launch, move_group.launch, and planning_context.launch -->
+    <!-- The semantic description that corresponds to the URDF -->
+    <!-- <param name="$(arg robot_description)_semantic" -->
+      <!-- command="xacro '$(find panda_moveit_config)/config/panda.srdf.xacro'  -->
+      <!-- hand:=$(arg use_gripper) arm_id:=$(arg arm_id)" /> -->
+
+  </group>
+
+  <!-- Load updated joint limits (override information from URDF) -->
+  <group unless="$(arg debug)" ns="$(arg robot_description)_planning">
+    <rosparam command="load" file="$(find panda_moveit_config)/config/joint_limits.yaml"
+      subst_value="true" />
+    <rosparam command="load" file="$(find panda_moveit_config)/config/cartesian_limits.yaml"
+      subst_value="true" />
+  </group>
+
+  <!-- Load default settings for kinematics -->
+  <group unless="$(arg debug)" ns="$(arg robot_description)_kinematics">
+    <rosparam command="load" file="$(find panda_moveit_config)/config/kinematics.yaml"
+      subst_value="true" />
+  </group>
+
+  <!-- Planning Pipelines -->
+  <group unless="$(arg debug)" ns="move_group/planning_pipelines">
+
+    <!-- OMPL -->
+    <include file="$(find panda_moveit_config)/launch/planning_pipeline.launch.xml">
+      <arg name="pipeline" value="ompl" />
+    </include>
+
+    <!-- CHOMP -->
+    <include file="$(find panda_moveit_config)/launch/planning_pipeline.launch.xml">
+      <arg name="pipeline" value="chomp" />
+    </include>
+
+    <!-- Pilz Industrial Motion -->
+    <include file="$(find panda_moveit_config)/launch/planning_pipeline.launch.xml">
+      <arg name="pipeline" value="pilz_industrial_motion_planner" />
+    </include>
+
+    <!-- Support custom planning pipeline -->
+    <include if="$(eval arg('pipeline') 
+      not in ['ompl', 'chomp', 'pilz_industrial_motion_planner'])"
+      file="$(find panda_moveit_config)/launch/planning_pipeline.launch.xml">
+      <arg name="pipeline" value="$(arg pipeline)" />
+    </include>
+  </group>
+
+  <!-- Trajectory Execution Functionality -->
+  <group unless="$(arg debug)">
+    <include ns="move_group" 
+      file="$(find panda_moveit_config)/launch/trajectory_execution.launch.xml" 
+      if="$(arg allow_trajectory_execution)"
+      pass_all_args="true">
+      <arg name="moveit_manage_controllers" value="true" />
+      <arg name="moveit_controller_manager" value="$(arg moveit_controller_manager)" />
+      <arg name="fake_execution_type" value="$(arg fake_execution_type)" />
+    </include>
+
+    <!-- Sensors Functionality -->
+    <include ns="move_group" file="$(find panda_moveit_config)/launch/sensor_manager.launch.xml" 
+      if="$(arg allow_trajectory_execution)">
+      <arg name="moveit_sensor_manager" value="panda" />
+    </include>
+  </group>
+
+  <!-- Start the actual move_group node/action server -->
+  <node unless="$(arg debug)" name="move_group" pkg="moveit_ros_move_group" 
+    type="move_group" respawn="false" output="screen">
+
+    <env name="DISPLAY" value="$(optenv DISPLAY :0)" />
+
+    <param name="allow_trajectory_execution" 
+      value="$(arg allow_trajectory_execution)"/>
+    <param name="sense_for_plan/max_safe_path_cost" 
+      value="$(arg max_safe_path_cost)"/>
+    <param name="default_planning_pipeline" value="$(arg pipeline)" />
+    <param name="capabilities" value="" />
+    <param name="disable_capabilities" value="" />
+
+    <param name="planning_scene_monitor/publish_planning_scene" 
+      value="$(arg publish_monitored_planning_scene)" />
+    <param name="planning_scene_monitor/publish_geometry_updates" 
+      value="$(arg publish_monitored_planning_scene)" />
+    <param name="planning_scene_monitor/publish_state_updates" 
+      value="$(arg publish_monitored_planning_scene)" />
+    <param name="planning_scene_monitor/publish_transforms_updates" 
+      value="$(arg publish_monitored_planning_scene)" />
+  </node>
+
+
+  <!-- Spawn robot base -->
+
+  <!-- Spawn the gazebo node  -->
+  <!-- <node name="$(arg base_id)_model_spawner"  -->
+    <!-- pkg="gazebo_ros"  -->
+    <!-- type="spawn_model"  -->
+    <!-- args="-param robot_description -urdf -model $(arg base_id) -x 2 -y 2 -z 0"  -->
+    <!-- respawn="false"  -->
+    <!-- output="screen" /> -->
+
+  <!-- Load robot description  -->
+  <!-- <param name="robot_description" textfile="$(find gmp_robot)/config/urdf/gmp.urdf" /> -->
+
+  <!-- Spawn the controllers  -->
+  <include if="$(arg start_controllers)" file="$(find gmp_robot)/launch/controller.launch" >
+    <arg name="robot_id" default="$(arg base_id)"/>
+    <arg name="controller" default="$(arg base_controller)"/>
+  </include>
+
+  <!-- State publishing state -->
+  <!-- <node name="robot_state_publisher"  -->
+    <!-- pkg="robot_state_publisher" type="robot_state_publisher" /> -->
+
+  <!-- Launch the move_base pkg -->
+  <!-- <include if="$(arg spawn_base)" file="$(find gmp_nav)/launch/move_base.launch"/> -->
+
+  <!-- Load RViz -->
+  <node if="$(arg rviz)" pkg="rviz" name="rviz" type="rviz"
+    args="-d $(find gmp_bringup)/rviz/default.rviz" />
+
+  <!-- Run Rviz and load the default config to see the state of the move_group node -->
+  <!-- <include file="$(find panda_moveit_config)/launch/moveit_rviz.launch" if="$(arg rviz)"> -->
+    <!-- <arg name="rviz_config" value="$(find panda_moveit_config)/launch/moveit.rviz"/> -->
+    <!-- <arg name="debug" value="$(arg debug)"/> -->
+  <!-- </include> -->
+
+</launch>

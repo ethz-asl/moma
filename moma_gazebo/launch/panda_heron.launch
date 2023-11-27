@@ -1,0 +1,26 @@
+<launch>
+  <arg name="gui" default="true" />
+  <arg name="moveit" default="true" />
+  <arg name="rviz" default="true" />
+  <!-- This is the controller that moveit uses: -->
+  <arg name="controller" default="effort_joint_trajectory_controller" />
+  <arg name="world_name" default="$(find moma_gazebo)/worlds/moma_corner.world"/>
+
+  <!-- Launch the gazebo simulator and spawn the robot if not using moveit -->
+  <include file="$(find panda_moveit_config)/launch/gazebo.launch">
+    <arg name="headless" value="$(eval not arg('gui'))" />
+    <arg name="use_gripper" default="true" />
+    <arg name="world" default="$(arg world_name)" />
+    <arg name="controller" default="$(arg controller)" />
+  </include>
+
+  <!-- Launch moveit as well. -->
+  <include file="$(find panda_moveit_config)/launch/demo.launch" pass_all_args="true" if="$(arg moveit)">
+    <!-- robot description is loaded by gazebo.launch, to enable Gazebo features -->
+    <arg name="load_robot_description" value="false" />
+    <!-- MoveItSimpleControllerManager provides ros_control's JointTrajectory controllers
+         as well as GripperCommand actions -->
+    <arg name="moveit_controller_manager" value="simple" />
+  </include>
+
+</launch>

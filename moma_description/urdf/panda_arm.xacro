@@ -3,7 +3,8 @@
 
   <!-- Adapted from franka_description/robots/common/franka_robot.xacro -->
   <xacro:macro name="moma_panda"
-    params="arm_id:='panda'
+    params="
+        arm_id:='panda'
         parent:='world'
         xyz:='0 0 0'
         rpy:='0 0 0'
@@ -11,10 +12,8 @@
         tcp_rpy='0 0 0'
         hand:=true
         gazebo:=false
-        fixed_to_world:=false
         use_wrist_camera:=false
         wrist_calibration_rpy:='-1.117916 -1.5611535 -2.8045692'
-        wrist_calibration_xyz:='0.03062033586096833 -0.025020246008959142 0.10095534939725603'
         wrist_camera_parent_link:='panda_link8'
         use_fixed_camera:=false
         fixed_calibration_rpy:='-0.1566281 1.3870703 2.9725147'
@@ -27,21 +26,19 @@
     <xacro:include filename="$(find franka_description)/robots/common/utils.xacro" />
     <xacro:include filename="$(find franka_description)/robots/common/franka_arm.xacro" />
 
+    <index xyz="1 2 3" rpy="1 2 3"/>
     <!-- Put in a basic arm. -->
-    <xacro:franka_arm arm_id="${arm_id}" 
-        connected_to="${parent}"
-        xyz="${xyz}"
-        rpy="${rpy}"
-        safety_distance="0.03" 
-        gazebo="${gazebo}"
-        joint_limits="${xacro.load_yaml('$(find franka_description)/robots/panda/joint_limits.yaml')}" />
+    <xacro:franka_arm arm_id="${arm_id}" safety_distance="0.03" gazebo="${gazebo}"
+      joint_limits="${xacro.load_yaml('$(find franka_description)/robots/panda/joint_limits.yaml')}" />
 
-    <!-- Offset the hand if we have a bota sensor. -->
+    <!-- Offset the hand if we have a bota sensor. Make sure to change this if you calibrate the wrist camera! -->
     <xacro:if value="${use_bota}">
       <xacro:property name="hand_xyz" value="0 0 0.035"/>
+      <xacro:property name="wrist_calibration_xyz" value='0.03062033586096833 -0.025020246008959142 0.10095534939725603'/>
     </xacro:if>
     <xacro:unless value="${use_bota}">
       <xacro:property name="hand_xyz" value="0 0 0"/>
+      <xacro:property name="wrist_calibration_xyz" value='0.03062033586096833 -0.025020246008959142 0.04595534939725603'/>
     </xacro:unless>
 
     <!-- Put in a basic hand. -->

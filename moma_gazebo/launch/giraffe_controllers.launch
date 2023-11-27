@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+    <!-- Robot Customization -->
+    <arg name="robot_id" default="giraffe" />
+    <arg name="arm_id" default="panda" />
+    <arg name="base_id" default="gmp" />
+    <arg name="base_controller"
+        default="swerve_controller z_axis_sim_controller joint_state_controller" />
+
+    <!-- Franka parameters  -->
+    <rosparam file="$(find franka_gazebo)/config/franka_hw_sim.yaml" subst_value="true" />
+    <rosparam file="$(find franka_gazebo)/config/sim_controllers.yaml" subst_value="true" />
+
+    <!-- Spawn gripper controller -->
+    <node pkg="controller_manager"
+        type="spawner"
+        name="$(arg arm_id)_gripper_spawner"
+        if="$(arg use_gripper)"
+        args="franka_gripper"
+        respawn="false" />
+
+    <!-- Spawns the controller after the arm was put into its initial joint pose -->
+    <node pkg="controller_manager"
+        type="spawner"
+        name="$(arg arm_id)_controller_spawner"
+        respawn="false" output="screen"
+        args="$(arg arm_controller)" />
+
+    <!-- Base parameters  -->
+    <rosparam file="$(find gmp_robot)/config/platform_description.yaml"
+        command="load" />
+
+    <!-- Spawn base controller -->
+    <node pkg="controller_manager"
+        type="spawner"
+        name="$(arg base_id)_controller_spawner"
+        respawn="false"
+        output="screen"
+        args="$(arg base_controller)"
+    />
+
+    <!-- Load the joint state publisher -->
+    <node name="joint_state_publisher" 
+        type="joint_state_publisher" 
+        pkg="joint_state_publisher"/>
+    
+</launch>
