@@ -38,8 +38,8 @@ class PathVisitorState(StateRosControl):
         self.timeout = self.get_scoped_param("timeout", 0)
         self.timeout_factor = self.get_scoped_param("timeout_factor", 2)
         self.delay = self.get_scoped_param("delay", 2.0)
-        self.linear_speed = self.get_scoped_param("linear_speed", 0.1)  # m/s
-        self.angular_speed = self.get_scoped_param("angular_speed", 0.5)  # rad/s
+        self.linear_speed = self.get_scoped_param("linear_speed", 0.3)  # m/s
+        self.angular_speed = self.get_scoped_param("angular_speed", 0.8)  # rad/s
         self.linear_tolerance = self.get_scoped_param("linear_tolerance", 0.02)
         self.angular_tolerance = self.get_scoped_param("angular_tolerance", 0.1)
         self.section = self.get_scoped_param("section", "all")  # "first", "last"
@@ -71,8 +71,12 @@ class PathVisitorState(StateRosControl):
         self.poses = msg
 
     def run(self):
-        # Wait for poses callback to be triggered in case of latching
-        rospy.sleep(2.0)
+        for i in range(200):
+            if self.poses is not None:
+                break
+            # Wait for poses callback to be triggered in case of latching
+            rospy.sleep(0.01)
+
         if self.poses is None:
             rospy.logerr(f"No poses received yet, can't publish path")
             return "Failure"

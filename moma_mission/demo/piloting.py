@@ -314,7 +314,8 @@ try:
             valve_sequence.add(
                 "STORE_FINAL_POSE",
                 TransformRecorderState,
-                transitions={"Completed": "APPROACH_FINAL_POSE", "Failure": "Failure"},
+                # transitions={"Completed": "APPROACH_FINAL_POSE", "Failure": "Failure"},
+                transitions={"Completed": "OPEN_GRIPPER", "Failure": "Failure"},
             )
 
             rospy.loginfo("Approach final pose")

@@ -12,7 +12,7 @@ repositories:
   object_keypoints_ros:
     type: git
     url: git@github.com:ethz-asl/object_keypoints_ros.git
-    version: 4862b6fae5df4f18cec0973f1844f79f1c10572f
+    version: ccf068fa88066ba7dad11ee27ec885e9c291daed
 
   cartographer:
     type: git
