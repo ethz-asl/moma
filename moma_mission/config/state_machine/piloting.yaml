@@ -236,7 +236,7 @@ GRASP_VALVE:
   section: "first"
   timeout: 15.0
   delay: 1.0
-  linear_speed: 0.05
+  linear_speed: 0.02
 
 MANIPULATE_VALVE:
   default_outcome: None
