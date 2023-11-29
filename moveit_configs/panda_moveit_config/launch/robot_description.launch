@@ -13,4 +13,4 @@
   <param name="$(arg robot_description)"
     command="xacro '$(find moma_description)/urdf/panda.urdf.xacro' hand:=$(arg load_gripper) arm_id:=$(arg arm_id) gazebo:=$(arg gazebo) $(arg xacro_args) use_bota:=$(arg use_bota)" />
 
-</launch></launch>
+</launch>
