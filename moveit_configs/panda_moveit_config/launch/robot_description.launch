@@ -3,13 +3,14 @@
   <arg name="load_gripper" default="true" />
   <arg name="arm_id" default="panda" />
   <arg name="xacro_args" default="" />
-  <arg name="gazebo" default="false" />>
+  <arg name="gazebo" default="false" />
+  <arg name="use_bota" default="false" />
 
   <!-- The name of the parameter under which the URDF is loaded -->
   <arg name="robot_description" default="robot_description" />
 
   <!-- Load universal robot description format (URDF) -->
   <param name="$(arg robot_description)"
-    command="xacro '$(find moma_description)/urdf/panda.urdf.xacro' hand:=$(arg load_gripper) arm_id:=$(arg arm_id) gazebo:=$(arg gazebo) $(arg xacro_args)" />
+    command="xacro '$(find moma_description)/urdf/panda.urdf.xacro' hand:=$(arg load_gripper) arm_id:=$(arg arm_id) gazebo:=$(arg gazebo) $(arg xacro_args) use_bota:=$(arg use_bota)" />
 
-</launch>
+</launch></launch>

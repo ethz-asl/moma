@@ -2,6 +2,7 @@
   <arg name="gui" default="true" />
   <arg name="moveit" default="true" />
   <arg name="rviz" default="true" />
+  <arg name="use_bota" default="false" />
   <!-- This is the controller that moveit uses: -->
   <arg name="controller" default="effort_joint_trajectory_controller" />
   <arg name="world_name" default="$(find moma_gazebo)/worlds/moma_corner.world"/>
@@ -12,6 +13,7 @@
     <arg name="use_gripper" default="true" />
     <arg name="world" default="$(arg world_name)" />
     <arg name="controller" default="$(arg controller)" />
+    <arg name="use_bota" default="$(arg use_bota)" />
   </include>
 
   <!-- Launch moveit as well. -->
