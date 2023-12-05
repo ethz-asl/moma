@@ -3,6 +3,7 @@
 import numpy as np
 import rospy
 import geometry_msgs.msg
+np.float = np.float64  # temp fix for following import
 import ros_numpy
 
 import moma_utils.ros.conversions as conv

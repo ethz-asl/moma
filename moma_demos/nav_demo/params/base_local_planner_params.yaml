@@ -1,20 +1,20 @@
 TrajectoryPlannerROS:
 
   # Robot Configuration Parameters
-  acc_lim_x: 10.0
-  acc_lim_y: 10.0
-  acc_lim_theta:  20.0
+  acc_lim_x: 2.5
+  acc_lim_y: 2.5
+  acc_lim_theta:  3.2
 
-  max_vel_x: 0.5
+  max_vel_x: 0.45
   min_vel_x: 0.1
   # min_vel_x: -0.5
 
-  max_vel_y: 0.5
+  max_vel_y: 0.45
   min_vel_y: 0.1
   # min_vel_y: -0.5
 
-  max_vel_theta: 0.5
-  min_vel_theta: -0.5
+  max_vel_theta: 1.0
+  min_vel_theta: -1.0
   min_in_place_vel_theta: 0.157
 
   holonomic_robot: true
@@ -22,27 +22,27 @@ TrajectoryPlannerROS:
 
   # Goal Tolerance Parameters
   yaw_goal_tolerance: 0.157 # defualt is 0.157 around 9 degrees 
-  xy_goal_tolerance: 0.10 # default is 0.25
-  latch_xy_goal_tolerance: true
+  xy_goal_tolerance: 0.25 # default is 0.25
+  # latch_xy_goal_tolerance: true
 
   # Forward Simulation Parameters
-  sim_time: 2.0
+  sim_time: 3.0
   sim_granularity: 0.02
   angular_sim_granularity: 0.02
   vx_samples: 6
-  vtheta_samples: 40
-  controller_frequency: 15.0
+  vtheta_samples: 6
+  controller_frequency: 10.0
 
   # Trajectory scoring parameters
   meter_scoring: true # Whether the gdist_scale and pdist_scale parameters should assume that goal_distance and path_distance are expressed in units of meters or cells. Cells are assumed by default (false).
   occdist_scale:  0.1 #The weighting for how much the controller should attempt to avoid obstacles. default 0.01
-  pdist_scale: 0.75  #     The weighting for how much the controller should stay close to the path it was given . default 0.6
-  gdist_scale: 1.0 #     The weighting for how much the controller should attempt to reach its local goal, also controls speed  default 0.8
+  pdist_scale: 0.6  #     The weighting for how much the controller should stay close to the path it was given . default 0.6
+  gdist_scale: 0.8 #     The weighting for how much the controller should attempt to reach its local goal, also controls speed  default 0.8
 
-  heading_lookahead: 0.325  #How far to look ahead in meters when scoring different in-place-rotation trajectories
-  heading_scoring: false  #Whether to score based on the robot's heading to the path or its distance from the path. default false
-  heading_scoring_timestep: 0.8   #How far to look ahead in time in seconds along the simulated trajectory when using heading scoring (double, default: 0.8)
-  dwa: true #Whether to use the Dynamic Window Approach (DWA)_ or whether to use Trajectory Rollout
+  heading_lookahead: 0.5  #How far to look ahead in meters when scoring different in-place-rotation trajectories
+  heading_scoring: true  #Whether to score based on the robot's heading to the path or its distance from the path. default false
+  heading_scoring_timestep: 1.0   #How far to look ahead in time in seconds along the simulated trajectory when using heading scoring (double, default: 0.8)
+  dwa: false #Whether to use the Dynamic Window Approach (DWA)_ or whether to use Trajectory Rollout
   simple_attractor: false
   publish_cost_grid_pc: true
 

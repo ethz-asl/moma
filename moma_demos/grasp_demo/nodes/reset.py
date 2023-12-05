@@ -53,7 +53,7 @@ class ResetNode(object):
         msg.header.frame_id = self.base_frame_id
         msg.pose.position.x = 0.4
         msg.pose.position.z = self.table_height
-        self.moveit.scene.add_box("table", msg, size=(0.6, 0.6, 0.02))
+        self.moveit.scene.add_box("table", msg, size=(0.0, 0.0, 0.00))
 
     def reset(self, req):
         arm = self.reset_arm()
