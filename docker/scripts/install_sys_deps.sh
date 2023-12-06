@@ -21,7 +21,9 @@ pip install --upgrade cmake
 apt-get -qq update &&  apt-get install -y libgoogle-glog-dev libgtest-dev libgflags-dev python3-dev libsqlite3-dev
 
 # This is for Heron.
+pip install matplotlib=3.7.4
 pip install pyransac3d
+pip3 install jupyter notebook
 
 # Clear cache to keep layer size down
 rm -rf /var/lib/apt/lists/*
