@@ -1,59 +1,65 @@
 <launch>
-    <!-- Debug -->
-    <arg name="no_debug" default="false"/>
+  <!-- Debug -->
+  <arg name="debug" default="true"/>
 
-    <!-- Robot Customization -->
-    <arg name="robot_id" default="giraffe" />
+  <!-- Robot Customization -->
+  <arg name="robot_id" default="giraffe" />
 
-    <!-- Robot Arm  -->
-    <arg name="arm_id" default="panda" />
-    <arg name="arm_controller" default="effort_joint_trajectory_controller" />
-    <arg name="x" default="0" />
-    <arg name="y" default="0" />
-    <arg name="z" default="1" />
-    <arg name="yaw" default="0" />
-    <arg name="use_fixed_camera" default="false" />
+  <!-- Robot Arm  -->
+  <arg name="arm_id" default="panda" />
+  <arg name="arm_controller" default="effort_joint_trajectory_controller" />
+  <arg name="x" default="0" />
+  <arg name="y" default="0" />
+  <arg name="z" default="1" />
+  <arg name="yaw" default="0" />
+  <arg name="use_fixed_camera" default="false" />
+  <arg name="use_wrist_camera" default="true" />
+  <arg name="use_gripper" default="true" />
+  <arg name="use_bota" default="false" />
+
+  <!-- Robot Base  -->
+  <arg name="base_id" default="gmp" />
+  <arg name="base_controller" default="swerve_controller z_axis_sim_controller" />
+  <arg name="scan_topic" default="/front/scan" />
+
+  <!-- Gazebo & GUI Configuration  -->
+  <arg name="headless" default="false"/>
+  <arg name="moveit" default="true" />
+  <arg name="paused" default="false"/>
+  <!-- <arg name="world_name" default="$(find gmp_robot)/worlds/cone.world"/> -->
+  <arg name="world_name" default=""/>
+  <arg name="rviz" default="true"/>
+
+  <!-- MoveIt! -->
+  <include if="$(arg debug)" 
+    file="$(find giraffe_moveit_config)/launch/giraffe_moveit_gazebo.launch">
+    <arg name="rviz" value="$(arg rviz)"/>
+    <arg name="headless" value="$(arg headless)"/>
     <arg name="use_gripper" default="true" />
+    <arg name="world_name" default="$(arg world_name)" />
+    <arg name="arm_controller" default="$(arg arm_controller)" />
+    <arg name="base_controller" default="$(arg base_controller)" />
+    <arg name="use_fixed_camera" default="$(arg use_fixed_camera)" />
+    <arg name="use_wrist_camera" default="$(arg use_wrist_camera)" />
+    <arg name="use_bota" default="$(arg use_bota)" />
+  </include>
 
-    <!-- Robot Base  -->
-    <arg name="base_id" default="gmp" />
-    <arg name="base_controller" default="swerve_controller z_axis_sim_controller" />
-    <arg name="scan_topic" default="/scan" />
+  <!-- Move Base -->
+  <group if="$(arg debug)" ns="mobile_base">
+    <!-- Remap topics -->
+    <remap from="/mobile_base/front/scan" to="$(arg scan_topic)"/>
+    <remap from="/mobile_base/rear/scan" to="/rear/scan"/>
+    <remap from="/cmd_vel" to="/swerve_controller/cmd_vel"/>
+    <remap from="/odom" to="/swerve_controller/odom"/>
 
-    <!-- Gazebo & GUI Configuration  -->
-    <arg name="headless" default="false" doc="Should the gazebo GUI be launched?"/>
-    <arg name="moveit" default="true" />
-    <arg name="paused" default="false" doc="Should sim be stopped at 0s?"/>
-    <arg name="world_name" default="$(find gmp_robot)/worlds/cone.world"/>
-    <arg name="rviz" default="true" doc="Should RViz be launched?"/>
+    <!-- Run Move Base and load cost map and planner -->
+    <remap from="/mobile_base/cmd_vel" to="/cmd_vel"/>
+    <include unless="$(arg debug)" file="$(find gmp_nav)/launch/move_base.launch"/>
+  </group>
 
-    <!-- Launch the gazebo simulator and spawn the robot if not using moveit -->
-    <include file="$(find panda_moveit_config)/launch/gazebo_heron.launch">
-        <arg name="headless" value="$(eval not arg('headless'))" />
-        <arg name="use_gripper" default="true" />
-        <arg name="world_name" default="$(arg world_name)" />
-        <arg name="arm_controller" default="$(arg arm_controller)" />
-        <arg name="base_controller" default="$(arg base_controller)" />
-        <arg name="use_fixed_camera" default="$(arg use_fixed_camera)" />
-    </include>
-
-    <!-- Start Rviz -->
-    <node if="$(arg rviz)" name="rviz"
-        pkg="rviz"
-        type="rviz"
-        args="-d $(find gmp_bringup)/rviz/default.rviz" />
-
-    <!-- start move_base  -->
-    <!-- <group if="$(arg no_debug)" ns="mobile_base"> -->
-        <!-- [> Remap topics <] -->
-        <!-- <remap from="/mobile_base/scan" to="$(arg scan_topic)"/> -->
-        <!-- <remap from="/cmd_vel" to="/swerve_controller/cmd_vel"/> -->
-        <!-- <remap from="/odom" to="/swerve_controller/odom"/> -->
-<!--  -->
-        <!-- [> Run Move Base and load cost map and planner <] -->
-        <!-- <remap from="/mobile_base/cmd_vel" to="/cmd_vel"/> -->
-        <!-- <include if="$(arg no_debug)" file="$(find gmp_nav)/launch/move_base.launch"/> -->
-    <!-- </group> -->
-<!--  -->
+  <!-- Start Rviz -->
+  <!-- <node if="$(arg rviz)" name="rviz" pkg="rviz" type="rviz" -->
+    <!-- args="-d $(find giraffe_moveit_config)/launch/moveit.rviz" output="screen" > -->
+  <!-- </node> -->
 
 </launch>
