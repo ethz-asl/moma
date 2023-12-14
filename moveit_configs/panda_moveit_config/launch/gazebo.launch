@@ -7,6 +7,7 @@
   <arg name="paused"      default="false" doc="Should the simulation directly be stopped at 0s?" />
   <arg name="world"       default="$(find moma_gazebo)/worlds/test.world" doc="Filename to a SDF World for gazebo to use" />
   <arg name="rviz"        default="false" doc="Should RVIz be launched?" />
+  <arg name="use_bota"    default="false" doc="Should the bota be used?" />
 
   <!-- Robot Customization -->
   <arg name="arm_id"      default="panda" doc="Name of the panda robot to spawn" />
@@ -41,6 +42,7 @@
     <arg name="load_gripper" value="$(arg use_gripper)" />
     <arg name="arm_id" value="$(arg arm_id)" />
     <arg name="gazebo" value="$(arg gazebo)" />
+    <arg name="use_bota" value="$(arg use_bota)" />
     <arg name="xacro_args" value="$(arg xacro_args)" />
   </include>
 
