@@ -21,6 +21,7 @@
     fixed_calibration_xyz:='0.890 -0.162 1.293'
     fixed_camera_parent_link:='panda_link0'
     use_bota:=false
+    multiple_robots:=false
     include_control_plugin:=true,
     publish_realsense_extrinsics:=true">
 
@@ -157,9 +158,11 @@
           <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
             <controlPeriod>0.001</controlPeriod>
             <robotSimType>franka_gazebo/FrankaHWSim</robotSimType>
-            <robotNamespace>/panda</robotNamespace>
-            <robotParam>robot_description_arm</robotParam>
-            <robotDescription>robot_description_arm</robotDescription>
+            <xacro:if value="${multiple_robots}">
+              <robotNamespace>/panda</robotNamespace>
+              <robotParam>robot_description_arm</robotParam>
+              <robotDescription>robot_description_arm</robotDescription>
+            </xacro:if>
           </plugin>
           <self_collide>true</self_collide>
         </gazebo>

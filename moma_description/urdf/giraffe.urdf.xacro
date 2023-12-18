@@ -7,7 +7,6 @@
   <xacro:arg name="load_gripper" default="true" />
   <xacro:arg name="gazebo" default="true" />
   <xacro:arg name="arm_id" default="panda" />
-  <!-- <xacro:arg name="use_nominal_extrinsics" default="false"/> -->
 
   <xacro:include filename="$(find gmp_robot)/config/urdf/gmp.xacro"/>
   <xacro:gmp include_control_plugin="true" multiple_robots="true"/>
@@ -27,6 +26,7 @@
     use_fixed_camera="$(arg use_fixed_camera)"
     use_wrist_camera="$(arg use_wrist_camera)"
     use_bota="$(arg use_bota)"
-    include_control_plugin="true"/>
+    include_control_plugin="true"
+    multiple_robots="true"/>
 
 </robot>
