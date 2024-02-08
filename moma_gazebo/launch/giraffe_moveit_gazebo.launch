@@ -78,7 +78,7 @@
   <arg name="base_id" default="gmp" />
   <group ns="mobile_base">
     <param name="robot_description"
-      command="$(find xacro)/xacro $(find gmp_robot)/config/urdf/gmp.urdf.xacro
+      command="$(find xacro)/xacro $(find gmp_robot)/urdf/gmp.urdf.xacro
       include_control_plugin:=true multiple_robots:=true"/>
 
     <remap from="/mobile_base/swerve_controller/cmd_vel" to="/cmd_vel"/>

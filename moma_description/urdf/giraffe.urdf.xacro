@@ -8,7 +8,7 @@
   <xacro:arg name="gazebo" default="true" />
   <xacro:arg name="arm_id" default="panda" />
 
-  <xacro:include filename="$(find gmp_robot)/config/urdf/gmp.xacro"/>
+  <xacro:include filename="$(find gmp_robot)/urdf/gmp.xacro"/>
   <xacro:gmp include_control_plugin="true" multiple_robots="true"/>
 
   <link name="franka_mount_link"/>
