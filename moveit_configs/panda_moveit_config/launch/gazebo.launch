@@ -47,7 +47,7 @@
   </include>
 
   <rosparam file="$(find franka_gazebo)/config/franka_hw_sim.yaml" subst_value="true" />
-  <rosparam file="$(find franka_gazebo)/config/sim_controllers.yaml" subst_value="true" />
+  <rosparam file="$(find panda_moveit_config)/config/sim_controllers.yaml" subst_value="true" />
 
   <param name="m_ee" value="0.76" if="$(arg use_gripper)" />
 
