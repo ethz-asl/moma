@@ -8,7 +8,7 @@
 
 # Default options
 DOCKER=moma_dev
-DOCKERFILE=dev.Dockerfile
+DOCKERFILE=dev_cuda.Dockerfile
 NAME=moma
 BUILD=false
 WORKSPACE=/home/$USER/moma_ws
