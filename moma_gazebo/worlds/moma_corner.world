@@ -61,7 +61,7 @@
         <visual name='visual'>
           <geometry>
             <box>
-              <size>0.20 0.20 0.001</size>
+              <size>0.23 0.23 0.001</size>
             </box>
           </geometry>
           <material>
@@ -77,7 +77,7 @@
         <kinematic>0</kinematic>
       </link>
       <static>1</static>
-      <pose>0.3 -0.6 0.2 0 -0 0</pose>
+      <pose>0.5 -0.0 0.2 0 -0 0</pose>
     </model>
 
     <!-- Physics -->

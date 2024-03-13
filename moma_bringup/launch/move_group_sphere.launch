@@ -1,0 +1,6 @@
+<launch>
+
+  <node name="move_group_test" pkg="moma_bringup" type="move_group_sphere.py" respawn="false" output="screen">
+  </node>
+
+</launch>
