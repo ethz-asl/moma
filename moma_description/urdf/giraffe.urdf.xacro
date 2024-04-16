@@ -4,12 +4,13 @@
   <xacro:arg name="use_fixed_camera" default="false" />
   <xacro:arg name="use_wrist_camera" default="true" />
   <xacro:arg name="use_bota" default="false" />
+  <xacro:arg name="use_livox" default="false" />
   <xacro:arg name="load_gripper" default="true" />
   <xacro:arg name="gazebo" default="true" />
   <xacro:arg name="arm_id" default="panda" />
 
   <xacro:include filename="$(find gmp_robot)/urdf/gmp.xacro"/>
-  <xacro:gmp include_control_plugin="true" multiple_robots="true"/>
+  <xacro:gmp include_control_plugin="true" multiple_robots="true" use_livox="$(arg use_livox)"/>
 
   <link name="franka_mount_link"/>
   <joint name="arm_mount_joint" type="fixed">

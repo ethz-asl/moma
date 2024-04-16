@@ -11,6 +11,7 @@
   <!-- Robot Customization -->
   <arg name="arm_id" default="panda" />
   <arg name="use_gripper" default="true" />
+  <arg name="use_livox" default="false" />
   <arg name="initial_joint_positions"
        default="-J $(arg arm_id)_joint1 0
                 -J $(arg arm_id)_joint2 -0.3927
@@ -45,7 +46,7 @@
   <!-- Load robot description  -->
   <param name="robot_description"
     command="$(find xacro)/xacro $(find moma_description)/urdf/giraffe.urdf.xacro
-            use_nominal_extrinsics:=true"/>
+            use_nominal_extrinsics:=true use_livox:=$(arg use_livox)"/>
 
   <param name="robot_description_arm"
           command="xacro $(find moma_description)/urdf/panda.urdf.xacro
