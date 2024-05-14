@@ -11,7 +11,7 @@ from grasp_demo.msg import (
     DropGoal,
     DropAction,
 )
-from action_client import ActionClient_ResultSaver, ActionClient_BBgoal, RepeatAction
+from .action_client import ActionClient_ResultSaver, ActionClient_BBgoal, RepeatAction
 
 import std_msgs
 

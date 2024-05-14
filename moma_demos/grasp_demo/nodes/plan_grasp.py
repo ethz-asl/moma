@@ -7,6 +7,7 @@ from geometry_msgs.msg import *
 import rospy
 import tf
 import tf2_ros
+np.float = np.float64  # temp fix for following import
 import ros_numpy
 
 from grasp_demo.msg import SelectGraspAction, SelectGraspResult

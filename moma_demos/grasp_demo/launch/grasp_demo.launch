@@ -4,6 +4,7 @@
     <arg name="semantic" default="false" doc="use Voxblox++ for semantic scene reconstruction" />
     <arg name="launch_rviz" default="false"/>
     <arg name="simulation_mode" default="false"/>
+    <arg name="sm" default="true" doc="state machine or behaviour tree"/>
 
     <!-- ======== Launch everything ======== -->
 
@@ -11,9 +12,19 @@
     <rosparam command="load" file="$(find grasp_demo)/config/grasp_demo.yaml" ns="manipulator/moma_demo" subst_value="true"/>
 
     <!-- Panda -->
-    <include file="$(find moma_bringup)/launch/panda_moveit_real_camera.launch">
-        <arg name="simulation_mode" value="$(arg simulation_mode)"/>
+    <include unless="$(arg simulation_mode)" file="$(find moma_bringup)/launch/panda_real.launch">
+        <arg name="rviz" value="$(arg launch_rviz)"/>
+        <arg name="table" value="false"/>
     </include>
+    <include unless="$(arg simulation_mode)" file="$(find moma_bringup)/launch/components/sensors.launch">
+        <arg name="wrist_camera" value="true"/>
+        <arg name="fixed_camera" value="false"/>
+    </include>
+    <include if="$(arg simulation_mode)" file="$(find moma_gazebo)/launch/panda_moveit_gazebo.launch"/>
+
+    <!-- <include file="$(find moma_bringup)/launch/panda_moveit_real_camera.launch"> -->
+        <!-- <arg name="simulation_mode" value="$(arg simulation_mode)"/> -->
+    <!-- </include> -->
 
     <!-- VGN nodes -->
     <rosparam command="load" file="$(find grasp_demo)/config/vgn_nodes.yaml" subst_value="true" />
@@ -27,7 +38,8 @@
     <node pkg="grasp_demo" type="drop_object.py" name="drop_object" ns="manipulator" output="screen"/>
 
     <!-- Launch demo script-->
-    <node pkg="grasp_demo" type="run_plan.py" name="grasp_demo" ns="manipulator" output="screen"/>
+    <node if="$(arg sm)" pkg="grasp_demo" type="run_plan.py" name="grasp_demo" ns="manipulator" output="screen"/>
+    <node unless="$(arg sm)" pkg="grasp_demo" type="run_bt.py" name="grasp_demo" ns="manipulator" output="screen"/>
 
     <!-- Open rviz if desired -->
     <node if="$(arg launch_rviz)" type="rviz" name="rviz" pkg="rviz" args="-d $(find grasp_demo)/config/grasp_demo.rviz" ns="manipulator"/>
