@@ -192,7 +192,7 @@ class PandaArmClient(object):
 
         if isinstance(target, Transform):
             self.move_group.set_pose_target(conversions.to_pose_msg(target))
-        elif isinstance(target, (list, np.ndarry)):
+        elif isinstance(target, (list, np.ndarray)):
             self.move_group.set_joint_value_target(target)
         elif isinstance(target, str):
             self.move_group.set_named_target(target)
@@ -342,9 +342,9 @@ class PandaArmClient(object):
 
 
 class PandaGripperClient:
-    def __init__(self):
+    def __init__(self, ns : str = "panda/franka_gripper/"):
         self._init_state_callback()
-        self._init_action_clients()
+        self._init_action_clients(ns = ns)
         rospy.loginfo("Panda gripper ready")
 
     def home(self):
@@ -394,7 +394,7 @@ class PandaGripperClient:
         self.grasp_client = actionlib.SimpleActionClient(ns + "grasp", GraspAction)
         self.stop_client = actionlib.SimpleActionClient(ns + "stop", StopAction)
         self.homing_client = actionlib.SimpleActionClient(ns + "homing", HomingAction)
-        rospy.loginfo("Waiting for franka_gripper")
+        rospy.loginfo(f"Waiting for {ns}")
         self.move_client.wait_for_server()
         self.grasp_client.wait_for_server()
         self.stop_client.wait_for_server()

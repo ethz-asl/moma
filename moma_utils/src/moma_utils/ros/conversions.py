@@ -4,7 +4,7 @@ import geometry_msgs.msg
 import rospy
 import std_msgs.msg
 
-from moma_utils.spatial import Rotation, Transform
+from moma_utils.transform import Rotation, Transform
 
 
 def from_point_msg(msg: geometry_msgs.msg.Point) -> np.array:
