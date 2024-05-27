@@ -229,7 +229,6 @@ class PandaArmClient(object):
         """
         Planning to a Joint Goal
         """
-        rospy.logerr(f"type of joint_goal: {type(joint_goal)}")
         self.move_group.go(joint_goal, wait=True)
         self.move_group.stop()
         current_joints = self.move_group.get_current_joint_values()
@@ -341,7 +340,7 @@ class PandaArmClient(object):
         self.move_group.stop()
 
 
-class PandaGripperClient:
+class PandaGripperClient(object):
     def __init__(self, ns : str = "panda/franka_gripper/"):
         self._init_state_callback()
         self._init_action_clients(ns = ns)
@@ -403,8 +402,14 @@ class PandaGripperClient:
 
 
 def main():
-    move = PandaArmClient()
-    move.go_to_home()
+    rospy.init_node("test_panda_client")
+
+    arm = PandaArmClient()
+    gripper = PandaGripperClient()
+
+    # prep robot    
+    arm.go_to_home()
+    gripper.home()
 
     while True:
         try:
@@ -412,11 +417,15 @@ def main():
             print("----------------------------------------------------------")
             print("Test MoveIt client")
             print("----------------------------------------------------------")
-            print("Press 'h' to go to a home state")
+            print("Press 'h' to go to the arm home state")
             print("----------------------------------------------------------")
-            print("Press 's' to go to a safe state")
+            print("Press 'o' to open grippers")
             print("----------------------------------------------------------")
-            print("Press 'f' to go to a floor state")
+            print("Press 'c' to close grippers")
+            print("----------------------------------------------------------")
+            print("Press 'j' to go to a joint state (preprogrammed)")
+            print("----------------------------------------------------------")
+            print("Press 'l' to go to a pose state (linear/cartesian)")
             print("----------------------------------------------------------")
             print("Press 'q' to stop sampling exit")
 
@@ -426,14 +435,20 @@ def main():
             print("")
 
             if user_input == "h":
-                move.go_to_home()
-            elif user_input == "s":
-                move.go_to_safe()
-            elif user_input == "f":
-                move.go_to_floor()
+                arm.go_to_home()
+                gripper.home()
+            elif user_input == "o":
+                gripper.release()
+            elif user_input == "c":
+                gripper.grasp()
+            elif user_input == "j":
+                arm.goto([0.605, -0.311, -0.163, -2.341, -0.077, 2.133, 1.248])
+            elif user_input == "l":
+                pose = Pose()
+                pose = arm.get_pose([0.5, 0.0, 0.2], [0.707, 0.0, 0.707, 0.0])
+                arm.go_to_pose_goal_cartesian(pose)
             elif user_input == "q":
-                print("============ Sampling complete!")
-                print("")
+                input("============ Ending program")
                 break
 
         except rospy.ROSInterruptException:
