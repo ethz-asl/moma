@@ -21,6 +21,7 @@ venv
 
 # Catkin stuff
 CATKIN_IGNORE
+compile_commands.json
 
 # Files that will be auto-generated on compile
 moma_demos/grasp_demo/config/yumi/gpd.cfg
