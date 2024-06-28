@@ -1,0 +1,61 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="wrist_camera" default="true" />
+  <arg name="fixed_camera" default="true" />
+
+  
+  <!-- Launch wrist camera (Cam 3)-->
+  <include if="$(arg wrist_camera)"
+    file="$(find realsense2_camera)/launch/rs_camera.launch">
+    <arg name="camera" value="wrist_camera" />
+    <arg name="depth_width" value="640" />
+    <arg name="depth_height" value="480" />
+    <arg name="depth_fps" value="30" />
+    <arg name="enable_pointcloud" value="true" />
+    <arg name="publish_tf" value="true" />
+    <arg name="serial_no" value="231522070510" />
+  </include>
+
+
+  <!-- Launch fixed camera D435 (Cam 1)-->
+  <include if="$(arg fixed_camera)"
+    file="$(find realsense2_camera)/launch/rs_camera.launch">
+    <arg name="camera" value="fixed_camera_1" />
+    <arg name="depth_width" value="640" />
+    <arg name="depth_height" value="480" />
+    <arg name="depth_fps" value="30" />
+    <arg name="enable_pointcloud" value="true" />
+    <arg name="publish_tf" value="true" />
+    <arg name="serial_no" value="231522070761" />
+  </include>
+  
+
+  <!-- Launch fixed camera D455 (Cam 2)-->
+  <include if="$(arg fixed_camera)"
+    file="$(find realsense2_camera)/launch/rs_camera.launch">
+    <arg name="camera" value="fixed_camera_2" />
+    <arg name="depth_width" value="640" />
+    <arg name="depth_height" value="480" />
+    <arg name="depth_fps" value="30" />
+    <arg name="enable_pointcloud" value="true" />
+    <arg name="publish_tf" value="true" />
+    <!-- <arg name="serial_no" value="151422254198" /> -->
+    <arg name="serial_no" value="838212070495" />
+
+  </include>
+
+
+
+  <!-- Launch fixed camera D455 (Cam 0)-->
+  <include if="$(arg fixed_camera)"
+    file="$(find realsense2_camera)/launch/rs_camera.launch">
+    <arg name="camera" value="fixed_camera_0" />
+    <arg name="depth_width" value="640" />
+    <arg name="depth_height" value="480" />
+    <arg name="depth_fps" value="30" />
+    <arg name="enable_pointcloud" value="true" />
+    <arg name="publish_tf" value="true" />
+    <arg name="serial_no" value="215122253417" />
+  </include>
+  
+</launch>
