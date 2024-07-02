@@ -7,6 +7,7 @@
   <arg name="load_robot_description" default="true" />
   <arg name="robot_state_publisher" default="true" />
   <arg name="load_joint_state" default="true" />
+  <arg name="robot_description" default="robot_description" />
 
   <param
     name="robot_description"
@@ -38,12 +39,13 @@
     if="$(arg robot_state_publisher)"/>
 
   <node if="$(arg load_joint_state)"
-    name="joint_state_publisher" type="joint_state_publisher" pkg="joint_state_publisher"
+    name="joint_state_publisher_arm" type="joint_state_publisher" pkg="joint_state_publisher"
     output="screen">
     <rosparam if="$(arg load_gripper)" param="source_list">[franka_state_controller/joint_states,
   franka_gripper/joint_states] </rosparam>
     <rosparam unless="$(arg load_gripper)" param="source_list">
-  [franka_state_controller/joint_states] </rosparam>
+        [franka_state_controller/joint_states] </rosparam>
+    <remap from="robot_description" to="$(arg robot_description)"/>
     <param name="rate" value="30" />
   </node>
 </launch>
