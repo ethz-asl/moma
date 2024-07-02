@@ -6,6 +6,7 @@
   <arg name="xacro_args" default="" />
   <arg name="load_robot_description" default="true" />
   <arg name="robot_state_publisher" default="true" />
+  <arg name="load_joint_state" default="true" />
 
   <param
     name="robot_description"
@@ -36,7 +37,7 @@
     pkg="robot_state_publisher" type="robot_state_publisher" output="screen" 
     if="$(arg robot_state_publisher)"/>
 
-  <node
+  <node if="$(arg load_joint_state)"
     name="joint_state_publisher" type="joint_state_publisher" pkg="joint_state_publisher"
     output="screen">
     <rosparam if="$(arg load_gripper)" param="source_list">[franka_state_controller/joint_states,
