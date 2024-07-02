@@ -4,7 +4,10 @@
   <arg name="arm_id" default="panda" />
   <arg name="load_gripper" default="true" />
   <arg name="xacro_args" default="" />
-  <arg name="load_robot_description" default="true" />> <param
+  <arg name="load_robot_description" default="true" />
+  <arg name="robot_state_publisher" default="true" />
+
+  <param
     name="robot_description"
     command="$(find xacro)/xacro $(find moma_description)/urdf/panda.urdf.xacro hand:=$(arg load_gripper) gazebo:=false $(arg xacro_args)"
     if="$(arg load_robot_description)" />
@@ -30,7 +33,8 @@
     output="screen" args="franka_state_controller" />
 
   <node name="robot_state_publisher"
-    pkg="robot_state_publisher" type="robot_state_publisher" output="screen" />
+    pkg="robot_state_publisher" type="robot_state_publisher" output="screen" 
+    if="$(arg robot_state_publisher)"/>
 
   <node
     name="joint_state_publisher" type="joint_state_publisher" pkg="joint_state_publisher"
