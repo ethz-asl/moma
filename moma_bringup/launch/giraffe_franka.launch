@@ -5,6 +5,7 @@
   <arg name="robot_ip" default="$(env FRANKA_IP)" />
   <arg name="use_bota" default="false" />
   <arg name="moveit" default="true" />
+  <arg name="pipeline" default="ompl" />
 
   <!-- Robot Customization -->
   <arg name="arm_id" default="panda" />
@@ -43,6 +44,7 @@
     <!-- Launch MoveIt -->
     <include if="$(arg moveit)" file="$(find panda_moveit_config)/launch/move_group.launch">
       <arg name="load_robot_description" value="false" />
+      <arg name="pipeline" value="$(arg pipeline)" />
       <arg name="load_gripper" value="$(arg use_gripper)"/>
       <arg name="robot_description" value="robot_description_arm" />
     </include>
