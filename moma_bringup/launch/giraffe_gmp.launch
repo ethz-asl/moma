@@ -2,7 +2,7 @@
 <launch>
     <arg name="robot_id" default="giraffe" />
     <arg name="base_controller" default="swerve_controller z_axis_controller joint_state_controller" />
-    <arg name="joystick" default="false" />
+    <arg name="joystick" default="true" />
     <arg name="rviz" default="true"/>
 
     <!-- Robot Customization -->
@@ -24,9 +24,6 @@
         <!-- Start main robot node to connect to hardware from root -->
         <node name="gmp_robot" pkg="gmp_robot" type="gmp_launcher.sh" output="screen" />
 
-        <!-- Remap the command velocity. -->
-        <remap from="swerve_controller/cmd_vel" to="/cmd_vel"/>
-
         <!-- Inverting the steering axis on the base -->
         <param name="swerve_controller/invert_steering" type="bool" value="true"/>
 
@@ -43,7 +40,7 @@
             <!--Launch the twist publisher muliplexer -->
             <node pkg="twist_mux" type="twist_mux" name="twist_mux">
                 <rosparam command="load" file="$(find gmp_bringup)/config/twist_mux.yaml" />
-                <remap from="/cmd_vel_out" to="/swerve_controller/cmd_vel"/>
+                <remap from="cmd_vel_out" to="swerve_controller/cmd_vel"/>
             </node>
         </group>
     </group>
