@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+  <arg name="robot_id" default="giraffe" />
+  <arg name="controller" default="effort_joint_trajectory_controller" />
+  <arg name="robot_ip" default="$(env FRANKA_IP)" />
+  <arg name="use_bota" default="false" />
+  <arg name="moveit" default="true" />
+
+  <!-- Robot Customization -->
+  <arg name="arm_id" default="panda" />
+  <arg name="use_gripper" default="true" />
+
+  <!-- Load robot description  -->
+  <param name="robot_description_arm"
+          command="xacro $(find moma_description)/urdf/panda.urdf.xacro
+                  publish_realsense_extrinsics:=false
+                  arm_id:=$(arg arm_id)
+                  parent:=franka_mount_link
+                  gazebo:=false
+                  include_control_plugin:=false"/>
+
+  <!-- Arm controllers -->
+  <group ns="panda">
+    <!-- Launch control -->
+    <include file="$(find moma_bringup)/launch/components/franka_control.launch">
+      <arg name="robot_ip" value="$(arg robot_ip)" />
+      <arg name="load_robot_description" value="false"/>
+      <arg name="robot_state_publisher" value="false"/>
+      <arg name="load_gripper" value="$(arg use_gripper)"/>
+      <arg name="load_joint_state" value="true"/>
+      <arg name="robot_description" value="/robot_description_arm"/>
+    </include>
+
+    <!-- Controller settings. -->
+    <rosparam command="load"
+      file="$(find franka_example_controllers)/config/franka_example_controllers.yaml"
+      subst_value="true" />
+
+    <!-- Start required controller -->
+    <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false"
+      output="screen" args="$(arg controller)" />
+
+    <!-- Launch MoveIt -->
+    <include if="$(arg moveit)" file="$(find panda_moveit_config)/launch/move_group.launch">
+      <arg name="load_robot_description" value="false" />
+      <arg name="load_gripper" value="$(arg use_gripper)"/>
+      <arg name="robot_description" value="robot_description_arm" />
+    </include>
+
+  </group>
+
+
+</launch>
