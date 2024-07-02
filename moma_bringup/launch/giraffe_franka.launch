@@ -17,7 +17,9 @@
                   arm_id:=$(arg arm_id)
                   parent:=franka_mount_link
                   gazebo:=false
-                  include_control_plugin:=false"/>
+                  include_control_plugin:=false
+                  use_fixed_camera:=false
+                  use_wrist_camera:=false"/>
 
   <!-- Arm controllers -->
   <group ns="panda">
@@ -45,6 +47,7 @@
       <arg name="load_robot_description" value="false" />
       <arg name="load_gripper" value="$(arg use_gripper)"/>
       <arg name="robot_description" value="robot_description_arm" />
+      <arg name="pipeline" value="ompl" />
     </include>
 
   </group>
