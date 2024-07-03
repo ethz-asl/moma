@@ -12,6 +12,7 @@
         <param name="inverted" type="bool" value="true"/>
         <param name="angle_compensate" type="bool" value="true"/>
         <param name="scan_mode" type="string" value="Sensitivity"/>
+        <remap from="scan" to="front/scan" />
     </node>
 
 </launch>
