@@ -47,7 +47,7 @@
     <include if="$(arg moveit)" file="$(find panda_moveit_config)/launch/move_group.launch">
       <arg name="load_robot_description" value="false" />
       <arg name="load_gripper" value="$(arg use_gripper)"/>
-      <arg name="robot_description" value="/robot_description_arm" />
+      <arg name="robot_description" value="robot_description_arm" />
       <arg name="pipeline" value="ompl" />
     </include>
 
