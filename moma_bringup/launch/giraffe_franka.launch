@@ -50,7 +50,11 @@
       <arg name="pipeline" value="ompl" />
     </include>
 
+  <!-- Add collision scene -->
+  <node name ="moveit_publish_scene_from_text" 
+    pkg= "moveit_ros_planning" 
+    type = "moveit_publish_scene_from_text" 
+    args= "$(arg scene_file)"/>  
   </group>
-
 
 </launch>
