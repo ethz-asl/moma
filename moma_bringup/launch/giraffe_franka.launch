@@ -5,6 +5,7 @@
   <arg name="robot_ip" default="$(env FRANKA_IP)" />
   <arg name="use_bota" default="false" />
   <arg name="moveit" default="true" />
+  <arg name="scene_file" default="$(find moma_bringup)/config/z_axis_box.scene"/>
 
   <!-- Robot Customization -->
   <arg name="arm_id" default="panda" />
