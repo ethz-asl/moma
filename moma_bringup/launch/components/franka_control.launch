@@ -25,6 +25,7 @@
     <rosparam command="load" file="$(find franka_control)/config/franka_control_node.yaml"
       subst_value="true" />
     <param name="robot_ip" value="$(arg robot_ip)" />
+    <remap from="robot_description" to="$(arg robot_description)"/>
   </node>
 
   <rosparam command="load"
@@ -35,7 +36,7 @@
     output="screen" args="franka_state_controller" />
 
   <node name="robot_state_publisher"
-    pkg="robot_state_publisher" type="robot_state_publisher" output="screen" 
+    pkg="robot_state_publisher" type="robot_state_publisher" output="screen"
     if="$(arg robot_state_publisher)"/>
 
   <node if="$(arg load_joint_state)"

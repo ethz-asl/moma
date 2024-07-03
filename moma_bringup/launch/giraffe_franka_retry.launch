@@ -11,22 +11,26 @@
   <arg name="arm_id" default="panda" />
   <arg name="use_gripper" default="true" />
 
-  <!-- Load robot description  -->
-  <param name="robot_description_arm"
-          command="xacro $(find moma_description)/urdf/panda.urdf.xacro
-                  publish_realsense_extrinsics:=false
-                  arm_id:=$(arg arm_id)
-                  parent:=franka_mount_link
-                  gazebo:=false
-                  use_bota:=false
-                  include_control_plugin:=false
-                  use_fixed_camera:=false
-                  use_wrist_camera:=false"/>
+  <param name="move_group/default_planning_pipeline" value="ompl" />
 
   <!-- Arm controllers -->
   <group ns="panda">
     <param name="arm_id" value="$(arg arm_id)" />
     <param name="pipeline" value="ompl" />
+    <param name="move_group/default_planning_pipeline" value="ompl" />
+
+    <!-- Load robot description  -->
+    <param name="robot_description"
+            command="xacro $(find moma_description)/urdf/panda.urdf.xacro
+                    publish_realsense_extrinsics:=false
+                    arm_id:=$(arg arm_id)
+                    parent:=franka_mount_link
+                    gazebo:=false
+                    use_bota:=false
+                    include_control_plugin:=false
+                    use_fixed_camera:=false
+                    use_wrist_camera:=false"/>
+
     <!-- Launch control -->
     <include file="$(find moma_bringup)/launch/components/franka_control.launch">
       <arg name="robot_ip" value="$(arg robot_ip)" />
@@ -34,7 +38,6 @@
       <arg name="robot_state_publisher" value="false"/>
       <arg name="load_gripper" value="$(arg use_gripper)"/>
       <arg name="load_joint_state" value="true"/>
-      <arg name="robot_description" value="/robot_description_arm"/>
     </include>
 
     <!-- Start required controller -->
@@ -45,15 +48,9 @@
     <include if="$(arg moveit)" file="$(find panda_moveit_config)/launch/move_group.launch">
       <arg name="load_robot_description" value="false" />
       <arg name="load_gripper" value="$(arg use_gripper)"/>
-      <arg name="robot_description" value="/robot_description_arm" />
       <arg name="pipeline" value="ompl" />
     </include>
 
-  <!-- Add collision scene -->
-  <node name ="moveit_publish_scene_from_text"
-    pkg= "moveit_ros_planning"
-    type = "moveit_publish_scene_from_text"
-    args= "$(arg scene_file)"/>
   </group>
 
 </launch>
