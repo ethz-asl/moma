@@ -1,6 +1,6 @@
-(noname)++
-* z_axis_collision
-0.08 0 0.72
+(noname)+
+* Box_1
+-0.2 0 0.1
 0 0 0 1
 1
 box
