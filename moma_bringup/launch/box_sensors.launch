@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <launch>
-  <arg name='list_of_sensors' default='[flexx2_vga_1, rs_435_1]'/>
+  <arg name='list_of_sensors' default='[flexx2_vga_1, flexx2_wide_1]'/>
   <!-- All options: 
   * rs_435_1, serial-no: 231522070510, default use-case: wrist-cam, a.k.a. Cam3
   * rs_435_2, serial-no: 231522070761, default use-case: fixed-cam, a.k.a. Cam1
@@ -14,7 +14,7 @@
   <!-- Launch rs_435_1 -->
   <include if="$(eval 'rs_435_1' in list_of_sensors)"
     file="$(find realsense2_camera)/launch/rs_camera.launch">
-    <arg name="camera" value="wrist_camera" />
+    <arg name="camera" value="rs_435_1" />
     <arg name="depth_width" value="640" />
     <arg name="depth_height" value="480" />
     <arg name="depth_fps" value="30" />
@@ -26,7 +26,7 @@
   <!-- Launch rs_435_2 -->
   <include if="$(eval 'rs_435_2' in list_of_sensors)"
     file="$(find realsense2_camera)/launch/rs_camera.launch">
-    <arg name="camera" value="fixed_camera_1" />
+    <arg name="camera" value="rs_435_2" />
     <arg name="depth_width" value="640" />
     <arg name="depth_height" value="480" />
     <arg name="depth_fps" value="30" />
@@ -38,7 +38,7 @@
   <!-- Launch rs_455_1 -->
   <include if="$(eval 'rs_455_1' in list_of_sensors)"
     file="$(find realsense2_camera)/launch/rs_camera.launch">
-    <arg name="camera" value="fixed_camera_2" />
+    <arg name="camera" value="rs_455_1" />
     <arg name="depth_width" value="640" />
     <arg name="depth_height" value="480" />
     <arg name="depth_fps" value="30" />
@@ -51,7 +51,7 @@
   <!-- Launch rs_455_2-->
   <include if="$(eval 'rs_455_2' in list_of_sensors)"
     file="$(find realsense2_camera)/launch/rs_camera.launch">
-    <arg name="camera" value="fixed_camera_0" />
+    <arg name="camera" value="rs_455_2" />
     <arg name="depth_width" value="640" />
     <arg name="depth_height" value="480" />
     <arg name="depth_fps" value="30" />
@@ -64,18 +64,21 @@
   <include if="$(eval 'flexx2_wide_1' in list_of_sensors)"
     file="$(find royale_in_ros)/launch/camera_driver.launch">
     <arg name="royale_cam_id" value="AA3F-2530-2CC3-30A4"/>
+    <arg name="node_name" value="flexx2_wide_1"/>
   </include>
 
   <!-- Launch flexx2_wide_2-->
   <include if="$(eval 'flexx2_wide_2' in list_of_sensors)"
     file="$(find royale_in_ros)/launch/camera_driver.launch">
     <arg name="royale_cam_id" value="9E3D-252E-2CC4-3E54"/>
+    <arg name="node_name" value="flexx2_wide_2"/>
   </include>
 
   <!-- Launch flexx2_vga_1-->
   <include if="$(eval 'flexx2_vga_1' in list_of_sensors)"
     file="$(find royale_in_ros)/launch/camera_driver.launch">
     <arg name="royale_cam_id" value="903F-29C5-2C26-3C10"/>
+    <arg name="node_name" value="flexx2_vga_1"/>
   </include>
 
 </launch>
