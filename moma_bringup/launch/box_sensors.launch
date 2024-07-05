@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <launch>
-  <arg name='list_of_sensors' default='[flexx2_vga_1]'/>
+  <arg name='list_of_sensors' default='[flexx2_vga_1, rs_435_1]'/>
   <!-- All options: 
   * rs_435_1, serial-no: 231522070510, default use-case: wrist-cam, a.k.a. Cam3
   * rs_435_2, serial-no: 231522070761, default use-case: fixed-cam, a.k.a. Cam1
