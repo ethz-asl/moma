@@ -1,10 +1,11 @@
 <?xml version="1.0"?>
 <launch>
-  <arg name='list_of_sensors' default='[flexx2_vga_1, flexx2_wide_1]'/>
+  <arg name='list_of_sensors' default='[rs_435_2, rs_435_3, rs_455_1, rs_455_2]'/>
   <!-- All options: 
-  * rs_435_1, serial-no: 231522070510, default use-case: wrist-cam, a.k.a. Cam3
-  * rs_435_2, serial-no: 231522070761, default use-case: fixed-cam, a.k.a. Cam1
-  * rs_455_1, serial-no: 838212070495, default use-case: fixed-cam, a.k.a. Cam2
+  * rs_435_1, serial-no: 231522070510, default use-case: wrist-cam, a.k.a. Cam3 or WristCam
+  * rs_435_2, serial-no: 838212070495, default use-case: fixed-cam, a.k.a. MaplabCam
+  * rs_435_3, serial-no: 231522070761, default use-case: fixed-cam, a.k.a. Cam1
+  * rs_455_1, serial-no: 151422254198, default use-case: fixed-cam, a.k.a. Cam2 or 'unreliable'
   * rs_455_2, serial-no: 215122253417, default use-case: fixed-cam, a.k.a. Cam0
   * flexx2_wide_1, serial-no: AA3F-2530-2CC3-30A4, default use-case: fixed-cam, a.k.a. Cam1
   * flexx2_wide_2, serial-no: 9E3D-252E-2CC4-3E54, default use-case: fixed-cam, a.k.a. Cam2
@@ -32,6 +33,18 @@
     <arg name="depth_fps" value="30" />
     <arg name="enable_pointcloud" value="true" />
     <arg name="publish_tf" value="true" />
+    <arg name="serial_no" value="838212070495" />
+  </include>
+
+  <!-- Launch rs_435_3 -->
+  <include if="$(eval 'rs_435_3' in list_of_sensors)"
+    file="$(find realsense2_camera)/launch/rs_camera.launch">
+    <arg name="camera" value="rs_435_3" />
+    <arg name="depth_width" value="640" />
+    <arg name="depth_height" value="480" />
+    <arg name="depth_fps" value="30" />
+    <arg name="enable_pointcloud" value="true" />
+    <arg name="publish_tf" value="true" />
     <arg name="serial_no" value="231522070761" />
   </include>
 
@@ -44,8 +57,7 @@
     <arg name="depth_fps" value="30" />
     <arg name="enable_pointcloud" value="true" />
     <arg name="publish_tf" value="true" />
-    <!-- <arg name="serial_no" value="151422254198" /> -->
-    <arg name="serial_no" value="838212070495" />
+    <arg name="serial_no" value="151422254198" />
   </include>
 
   <!-- Launch rs_455_2-->
