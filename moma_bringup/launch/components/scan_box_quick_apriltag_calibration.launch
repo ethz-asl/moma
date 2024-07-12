@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <launch>
-  <arg name='list_of_sensors' default='[flexx2_vga_1]'/>
+  <arg name='list_of_sensors' default='[flexx2_vga_1, flexx2_wide_1]'/>
 
     <group ns="flexx2_vga_1" if="$(eval 'flexx2_vga_1' in list_of_sensors)">
     <!-- apriltag_ros continuous detection node -->
@@ -36,12 +36,18 @@
   </node>
 </group>
 
-<node if="true" pkg="moma_bringup" type="apriltag_tf_tree_builder.py" name="apriltag_tf_tree_builder" output="screen">
+<node pkg="moma_bringup" type="apriltag_tf_tree_builder.py" name="flexx2_vga_1_apriltag_tf_tree_builder" output="screen">
     <remap from="apriltag_detection" to="/flexx2_vga_1/tag_detections" />
     <param name="camera_root_frame_id" value="royale_flexx2_vga_1_link"/>
     <param name="base_frame_id" value="april_world"/>
-
 </node>
+
+<node pkg="moma_bringup" type="apriltag_tf_tree_builder.py" name="flexx2_wide_1_apriltag_tf_tree_builder" output="screen">
+    <remap from="apriltag_detection" to="/flexx2_wide_1/tag_detections" />
+    <param name="camera_root_frame_id" value="royale_flexx2_wide_1_link"/>
+    <param name="base_frame_id" value="april_world"/>
+</node>
+
 
 
 </launch>
