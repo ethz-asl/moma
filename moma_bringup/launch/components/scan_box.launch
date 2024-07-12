@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <launch>
-  <arg name='list_of_sensors' default='[rs_435_2, rs_435_3, rs_455_1, rs_455_2]'/>
+  <arg name='list_of_sensors' default='[flexx2_vga_1, flexx2_wide_1]'/>
   <!-- All options: 
   * rs_435_1, serial-no: 231522070510, default use-case: wrist-cam, a.k.a. Cam3 or WristCam
   * rs_435_2, serial-no: 838212070495, default use-case: fixed-cam, a.k.a. MaplabCam
@@ -12,6 +12,47 @@
   * flexx2_vga_1, serial-no: 903F-29C5-2C26-3C10, default use-case: fixed-cam, a.k.a. Cam0
   -->
 
+  <!-- 
+  === Options for flexx2-wide ===
+  Supported use cases: 
+  * Long_Range_30FPS
+  * Long_Range_15FPS
+  * Long_Range_10FPS
+  * Long_Range_5FPS
+  * Short_Range_60FPS
+  * Short_Range_30FPS
+  * Short_Range_15FPS
+  * Ultra_Short_Range_60FPS
+  * Short_Long_Interleaved_30fps_5fps
+
+  === Options for flexx2-vga ===
+  Supported use cases: 
+  * Long_Range_30FPS
+  * Long_Range_20FPS
+  * Long_Range_15FPS
+  * Long_Range_10FPS
+  * Long_Range_5FPS
+  * Mid_Range_30FPS
+  * Mid_Range_20FPS
+  * Mid_Range_15FPS
+  * Mid_Range_10FPS
+  * Mid_Range_5FPS
+  * Short_Range_60FPS
+  * Short_Range_30FPS
+  * Short_Range_15FPS
+  * Face_ID_30FPS
+  * Face_ID_20FPS
+  * Face_ID_15FPS
+  * Face_ID_10FPS
+  * Face_ID_5FPS
+  * IR_5FPS
+  * IR_4FPS
+  * IR_3FPS
+  * IR_2FPS
+  * IR_1FPS
+  -->
+
+  <!-- ====== SENSORS ========= -->
   <!-- Launch rs_435_1 -->
   <include if="$(eval 'rs_435_1' in list_of_sensors)"
     file="$(find realsense2_camera)/launch/rs_camera.launch">
@@ -30,7 +71,7 @@
     <arg name="camera" value="rs_435_2" />
     <arg name="depth_width" value="640" />
     <arg name="depth_height" value="480" />
-    <arg name="depth_fps" value="30" />
+    <arg name="depth_fps" value="5" />
     <arg name="enable_pointcloud" value="true" />
     <arg name="publish_tf" value="true" />
     <arg name="serial_no" value="838212070495" />
@@ -73,24 +114,59 @@
   </include>
 
   <!-- Launch flexx2_wide_1-->
-  <include if="$(eval 'flexx2_wide_1' in list_of_sensors)"
-    file="$(find royale_in_ros)/launch/camera_driver.launch">
-    <arg name="royale_cam_id" value="AA3F-2530-2CC3-30A4"/>
-    <arg name="node_name" value="flexx2_wide_1"/>
-  </include>
+  <group if="$(eval 'flexx2_wide_1' in list_of_sensors)">
+    <include
+        file="$(find royale_in_ros)/launch/camera_driver.launch">
+        <arg name="royale_cam_id" value="AA3F-2530-2CC3-30A4"/>
+        <arg name="node_name" value="flexx2_wide_1"/>
+        <arg name="node_start_delay" value="0.0"/>
+        <arg name="royale_use_case" value="Short_Range_30FPS"/>
+        <remap from="mono16_in" to="/flexx2_wide_2/gray_image_0"/>
+        <remap from="mono8_out" to="/flexx2_wide_2/gray_image_0_mono8/"/>
+    </include>
+    <!-- flexx2's mono16 need to be converted to proper mono8 to avoid issues-->
+    <node type="mono16_to_mono8.py" name="flexx2_wide_1_mono16_to_mono8" pkg="royale_in_ros" output="screen">
+        <remap from="mono16_in" to="/royale_cam_flexx2_wide_1/gray_image_0"/>
+        <remap from="mono8_out" to="/royale_cam_flexx2_wide_1/gray_image_0_mono8/"/>
+    </node>
+  </group>
 
   <!-- Launch flexx2_wide_2-->
-  <include if="$(eval 'flexx2_wide_2' in list_of_sensors)"
-    file="$(find royale_in_ros)/launch/camera_driver.launch">
-    <arg name="royale_cam_id" value="9E3D-252E-2CC4-3E54"/>
-    <arg name="node_name" value="flexx2_wide_2"/>
-  </include>
+  <group if="$(eval 'flexx2_wide_2' in list_of_sensors)">
+    <include 
+        file="$(find royale_in_ros)/launch/camera_driver.launch">
+        <arg name="royale_cam_id" value="9E3D-252E-2CC4-3E54"/>
+        <arg name="node_name" value="flexx2_wide_2"/>
+        <arg name="node_start_delay" value="2.0"/>
+        <arg name="royale_use_case" value="Short_Range_30FPS"/>
+    </include>
+    <!-- flexx2's mono16 need to be converted to proper mono8 to avoid issues-->
+    <node type="mono16_to_mono8.py" name="flexx2_wide_2_mono16_to_mono8" pkg="royale_in_ros" output="screen">
+        <remap from="mono16_in" to="/royale_cam_flexx2_wide_2/gray_image_0"/>
+        <remap from="mono8_out" to="/royale_cam_flexx2_wide_2/gray_image_0_mono8/"/>
+    </node>
+  </group>
 
   <!-- Launch flexx2_vga_1-->
-  <include if="$(eval 'flexx2_vga_1' in list_of_sensors)"
-    file="$(find royale_in_ros)/launch/camera_driver.launch">
-    <arg name="royale_cam_id" value="903F-29C5-2C26-3C10"/>
-    <arg name="node_name" value="flexx2_vga_1"/>
-  </include>
+  <group if="$(eval 'flexx2_vga_1' in list_of_sensors)">
+    <include
+        file="$(find royale_in_ros)/launch/camera_driver.launch">
+        <arg name="royale_cam_id" value="903F-29C5-2C26-3C10"/>
+        <arg name="node_name" value="flexx2_vga_1"/>
+        <arg name="node_start_delay" value="5.0"/>
+        <arg name="royale_use_case" value="Face_ID_30FPS"/>
+    </include>
+    <!-- flexx2's mono16 need to be converted to proper mono8 to avoid issues-->
+    <node type="mono16_to_mono8.py" name="flexx2_vga_1_mono16_to_mono8" pkg="royale_in_ros" output="screen">
+        <remap from="mono16_in" to="/royale_cam_flexx2_vga_1/gray_image_1"/>
+        <remap from="mono8_out" to="/royale_cam_flexx2_vga_1/gray_image_1_mono8/"/>
+    </node>
+  </group>
+
+  <!-- Image Rectification (do we need it?)-->
+  <!-- <node type="image_proc" name="image_proc" pkg="image_proc" output="screen">
+      <remap from="image_raw" to="/royale_cam_flexx2_vga_1/gray_image_1_mono8"/>
+      <remap from="camera_info" to="/royale_cam_flexx2_vga_1/camera_info/"/>
+  </node> -->
 
 </launch>
