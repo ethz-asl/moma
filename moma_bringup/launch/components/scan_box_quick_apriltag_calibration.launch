@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name='list_of_sensors' default='[flexx2_vga_1]'/>
+
+    <group ns="flexx2_vga_1" if="$(eval 'flexx2_vga_1' in list_of_sensors)">
+    <!-- apriltag_ros continuous detection node -->
+    <node pkg="apriltag_ros" type="apriltag_ros_continuous_node" name="apriltag_ros_continuous_node" clear_params="true" output="screen">
+        <!-- Remap topics from those used in code to those on the ROS network -->
+        <remap from="image_rect" to="/royale_cam_flexx2_vga_1/gray_image_1_mono8" />
+        <remap from="camera_info" to="/royale_cam_flexx2_vga_1/camera_info" />
+
+        <param name="publish_tag_detections_image" type="bool" value="true" />
+        <param name="queue_size" type="int" value="1" />
+        <param name="publish_tf" value="false"/>
+
+        <!-- load parameters (incl. tag family, tags, etc.) -->
+        <rosparam command="load" file="$(find apriltag_ros)/config/settings.yaml"/>
+        <rosparam command="load" file="$(find moma_bringup)/config/apriltags.yaml"/>
+    </node>
+    </group>
+
+<group ns="flexx2_wide_1" if="$(eval 'flexx2_wide_1' in list_of_sensors)">
+  <!-- apriltag_ros continuous detection node -->
+  <node pkg="apriltag_ros" type="apriltag_ros_continuous_node" name="apriltag_ros_continuous_node" clear_params="true" output="screen">
+    <!-- Remap topics from those used in code to those on the ROS network -->
+    <remap from="image_rect" to="/royale_cam_flexx2_wide_1/gray_image_0_mono8" />
+    <remap from="camera_info" to="/royale_cam_flexx2_wide_1/camera_info" />
+
+    <param name="publish_tag_detections_image" type="bool" value="true" />
+    <param name="queue_size" type="int" value="1" />
+    <param name="publish_tf" value="false"/>
+
+    <!-- load parameters (incl. tag family, tags, etc.) -->
+    <rosparam command="load" file="$(find apriltag_ros)/config/settings.yaml"/>
+    <rosparam command="load" file="$(find moma_bringup)/config/apriltags.yaml"/>
+  </node>
+</group>
+
+<node pkg="moma_bringup" type="apriltag_tf_tree_builder.py" name="apriltag_tf_tree_builder" output="screen">
+    <remap from="apriltag_detection" to="/flexx2_vga_1/tag_detections" />
+    <param name="camera_root_frame_id" value="royale_flexx2_vga_1_link"/>
+    <param name="base_frame_id" value="april_world"/>
+
+</node>
+
+
+</launch>
