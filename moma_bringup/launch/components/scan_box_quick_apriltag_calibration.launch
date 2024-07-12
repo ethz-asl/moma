@@ -36,7 +36,7 @@
   </node>
 </group>
 
-<node pkg="moma_bringup" type="apriltag_tf_tree_builder.py" name="apriltag_tf_tree_builder" output="screen">
+<node if="true" pkg="moma_bringup" type="apriltag_tf_tree_builder.py" name="apriltag_tf_tree_builder" output="screen">
     <remap from="apriltag_detection" to="/flexx2_vga_1/tag_detections" />
     <param name="camera_root_frame_id" value="royale_flexx2_vga_1_link"/>
     <param name="base_frame_id" value="april_world"/>

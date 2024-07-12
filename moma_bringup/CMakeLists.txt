@@ -200,3 +200,9 @@ include_directories(
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
+
+## Install python script
+catkin_install_python(PROGRAMS
+scripts/apriltag_tf_tree_builder.py  # Adjust the path as necessary
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
