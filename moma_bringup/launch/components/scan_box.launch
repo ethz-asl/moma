@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <launch>
-  <arg name='list_of_sensors' default='[flexx2_vga_1, flexx2_wide_1]'/>
+  <arg name='list_of_sensors' default='[rs_435_2, rs_435_3, flexx2_vga_1]'/>
   <!-- All options: 
   * rs_435_1, serial-no: 231522070510, default use-case: wrist-cam, a.k.a. Cam3 or WristCam
   * rs_435_2, serial-no: 838212070495, default use-case: fixed-cam, a.k.a. MaplabCam
@@ -63,6 +63,7 @@
     <arg name="enable_pointcloud" value="true" />
     <arg name="publish_tf" value="true" />
     <arg name="serial_no" value="231522070510" />
+    <arg name="color_fps" value="30"/>
   </include>
 
   <!-- Launch rs_435_2 -->
@@ -71,10 +72,11 @@
     <arg name="camera" value="rs_435_2" />
     <arg name="depth_width" value="640" />
     <arg name="depth_height" value="480" />
-    <arg name="depth_fps" value="5" />
+    <arg name="depth_fps" value="30" />
     <arg name="enable_pointcloud" value="true" />
     <arg name="publish_tf" value="true" />
     <arg name="serial_no" value="838212070495" />
+    <arg name="color_fps" value="5"/>
   </include>
 
   <!-- Launch rs_435_3 -->
@@ -87,6 +89,7 @@
     <arg name="enable_pointcloud" value="true" />
     <arg name="publish_tf" value="true" />
     <arg name="serial_no" value="231522070761" />
+    <arg name="color_fps" value="5"/>
   </include>
 
   <!-- Launch rs_455_1 -->
