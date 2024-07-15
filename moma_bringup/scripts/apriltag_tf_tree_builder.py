@@ -5,6 +5,7 @@ from apriltag_ros.msg import AprilTagDetectionArray
 import tf2_ros
 import geometry_msgs.msg
 from geometry_msgs.msg import TransformStamped, Transform
+from std_srvs.srv import Trigger, TriggerResponse, TriggerRequest, SetBool, SetBoolResponse, SetBoolRequest
 
 import tf.transformations as tft
 import numpy as np
@@ -15,15 +16,41 @@ class AprilTagTransformPublisher:
         self.base_frame_id = rospy.get_param('~base_frame_id', 'april_tag_0')
         # Initialize a tf2 broadcaster
         self.tf_broadcaster = tf2_ros.TransformBroadcaster()
+        self.static_tf_broadcaster = tf2_ros.StaticTransformBroadcaster()
+
         self.tf_buffer = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener(self.tf_buffer)
+        self.calibrate_trigger_srv = rospy.Service('calibrate', Trigger, self.calibrate_callback_srv_cb)
+        self.set_calib_mode_srv = rospy.Service('set_calibration_mode', SetBool, self.set_calibration_mode_srv_cb)
+
+        self.first_msg = True
+        self.continuous_calibration = False
 
         # Subscribe to detection topic
-        self.sub = rospy.Subscriber('apriltag_detection', AprilTagDetectionArray, self.tag_callback)
+        self.sub = rospy.Subscriber('apriltag_detection', AprilTagDetectionArray, self.detection_cb)
 
-    def tag_callback(self, msg):
+    def detection_cb(self, msg):
+        self.last_msg = msg
+        if self.first_msg:
+            self.calibrate_callback_srv_cb(TriggerRequest)
+            self.first_msg = False
+        if self.continuous_calibration:
+            self.calibrate_callback_srv_cb(TriggerRequest)
+        resp = TriggerResponse()
+        resp.success = True
+        return resp
+
+    def set_calibration_mode_srv_cb(self, request):
+        self.continuous_calibration = request.data
+        if not self.continuous_calibration:
+            self.first_msg = True
+        resp = SetBoolResponse()
+        resp.success = True
+        return resp
+
+    def calibrate_callback_srv_cb(self, request):
         # Iterate through the detected tags
-        for detection in msg.detections:
+        for detection in self.last_msg.detections:
             # get T_cam_tag
             T_cam_tag_tf = detection.pose.pose.pose
             T_cam_tag = tft.quaternion_matrix([
@@ -78,8 +105,10 @@ class AprilTagTransformPublisher:
             T_tag_camroot_tfs.header.frame_id = self.base_frame_id
             T_tag_camroot_tfs.child_frame_id = self.camera_root_frame_id
             # publish the transform
-            self.tf_broadcaster.sendTransform(T_tag_camroot_tfs)
-
+            if self.continuous_calibration:
+                self.tf_broadcaster.sendTransform(T_tag_camroot_tfs)
+            else:
+                self.static_tf_broadcaster.sendTransform(T_tag_camroot_tfs)
 
 if __name__ == '__main__':
     rospy.init_node('april_tag_transform_publisher')

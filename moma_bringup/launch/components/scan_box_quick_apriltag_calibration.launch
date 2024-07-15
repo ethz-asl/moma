@@ -1,53 +1,141 @@
 <?xml version="1.0"?>
 <launch>
-  <arg name='list_of_sensors' default='[flexx2_vga_1, flexx2_wide_1]'/>
-
-    <group ns="flexx2_vga_1" if="$(eval 'flexx2_vga_1' in list_of_sensors)">
-    <!-- apriltag_ros continuous detection node -->
+  <arg name="list_of_sensors" default="[rs_435_2, rs_435_3, flexx2_vga_1]"/>
+  <!-- rs_435_1 -->
+  <group ns="rs_435_1" if="$(eval 'rs_435_1' in list_of_sensors)">
     <node pkg="apriltag_ros" type="apriltag_ros_continuous_node" name="apriltag_ros_continuous_node" clear_params="true" output="screen">
-        <!-- Remap topics from those used in code to those on the ROS network -->
-        <remap from="image_rect" to="/royale_cam_flexx2_vga_1/gray_image_1_mono8" />
-        <remap from="camera_info" to="/royale_cam_flexx2_vga_1/camera_info" />
-
-        <param name="publish_tag_detections_image" type="bool" value="true" />
-        <param name="queue_size" type="int" value="1" />
-        <param name="publish_tf" value="false"/>
-
-        <!-- load parameters (incl. tag family, tags, etc.) -->
-        <rosparam command="load" file="$(find apriltag_ros)/config/settings.yaml"/>
-        <rosparam command="load" file="$(find moma_bringup)/config/apriltags.yaml"/>
+      <remap from="image_rect" to="/rs_435_1/color/image_raw"/>
+      <remap from="camera_info" to="/rs_435_1/color/camera_info"/>
+      <param name="publish_tag_detections_image" type="bool" value="true"/>
+      <param name="queue_size" type="int" value="1"/>
+      <param name="publish_tf" value="false"/>
+      <rosparam command="load" file="$(find apriltag_ros)/config/settings.yaml"/>
+      <rosparam command="load" file="$(find moma_bringup)/config/apriltags.yaml"/>
     </node>
-    </group>
+    <node pkg="moma_bringup" type="apriltag_tf_tree_builder.py" name="apriltag_tf_tree_builder" output="screen">
+      <remap from="apriltag_detection" to="/rs_435_1/tag_detections"/>
+      <param name="camera_root_frame_id" value="rs_435_1_color_frame"/>
+      <param name="base_frame_id" value="april_world"/>
+    </node>
+  </group>
+  <!-- rs_435_2 -->
+  <group ns="rs_435_2" if="$(eval 'rs_435_2' in list_of_sensors)">
+    <node pkg="apriltag_ros" type="apriltag_ros_continuous_node" name="apriltag_ros_continuous_node" clear_params="true" output="screen">
+      <remap from="image_rect" to="/rs_435_2/color/image_raw"/>
+      <remap from="camera_info" to="/rs_435_2/color/camera_info"/>
+      <param name="publish_tag_detections_image" type="bool" value="true"/>
+      <param name="queue_size" type="int" value="1"/>
+      <param name="publish_tf" value="false"/>
 
-<group ns="flexx2_wide_1" if="$(eval 'flexx2_wide_1' in list_of_sensors)">
-  <!-- apriltag_ros continuous detection node -->
-  <node pkg="apriltag_ros" type="apriltag_ros_continuous_node" name="apriltag_ros_continuous_node" clear_params="true" output="screen">
-    <!-- Remap topics from those used in code to those on the ROS network -->
-    <remap from="image_rect" to="/royale_cam_flexx2_wide_1/gray_image_0_mono8" />
-    <remap from="camera_info" to="/royale_cam_flexx2_wide_1/camera_info" />
-
-    <param name="publish_tag_detections_image" type="bool" value="true" />
-    <param name="queue_size" type="int" value="1" />
-    <param name="publish_tf" value="false"/>
-
-    <!-- load parameters (incl. tag family, tags, etc.) -->
-    <rosparam command="load" file="$(find apriltag_ros)/config/settings.yaml"/>
-    <rosparam command="load" file="$(find moma_bringup)/config/apriltags.yaml"/>
-  </node>
-</group>
-
-<node pkg="moma_bringup" type="apriltag_tf_tree_builder.py" name="flexx2_vga_1_apriltag_tf_tree_builder" output="screen">
-    <remap from="apriltag_detection" to="/flexx2_vga_1/tag_detections" />
-    <param name="camera_root_frame_id" value="royale_flexx2_vga_1_link"/>
-    <param name="base_frame_id" value="april_world"/>
-</node>
-
-<node pkg="moma_bringup" type="apriltag_tf_tree_builder.py" name="flexx2_wide_1_apriltag_tf_tree_builder" output="screen">
-    <remap from="apriltag_detection" to="/flexx2_wide_1/tag_detections" />
-    <param name="camera_root_frame_id" value="royale_flexx2_wide_1_link"/>
-    <param name="base_frame_id" value="april_world"/>
-</node>
-
-
-
+      <rosparam command="load" file="$(find apriltag_ros)/config/settings.yaml"/>
+      <rosparam command="load" file="$(find moma_bringup)/config/apriltags.yaml"/>
+    </node>
+    <node pkg="moma_bringup" type="apriltag_tf_tree_builder.py" name="apriltag_tf_tree_builder" output="screen">
+      <remap from="apriltag_detection" to="/rs_435_2/tag_detections"/>
+      <param name="camera_root_frame_id" value="rs_435_2_link"/>
+      <param name="base_frame_id" value="april_world"/>
+    </node>
+  </group>
+  <!-- rs_435_3 -->
+  <group ns="rs_435_3" if="$(eval 'rs_435_3' in list_of_sensors)">
+    <node pkg="apriltag_ros" type="apriltag_ros_continuous_node" name="apriltag_ros_continuous_node" clear_params="true" output="screen">
+      <remap from="image_rect" to="/rs_435_3/color/image_raw"/>
+      <remap from="camera_info" to="/rs_435_3/color/camera_info"/>
+      <param name="publish_tag_detections_image" type="bool" value="true"/>
+      <param name="queue_size" type="int" value="1"/>
+      <param name="publish_tf" value="false"/>
+      <rosparam command="load" file="$(find apriltag_ros)/config/settings.yaml"/>
+      <rosparam command="load" file="$(find moma_bringup)/config/apriltags.yaml"/>
+    </node>
+    <node pkg="moma_bringup" type="apriltag_tf_tree_builder.py" name="apriltag_tf_tree_builder" output="screen">
+      <remap from="apriltag_detection" to="/rs_435_3/tag_detections"/>
+      <param name="camera_root_frame_id" value="rs_435_3_link"/>
+      <param name="base_frame_id" value="april_world"/>
+    </node>
+  </group>
+  <!-- rs_455_1 -->
+  <group ns="rs_455_1" if="$(eval 'rs_455_1' in list_of_sensors)">
+    <node pkg="apriltag_ros" type="apriltag_ros_continuous_node" name="apriltag_ros_continuous_node" clear_params="true" output="screen">
+      <remap from="image_rect" to="/rs_455_1/color/image_raw"/>
+      <remap from="camera_info" to="/rs_455_1/color/camera_info"/>
+      <param name="publish_tag_detections_image" type="bool" value="true"/>
+      <param name="queue_size" type="int" value="1"/>
+      <param name="publish_tf" value="false"/>
+      <rosparam command="load" file="$(find apriltag_ros)/config/settings.yaml"/>
+      <rosparam command="load" file="$(find moma_bringup)/config/apriltags.yaml"/>
+    </node>
+    <node pkg="moma_bringup" type="apriltag_tf_tree_builder.py" name="apriltag_tf_tree_builder" output="screen">
+      <remap from="apriltag_detection" to="/rs_455_1/tag_detections"/>
+      <param name="camera_root_frame_id" value="rs_455_1_color_frame"/>
+      <param name="base_frame_id" value="april_world"/>
+    </node>
+  </group>
+  <!-- rs_455_2 -->
+  <group ns="rs_455_2" if="$(eval 'rs_455_2' in list_of_sensors)">
+    <node pkg="apriltag_ros" type="apriltag_ros_continuous_node" name="apriltag_ros_continuous_node" clear_params="true" output="screen">
+      <remap from="image_rect" to="/rs_455_2/color/image_raw"/>
+      <remap from="camera_info" to="/rs_455_2/color/camera_info"/>
+      <param name="publish_tag_detections_image" type="bool" value="true"/>
+      <param name="queue_size" type="int" value="1"/>
+      <param name="publish_tf" value="false"/>
+      <rosparam command="load" file="$(find apriltag_ros)/config/settings.yaml"/>
+      <rosparam command="load" file="$(find moma_bringup)/config/apriltags.yaml"/>
+    </node>
+    <node pkg="moma_bringup" type="apriltag_tf_tree_builder.py" name="apriltag_tf_tree_builder" output="screen">
+      <remap from="apriltag_detection" to="/rs_455_2/tag_detections"/>
+      <param name="camera_root_frame_id" value="rs_455_2_color_frame"/>
+      <param name="base_frame_id" value="april_world"/>
+    </node>
+  </group>
+  <!-- flexx2_wide_1 -->
+  <group ns="flexx2_wide_1" if="$(eval 'flexx2_wide_1' in list_of_sensors)">
+    <node pkg="apriltag_ros" type="apriltag_ros_continuous_node" name="apriltag_ros_continuous_node" clear_params="true" output="screen">
+      <remap from="image_rect" to="/royale_cam_flexx2_wide_1/gray_image_0_mono8"/>
+      <remap from="camera_info" to="/royale_cam_flexx2_wide_1/camera_info"/>
+      <param name="publish_tag_detections_image" type="bool" value="true"/>
+      <param name="queue_size" type="int" value="1"/>
+      <param name="publish_tf" value="false"/>
+      <rosparam command="load" file="$(find apriltag_ros)/config/settings.yaml"/>
+      <rosparam command="load" file="$(find moma_bringup)/config/apriltags.yaml"/>
+    </node>
+    <node pkg="moma_bringup" type="apriltag_tf_tree_builder.py" name="apriltag_tf_tree_builder" output="screen">
+      <remap from="apriltag_detection" to="/flexx2_wide_1/tag_detections"/>
+      <param name="camera_root_frame_id" value="royale_flexx2_wide_1_link"/>
+      <param name="base_frame_id" value="april_world"/>
+    </node>
+  </group>
+  <!-- flexx2_wide_2 -->
+  <group ns="flexx2_wide_2" if="$(eval 'flexx2_wide_2' in list_of_sensors)">
+    <node pkg="apriltag_ros" type="apriltag_ros_continuous_node" name="apriltag_ros_continuous_node" clear_params="true" output="screen">
+      <remap from="image_rect" to="/royale_cam_flexx2_wide_2/gray_image_0_mono8"/>
+      <remap from="camera_info" to="/royale_cam_flexx2_wide_2/camera_info"/>
+      <param name="publish_tag_detections_image" type="bool" value="true"/>
+      <param name="queue_size" type="int" value="1"/>
+      <param name="publish_tf" value="false"/>
+      <rosparam command="load" file="$(find apriltag_ros)/config/settings.yaml"/>
+      <rosparam command="load" file="$(find moma_bringup)/config/apriltags.yaml"/>
+    </node>
+    <node pkg="moma_bringup" type="apriltag_tf_tree_builder.py" name="apriltag_tf_tree_builder" output="screen">
+      <remap from="apriltag_detection" to="/flexx2_wide_2/tag_detections"/>
+      <param name="camera_root_frame_id" value="royale_flexx2_wide_2_link"/>
+      <param name="base_frame_id" value="april_world"/>
+    </node>
+  </group>
+  <!-- flexx2_vga_1 -->
+  <group ns="flexx2_vga_1" if="$(eval 'flexx2_vga_1' in list_of_sensors)">
+    <node pkg="apriltag_ros" type="apriltag_ros_continuous_node" name="apriltag_ros_continuous_node" clear_params="true" output="screen">
+      <remap from="image_rect" to="/royale_cam_flexx2_vga_1/gray_image_1_mono8"/>
+      <remap from="camera_info" to="/royale_cam_flexx2_vga_1/camera_info"/>
+      <param name="publish_tag_detections_image" type="bool" value="true"/>
+      <param name="queue_size" type="int" value="1"/>
+      <param name="publish_tf" value="false"/>
+      <rosparam command="load" file="$(find apriltag_ros)/config/settings.yaml"/>
+      <rosparam command="load" file="$(find moma_bringup)/config/apriltags.yaml"/>
+    </node>
+    <node pkg="moma_bringup" type="apriltag_tf_tree_builder.py" name="apriltag_tf_tree_builder" output="screen">
+      <remap from="apriltag_detection" to="/flexx2_vga_1/tag_detections"/>
+      <param name="camera_root_frame_id" value="royale_flexx2_vga_1_link"/>
+      <param name="base_frame_id" value="april_world"/>
+    </node>
+  </group>
 </launch>
