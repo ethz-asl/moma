@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <launch>
   <arg name="robot_id" default="giraffe" />
-  <arg name="controller" default="effort_joint_trajectory_controller" />
   <arg name="robot_ip" default="$(env FRANKA_IP)" />
   <arg name="use_bota" default="false" />
   <arg name="moveit" default="true" />
@@ -11,7 +10,15 @@
   <arg name="arm_id" default="panda" />
   <arg name="use_gripper" default="true" />
 
+  <arg name="controller" if="$(arg moveit)" default="effort_joint_trajectory_controller" />
+  <arg name="controller" unless="$(arg moveit)" default="cartesian_impedance_example_controller" />
+
   <param name="move_group/default_planning_pipeline" value="ompl" />
+
+  <!-- If we don't do moveit, start the interactive markers. -->
+  <arg name="interactive_marker"
+    default="$(eval arg('controller') == 'cartesian_impedance_example_controller')"
+    doc="Should the interactive marker node be started?" />
 
   <!-- Arm controllers -->
   <group ns="panda">
@@ -40,6 +47,11 @@
       <arg name="load_joint_state" value="true"/>
     </include>
 
+    <!-- Controller settings. -->
+    <rosparam command="load"
+      file="$(find franka_example_controllers)/config/franka_example_controllers.yaml"
+      subst_value="true" />
+
     <!-- Start required controller -->
     <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false"
       output="screen" args="$(arg controller)" />
@@ -50,6 +62,21 @@
       <arg name="load_gripper" value="$(arg use_gripper)"/>
       <arg name="pipeline" value="ompl" />
     </include>
+
+    <!-- Add collision scene -->
+    <node if="$(arg moveit)" name ="moveit_publish_scene_from_text"
+      pkg= "moveit_ros_planning"
+      type = "moveit_publish_scene_from_text"
+      args= "$(arg scene_file)"/>
+
+    <!-- Start only if cartesian_impedance_example_controller -->
+    <node name="interactive_marker"
+      pkg="franka_example_controllers"
+      type="interactive_marker.py"
+      if="$(arg interactive_marker)">
+      <param name="link_name" value="$(arg arm_id)_link0" />
+      <remap to="cartesian_impedance_example_controller/equilibrium_pose" from="equilibrium_pose" />
+    </node>
 
   </group>
 
