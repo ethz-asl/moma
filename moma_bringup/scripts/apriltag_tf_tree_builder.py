@@ -13,8 +13,6 @@ class AprilTagTransformPublisher:
     def __init__(self):
         self.camera_root_frame_id = rospy.get_param('~camera_root_frame_id', default='root_cam1')
         self.base_frame_id = rospy.get_param('~base_frame_id', 'april_tag_0')
-        print(self.camera_root_frame_id)
-        print(self.base_frame_id)
         # Initialize a tf2 broadcaster
         self.tf_broadcaster = tf2_ros.TransformBroadcaster()
         self.tf_buffer = tf2_ros.Buffer()
@@ -39,10 +37,11 @@ class AprilTagTransformPublisher:
                 T_cam_tag_tf.position.z
             ])
 
+            
             # get T_camroot_cam
             try:
                 # Lookup the transform from 'target_frame' to 'source_frame'
-                T_camroot_cam_tfs = self.tf_buffer.lookup_transform(detection.pose.header.frame_id, self.camera_root_frame_id, rospy.Time(0), rospy.Duration(4.0))
+                T_camroot_cam_tfs = self.tf_buffer.lookup_transform(self.camera_root_frame_id, detection.pose.header.frame_id, rospy.Time(0), rospy.Duration(4.0))
 
             except (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException) as e:
                 rospy.logerr(e)
@@ -65,7 +64,7 @@ class AprilTagTransformPublisher:
             # get T_tag_camroot
             T_tag_camroot = tft.inverse_matrix(T_camroot_tag)
 
-            # send off
+            # send off           
             q_tag_camroot = tft.quaternion_from_matrix(T_tag_camroot)
             T_tag_camroot_tfs = geometry_msgs.msg.TransformStamped()
             T_tag_camroot_tfs.transform.rotation.x = q_tag_camroot[0]
@@ -80,6 +79,7 @@ class AprilTagTransformPublisher:
             T_tag_camroot_tfs.child_frame_id = self.camera_root_frame_id
             # publish the transform
             self.tf_broadcaster.sendTransform(T_tag_camroot_tfs)
+
 
 if __name__ == '__main__':
     rospy.init_node('april_tag_transform_publisher')
