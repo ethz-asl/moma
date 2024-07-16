@@ -19,6 +19,9 @@ apt-get -qq update && apt-get install -y git wget autoconf automake nano \
     doxygen libopencv-dev \
     libpoco-dev libtbb-dev libblas-dev liblapack-dev libv4l-dev
 
+apt-get install -y python3-dev python3-pip python3-scipy \
+    python3-matplotlib ipython3 python3-wxgtk4.0 python3-tk python3-igraph python3-pyx
+
 # Install the source code in ROS
 cd $MOMA_DEP_WS/src
 vcs import --recursive --input $SCRIPTS_PATH/moma_drivers.repos
