@@ -44,7 +44,7 @@ def calculate_transform():
         ])
 
     T_Aold_Bold = tft.quaternion_matrix([
-                t_Aold_Bold[0],
+                q_Aold_Bold[0],
                 q_Aold_Bold[1],
                 q_Aold_Bold[2],
                 q_Aold_Bold[3]
@@ -58,7 +58,7 @@ def calculate_transform():
     # query T_Aold_Anew from tree.
     try:
         # Lookup the transform from 'target_frame' to 'source_frame'
-        T_Aold_Anew_tfs = tf_buffer.lookup_transform(frame_A_new, frame_A_old, rospy.Time(0), rospy.Duration(1.0))
+        T_Aold_Anew_tfs = tf_buffer.lookup_transform(frame_A_old, frame_A_new, rospy.Time(0), rospy.Duration(1.0))
 
     except (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException) as e:
         rospy.logerr(e)
@@ -67,7 +67,7 @@ def calculate_transform():
     # query T_Bold_Bnew from tree.
     try:
         # Lookup the transform from 'target_frame' to 'source_frame'
-        T_Bold_Bnew_tfs = tf_buffer.lookup_transform(frame_B_new, frame_B_old, rospy.Time(0), rospy.Duration(1.0))
+        T_Bold_Bnew_tfs = tf_buffer.lookup_transform(frame_B_old, frame_B_new, rospy.Time(0), rospy.Duration(1.0))
 
     except (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException) as e:
         rospy.logerr(e)
@@ -80,7 +80,7 @@ def calculate_transform():
     # T_Aold_Bnew = T_Aold_Anew*T_Anew_Bnew <-> inv(T_Aold_Anew)*T_Aold_Bnew = T_Anew_Bnew
     T_Anew_Bnew = tft.concatenate_matrices(tft.inverse_matrix(T_Aold_Anew), T_Aold_Bnew)
 
-    # send off           
+    # send off          
     q_Anew_Bnew = tft.quaternion_from_matrix(T_Anew_Bnew)
     T_Anew_Bnew_tfs = geometry_msgs.msg.TransformStamped()
     T_Anew_Bnew_tfs.transform.rotation.x = q_Anew_Bnew[0]
@@ -98,8 +98,7 @@ def calculate_transform():
     static_tf_broadcaster.sendTransform(T_Anew_Bnew_tfs)
     rospy.sleep(1)
     static_tf_broadcaster.sendTransform(T_Anew_Bnew_tfs)
-
-
+    
 if __name__ == '__main__':
     try:
         calculate_transform()
