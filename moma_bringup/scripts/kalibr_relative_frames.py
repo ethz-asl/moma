@@ -36,12 +36,35 @@ def calculate_transform():
     frame_B_new = rospy.get_param('~frame_B_new', 'rs_435_3_link')
 
     # Get the transformation parameters from the parameter server
+    # monday's calib
+    # t_Aold_Bold = rospy.get_param('~t_Aold_Bold', [
+    #     -0.39130816, -0.06038239,  0.00833181,
+    #     ])
+    # q_Aold_Bold = rospy.get_param('~q_Aold_Bold', [
+    #     -0.01799114,  0.03961728,  0.99873369,  0.02525492
+    #     ])
+    # tuesday's pinhole-equi calib
+    # t_Aold_Bold = rospy.get_param('~t_Aold_Bold', [
+    #     -0.37748253, -0.06573045, -0.0135416,
+    #     ])
+    # q_Aold_Bold = rospy.get_param('~q_Aold_Bold', [
+    #     -0.0353551,   0.0491008,   0.99792125,  0.02218803
+    #     ])
+    # tuesday's pinhole-radtan calib
+    # t_Aold_Bold = rospy.get_param('~t_Aold_Bold', [
+    #     -0.3771108,  -0.06519027,  0.00191424,
+    #     ])
+    # q_Aold_Bold = rospy.get_param('~q_Aold_Bold', [
+    #     -0.02814604,  0.04630523,  0.99822576,  0.02467723,
+    #     ])
+    # tuesday's pinhole-radtan calib from 2024-07-16-16-56-47
     t_Aold_Bold = rospy.get_param('~t_Aold_Bold', [
-        -0.39130816, -0.06038239,  0.00833181,
+        -0.39105359, -0.05776049,  0.00991936,
         ])
     q_Aold_Bold = rospy.get_param('~q_Aold_Bold', [
-        -0.01799114,  0.03961728,  0.99873369,  0.02525492
+        -0.01566703,  0.04471086,  0.99859599,  0.02369678,
         ])
+
 
     T_Aold_Bold = tft.quaternion_matrix([
                 q_Aold_Bold[0],

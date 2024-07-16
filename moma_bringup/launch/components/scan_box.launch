@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
 <launch>
-  <arg name='list_of_sensors' default='[rs_435_2, rs_435_3, flexx2_vga_1]'/>
+  <arg name='list_of_sensors' default='[rs_435_2, rs_435_3]'/>
+  <arg name="rs_fps" default="30"/>
   <!-- All options: 
   * rs_435_1, serial-no: 231522070510, default use-case: wrist-cam, a.k.a. Cam3 or WristCam
   * rs_435_2, serial-no: 838212070495, default use-case: fixed-cam, a.k.a. MaplabCam
@@ -50,6 +51,10 @@
   * IR_3FPS
   * IR_2FPS
   * IR_1FPS
+  
+  === Options for rs_435 ===
+  * color_fps {6, 15, 30}
+  * color_width X color_height (640 X 480), (1280 X 720) 
   -->
 
   <!-- ====== SENSORS ========= -->
@@ -57,63 +62,67 @@
   <include if="$(eval 'rs_435_1' in list_of_sensors)"
     file="$(find realsense2_camera)/launch/rs_camera.launch">
     <arg name="camera" value="rs_435_1" />
-    <arg name="depth_width" value="640" />
-    <arg name="depth_height" value="480" />
-    <arg name="depth_fps" value="30" />
-    <arg name="enable_pointcloud" value="true" />
-    <arg name="publish_tf" value="true" />
     <arg name="serial_no" value="231522070510" />
-    <arg name="color_fps" value="30"/>
+    <arg name="publish_tf" value="true" />
+    <arg name="enable_pointcloud" value="true"/>
+    <arg name="depth_width" value="848"/>
+    <arg name="depth_height" value="480"/>
+    <arg name="depth_fps" value="$(arg rs_fps)"/>
+    <arg name="enable_depth" value="true"/>
+    <arg name="color_width" value="1280"/>
+    <arg name="color_height" value="720"/>
+    <arg name="color_fps" value="$(arg rs_fps)"/>
+    <arg name="enable_color" value="true"/>
   </include>
 
   <!-- Launch rs_435_2 -->
   <include if="$(eval 'rs_435_2' in list_of_sensors)"
     file="$(find realsense2_camera)/launch/rs_camera.launch">
     <arg name="camera" value="rs_435_2" />
-    <arg name="depth_width" value="640" />
-    <arg name="depth_height" value="480" />
-    <arg name="depth_fps" value="30" />
-    <arg name="enable_pointcloud" value="true" />
-    <arg name="publish_tf" value="true" />
     <arg name="serial_no" value="838212070495" />
-    <arg name="color_fps" value="5"/>
+    <arg name="publish_tf" value="true" />
+    <arg name="enable_pointcloud" value="true"/>
+    <arg name="depth_width" value="848"/>
+    <arg name="depth_height" value="480"/>
+    <arg name="depth_fps" value="$(arg rs_fps)"/>
+    <arg name="enable_depth" value="true"/>
+    <arg name="color_width" value="1280"/>
+    <arg name="color_height" value="720"/>
+    <arg name="color_fps" value="$(arg rs_fps)"/>
+    <arg name="enable_color" value="true"/>
   </include>
 
   <!-- Launch rs_435_3 -->
   <include if="$(eval 'rs_435_3' in list_of_sensors)"
     file="$(find realsense2_camera)/launch/rs_camera.launch">
     <arg name="camera" value="rs_435_3" />
-    <arg name="depth_width" value="640" />
-    <arg name="depth_height" value="480" />
-    <arg name="depth_fps" value="30" />
-    <arg name="enable_pointcloud" value="true" />
-    <arg name="publish_tf" value="true" />
     <arg name="serial_no" value="231522070761" />
-    <arg name="color_fps" value="5"/>
+    <arg name="publish_tf" value="true" />
+    <arg name="enable_pointcloud" value="true"/>
+    <arg name="depth_width" value="848"/>
+    <arg name="depth_height" value="480"/>
+    <arg name="depth_fps" value="$(arg rs_fps)"/>
+    <arg name="enable_depth" value="true"/>
+    <arg name="color_width" value="1280"/>
+    <arg name="color_height" value="720"/>
+    <arg name="color_fps" value="$(arg rs_fps)"/>
+    <arg name="enable_color" value="true"/>
   </include>
 
   <!-- Launch rs_455_1 -->
   <include if="$(eval 'rs_455_1' in list_of_sensors)"
     file="$(find realsense2_camera)/launch/rs_camera.launch">
     <arg name="camera" value="rs_455_1" />
-    <arg name="depth_width" value="640" />
-    <arg name="depth_height" value="480" />
-    <arg name="depth_fps" value="30" />
-    <arg name="enable_pointcloud" value="true" />
-    <arg name="publish_tf" value="true" />
     <arg name="serial_no" value="151422254198" />
+    <arg name="publish_tf" value="true" />
   </include>
 
   <!-- Launch rs_455_2-->
   <include if="$(eval 'rs_455_2' in list_of_sensors)"
     file="$(find realsense2_camera)/launch/rs_camera.launch">
     <arg name="camera" value="rs_455_2" />
-    <arg name="depth_width" value="640" />
-    <arg name="depth_height" value="480" />
-    <arg name="depth_fps" value="30" />
-    <arg name="enable_pointcloud" value="true" />
-    <arg name="publish_tf" value="true" />
     <arg name="serial_no" value="215122253417" />
+    <arg name="publish_tf" value="true" />
   </include>
 
   <!-- Launch flexx2_wide_1-->
