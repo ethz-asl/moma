@@ -8,17 +8,34 @@ find_package(catkin REQUIRED COMPONENTS
   moveit_ros_planning_interface
 )
 
+add_compile_options(-std=c++17 -Wpedantic -Wall -Warray-bounds)
 
 catkin_package(
   CATKIN_DEPENDS roscpp std_msgs moveit_core moveit_ros_planning_interface 
 )
 
+###########
+## Build ##
+###########
+
 include_directories(
+  include
   ${catkin_INCLUDE_DIRS}
 )
 
-add_executable(giraffe_panda_safe src/giraffe_panda_safe.cpp)
-add_dependencies(giraffe_panda_safe ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(giraffe_panda_safe
+add_executable(giraffe_moveit src/giraffe_moveit.cpp)
+
+add_dependencies(giraffe_moveit ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+target_link_libraries(giraffe_moveit
   ${catkin_LIBRARIES}
+)
+
+#############
+## Install ##
+#############
+install(DIRECTORY include/${PROJECT_NAME}/
+  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+  FILES_MATCHING PATTERN "*.h"
+  PATTERN ".svn" EXCLUDE
 )
