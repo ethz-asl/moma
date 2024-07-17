@@ -12,10 +12,7 @@
 #include <moveit_msgs/DisplayRobotState.h>
 #include <moveit_msgs/DisplayTrajectory.h>
 
-#include <moveit_msgs/AttachedCollisionObject.h>
-#include <moveit_msgs/CollisionObject.h>
-
-#include <moveit_visual_tools/moveit_visual_tools.h>
+#include <std_srvs/Trigger.h>
 
 #include <ros/ros.h>
 
@@ -24,6 +21,8 @@ public:
   GiraffeMoveItUtils(ros::NodeHandle &nh);
 
   bool goToSafePos();
+  bool goToSafePosCB(std_srvs::Trigger::Request &_,
+                     std_srvs::Trigger::Response &res);
 
 private:
   ros::AsyncSpinner _spinner;
@@ -37,8 +36,11 @@ private:
   void loadParameters();
   void setup();
   void printMoveItInfo();
-  bool goToJointGoal(const std::vector<double>& joints);
-  bool atJoints(const std::vector<double>& joints, const double tolerance=1e-3);
+  bool goToJointGoal(const std::vector<double> &joints);
+  bool atJoints(const std::vector<double> &joints,
+                const double tolerance = 1e-3);
+
+  ros::ServiceServer _srv;
 };
 
 #endif // GIRAFFE_MOVEIT_H

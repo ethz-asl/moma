@@ -23,7 +23,7 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-add_executable(giraffe_moveit src/giraffe_moveit.cpp)
+add_executable(giraffe_moveit src/giraffe_moveit.cpp src/safe_move_node.cpp)
 
 add_dependencies(giraffe_moveit ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
