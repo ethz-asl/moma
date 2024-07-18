@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# template written by chatGPT.
 
 import rospy
 import tf
@@ -7,6 +8,8 @@ from geometry_msgs.msg import TransformStamped
 import tf2_ros
 import numpy as np
 import geometry_msgs.msg
+
+from moma_bringup.cfg import ExtrinsicsConfig
 
 def homog_mat_from_tfs(T_tfs):
         T_tf = T_tfs.transform
@@ -58,11 +61,18 @@ def calculate_transform():
     #     -0.02814604,  0.04630523,  0.99822576,  0.02467723,
     #     ])
     # tuesday's pinhole-radtan calib from 2024-07-16-16-56-47
+    # t_Aold_Bold = rospy.get_param('~t_Aold_Bold', [
+    #     -0.39105359, -0.05776049,  0.00991936,
+    #     ])
+    # q_Aold_Bold = rospy.get_param('~q_Aold_Bold', [
+    #     -0.01566703,  0.04471086,  0.99859599,  0.02369678,
+    #     ])
+    # wednesday's snapshot bag with Paula
     t_Aold_Bold = rospy.get_param('~t_Aold_Bold', [
-        -0.39105359, -0.05776049,  0.00991936,
+        -0.39136812, -0.05739385,  0.01090286,
         ])
     q_Aold_Bold = rospy.get_param('~q_Aold_Bold', [
-        -0.01566703,  0.04471086,  0.99859599,  0.02369678,
+        -0.01346537,  0.04188808,  0.99875846,  0.02335846,
         ])
 
 
