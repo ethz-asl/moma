@@ -12,4 +12,6 @@
   <depend>royalpanda_moveit_config</depend>
   <depend>moma_description</depend>
   <depend>franka_gazebo</depend>
+  <build_depend>dynamic_reconfigure</build_depend>
+  <exec_depend>dynamic_reconfigure</exec_depend>
 </package>

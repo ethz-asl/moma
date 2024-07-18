@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# template written by chatGPT.
 
 import rospy
 from apriltag_ros.msg import AprilTagDetectionArray
