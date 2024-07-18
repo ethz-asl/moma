@@ -17,10 +17,11 @@ apt-get -qq update && apt-get install -y ros-noetic-franka-ros
 apt-get -qq update && apt-get install -y git wget autoconf automake nano \    
     libeigen3-dev libboost-all-dev libsuitesparse-dev \
     doxygen libopencv-dev \
-    libpoco-dev libtbb-dev libblas-dev liblapack-dev libv4l-dev
+    libpoco-dev libtbb-dev libblas-dev liblapack-dev libv4l-dev libsuitesparse-dev
 
-apt-get install -y python3-dev python3-pip python3-scipy \
-    python3-matplotlib ipython3 python3-wxgtk4.0 python3-tk python3-igraph python3-pyx
+# apt-get install -y python3-dev python3-pip python3-scipy \
+    # python3-matplotlib ipython3 python3-igraph python3-pyx python3-tk
+# apt-get install -y python3-wxgtk4.0
 
 # Install the source code in ROS
 cd $MOMA_DEP_WS/src
