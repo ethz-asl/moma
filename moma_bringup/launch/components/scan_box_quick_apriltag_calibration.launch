@@ -12,7 +12,7 @@
       <rosparam command="load" file="$(find apriltag_ros)/config/settings.yaml"/>
       <rosparam command="load" file="$(find moma_bringup)/config/apriltags.yaml"/>
     </node>
-    <node pkg="moma_bringup" type="apriltag_tf_tree_builder.py" name="apriltag_tf_tree_builder" output="screen">
+    <node pkg="moma_bringup" type="apriltag_tf_tree_builder_node.py" name="apriltag_tf_tree_builder" output="screen">
       <remap from="apriltag_detection" to="/rs_435_1/tag_detections"/>
       <param name="camera_root_frame_id" value="rs_435_1_color_frame"/>
       <param name="base_frame_id" value="april_world"/>
@@ -30,7 +30,7 @@
       <rosparam command="load" file="$(find apriltag_ros)/config/settings.yaml"/>
       <rosparam command="load" file="$(find moma_bringup)/config/apriltags.yaml"/>
     </node>
-    <node pkg="moma_bringup" type="apriltag_tf_tree_builder.py" name="apriltag_tf_tree_builder" output="screen">
+    <node pkg="moma_bringup" type="apriltag_tf_tree_builder_node.py" name="apriltag_tf_tree_builder" output="screen">
       <remap from="apriltag_detection" to="/rs_435_2/tag_detections"/>
       <param name="camera_root_frame_id" value="rs_435_2_link"/>
       <param name="base_frame_id" value="april_world"/>
@@ -47,7 +47,7 @@
       <rosparam command="load" file="$(find apriltag_ros)/config/settings.yaml"/>
       <rosparam command="load" file="$(find moma_bringup)/config/apriltags.yaml"/>
     </node>
-    <node pkg="moma_bringup" type="apriltag_tf_tree_builder.py" name="apriltag_tf_tree_builder" output="screen">
+    <node pkg="moma_bringup" type="apriltag_tf_tree_builder_node.py" name="apriltag_tf_tree_builder" output="screen">
       <remap from="apriltag_detection" to="/rs_435_3/tag_detections"/>
       <param name="camera_root_frame_id" value="rs_435_3_link"/>
       <param name="base_frame_id" value="april_world"/>
@@ -139,4 +139,14 @@
       <param name="base_frame_id" value="april_world"/>
     </node>
   </group>
+
+<rosparam>
+      /kalibr_helper_node/tx: -0.046
+      /kalibr_helper_node/ty: -0.035
+      /kalibr_helper_node/tz: -0.0178
+      /kalibr_helper_node/roll: 0.0
+      /kalibr_helper_node/pitch: 0.0
+      /kalibr_helper_node/yaw: -0.02
+  </rosparam>
+
 </launch>

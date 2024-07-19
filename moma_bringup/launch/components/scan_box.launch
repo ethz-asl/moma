@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <launch>
   <arg name='list_of_sensors' default='[rs_435_2, rs_435_3]'/>
-  <arg name="rs_fps" default="30"/>
+  <arg name="rs_fps" default="6"/>
   <!-- All options: 
   * rs_435_1, serial-no: 231522070510, default use-case: wrist-cam, a.k.a. Cam3 or WristCam
   * rs_435_2, serial-no: 838212070495, default use-case: fixed-cam, a.k.a. MaplabCam
