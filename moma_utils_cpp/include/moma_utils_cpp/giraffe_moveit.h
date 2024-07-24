@@ -1,25 +1,18 @@
 #ifndef GIRAFFE_MOVEIT_H
 #define GIRAFFE_MOVEIT_H
 
-#include "moveit/robot_model/joint_model_group.h"
-#include "ros/forwards.h"
-#include "ros/node_handle.h"
-#include "ros/spinner.h"
-#include <boost/array.hpp>
 #include <condition_variable>
 #include <memory>
+#include <mutex>
+#include <queue>
+#include <thread>
+
 #include <moveit/move_group_interface/move_group_interface.h>
 #include <moveit/planning_scene_interface/planning_scene_interface.h>
-#include <mutex>
-#include <thread>
-#include <queue>
-
-#include <moveit_msgs/DisplayRobotState.h>
-#include <moveit_msgs/DisplayTrajectory.h>
-
-#include <std_srvs/Trigger.h>
+#include <moveit/robot_model/joint_model_group.h>
 
 #include <ros/ros.h>
+#include <std_srvs/Trigger.h>
 
 class GiraffeMoveItUtils {
 public:
@@ -51,7 +44,8 @@ private:
   void loadParameters();
   void setup();
   void printMoveItInfo();
-  bool goToJointGoal(const std::vector<double> &joints,
+  bool
+  goToJointGoal(const std::vector<double> &joints,
                 std::shared_ptr<std_srvs::Trigger::Response> res = nullptr);
   bool atJoints(const std::vector<double> &joints,
                 const double tolerance = 1e-3);

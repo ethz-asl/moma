@@ -26,7 +26,7 @@ GiraffeMoveItUtils::~GiraffeMoveItUtils() {
     std::lock_guard<std::mutex> lock(_mutex);
     _shutdown_planning_thread = true;
   }
-  _cv.notify_one();
+  _cv.notify_one(); // notify goal (shutdown) is requested
   _planning_thread.join();
 }
 
@@ -50,7 +50,7 @@ void GiraffeMoveItUtils::planningThread() {
   while (true) {
     {
       std::unique_lock<std::mutex> lock(_mutex);
-      // thread waits until something is in the queue
+      // thread waits until goal is in the queue
       _cv.wait(lock, [this] {
         return !_planning_queue.empty() || _shutdown_planning_thread;
       });
@@ -61,7 +61,7 @@ void GiraffeMoveItUtils::planningThread() {
       }
 
       joints = _planning_queue.front();
-      _planning_queue.pop();
+      _planning_queue.pop(); // get rid of last goal
     }
     if (goToJointGoal(joints)) {
       ROS_INFO("Checking if robot at joint position");
