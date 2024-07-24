@@ -5,6 +5,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   std_msgs
   moveit_core
+  moveit_visual_tools
   moveit_ros_planning_interface
 )
 
