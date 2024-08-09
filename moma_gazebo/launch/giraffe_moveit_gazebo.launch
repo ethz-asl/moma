@@ -1,6 +1,5 @@
 <?xml version="1.0"?>
 <launch>
-
   <!-- Gazebo & GUI Configuration -->
   <arg name="gazebo" default="true" />
   <arg name="headless" default="false" />
@@ -9,8 +8,10 @@
   <arg name="rviz" default="true" />
 
   <!-- Robot Customization -->
+  <arg name="robot_id" default="giraffe"/>
   <arg name="arm_id" default="panda" />
   <arg name="use_gripper" default="true" />
+  <arg name="moveit" default="true" />
   <arg name="initial_joint_positions"
        default="-J $(arg arm_id)_joint1 0
                 -J $(arg arm_id)_joint2 -0.3927
@@ -36,7 +37,6 @@
 
   <include file="$(find gazebo_ros)/launch/empty_world.launch" if="$(arg gazebo)">
     <arg name="world_name" value="$(arg world)"/>
-    <!-- Always start in paused mode, and only unpause when spawning the model -->
     <arg name="paused" value="true"/>
     <arg name="gui" value="$(eval not arg('headless'))"/>
     <arg name="use_sim_time" value="true"/>
@@ -45,16 +45,33 @@
   <!-- Load robot description  -->
   <param name="robot_description"
     command="$(find xacro)/xacro $(find moma_description)/urdf/giraffe.urdf.xacro
-            use_nominal_extrinsics:=true"/>
+      publish_realsense_extrinsics:=false include_control_plugin:=false simulation:=true"/> 
 
-  <param name="robot_description_arm"
+  <!-- <param name="robot_description_arm"
           command="xacro $(find moma_description)/urdf/panda.urdf.xacro
                   use_nominal_extrinsics:=true
                   gazebo:=true
-                  include_control_plugin:=false"/>
+                  include_control_plugin:=false"/> -->
 
   <!-- Arm controllers -->
   <group ns="panda">
+    <param name="arm_id" value="$(arg arm_id)" />
+    <param name="pipeline" value="ompl" />
+    <param name="move_group/default_planning_pipeline" value="ompl" />
+
+    <!-- Load robot description  -->
+    <param name="robot_description"
+            command="xacro $(find moma_description)/urdf/giraffe.urdf.xacro
+                    publish_realsense_extrinsics:=false
+                    simulation:=true" />
+                    <!-- arm_id:=$(arg arm_id)
+                    parent:=franka_mount_link
+                    gazebo:=true
+                    use_bota:=false
+                    include_control_plugin:=false
+                    use_fixed_camera:=false
+                    use_wrist_camera:=false"/> -->
+
     <rosparam file="$(find franka_gazebo)/config/franka_hw_sim.yaml" subst_value="true" />
     <rosparam file="$(find franka_gazebo)/config/sim_controllers.yaml" subst_value="true" />
     <param name="m_ee" value="0.76" if="$(arg use_gripper)" />
@@ -72,26 +89,36 @@
           respawn="false" output="screen"
           args="--wait-for initialized franka_state_controller effort_joint_trajectory_controller"/>
 
+    <include if="$(arg moveit)" file="$(find giraffe_moveit_config)/launch/move_group.launch">
+      <arg name="load_robot_description" value="false" />
+      <!-- <arg name="load_gripper" value="$(arg use_gripper)"/> -->
+      <arg name="pipeline" value="ompl" />
+    </include>
+
   </group>
 
   <!-- Base controllers -->
-  <arg name="base_id" default="gmp" />
+  <!-- <arg name="base_id" default="gmp" /> -->
   <group ns="mobile_base">
+    <param name="swerve_config_file" value="$(find gmp_robot)/config/platform_description.yaml" />
+    <rosparam file="$(find gmp_robot)/config/platform_description.yaml" command="load"/>
+    <param name="swerve_controller/invert_steering" type="bool" value="false"/>
+
     <param name="robot_description"
       command="$(find xacro)/xacro $(find gmp_robot)/urdf/gmp.urdf.xacro
-      include_control_plugin:=true multiple_robots:=true"/>
-
-    <remap from="/mobile_base/swerve_controller/cmd_vel" to="/cmd_vel"/>
-    <!-- <remap from="/mobile_base/swerve_controller/odom" to="/odom"/> -->
-
-    <rosparam file="$(find gmp_robot)/config/platform_description.yaml" command="load"/>
+      include_control_plugin:=true multiple_robots:=true simulation:=true"/>
 
     <!-- Spawn required packages  -->
     <arg name="base_controller" default="swerve_controller z_axis_sim_controller joint_state_controller" />
-    <include file="$(find gmp_robot)/launch/controller.launch">
-      <arg name="controller" default="$(arg base_controller)" />
-    </include>
-
+    <!-- <node name="$(arg robot_id)_controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="$(arg base_controller)"/> -->
+    <!-- Spawn the controllers  -->
+    <group if="$(arg spawn_controllers)">
+      <include file="$(find gmp_robot)/launch/controller.launch" >
+        <arg name="robot_id" default="$(arg robot_id)"/>
+        <arg name="controller" default="$(arg base_controller)"/>
+        <arg name="multiple_robots" default="true"/>
+      </include>
+    </group>
   </group>
 
   <node name="robot_state_publisher" pkg="robot_state_publisher" 
@@ -107,10 +134,9 @@
   </node>
 
   <!-- Launch MoveIt -->
-  <include file="$(find giraffe_moveit_config)/launch/move_group.launch">
+  <!-- <include file="$(find giraffe_moveit_config)/launch/move_group.launch">
     <arg name="load_robot_description" value="false"/>
-  </include>
- 
+  </include> -->
   <!-- Spawn giraffe -->
   <arg name="unpause" value="$(eval '' if arg('paused') else '-unpause')" />
   <node name="$(arg arm_id)_model_spawner"
