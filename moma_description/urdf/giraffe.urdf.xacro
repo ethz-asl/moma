@@ -10,14 +10,14 @@
   <xacro:arg name="simulation" default="false" />
   <xacro:arg name="publish_realsense_extrinsics" default="true" />
   <xacro:arg name="include_control_plugin" default="false" />
+  <xacro:arg name="z_axis_height" default="0.0"/>
 
-  <xacro:include filename="$(find gmp_robot)/urdf/gmp.xacro"/>
+  <xacro:include filename="$(find gmp_description)/urdf/gmp.xacro"/>
   <xacro:gmp
     include_control_plugin="$(arg include_control_plugin)" 
     multiple_robots="true"
     simulation="$(arg simulation)"
-    
-    />
+    z_axis_height="$(arg z_axis_height)"/>
 
   <link name="franka_mount_link"/>
   <joint name="arm_mount_joint" type="fixed">
@@ -36,7 +36,6 @@
     use_bota="$(arg use_bota)"
     include_control_plugin="$(arg include_control_plugin)"
     multiple_robots="true"
-    publish_realsense_extrinsics="$(arg publish_realsense_extrinsics)"
-    />
+    publish_realsense_extrinsics="$(arg publish_realsense_extrinsics)" />
 
 </robot>
