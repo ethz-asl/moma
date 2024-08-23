@@ -12,7 +12,8 @@
     <arg name="depth_fps" value="30" />
     <arg name="enable_pointcloud" value="true" />
     <arg name="publish_tf" value="true" />
-    <arg name="serial_no" value="828112072238" />
+    <arg name="initial_reset" value="true"/>
+    <!-- <arg name="serial_no" value="828112072238" /> -->
   </include>
 
   <!-- Luanch fixed camera -->
