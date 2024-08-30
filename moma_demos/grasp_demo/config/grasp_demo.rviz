@@ -4,12 +4,9 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
-        - /TF1/Frames1
-        - /RobotModel1
-        - /Quality Cloud1
         - /MarkerArray1/Namespaces1
-      Splitter Ratio: 0.545271635055542
-    Tree Height: 802
+      Splitter Ratio: 0.48490944504737854
+    Tree Height: 808
   - Class: rviz/Selection
     Name: Selection
   - Class: rviz/Tool Properties
@@ -56,10 +53,90 @@ Visualization Manager:
       Reference Frame: <Fixed Frame>
       Value: true
     - Class: rviz/TF
-      Enabled: false
+      Enabled: true
+      Filter (blacklist): ""
+      Filter (whitelist): ""
       Frame Timeout: 15
       Frames:
         All Enabled: false
+        fixed_camera_link:
+          Value: false
+        panda_EE:
+          Value: false
+        panda_K:
+          Value: false
+        panda_NE:
+          Value: false
+        panda_default_ee:
+          Value: true
+        panda_hand:
+          Value: false
+        panda_hand_sc:
+          Value: false
+        panda_hand_tcp:
+          Value: false
+        panda_leftfinger:
+          Value: false
+        panda_link0:
+          Value: false
+        panda_link0_sc:
+          Value: false
+        panda_link1:
+          Value: false
+        panda_link1_sc:
+          Value: false
+        panda_link2:
+          Value: false
+        panda_link2_sc:
+          Value: false
+        panda_link3:
+          Value: false
+        panda_link3_sc:
+          Value: false
+        panda_link4:
+          Value: false
+        panda_link4_sc:
+          Value: false
+        panda_link5:
+          Value: false
+        panda_link5_sc:
+          Value: false
+        panda_link6:
+          Value: false
+        panda_link6_sc:
+          Value: false
+        panda_link7:
+          Value: false
+        panda_link7_sc:
+          Value: false
+        panda_link8:
+          Value: true
+        panda_rightfinger:
+          Value: false
+        task:
+          Value: false
+        world:
+          Value: false
+        wrist_camera_bottom_screw_frame:
+          Value: false
+        wrist_camera_color_frame:
+          Value: false
+        wrist_camera_color_optical_frame:
+          Value: false
+        wrist_camera_depth_frame:
+          Value: false
+        wrist_camera_depth_optical_frame:
+          Value: false
+        wrist_camera_infra1_frame:
+          Value: false
+        wrist_camera_infra1_optical_frame:
+          Value: false
+        wrist_camera_infra2_frame:
+          Value: false
+        wrist_camera_infra2_optical_frame:
+          Value: false
+        wrist_camera_link:
+          Value: false
       Marker Alpha: 1
       Marker Scale: 0.30000001192092896
       Name: TF
@@ -67,9 +144,67 @@ Visualization Manager:
       Show Axes: true
       Show Names: false
       Tree:
-        {}
+        world:
+          fixed_camera_link:
+            {}
+          panda_link0:
+            panda_link0_sc:
+              {}
+            panda_link1:
+              panda_link1_sc:
+                {}
+              panda_link2:
+                panda_link2_sc:
+                  {}
+                panda_link3:
+                  panda_link3_sc:
+                    {}
+                  panda_link4:
+                    panda_link4_sc:
+                      {}
+                    panda_link5:
+                      panda_link5_sc:
+                        {}
+                      panda_link6:
+                        panda_link6_sc:
+                          {}
+                        panda_link7:
+                          panda_link7_sc:
+                            {}
+                          panda_link8:
+                            panda_NE:
+                              panda_EE:
+                                panda_K:
+                                  {}
+                            panda_default_ee:
+                              {}
+                            panda_hand:
+                              panda_hand_sc:
+                                {}
+                              panda_hand_tcp:
+                                {}
+                              panda_leftfinger:
+                                {}
+                              panda_rightfinger:
+                                {}
+                            wrist_camera_bottom_screw_frame:
+                              wrist_camera_link:
+                                wrist_camera_color_frame:
+                                  wrist_camera_color_optical_frame:
+                                    {}
+                                wrist_camera_depth_frame:
+                                  wrist_camera_depth_optical_frame:
+                                    {}
+                                wrist_camera_infra1_frame:
+                                  wrist_camera_infra1_optical_frame:
+                                    {}
+                                wrist_camera_infra2_frame:
+                                  wrist_camera_infra2_optical_frame:
+                                    {}
+            task:
+              {}
       Update Interval: 0
-      Value: false
+      Value: true
     - Alpha: 1
       Class: rviz/RobotModel
       Collision Enabled: false
@@ -446,6 +581,22 @@ Visualization Manager:
         grasp: true
         roi: true
       Queue Size: 100
+      Value: true
+    - Alpha: 1
+      Axes Length: 0.05000000074505806
+      Axes Radius: 0.004999999888241291
+      Class: rviz/Pose
+      Color: 255; 25; 0
+      Enabled: true
+      Head Length: 0.30000001192092896
+      Head Radius: 0.10000000149011612
+      Name: Pose
+      Queue Size: 10
+      Shaft Length: 1
+      Shaft Radius: 0.05000000074505806
+      Shape: Axes
+      Topic: /target
+      Unreliable: false
       Value: true
   Enabled: true
   Global Options:
