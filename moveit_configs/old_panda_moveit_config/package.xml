@@ -1,7 +1,7 @@
 <package>
 
   <name>panda_moveit_config</name>
-  <version>0.8.1</version>
+  <version>0.3.0</version>
   <description>
      An automatically generated package with all the configuration and launch files for using the panda with the MoveIt Motion Planning Framework
   </description>
@@ -11,8 +11,8 @@
   <license>BSD</license>
 
   <url type="website">http://moveit.ros.org/</url>
-  <url type="bugtracker">https://github.com/ros-planning/moveit/issues</url>
-  <url type="repository">https://github.com/ros-planning/moveit</url>
+  <url type="bugtracker">https://github.com/moveit/moveit/issues</url>
+  <url type="repository">https://github.com/moveit/moveit</url>
 
   <buildtool_depend>catkin</buildtool_depend>
 
@@ -35,7 +35,7 @@
   <!-- <run_depend>gazebo_ros_control</run_depend> -->
   <!-- This package is referenced in the warehouse launch files, but does not build out of the box at the moment. Commented the dependency until this works. -->
   <!-- <run_depend>warehouse_ros_mongo</run_depend> -->
-  <run_depend version_gte="0.10.0">franka_description</run_depend>
-  <run_depend>moma_description</run_depend>
+  <run_depend>franka_description</run_depend>
+
 
 </package>
