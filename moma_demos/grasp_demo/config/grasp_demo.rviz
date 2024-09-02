@@ -24,7 +24,7 @@ Panels:
   - Class: rviz/Time
     Name: Time
     SyncMode: 0
-    SyncSource: SceneCloud
+    SyncSource: RSCloud
   - Class: control_gui/ButtonPanel
     Name: Mission Control
 Preferences:
