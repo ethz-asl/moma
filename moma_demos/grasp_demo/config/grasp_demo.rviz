@@ -558,7 +558,6 @@ Visualization Manager:
       Marker Topic: /manipulator/visualization_marker_array
       Name: MarkerArray
       Namespaces:
-        grasp: true
         roi: true
       Queue Size: 100
       Value: true
@@ -606,7 +605,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 0.20020943880081177
+      Distance: 1.2394839525222778
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -622,9 +621,9 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: -0.11020336300134659
+      Pitch: 0.2547966241836548
       Target Frame: <Fixed Frame>
-      Yaw: 5.21984338760376
+      Yaw: 5.619847774505615
     Saved: ~
 Window Geometry:
   Displays:
