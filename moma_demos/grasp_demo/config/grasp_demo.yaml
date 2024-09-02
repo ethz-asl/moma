@@ -1,9 +1,9 @@
 base_frame_id: panda_link0
-ee_grasp_offset_z: -0.02 #-0.02 #-0.04 # More negative is LOWER into the object
+ee_grasp_offset_z: -0.04 #-0.02 #-0.04 # More negative is LOWER into the object
 # ee_grasp_offset_x: 0.010
 
 task_frame_id: task
-table_height: 0.14 #0.25 #-0.05 #0.14  # Measured from the base frame specified above
+table_height: 0.20 #0.25 #-0.05 #0.14  # Measured from the base frame specified above
 
 workspaces:
 - scan_joints: 
