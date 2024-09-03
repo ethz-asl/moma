@@ -11,10 +11,7 @@
     <rosparam command="load" file="$(find grasp_demo)/config/grasp_demo.yaml" ns="moma_demo" subst_value="true"/>
 
     <!-- Panda -->
-    <!-- <include file="$(find moma_bringup)/launch/panda_moveit_real_camera.launch">
-        <arg name="simulation_mode" value="$(arg simulation_mode)"/>
-    </include> -->
-    <include file="$(find moma_bringup)/launch/panda_real.launch">
+     <include file="$(find moma_bringup)/launch/panda_real.launch">
         <arg name="rviz" value="false"/>
     </include>
     <include file="$(find moma_bringup)/launch/components/sensors.launch">
