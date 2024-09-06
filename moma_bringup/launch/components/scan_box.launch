@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <launch>
-  <arg name='list_of_sensors' default='[rs_435_2, rs_435_3]'/>
-  <arg name="rs_fps" default="15"/>
+  <arg name='list_of_sensors' default='[rs_435_1, rs_435_2, rs_435_3]'/>
+  <arg name="rs_fps" default="6"/>
   <arg name="calibration_mode" value="true"/>
   <!-- All options: 
   * rs_435_1, serial-no: 231522070510, default use-case: wrist-cam, a.k.a. Cam3 or WristCam
@@ -67,15 +67,11 @@
     <arg name="serial_no" value="231522070510" />
     <arg name="publish_tf" value="true" />
     <arg name="enable_pointcloud" value="true"/>
-    <arg name="depth_width" value="848"/>
-    <arg name="depth_height" value="480"/>
-    <arg name="depth_fps" value="$(arg rs_fps)"/>
     <arg name="enable_depth" value="true"/>
-    <arg name="color_width" value="1280"/>
-    <arg name="color_height" value="720"/>
-    <arg name="color_fps" value="$(arg rs_fps)"/>
     <arg name="enable_color" value="true"/>
-    <!-- <arg name="filters" value="temporal, spatial"/> -->
+    <arg name="enable_infra1" value="false"/>
+    <arg name="infra_fps" value="6"/>
+    <arg name="filters" value="temporal, spatial"/>
   </include>
   <rosparam>
       /rs_435_1/temporal/filter_smooth_delta: 100
@@ -91,6 +87,7 @@
     <arg name="enable_depth" value="true"/>
     <arg name="enable_color" value="true"/>
     <arg name="enable_infra1" value="true"/>
+    <arg name="infra_fps" value="6"/>
     <arg name="filters" value="temporal, spatial"/>
   </include>
   <rosparam>
@@ -107,6 +104,7 @@
     <arg name="enable_depth" value="true"/>
     <arg name="enable_color" value="true"/>
     <arg name="enable_infra1" value="true"/>
+    <arg name="infra_fps" value="6"/>
     <arg name="filters" value="temporal, spatial"/>
   </include>
   <rosparam>

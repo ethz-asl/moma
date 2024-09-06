@@ -50,6 +50,7 @@ class AprilTagTransformPublisher:
         return resp
 
     def calibrate_callback_srv_cb(self, request):
+        print('calibrate_callback_srv_cb: ', self.camera_root_frame_id)
         # Iterate through the detected tags
         for detection in self.last_msg.detections:
             # get T_cam_tag
@@ -105,6 +106,9 @@ class AprilTagTransformPublisher:
             T_tag_camroot_tfs.header = detection.pose.header
             T_tag_camroot_tfs.header.frame_id = self.base_frame_id
             T_tag_camroot_tfs.child_frame_id = self.camera_root_frame_id
+            print('Will send: ' + self.base_frame_id + ' to ' + self.camera_root_frame_id)
+            print('T_tag_camroot ' + str(T_tag_camroot))
+            print('Stamp ' + str(T_tag_camroot_tfs.header.stamp))
             # publish the transform
             if self.continuous_calibration:
                 self.tf_broadcaster.sendTransform(T_tag_camroot_tfs)

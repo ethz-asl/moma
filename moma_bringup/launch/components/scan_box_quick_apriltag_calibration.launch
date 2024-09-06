@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
 <launch>
-  <arg name="list_of_sensors" default="[rs_435_2]"/>
+  <arg name="list_of_sensors" default="[]"/>
+
 <!-- All options: 
   * rs_435_1, serial-no: 231522070510, default use-case: wrist-cam, a.k.a. Cam3 or WristCam
   * rs_435_2, serial-no: 838212070495, default use-case: fixed-cam, a.k.a. MaplabCam
@@ -8,6 +9,10 @@
   * flexx2_vga_1, serial-no: 903F-29C5-2C26-3C10, default use-case: fixed-cam, a.k.a. Cam0
   * flexx2_vga_2, serial-no: 8E3C-29C7-2C26-1E7C, default use-case: fixed-cam, a.k.a. Cam0
   -->
+
+  <!-- Hacky Hack Hack: from rs1-> rs2-->
+  <node pkg="tf" type="static_transform_publisher" name="link1_broadcaster" args="-0.406 0.250 0.413 0.979 -0.059 -0.193 0.015 wrist_camera_link rs_435_2_link 100" />
+  <node pkg="tf" type="static_transform_publisher" name="link2_broadcaster" args="0.0 0.0 0.0 0.0 0.0 0.0 wrist_camera_link rs_435_1_link 100" />
 
   <!-- rs_435_1 -->
   <group ns="rs_435_1" if="$(eval 'rs_435_1' in list_of_sensors)">
@@ -19,12 +24,13 @@
       <param name="publish_tag_detections_image" type="bool" value="true"/>
       <param name="queue_size" type="int" value="1"/>
       <param name="publish_tf" value="false"/>
+
       <rosparam command="load" file="$(find apriltag_ros)/config/settings.yaml"/>
       <rosparam command="load" file="$(find moma_bringup)/config/apriltags.yaml"/>
     </node>
     <node pkg="moma_bringup" type="apriltag_tf_tree_builder_node.py" name="apriltag_tf_tree_builder" output="screen">
       <remap from="apriltag_detection" to="/rs_435_1/tag_detections"/>
-      <param name="camera_root_frame_id" value="rs_435_1_color_frame"/>
+      <param name="camera_root_frame_id" value="rs_435_1_link"/>
       <param name="base_frame_id" value="april_world"/>
     </node>
   </group>
