@@ -175,7 +175,7 @@
     <joint name="joint_link8_default_ee" type="fixed">
       <parent link="${arm_id}_link8"/>
       <child link="${arm_id}_default_ee"/>
-      <origin rpy="0.0 0.0 -0.785" xyz="0.0 0.0 0.103"/>
+      <origin rpy="0 0 ${-pi/4}" xyz="${tcp_xyz}"/> 
     </joint>
 
   </xacro:macro>
