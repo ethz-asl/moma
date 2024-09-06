@@ -1,0 +1,471 @@
+Panels:
+  - Class: rviz/Displays
+    Help Height: 0
+    Name: Displays
+    Property Tree Widget:
+      Expanded:
+        - /Global Options1
+        - /Status1
+        - /rs_435_21
+        - /rs_435_21/rs_435_21
+        - /rs_435_31
+      Splitter Ratio: 0.5
+    Tree Height: 421
+  - Class: rviz/Selection
+    Name: Selection
+  - Class: rviz/Tool Properties
+    Expanded:
+      - /2D Pose Estimate1
+      - /2D Nav Goal1
+      - /Publish Point1
+    Name: Tool Properties
+    Splitter Ratio: 0.5886790156364441
+  - Class: rviz/Views
+    Expanded:
+      - /Current View1
+    Name: Views
+    Splitter Ratio: 0.5
+  - Class: rviz/Time
+    Name: Time
+    SyncMode: 0
+    SyncSource: rs_435_3 (IR)
+Preferences:
+  PromptSaveOnExit: true
+Toolbars:
+  toolButtonStyle: 2
+Visualization Manager:
+  Class: ""
+  Displays:
+    - Alpha: 0.5
+      Cell Size: 1
+      Class: rviz/Grid
+      Color: 160; 160; 164
+      Enabled: true
+      Line Style:
+        Line Width: 0.029999999329447746
+        Value: Lines
+      Name: Grid
+      Normal Cell Count: 0
+      Offset:
+        X: 0
+        Y: 0
+        Z: 0
+      Plane: XY
+      Plane Cell Count: 10
+      Reference Frame: <Fixed Frame>
+      Value: true
+    - Class: rviz/TF
+      Enabled: true
+      Filter (blacklist): ""
+      Filter (whitelist): ""
+      Frame Timeout: 15
+      Frames:
+        All Enabled: false
+        april_world:
+          Value: true
+        rs_435_2_color_frame:
+          Value: true
+        rs_435_2_color_optical_frame:
+          Value: true
+        rs_435_2_depth_frame:
+          Value: true
+        rs_435_2_depth_optical_frame:
+          Value: true
+        rs_435_2_infra1_frame:
+          Value: true
+        rs_435_2_infra1_optical_frame:
+          Value: true
+        rs_435_2_link:
+          Value: true
+        rs_435_3_color_frame:
+          Value: true
+        rs_435_3_color_optical_frame:
+          Value: true
+        rs_435_3_depth_frame:
+          Value: true
+        rs_435_3_depth_optical_frame:
+          Value: true
+        rs_435_3_infra1_frame:
+          Value: true
+        rs_435_3_infra1_optical_frame:
+          Value: true
+        rs_435_3_link:
+          Value: true
+      Marker Alpha: 1
+      Marker Scale: 1
+      Name: TF
+      Show Arrows: true
+      Show Axes: true
+      Show Names: true
+      Tree:
+        april_world:
+          rs_435_2_link:
+            rs_435_2_color_frame:
+              rs_435_2_color_optical_frame:
+                {}
+            rs_435_2_depth_frame:
+              rs_435_2_depth_optical_frame:
+                {}
+            rs_435_2_infra1_frame:
+              rs_435_2_infra1_optical_frame:
+                {}
+            rs_435_3_link:
+              rs_435_3_color_frame:
+                rs_435_3_color_optical_frame:
+                  {}
+              rs_435_3_depth_frame:
+                rs_435_3_depth_optical_frame:
+                  {}
+              rs_435_3_infra1_frame:
+                rs_435_3_infra1_optical_frame:
+                  {}
+      Update Interval: 0
+      Value: true
+    - Class: rviz/Group
+      Displays:
+        - Class: rviz/Image
+          Enabled: false
+          Image Topic: /rs_435_2/color/image_raw
+          Max Value: 1
+          Median window: 5
+          Min Value: 0
+          Name: rs_435_2 (RGB)
+          Normalize Range: true
+          Queue Size: 2
+          Transport Hint: raw
+          Unreliable: false
+          Value: false
+        - Class: rviz/Image
+          Enabled: true
+          Image Topic: /rs_435_2/infra1/image_rect_raw
+          Max Value: 1
+          Median window: 5
+          Min Value: 0
+          Name: rs_435_2 (IR)
+          Normalize Range: true
+          Queue Size: 2
+          Transport Hint: raw
+          Unreliable: false
+          Value: true
+        - Class: rviz/Image
+          Enabled: false
+          Image Topic: /rs_435_2/tag_detections_image
+          Max Value: 1
+          Median window: 5
+          Min Value: 0
+          Name: rs_435_2 (tag_detections)
+          Normalize Range: true
+          Queue Size: 2
+          Transport Hint: raw
+          Unreliable: false
+          Value: false
+        - Alpha: 1
+          Autocompute Intensity Bounds: true
+          Autocompute Value Bounds:
+            Max Value: 0.4729960560798645
+            Min Value: -0.1583167314529419
+            Value: true
+          Axis: Z
+          Channel Name: intensity
+          Class: rviz/PointCloud2
+          Color: 239; 41; 41
+          Color Transformer: FlatColor
+          Decay Time: 0
+          Enabled: true
+          Invert Rainbow: false
+          Max Color: 255; 255; 255
+          Min Color: 0; 0; 0
+          Name: rs_435_2
+          Position Transformer: XYZ
+          Queue Size: 10
+          Selectable: true
+          Size (Pixels): 2
+          Size (m): 0.009999999776482582
+          Style: Points
+          Topic: /rs_435_2/depth/color/points
+          Unreliable: false
+          Use Fixed Frame: true
+          Use rainbow: true
+          Value: true
+      Enabled: true
+      Name: rs_435_2
+    - Class: rviz/Group
+      Displays:
+        - Class: rviz/Image
+          Enabled: false
+          Image Topic: /rs_435_3/color/image_raw
+          Max Value: 1
+          Median window: 5
+          Min Value: 0
+          Name: rs_435_3 (RGB)
+          Normalize Range: true
+          Queue Size: 2
+          Transport Hint: raw
+          Unreliable: false
+          Value: false
+        - Class: rviz/Image
+          Enabled: true
+          Image Topic: /rs_435_2/infra1/image_rect_raw
+          Max Value: 1
+          Median window: 5
+          Min Value: 0
+          Name: rs_435_3 (IR)
+          Normalize Range: true
+          Queue Size: 2
+          Transport Hint: raw
+          Unreliable: false
+          Value: true
+        - Class: rviz/Image
+          Enabled: false
+          Image Topic: /rs_435_3/tag_detections_image
+          Max Value: 1
+          Median window: 5
+          Min Value: 0
+          Name: rs_435_3 (tag_detections)
+          Normalize Range: true
+          Queue Size: 2
+          Transport Hint: raw
+          Unreliable: false
+          Value: false
+        - Alpha: 1
+          Autocompute Intensity Bounds: true
+          Autocompute Value Bounds:
+            Max Value: 0.7117886543273926
+            Min Value: -0.8728965520858765
+            Value: true
+          Axis: Z
+          Channel Name: intensity
+          Class: rviz/PointCloud2
+          Color: 0; 0; 255
+          Color Transformer: FlatColor
+          Decay Time: 0
+          Enabled: true
+          Invert Rainbow: false
+          Max Color: 255; 255; 255
+          Min Color: 0; 0; 0
+          Name: rs_435_3
+          Position Transformer: XYZ
+          Queue Size: 10
+          Selectable: true
+          Size (Pixels): 2
+          Size (m): 0.009999999776482582
+          Style: Points
+          Topic: /rs_435_3/depth/color/points
+          Unreliable: false
+          Use Fixed Frame: true
+          Use rainbow: true
+          Value: true
+      Enabled: true
+      Name: rs_435_3
+    - Class: rviz/Group
+      Displays:
+        - Class: rviz/Image
+          Enabled: false
+          Image Topic: /royale_cam_flexx2_vga_1/gray_image_1_mono8
+          Max Value: 1
+          Median window: 5
+          Min Value: 0
+          Name: flexx2_vga_1 (mono8)
+          Normalize Range: true
+          Queue Size: 2
+          Transport Hint: raw
+          Unreliable: false
+          Value: false
+        - Class: rviz/Image
+          Enabled: false
+          Image Topic: /flexx2_vga_1/tag_detections_image
+          Max Value: 1
+          Median window: 5
+          Min Value: 0
+          Name: flexx2_vga_1 (april_tags)
+          Normalize Range: true
+          Queue Size: 2
+          Transport Hint: raw
+          Unreliable: false
+          Value: false
+        - Alpha: 1
+          Autocompute Intensity Bounds: true
+          Autocompute Value Bounds:
+            Max Value: 0.4729960560798645
+            Min Value: -0.1583167314529419
+            Value: true
+          Axis: Z
+          Channel Name: intensity
+          Class: rviz/PointCloud2
+          Color: 252; 233; 79
+          Color Transformer: FlatColor
+          Decay Time: 0
+          Enabled: true
+          Invert Rainbow: false
+          Max Color: 255; 255; 255
+          Min Color: 0; 0; 0
+          Name: flexx2_vga_1
+          Position Transformer: XYZ
+          Queue Size: 10
+          Selectable: true
+          Size (Pixels): 2
+          Size (m): 0.009999999776482582
+          Style: Points
+          Topic: /royale_cam_flexx2_vga_1/point_cloud_1
+          Unreliable: false
+          Use Fixed Frame: true
+          Use rainbow: true
+          Value: true
+      Enabled: false
+      Name: flexx2_vga_1
+    - Class: rviz/Group
+      Displays:
+        - Class: rviz/Image
+          Enabled: true
+          Image Topic: /royale_cam_flexx2_vga_2/gray_image_1_mono8
+          Max Value: 1
+          Median window: 5
+          Min Value: 0
+          Name: flexx2_vga_2 (mono8)
+          Normalize Range: true
+          Queue Size: 2
+          Transport Hint: raw
+          Unreliable: false
+          Value: true
+        - Class: rviz/Image
+          Enabled: true
+          Image Topic: /flexx2_vga_2/tag_detections_image
+          Max Value: 1
+          Median window: 5
+          Min Value: 0
+          Name: flexx2_vga_2 (april_tags)
+          Normalize Range: true
+          Queue Size: 2
+          Transport Hint: raw
+          Unreliable: false
+          Value: true
+        - Alpha: 1
+          Autocompute Intensity Bounds: true
+          Autocompute Value Bounds:
+            Max Value: 0.4729960560798645
+            Min Value: -0.1583167314529419
+            Value: true
+          Axis: Z
+          Channel Name: intensity
+          Class: rviz/PointCloud2
+          Color: 0; 159; 0
+          Color Transformer: FlatColor
+          Decay Time: 0
+          Enabled: true
+          Invert Rainbow: false
+          Max Color: 255; 255; 255
+          Min Color: 0; 0; 0
+          Name: flexx2_vga_2
+          Position Transformer: XYZ
+          Queue Size: 10
+          Selectable: true
+          Size (Pixels): 2
+          Size (m): 0.009999999776482582
+          Style: Points
+          Topic: /royale_cam_flexx2_vga_2/point_cloud_1
+          Unreliable: false
+          Use Fixed Frame: true
+          Use rainbow: true
+          Value: true
+      Enabled: false
+      Name: flexx2_vga_2
+    - Class: rviz/Image
+      Enabled: false
+      Image Topic: /royale_cam_flexx2_vga_1/gray_image_1
+      Max Value: 1
+      Median window: 5
+      Min Value: 0
+      Name: Image
+      Normalize Range: true
+      Queue Size: 2
+      Transport Hint: raw
+      Unreliable: false
+      Value: false
+  Enabled: true
+  Global Options:
+    Background Color: 48; 48; 48
+    Default Light: true
+    Fixed Frame: april_world
+    Frame Rate: 30
+  Name: root
+  Tools:
+    - Class: rviz/Interact
+      Hide Inactive Objects: true
+    - Class: rviz/MoveCamera
+    - Class: rviz/Select
+    - Class: rviz/FocusCamera
+    - Class: rviz/Measure
+    - Class: rviz/SetInitialPose
+      Theta std deviation: 0.2617993950843811
+      Topic: /initialpose
+      X std deviation: 0.5
+      Y std deviation: 0.5
+    - Class: rviz/SetGoal
+      Topic: /move_base_simple/goal
+    - Class: rviz/PublishPoint
+      Single click: true
+      Topic: /clicked_point
+  Value: true
+  Views:
+    Current:
+      Class: rviz/ThirdPersonFollower
+      Distance: 0.6830627918243408
+      Enable Stereo Rendering:
+        Stereo Eye Separation: 0.05999999865889549
+        Stereo Focal Distance: 1
+        Swap Stereo Eyes: false
+        Value: false
+      Field of View: 0.7853981852531433
+      Focal Point:
+        X: 0.11075800657272339
+        Y: 0.22968319058418274
+        Z: 1.564621925354004e-07
+      Focal Shape Fixed Size: true
+      Focal Shape Size: 0.05000000074505806
+      Invert Z Axis: false
+      Name: Current View
+      Near Clip Distance: 0.009999999776482582
+      Pitch: -0.069602832198143
+      Target Frame: <Fixed Frame>
+      Yaw: 3.093888759613037
+    Saved: ~
+Window Geometry:
+  Displays:
+    collapsed: false
+  Height: 1136
+  Hide Left Dock: false
+  Hide Right Dock: true
+  Image:
+    collapsed: false
+  QMainWindow State: 000000ff00000000fd0000000400000000000002d8000001e2fc0200000010fb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c0061007900730100000232000001e2000000c900fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb0000001c00720073005f003400330035005f0031002000280072006700620029000000027a000000840000000000000000fb0000002a0066006c0065007800780032005f0077006900640065005f003100200028006d006f006e006f0038002900000002ac000000eb0000000000000000fb0000002a0066006c0065007800780032005f0077006900640065005f003200200028006d006f006e006f0038002900000002dd000000ba0000000000000000fb0000002a00720073005f003400330035005f0031002000280061007000720069006c005f007400610067007300290000000304000000930000000000000000fb0000000c00430061006d00650072006100000002e9000000b30000000000000000fb0000001c00720073005f003400330035005f0032002000280052004700420029000000035e000000b60000001600fffffffb0000002600720073005f003400330035005f003200200028005200470042002d00540061006700730029000000035e000000b60000000000000000fb0000001c00720073005f003400330035005f00330020002800520047004200290000000363000000b10000001600ffffff000000010000010f0000026bfc0200000003fb0000000a0056006900650077007300000001a90000026b000000a400fffffffb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000738000001effc010000000cfb000000320066006c0065007800780032005f007600670061005f0031002000280061007000720069006c005f007400610067007300290000000000000000de000000de00fffffffb000000320066006c0065007800780032005f007600670061005f0032002000280061007000720069006c005f0074006100670073002900000001bc0000017e000000de00fffffffb000000280066006c0065007800780032005f007600670061005f003200200028006d006f006e006f0038002900000003400000025c000000cb00fffffffb0000000a0049006d0061006700650000000115000002e40000005e00fffffffb0000003200720073005f003400330035005f003300200028007400610067005f0064006500740065006300740069006f006e007300290000000000000001f3000000e500fffffffb0000001a00720073005f003400330035005f00330020002800490052002901000000000000046f0000008c00fffffffb000000280066006c0065007800780032005f007600670061005f003100200028006d006f006e006f0038002902000005000000027000000280000001e0fb0000001a00720073005f003400330035005f0032002000280049005200290100000475000002c30000008c00fffffffb0000003200720073005f003400330035005f003200200028007400610067005f0064006500740065006300740069006f006e0073002900000004dc0000025c000000e500fffffffb0000002a00720073005f003400330035005f0033002000280061007000720069006c005f0074006100670073002900000002cd000002c60000000000000000fb0000001c00720073005f003400330035005f00330020002800720067006200290000000000000007380000000000000000fb0000000a00560069006500770073030000004e00000080000002e100000197000000030000073800000039fc0100000002fb0000000800540069006d0065010000000000000738000003bc00fffffffb0000000800540069006d006501000000000000045000000000000000000000045a000001e200000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  Selection:
+    collapsed: false
+  Time:
+    collapsed: false
+  Tool Properties:
+    collapsed: false
+  Views:
+    collapsed: true
+  Width: 1848
+  X: 72
+  Y: 27
+  flexx2_vga_1 (april_tags):
+    collapsed: false
+  flexx2_vga_1 (mono8):
+    collapsed: false
+  flexx2_vga_2 (april_tags):
+    collapsed: false
+  flexx2_vga_2 (mono8):
+    collapsed: false
+  rs_435_2 (IR):
+    collapsed: false
+  rs_435_2 (RGB):
+    collapsed: false
+  rs_435_2 (tag_detections):
+    collapsed: false
+  rs_435_3 (IR):
+    collapsed: false
+  rs_435_3 (RGB):
+    collapsed: false
+  rs_435_3 (tag_detections):
+    collapsed: false
