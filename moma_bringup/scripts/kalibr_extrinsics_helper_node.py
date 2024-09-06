@@ -19,16 +19,17 @@ class KalibrHelperNode:
         self.tf_listener = tf2_ros.TransformListener(self.tf_buffer)
         self.static_tf_broadcaster = tf2_ros.StaticTransformBroadcaster()
         
-        self.frame_A_old = rospy.get_param('~frame_A_old', 'rs_435_2_color_optical_frame')
-        self.frame_B_old = rospy.get_param('~frame_B_old', 'rs_435_3_color_optical_frame')
+        # infra RS2-RS3 (images_2024-09-06-12-07-07.bag)
+        self.frame_A_old = rospy.get_param('~frame_A_old', 'rs_435_2_infra1_optical_frame')
+        self.frame_B_old = rospy.get_param('~frame_B_old', 'rs_435_3_infra1_optical_frame')
         self.frame_A_new = rospy.get_param('~frame_A_new', 'rs_435_2_link')
         self.frame_B_new = rospy.get_param('~frame_B_new', 'rs_435_3_link')
 
         self.t_Aold_Bold = rospy.get_param('~t_Aold_Bold', [
-            -0.39136812, -0.05739385,  0.01090286,
+            -0.41437184, -0.01970905,  0.0101194,
         ])
         self.q_Aold_Bold = rospy.get_param('~q_Aold_Bold', [
-            -0.01346537,  0.04188808,  0.99875846,  0.02335846,
+            0.00412074, -0.01980342,  0.99930248,  0.03139113,
         ])
 
         self.T_Aold_Bold = self.compute_T_Aold_Bold()
