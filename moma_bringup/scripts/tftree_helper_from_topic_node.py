@@ -17,6 +17,7 @@ class TfTreeHelperFromTopicNode:
         self.camera_root_frame_id = rospy.get_param(
             '~camera_root_frame_id', default='root_cam1')
         self.base_frame_id = rospy.get_param('~base_frame_id', 'april_tag_0')
+        self.invert_tf = rospy.get_param('~invert_tf', False)
         # Initialize a tf2 broadcaster
         self.tf_broadcaster = tf2_ros.TransformBroadcaster()
         self.static_tf_broadcaster = tf2_ros.StaticTransformBroadcaster()
@@ -96,7 +97,11 @@ class TfTreeHelperFromTopicNode:
             T_camroot_tag = tft.concatenate_matrices(T_camroot_cam, T_cam_tag)
 
             # get T_tag_camroot
-            T_tag_camroot = tft.inverse_matrix(T_camroot_tag)
+            if self.invert_tf:
+                # hack
+                T_tag_camroot = T_camroot_tag
+            else:   
+                T_tag_camroot = tft.inverse_matrix(T_camroot_tag)
 
             # send off
             q_tag_camroot = tft.quaternion_from_matrix(T_tag_camroot)
@@ -109,12 +114,12 @@ class TfTreeHelperFromTopicNode:
             T_tag_camroot_tfs.transform.translation.y = T_tag_camroot[1, -1]
             T_tag_camroot_tfs.transform.translation.z = T_tag_camroot[2, -1]
             T_tag_camroot_tfs.header = detection.pose.header
-            T_tag_camroot_tfs.header.frame_id = self.base_frame_id
-            T_tag_camroot_tfs.child_frame_id = self.camera_root_frame_id
-            print('Will send: ' + self.base_frame_id +
-                  ' to ' + self.camera_root_frame_id)
-            print('T_tag_camroot ' + str(T_tag_camroot))
-            print('Stamp ' + str(T_tag_camroot_tfs.header.stamp))
+            if self.invert_tf:
+                T_tag_camroot_tfs.header.frame_id = self.camera_root_frame_id
+                T_tag_camroot_tfs.child_frame_id = self.base_frame_id
+            else:
+                T_tag_camroot_tfs.header.frame_id = self.base_frame_id
+                T_tag_camroot_tfs.child_frame_id = self.camera_root_frame_id
             # publish the transform
             if self.continuous_calibration:
                 self.tf_broadcaster.sendTransform(T_tag_camroot_tfs)

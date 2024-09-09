@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<launch>
+  <include file="$(find pointcloud_concatenate)/launch/concat.launch">
+    <arg name="cloud_in1" value="/rs_435_1/depth/color/points" />
+    <arg name="cloud_in2" value="/rs_435_2/depth/color/points" />
+    <arg name="cloud_in3" value="/rs_435_3/depth/color/points" />
+    <arg name="target_frame" value="panda_link0"/>
+  </include>
+
+</launch>

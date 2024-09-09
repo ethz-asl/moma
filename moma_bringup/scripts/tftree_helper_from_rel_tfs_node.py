@@ -28,12 +28,19 @@ class TfTreeHelperFromRelTfsNode:
         self.frame_A_new = rospy.get_param('~frame_A_new', 'rs_435_2_link')
         self.frame_B_new = rospy.get_param('~frame_B_new', 'rs_435_3_link')
 
+        # self.t_Aold_Bold = rospy.get_param('~t_Aold_Bold', [
+        #     -0.41437184, -0.01970905,  0.0101194,
+        # ])
+        # self.q_Aold_Bold = rospy.get_param('~q_Aold_Bold', [
+        #     0.00412074, -0.01980342,  0.99930248,  0.03139113,
+        # ])
         self.t_Aold_Bold = rospy.get_param('~t_Aold_Bold', [
-            -0.41437184, -0.01970905,  0.0101194,
+            -0.15268569, -0.71965827,  1.05471597,
         ])
         self.q_Aold_Bold = rospy.get_param('~q_Aold_Bold', [
-            0.00412074, -0.01980342,  0.99930248,  0.03139113,
+            -0.02933041, -0.81021513, -0.57686339,  0.09959823,
         ])
+
 
         self.T_Aold_Bold = self.compute_T_Aold_Bold()
 

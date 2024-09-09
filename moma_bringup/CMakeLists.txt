@@ -205,7 +205,5 @@ include_directories(
 
 ## Install python script
 catkin_install_python(PROGRAMS
-scripts/apriltag_tf_tree_builder_node.py
-scripts/kalibr_extrinsics_helper_node.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )

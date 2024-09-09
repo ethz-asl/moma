@@ -29,7 +29,10 @@ class ImageSaverNode:
             /rs_435_2/infra1/image_rect_raw, \
             /rs_435_3/color/image_raw, \
             /rs_435_3/depth/image_rect_raw, \
-            /rs_435_3/infra1/image_rect_raw'
+            /rs_435_3/infra1/image_rect_raw, \
+            /rs_435_1/color/image_raw, \
+            /rs_435_1/depth/image_rect_raw, \
+            /rs_435_1/infra1/image_rect_raw'
 
         # camera_info_topics_str = rospy.get_param('~camera_info_topics',
         #                                          '/rs_435_2/color/camera_info, \
@@ -44,7 +47,10 @@ class ImageSaverNode:
                                 /rs_435_2/infra1/camera_info, \
                                 /rs_435_3/color/camera_info, \
                                     /rs_435_3/depth/camera_info, \
-                                /rs_435_3/infra1/camera_info'
+                                /rs_435_3/infra1/camera_info, \
+                                /rs_435_1/color/camera_info, \
+                                    /rs_435_1/depth/camera_info, \
+                                /rs_435_1/infra1/camera_info'
 
         self.save_directory = rospy.get_param(
             '~save_directory', '/root/moma_ws/bags')
