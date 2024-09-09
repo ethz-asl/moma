@@ -12,7 +12,7 @@ import tf.transformations as tft
 import numpy as np
 
 
-class AprilTagTransformPublisher:
+class TfTreeHelperFromTopicNode:
     def __init__(self):
         self.camera_root_frame_id = rospy.get_param(
             '~camera_root_frame_id', default='root_cam1')
@@ -123,6 +123,6 @@ class AprilTagTransformPublisher:
 
 
 if __name__ == '__main__':
-    rospy.init_node('april_tag_transform_publisher')
-    AprilTagTransformPublisher()
+    rospy.init_node('tf_tree_helper_from_topic_node')
+    TfTreeHelperFromTopicNode()
     rospy.spin()

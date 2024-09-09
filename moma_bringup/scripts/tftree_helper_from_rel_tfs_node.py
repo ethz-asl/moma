@@ -13,7 +13,7 @@ from moma_bringup.cfg import ExtrinsicsConfig
 from dynamic_reconfigure.server import Server
 
 
-class TfTreeRelTfHelper:
+class TfTreeHelperFromRelTfsNode:
     def __init__(self):
         self.init_node()
         self.tf_buffer = tf2_ros.Buffer()
@@ -135,6 +135,6 @@ class TfTreeRelTfHelper:
 
 
 if __name__ == '__main__':
-    node = TfTreeRelTfHelper()
+    node = TfTreeHelperFromRelTfsNode()
     node.calculate_transform()
     node.run()
