@@ -6,6 +6,7 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
+        - /ConcatCloud1
       Splitter Ratio: 0.3774104714393616
     Tree Height: 421
   - Class: rviz/Selection
@@ -619,7 +620,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/ThirdPersonFollower
-      Distance: 1.2822306156158447
+      Distance: 1.1908539533615112
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -627,17 +628,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 0.7701537609100342
-        Y: -0.29084300994873047
+        X: 0.40566956996917725
+        Y: -0.10275551676750183
         Z: -4.76837158203125e-07
       Focal Shape Fixed Size: false
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.6153979301452637
+      Pitch: 0.4953979551792145
       Target Frame: <Fixed Frame>
-      Yaw: 3.6485793590545654
+      Yaw: 0.5835780501365662
     Saved: ~
 Window Geometry:
   Displays:

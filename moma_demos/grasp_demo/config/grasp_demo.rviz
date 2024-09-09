@@ -4,10 +4,10 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
-        - /TF1/Frames1
-        - /RSCloud1
+
         - /MarkerArray1/Namespaces1
-      Splitter Ratio: 0.49899396300315857
+      Splitter Ratio: 0.48490944504737854
+
     Tree Height: 808
   - Class: rviz/Selection
     Name: Selection
@@ -55,12 +55,92 @@ Visualization Manager:
       Reference Frame: <Fixed Frame>
       Value: true
     - Class: rviz/TF
-      Enabled: false
+
+      Enabled: true
+
       Filter (blacklist): ""
       Filter (whitelist): ""
       Frame Timeout: 15
       Frames:
         All Enabled: false
+        fixed_camera_link:
+          Value: false
+        panda_EE:
+          Value: false
+        panda_K:
+          Value: false
+        panda_NE:
+          Value: false
+        panda_default_ee:
+          Value: true
+        panda_hand:
+          Value: false
+        panda_hand_sc:
+          Value: false
+        panda_hand_tcp:
+          Value: false
+        panda_leftfinger:
+          Value: false
+        panda_link0:
+          Value: false
+        panda_link0_sc:
+          Value: false
+        panda_link1:
+          Value: false
+        panda_link1_sc:
+          Value: false
+        panda_link2:
+          Value: false
+        panda_link2_sc:
+          Value: false
+        panda_link3:
+          Value: false
+        panda_link3_sc:
+          Value: false
+        panda_link4:
+          Value: false
+        panda_link4_sc:
+          Value: false
+        panda_link5:
+          Value: false
+        panda_link5_sc:
+          Value: false
+        panda_link6:
+          Value: false
+        panda_link6_sc:
+          Value: false
+        panda_link7:
+          Value: false
+        panda_link7_sc:
+          Value: false
+        panda_link8:
+          Value: true
+        panda_rightfinger:
+          Value: false
+        task:
+          Value: false
+        world:
+          Value: false
+        wrist_camera_bottom_screw_frame:
+          Value: false
+        wrist_camera_color_frame:
+          Value: false
+        wrist_camera_color_optical_frame:
+          Value: false
+        wrist_camera_depth_frame:
+          Value: false
+        wrist_camera_depth_optical_frame:
+          Value: false
+        wrist_camera_infra1_frame:
+          Value: false
+        wrist_camera_infra1_optical_frame:
+          Value: false
+        wrist_camera_infra2_frame:
+          Value: false
+        wrist_camera_infra2_optical_frame:
+          Value: false
+        wrist_camera_link:
+          Value: false
       Marker Alpha: 1
       Marker Scale: 0.30000001192092896
       Name: TF
@@ -68,9 +148,67 @@ Visualization Manager:
       Show Axes: true
       Show Names: false
       Tree:
-        {}
+        world:
+          fixed_camera_link:
+            {}
+          panda_link0:
+            panda_link0_sc:
+              {}
+            panda_link1:
+              panda_link1_sc:
+                {}
+              panda_link2:
+                panda_link2_sc:
+                  {}
+                panda_link3:
+                  panda_link3_sc:
+                    {}
+                  panda_link4:
+                    panda_link4_sc:
+                      {}
+                    panda_link5:
+                      panda_link5_sc:
+                        {}
+                      panda_link6:
+                        panda_link6_sc:
+                          {}
+                        panda_link7:
+                          panda_link7_sc:
+                            {}
+                          panda_link8:
+                            panda_NE:
+                              panda_EE:
+                                panda_K:
+                                  {}
+                            panda_default_ee:
+                              {}
+                            panda_hand:
+                              panda_hand_sc:
+                                {}
+                              panda_hand_tcp:
+                                {}
+                              panda_leftfinger:
+                                {}
+                              panda_rightfinger:
+                                {}
+                            wrist_camera_bottom_screw_frame:
+                              wrist_camera_link:
+                                wrist_camera_color_frame:
+                                  wrist_camera_color_optical_frame:
+                                    {}
+                                wrist_camera_depth_frame:
+                                  wrist_camera_depth_optical_frame:
+                                    {}
+                                wrist_camera_infra1_frame:
+                                  wrist_camera_infra1_optical_frame:
+                                    {}
+                                wrist_camera_infra2_frame:
+                                  wrist_camera_infra2_optical_frame:
+                                    {}
+            task:
+              {}
       Update Interval: 0
-      Value: false
+      Value: true
     - Alpha: 1
       Class: rviz/RobotModel
       Collision Enabled: false
@@ -388,7 +526,7 @@ Visualization Manager:
       Color: 255; 255; 255
       Color Transformer: AxisColor
       Decay Time: 0
-      Enabled: true
+      Enabled: false
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Min Color: 0; 0; 0
@@ -403,7 +541,7 @@ Visualization Manager:
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: true
+      Value: false
     - Alpha: 1
       Autocompute Intensity Bounds: false
       Autocompute Value Bounds:
@@ -491,11 +629,13 @@ Visualization Manager:
       Queue Size: 100
       Value: true
     - Alpha: 1
-      Axes Length: 0.10000000149011612
+
+      Axes Length: 0.05000000074505806
       Axes Radius: 0.009999999776482582
       Class: rviz/Pose
       Color: 255; 25; 0
-      Enabled: false
+      Enabled: true
+
       Head Length: 0.30000001192092896
       Head Radius: 0.10000000149011612
       Name: Pose
@@ -505,7 +645,9 @@ Visualization Manager:
       Shape: Axes
       Topic: /target
       Unreliable: false
-      Value: false
+
+      Value: true
+
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -534,7 +676,9 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 1.5037648677825928
+
+      Distance: 1.2434059381484985
+
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -550,9 +694,11 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.08979661762714386
+
+      Pitch: -0.06520330905914307
       Target Frame: <Fixed Frame>
-      Yaw: 5.209835529327393
+      Yaw: 5.464844703674316
+
     Saved: ~
 Window Geometry:
   Displays:
