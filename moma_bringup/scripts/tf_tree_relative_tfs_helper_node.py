@@ -13,7 +13,7 @@ from moma_bringup.cfg import ExtrinsicsConfig
 from dynamic_reconfigure.server import Server
 
 
-class KalibrHelperNode:
+class TfTreeRelTfHelper:
     def __init__(self):
         self.init_node()
         self.tf_buffer = tf2_ros.Buffer()
@@ -135,6 +135,6 @@ class KalibrHelperNode:
 
 
 if __name__ == '__main__':
-    node = KalibrHelperNode()
+    node = TfTreeRelTfHelper()
     node.calculate_transform()
     node.run()
