@@ -2,7 +2,7 @@
 <launch>
   <arg name="list_of_sensors" default="[]"/>
 
-<!-- All options: 
+  <!-- All options: 
   * rs_435_1, serial-no: 231522070510, default use-case: wrist-cam, a.k.a. Cam3 or WristCam
   * rs_435_2, serial-no: 838212070495, default use-case: fixed-cam, a.k.a. MaplabCam
   * rs_435_3, serial-no: 231522070761, default use-case: fixed-cam, a.k.a. Cam1
@@ -17,8 +17,6 @@
   <!-- rs_435_1 -->
   <group ns="rs_435_1" if="$(eval 'rs_435_1' in list_of_sensors)">
     <node pkg="apriltag_ros" type="apriltag_ros_continuous_node" name="apriltag_ros_continuous_node" clear_params="true" output="screen">
-      <!-- <remap from="image_rect" to="/rs_435_1/color/image_raw"/>
-      <remap from="camera_info" to="/rs_435_1/color/camera_info"/> -->
       <remap from="image_rect" to="/rs_435_1/infra1/image_rect_raw"/>
       <remap from="camera_info" to="/rs_435_1/infra1/camera_info"/>
       <param name="publish_tag_detections_image" type="bool" value="true"/>
@@ -38,8 +36,6 @@
   <!-- rs_435_2 -->
   <group ns="rs_435_2" if="$(eval 'rs_435_2' in list_of_sensors)">
     <node pkg="apriltag_ros" type="apriltag_ros_continuous_node" name="apriltag_ros_continuous_node" clear_params="true" output="screen">
-      <!-- <remap from="image_rect" to="/rs_435_2/color/image_raw"/>
-      <remap from="camera_info" to="/rs_435_2/color/camera_info"/> -->
       <remap from="image_rect" to="/rs_435_2/infra1/image_rect_raw"/>
       <remap from="camera_info" to="/rs_435_2/infra1/camera_info"/>
       <param name="publish_tag_detections_image" type="bool" value="true"/>
@@ -59,8 +55,6 @@
   <!-- rs_435_3 -->
   <group ns="rs_435_3" if="$(eval 'rs_435_3' in list_of_sensors)">
     <node pkg="apriltag_ros" type="apriltag_ros_continuous_node" name="apriltag_ros_continuous_node" clear_params="true" output="screen">
-      <!-- <remap from="image_rect" to="/rs_435_3/color/image_raw"/>
-      <remap from="camera_info" to="/rs_435_3/color/camera_info"/> -->
       <remap from="image_rect" to="/rs_435_3/infra1/image_rect_raw"/>
       <remap from="camera_info" to="/rs_435_3/infra1/camera_info"/>
       <param name="publish_tag_detections_image" type="bool" value="true"/>
@@ -121,11 +115,6 @@
     /kalibr_helper_node/roll: 0.0
     /kalibr_helper_node/pitch: 0.0
     /kalibr_helper_node/yaw: -0.0
-</rosparam>
-
-  <!-- <node pkg="moma_bringup" type="kalibr_extrinsics_helper_node.py" name="kalibr_extrinsics_helper_node" clear_params="true" output="screen"
-  launch-prefix="bash -c 'sleep 10; $0 $@'">
-
-  </node> -->
+  </rosparam>
 
 </launch>
