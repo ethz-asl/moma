@@ -5,7 +5,7 @@
   <arg name="publish_world_link" default="true" />
   <arg name="moveit" default="true" />
   <arg name="arm_id" default="panda" />
-  <arg name="controller" default="effort_joint_trajectory_controller" />
+  <arg name="controller" default="position_joint_trajectory_controller" />
   <arg name="table" default="true" />
   <arg name="use_bota" default="false" />
  
