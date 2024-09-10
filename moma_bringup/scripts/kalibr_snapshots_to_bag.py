@@ -25,13 +25,10 @@ class ImageSaverNode:
         #                                    /royale_cam_flexx2_vga_1/gray_image_1 \
         #                                     /royale_cam_flexx2_vga_1/gray_image_1_mono8')
         image_topics_str = '/rs_435_2/color/image_raw, \
-            /rs_435_2/depth/image_rect_raw, \
             /rs_435_2/infra1/image_rect_raw, \
             /rs_435_3/color/image_raw, \
-            /rs_435_3/depth/image_rect_raw, \
             /rs_435_3/infra1/image_rect_raw, \
             /rs_435_1/color/image_raw, \
-            /rs_435_1/depth/image_rect_raw, \
             /rs_435_1/infra1/image_rect_raw'
 
         # camera_info_topics_str = rospy.get_param('~camera_info_topics',
@@ -43,13 +40,10 @@ class ImageSaverNode:
         #                                         /rs_435_3/infra1/camera_info \
         #                                             /royale_cam_flexx2_vga_1/camera_info')
         camera_info_topics_str = '/rs_435_2/color/camera_info, \
-                                    /rs_435_2/depth/camera_info, \
                                 /rs_435_2/infra1/camera_info, \
                                 /rs_435_3/color/camera_info, \
-                                    /rs_435_3/depth/camera_info, \
                                 /rs_435_3/infra1/camera_info, \
                                 /rs_435_1/color/camera_info, \
-                                    /rs_435_1/depth/camera_info, \
                                 /rs_435_1/infra1/camera_info'
 
         self.save_directory = rospy.get_param(

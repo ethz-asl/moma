@@ -28,8 +28,9 @@
   <group unless="$(arg calibration_mode)">
     <!-- Hacky Hack Hack: from rs1-> rs2-->
     <!-- Panda Base -> RS2 -->
-    <node pkg="tf" type="static_transform_publisher" name="static_tf_world_rs2" args="0.422 0.641 0.853 0.240 0.225 -0.649 0.686 panda_link0 rs_435_2_link 100" />
-    <node pkg="tf" type="static_transform_publisher" name="static_tf_world_rs3" args="0.339 -0.634 0.846 -0.171 0.236 0.616 0.732 panda_link0 rs_435_3_link 100" />
+    <node pkg="tf" type="static_transform_publisher" name="static_tf_panda_rs2" args="0.415 0.623 0.843 0.240 0.227 -0.657 0.678 panda_link0 rs_435_2_link 100" />
+    <node pkg="tf" type="static_transform_publisher" name="static_tf_panda_rs3" args="0.338 -0.628 0.853 -0.170 0.239 0.616 0.731 panda_link0 rs_435_3_link 100" />
+
   </group>
 
   <group if="$(arg calibration_mode)">
@@ -70,6 +71,7 @@
         <remap from="apriltag_detection" to="/rs_435_2/tag_detections"/>
         <param name="camera_root_frame_id" value="rs_435_2_link"/>
         <param name="base_frame_id" value="april_world"/>
+        <param name="invert_tf" value="false"/>
       </node>
     </group>
 
@@ -88,6 +90,7 @@
         <remap from="apriltag_detection" to="/rs_435_3/tag_detections"/>
         <param name="camera_root_frame_id" value="rs_435_3_link"/>
         <param name="base_frame_id" value="april_world"/>
+        <param name="invert_tf" value="false"/>
       </node>
     </group>
 
@@ -106,6 +109,7 @@
         <remap from="apriltag_detection" to="/flexx2_vga_1/tag_detections"/>
         <param name="camera_root_frame_id" value="royale_flexx2_vga_1_link"/>
         <param name="base_frame_id" value="april_world"/>
+        <param name="invert_tf" value="false"/>
       </node>
     </group>
 
@@ -124,6 +128,7 @@
         <remap from="apriltag_detection" to="/flexx2_vga_2/tag_detections"/>
         <param name="camera_root_frame_id" value="royale_flexx2_vga_2_link"/>
         <param name="base_frame_id" value="april_world"/>
+        <param name="invert_tf" value="false"/>
       </node>
     </group>
   </group>

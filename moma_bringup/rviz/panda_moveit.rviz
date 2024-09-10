@@ -261,7 +261,7 @@ Visualization Manager:
         - Acceleration_Scaling_Factor: 0.1
           Class: moveit_rviz_plugin/MotionPlanning
           Enabled: false
-          JointsTab_Use_Radians: false
+          JointsTab_Use_Radians: true
           Move Group Namespace: ""
           MoveIt_Allow_Approximate_IK: false
           MoveIt_Allow_External_Program: false
@@ -564,6 +564,8 @@ Visualization Manager:
       Frame Timeout: 15
       Frames:
         All Enabled: true
+        april_world:
+          Value: true
         fixed_camera_link:
           Value: true
         panda_EE:
@@ -622,6 +624,10 @@ Visualization Manager:
           Value: true
         rs_435_1_color_optical_frame:
           Value: true
+        rs_435_1_depth_frame:
+          Value: true
+        rs_435_1_depth_optical_frame:
+          Value: true
         rs_435_1_infra1_frame:
           Value: true
         rs_435_1_infra1_optical_frame:
@@ -631,6 +637,10 @@ Visualization Manager:
         rs_435_2_color_frame:
           Value: true
         rs_435_2_color_optical_frame:
+          Value: true
+        rs_435_2_depth_frame:
+          Value: true
+        rs_435_2_depth_optical_frame:
           Value: true
         rs_435_2_infra1_frame:
           Value: true
@@ -667,13 +677,6 @@ Visualization Manager:
       Show Axes: true
       Show Names: true
       Tree:
-        rs_435_1_link:
-          rs_435_1_color_frame:
-            rs_435_1_color_optical_frame:
-              {}
-          rs_435_1_infra1_frame:
-            rs_435_1_infra1_optical_frame:
-              {}
         world:
           fixed_camera_link:
             {}
@@ -719,12 +722,26 @@ Visualization Manager:
                                 {}
                             wrist_camera_bottom_screw_frame:
                               wrist_camera_link:
-                                rs_435_2_link:
-                                  rs_435_2_color_frame:
-                                    rs_435_2_color_optical_frame:
+                                rs_435_1_link:
+                                  april_world:
+                                    rs_435_2_link:
+                                      rs_435_2_color_frame:
+                                        rs_435_2_color_optical_frame:
+                                          {}
+                                      rs_435_2_depth_frame:
+                                        rs_435_2_depth_optical_frame:
+                                          {}
+                                      rs_435_2_infra1_frame:
+                                        rs_435_2_infra1_optical_frame:
+                                          {}
+                                  rs_435_1_color_frame:
+                                    rs_435_1_color_optical_frame:
                                       {}
-                                  rs_435_2_infra1_frame:
-                                    rs_435_2_infra1_optical_frame:
+                                  rs_435_1_depth_frame:
+                                    rs_435_1_depth_optical_frame:
+                                      {}
+                                  rs_435_1_infra1_frame:
+                                    rs_435_1_infra1_optical_frame:
                                       {}
                                 wrist_camera_color_frame:
                                   wrist_camera_color_optical_frame:
@@ -773,9 +790,9 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.2902042269706726
+      Pitch: 0.30020421743392944
       Target Frame: panda_link0
-      Yaw: 4.73997688293457
+      Yaw: 4.664975643157959
     Saved: ~
 Window Geometry:
   Displays:

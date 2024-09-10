@@ -22,25 +22,26 @@ class TfTreeHelperFromRelTfsNode:
 
         # infra RS2-RS3 (images_2024-09-06-12-07-07.bag)
         self.frame_A_old = rospy.get_param(
-            '~frame_A_old', 'rs_435_2_infra1_optical_frame')
+            '~frame_A_old', 'rs_435_1_infra1_optical_frame')
         self.frame_B_old = rospy.get_param(
-            '~frame_B_old', 'rs_435_3_infra1_optical_frame')
-        self.frame_A_new = rospy.get_param('~frame_A_new', 'rs_435_2_link')
-        self.frame_B_new = rospy.get_param('~frame_B_new', 'rs_435_3_link')
+            '~frame_B_old', 'rs_435_2_infra1_optical_frame')
+        self.frame_A_new = rospy.get_param('~frame_A_new', 'rs_435_1_link')
+        self.frame_B_new = rospy.get_param('~frame_B_new', 'rs_435_2_link')
 
-        # self.t_Aold_Bold = rospy.get_param('~t_Aold_Bold', [
-        #     -0.41437184, -0.01970905,  0.0101194,
-        # ])
-        # self.q_Aold_Bold = rospy.get_param('~q_Aold_Bold', [
-        #     0.00412074, -0.01980342,  0.99930248,  0.03139113,
-        # ])
+        '''
         self.t_Aold_Bold = rospy.get_param('~t_Aold_Bold', [
             -0.15268569, -0.71965827,  1.05471597,
         ])
         self.q_Aold_Bold = rospy.get_param('~q_Aold_Bold', [
             -0.02933041, -0.81021513, -0.57686339,  0.09959823,
         ])
-
+        '''
+        self.t_Aold_Bold = rospy.get_param('~t_Aold_Bold', [
+            0.32042785, -0.12932418,  0.21687036,
+        ])
+        self.q_Aold_Bold = rospy.get_param('~q_Aold_Bold', [
+            -0.14613228, -0.02076407, 0.0126191, 0.98896662,
+        ])
 
         self.T_Aold_Bold = self.compute_T_Aold_Bold()
 
