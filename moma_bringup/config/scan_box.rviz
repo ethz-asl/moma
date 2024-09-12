@@ -6,6 +6,7 @@ Panels:
       Expanded:
         - /Status1
         - /rs_435_11
+        - /rs_435_11/rs_435_1 (RGB)1
         - /rs_435_21
         - /rs_435_31
       Splitter Ratio: 0.40199750661849976
@@ -307,7 +308,7 @@ Visualization Manager:
           Value: false
         - Class: rviz/Image
           Enabled: true
-          Image Topic: /rs_435_1/color/image_raw
+          Image Topic: /rs_435_2/depth/image_rect_raw
           Max Value: 1
           Median window: 5
           Min Value: 0
@@ -561,7 +562,7 @@ Visualization Manager:
           Transport Hint: raw
           Unreliable: false
           Value: false
-      Enabled: false
+      Enabled: true
       Name: flexx2_vga_1
     - Alpha: 1
       Autocompute Intensity Bounds: true
@@ -575,7 +576,7 @@ Visualization Manager:
       Color: 255; 255; 255
       Color Transformer: RGB8
       Decay Time: 0
-      Enabled: true
+      Enabled: false
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Min Color: 0; 0; 0
@@ -590,7 +591,7 @@ Visualization Manager:
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: true
+      Value: false
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Class: grid_map_rviz_plugin/GridMap
@@ -643,7 +644,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/ThirdPersonFollower
-      Distance: 0.8192856311798096
+      Distance: 0.9772615432739258
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -651,17 +652,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 0.39517325162887573
-        Y: 0.05994385480880737
-        Z: 4.76837158203125e-07
+        X: 0.08783096075057983
+        Y: 0.25931960344314575
+        Z: 4.172325134277344e-07
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.2347969114780426
+      Pitch: 0.13479657471179962
       Target Frame: <Fixed Frame>
-      Yaw: 2.783991575241089
+      Yaw: 5.990325450897217
     Saved: ~
 Window Geometry:
   Displays:
