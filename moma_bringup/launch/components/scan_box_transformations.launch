@@ -26,7 +26,6 @@
 
   <!-- Stuff that should run in non-calib mode -->
   <group unless="$(arg calibration_mode)">
-    <!-- Hacky Hack Hack: from rs1-> rs2-->
     <!-- Panda Base -> RS2 -->
     <node pkg="tf" type="static_transform_publisher" name="static_tf_panda_rs2" args="0.415 0.623 0.843 0.240 0.227 -0.657 0.678 panda_link0 rs_435_2_link 100" />
     <node pkg="tf" type="static_transform_publisher" name="static_tf_panda_rs3" args="0.338 -0.628 0.853 -0.170 0.239 0.616 0.731 panda_link0 rs_435_3_link 100" />

@@ -1,10 +1,82 @@
 <?xml version="1.0"?>
 <launch>
-  <include file="$(find pointcloud_concatenate)/launch/concat.launch">
-    <arg name="cloud_in1" value="/rs_435_1/depth/color/points" />
-    <arg name="cloud_in2" value="/rs_435_2/depth/color/points" />
-    <arg name="cloud_in3" value="/rs_435_3/depth/color/points" />
-    <arg name="target_frame" value="panda_link0"/>
-  </include>
+  <arg name="world_frame" default="world"/>
+  <node pkg="pointcloud_concatenate" type="pointcloud_concatenate_node" name="pc_concat" output="screen">
+    <param name="target_frame" value="$(arg world_frame)" />    
+    <param name="clouds" value="3" />
+    <param name="hz" value="2" />
+    <remap from="cloud_in1" to="/rs_435_1/depth/color/points" />
+    <remap from="cloud_in2" to="/rs_435_2/depth/color/points" />
+    <remap from="cloud_in3" to="/rs_435_3/depth/color/points" />
+    <!-- <remap from="cloud_in4" to="$(arg cloud_in4)" /> -->
+    <remap from="cloud_out" to="/concatenated_cloud" />
+  </node>
 
+  <!-- Passthrough filter pointcloud -->
+  <node pkg="nodelet" type="nodelet" name="pcl_manager" args="manager" output="screen" />
+  <node pkg="nodelet" type="nodelet" name="passthrough_x" args="load pcl/PassThrough pcl_manager" output="screen">
+      <remap from="~input" to="/concatenated_cloud" />
+      <remap from="~output" to="/concatenated_cloud_passthrough_x"/>
+      <rosparam>
+        input_frame: world
+        output_frame: world
+        filter_field_name: x
+        filter_limit_min: 0.2
+        filter_limit_max: 0.87
+        filter_limit_negative: False
+      </rosparam>
+  </node>
+  <node pkg="nodelet" type="nodelet" name="passthrough_y" args="load pcl/PassThrough pcl_manager" output="screen">
+      <remap from="~input" to="/concatenated_cloud_passthrough_x" />
+      <remap from="~output" to="/concatenated_cloud_passthrough_xy"/>
+      <rosparam>
+        input_frame: world
+        output_frame: world
+        filter_field_name: y
+        filter_limit_min: -0.6
+        filter_limit_max: 0.6
+        filter_limit_negative: False
+      </rosparam>
+  </node>
+  <node pkg="nodelet" type="nodelet" name="passthrough_z" args="load pcl/PassThrough pcl_manager" output="screen">
+      <remap from="~input" to="/concatenated_cloud_passthrough_xy" />
+      <remap from="~output" to="/concatenated_cloud_passthrough_xyz"/>
+      <rosparam>
+        input_frame: world
+        output_frame: world
+        filter_field_name: z
+        filter_limit_min: 0.25
+        filter_limit_max: 0.8
+        filter_limit_negative: False
+      </rosparam>
+  </node>
+  <node pkg="nodelet" type="nodelet" name="voxelgrid_downsample" args="load pcl/VoxelGrid pcl_manager" output="screen">
+      <remap from="~input" to="/concatenated_cloud_passthrough_xyz" />
+      <remap from="~output" to="/concatenated_cloud_passthrough_xyz_downsampled"/>
+      <rosparam>
+        input_frame: world
+        output_frame: world
+        leaf_size: 0.003
+        min_points_per_voxel: 10
+        filter_limit_min: -10.0
+        filter_limit_max: 10.0
+      </rosparam>
+  </node>
+
+  <node pkg="elevation_mapping" type="elevation_mapping" name="elevation_mapping" output="log">
+        <rosparam command="load" file="$(find moma_bringup)/config/elevation_map_panda_scan_box.yaml"/>
+      <rosparam command="load" file="$(find moma_bringup)/config/elevation_map_postprocessor_pipeline.yaml" />
+  </node>
+  <!-- <node pkg="nodelet" type="nodelet" name="transform_pc_to_work_plane" args="load pcl/PassThrough pcl_manager" output="screen">
+      <remap from="~input" to="/pointcloud_passthrough_xyz/output_outlier_filtered" />
+      <remap from="~output" to="/pointcloud_passthrough_xyz/in_work_plane"/>
+      <rosparam>
+        input_frame: work_plane
+        output_frame: work_plane
+        filter_field_name: z
+        filter_limit_min: -1
+        filter_limit_max: 1
+        filter_limit_negative: False
+      </rosparam>
+  </node> -->
 </launch>

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <launch>
-  <arg name="rviz" default="true" />
+  <arg name="rviz" default="false" />
   <arg name="robot_ip" default="$(env FRANKA_IP)" />
   <arg name="publish_world_link" default="true" />
   <arg name="moveit" default="true" />
