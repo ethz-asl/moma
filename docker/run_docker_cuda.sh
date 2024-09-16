@@ -99,6 +99,7 @@ docker run -it --rm \
     --volume=$WORKSPACE:/root/moma_ws \
     --volume=/home/$USER/data:/root/data \
     --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
+    --volume="/media/nikhilesh:/media/nikhilesh_ssd" \
     --env="XAUTHORITY=$XAUTH" \
     --volume="$XAUTH:$XAUTH" \
     --net=host \
