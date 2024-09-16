@@ -1,5 +1,4 @@
 <launch>
-  <arg name="arm_id" default="panda" />
 
   <!-- specify the planning pipeline -->
   <arg name="pipeline" default="ompl" />
@@ -12,9 +11,6 @@
   <!-- By default, we are not in debug mode -->
   <arg name="debug" default="false" />
 
-  <!-- By default we will load the gripper -->
-  <arg name="load_gripper" default="true" />
-
   <!-- By default, we will load or override the robot_description -->
   <arg name="load_robot_description" default="true"/>
 
@@ -22,19 +18,13 @@
   <arg name="moveit_controller_manager" default="fake" />
   <!-- Set execution mode for fake execution controllers -->
   <arg name="fake_execution_type" default="interpolate" />
-  <!-- Transmission used for joint control: position, velocity, or effort -->
-  <arg name="transmission" />
 
   <!-- By default, hide joint_state_publisher's GUI in 'fake' controller_manager mode -->
   <arg name="use_gui" default="false" />
   <arg name="use_rviz" default="true" />
-  <!-- Use rviz config for MoveIt tutorial -->
-  <arg name="rviz_tutorial" default="false" />
 
   <!-- If needed, broadcast static tf for robot root -->
-  <node pkg="tf2_ros" type="static_transform_publisher" name="virtual_joint_broadcaster_0" args="0 0 0 0 0 0 world $(arg arm_id)_link0" />
-
-
+  <node pkg="tf2_ros" type="static_transform_publisher" name="virtual_joint_broadcaster_0" args="0 0 0 0 0 0 world panda_link0" />
 
   <group if="$(eval arg('moveit_controller_manager') == 'fake')">
     <!-- We do not have a real robot connected, so publish fake joint states via a joint_state_publisher
@@ -53,15 +43,25 @@
   </group>
 
   <!-- Run the main MoveIt executable without trajectory execution (we do not have controllers configured by default) -->
+<<<<<<< HEAD
   <include file="$(dirname)/move_group.launch" pass_all_args="true">
     <arg name="allow_trajectory_execution" value="true" />
     <arg name="pipeline" value="$(arg pipeline)" />
     <arg name="info" value="true" />
+=======
+  <include file="$(dirname)/move_group.launch">
+    <arg name="allow_trajectory_execution" value="true"/>
+    <arg name="moveit_controller_manager" value="$(arg moveit_controller_manager)" />
+    <arg name="fake_execution_type" value="$(arg fake_execution_type)"/>
+    <arg name="info" value="true"/>
+    <arg name="debug" value="$(arg debug)"/>
+    <arg name="pipeline" value="$(arg pipeline)"/>
+    <arg name="load_robot_description" value="$(arg load_robot_description)"/>
+>>>>>>> d8402331d3d440fb10b7d372b87384980b59adf1
   </include>
 
   <!-- Run Rviz and load the default config to see the state of the move_group node -->
   <include file="$(dirname)/moveit_rviz.launch" if="$(arg use_rviz)">
-    <arg name="rviz_tutorial" value="$(arg rviz_tutorial)"/>
     <arg name="rviz_config" value="$(dirname)/moveit.rviz"/>
     <arg name="debug" value="$(arg debug)"/>
   </include>

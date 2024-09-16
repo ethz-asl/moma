@@ -1,0 +1,159 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name='list_of_sensors' default='[rs_435_1, rs_435_2, rs_435_3]'/>
+  <arg name="rs_fps" default="6"/>
+  <arg name="calibration_mode" value="false"/>
+  <!-- All options: 
+  * rs_435_1, serial-no: 231522070510, default use-case: wrist-cam, a.k.a. Cam3 or WristCam
+  * rs_435_2, serial-no: 838212070495, default use-case: fixed-cam, a.k.a. MaplabCam
+  * rs_435_3, serial-no: 231522070761, default use-case: fixed-cam, a.k.a. Cam1
+  * rs_455_1, serial-no: 151422254198, default use-case: fixed-cam, a.k.a. Cam2 or 'unreliable'
+  * rs_455_2, serial-no: 215122253417, default use-case: fixed-cam, a.k.a. Cam0
+  * flexx2_wide_1, serial-no: AA3F-2530-2CC3-30A4, default use-case: fixed-cam, a.k.a. Cam1
+  * flexx2_wide_2, serial-no: 9E3D-252E-2CC4-3E54, default use-case: fixed-cam, a.k.a. Cam2
+  * flexx2_vga_1, serial-no: 903F-29C5-2C26-3C10, default use-case: fixed-cam, a.k.a. Cam0
+  * flexx2_vga_2, serial-no: 8E3C-29C7-2C26-1E7C, default use-case: fixed-cam, a.k.a. Cam0
+  -->
+
+  <!-- 
+  === Options for flexx2-vga ===
+  Supported use cases: 
+  * Long_Range_30FPS
+  * Long_Range_20FPS
+  * Long_Range_15FPS
+  * Long_Range_10FPS
+  * Long_Range_5FPS
+  * Mid_Range_30FPS
+  * Mid_Range_20FPS
+  * Mid_Range_15FPS
+  * Mid_Range_10FPS
+  * Mid_Range_5FPS
+  * Short_Range_60FPS
+  * Short_Range_30FPS
+  * Short_Range_15FPS
+  * Face_ID_30FPS
+  * Face_ID_20FPS
+  * Face_ID_15FPS
+  * Face_ID_10FPS
+  * Face_ID_5FPS
+  * IR_5FPS
+  * IR_4FPS
+  * IR_3FPS
+  * IR_2FPS
+  * IR_1FPS
+  
+  === Options for rs_435 ===
+  * color_fps {6, 15, 30}
+  * color_width X color_height (640 X 480), (1280 X 720) 
+  -->
+
+  <!-- ====== SENSORS ========= -->
+  <!-- Launch rs_435_1 -->
+  <include if="$(eval 'rs_435_1' in list_of_sensors)" file="$(find realsense2_camera)/launch/rs_camera.launch">
+    <arg name="camera" value="rs_435_1" />
+    <arg name="serial_no" value="231522070510" />
+    <arg name="publish_tf" value="true" />
+    <arg name="enable_pointcloud" value="true"/>
+    <arg name="enable_depth" value="true"/>
+    <arg name="depth_fps" value="6" if="$(arg calibration_mode)"/>
+    <arg name="depth_fps" value="6" unless="$(arg calibration_mode)"/>
+    <arg name="depth_width" value="1280"/>
+    <arg name="depth_height" value="720"/>
+    <arg name="enable_color" value="true"/>
+    <arg name="color_fps" value="6" if="$(arg calibration_mode)"/>
+    <arg name="color_fps" value="6" unless="$(arg calibration_mode)"/>
+    <arg name="color_width" value="1280"/>
+    <arg name="color_height" value="720"/>
+    <arg name="enable_infra1" value="$(arg calibration_mode)"/>
+    <arg name="infra_fps" value="6"/>
+    <arg name="infra_width" value="1280"/>
+    <arg name="infra_height" value="720"/>
+    <arg name="filters" value="temporal, spatial"/>
+  </include>
+  <rosparam>
+      /rs_435_1/temporal/filter_smooth_delta: 100
+  </rosparam>
+
+  <!-- Launch rs_435_2 -->
+  <include if="$(eval 'rs_435_2' in list_of_sensors)" file="$(find realsense2_camera)/launch/rs_camera.launch">
+    <arg name="camera" value="rs_435_2" />
+    <arg name="serial_no" value="838212070495" />
+    <arg name="publish_tf" value="true" />
+    <arg name="enable_pointcloud" value="true"/>
+    <arg name="enable_depth" value="true"/>
+    <arg name="depth_fps" value="6" if="$(arg calibration_mode)"/>
+    <arg name="depth_fps" value="6" unless="$(arg calibration_mode)"/>
+    <arg name="depth_width" value="1280"/>
+    <arg name="depth_height" value="720"/>
+    <arg name="enable_color" value="true"/>
+    <arg name="color_fps" value="6" if="$(arg calibration_mode)"/>
+    <arg name="color_fps" value="6" unless="$(arg calibration_mode)"/>
+    <arg name="color_width" value="1280"/>
+    <arg name="color_height" value="720"/>
+    <arg name="enable_infra1" value="$(arg calibration_mode)"/>
+    <arg name="infra_fps" value="6"/>
+    <arg name="infra_width" value="1280"/>
+    <arg name="infra_height" value="720"/>
+    <arg name="filters" value="temporal, spatial"/>
+  </include>
+  <rosparam>
+      /rs_435_2/temporal/filter_smooth_delta: 100
+  </rosparam>
+
+  <!-- Launch rs_435_3 -->
+  <include if="$(eval 'rs_435_3' in list_of_sensors)" file="$(find realsense2_camera)/launch/rs_camera.launch">
+    <arg name="camera" value="rs_435_3" />
+    <arg name="serial_no" value="231522070761" />
+    <arg name="publish_tf" value="true" />
+    <arg name="enable_pointcloud" value="true"/>
+    <arg name="enable_depth" value="true"/>
+    <arg name="depth_fps" value="6" if="$(arg calibration_mode)"/>
+    <arg name="depth_fps" value="6" unless="$(arg calibration_mode)"/>
+    <arg name="depth_width" value="1280"/>
+    <arg name="depth_height" value="720"/>
+    <arg name="enable_color" value="true"/>
+    <arg name="color_fps" value="6" if="$(arg calibration_mode)"/>
+    <arg name="color_fps" value="6" unless="$(arg calibration_mode)"/>
+    <arg name="color_width" value="1280"/>
+    <arg name="color_height" value="720"/>
+    <arg name="enable_infra1" value="$(arg calibration_mode)"/>
+    <arg name="infra_fps" value="6"/>
+    <arg name="infra_width" value="1280"/>
+    <arg name="infra_height" value="720"/>
+    <arg name="filters" value="temporal, spatial"/>
+  </include>
+  <rosparam>
+      /rs_435_3/temporal/filter_smooth_delta: 100
+  </rosparam>
+
+  <!-- Launch flexx2_vga_1-->
+  <group if="$(eval 'flexx2_vga_1' in list_of_sensors)">
+    <include file="$(find royale_in_ros)/launch/camera_driver.launch">
+      <arg name="royale_cam_id" value="903F-29C5-2C26-3C10"/>
+      <arg name="node_name" value="flexx2_vga_1"/>
+      <arg name="node_start_delay" value="6.0"/>
+      <arg name="royale_use_case" value="Face_ID_30FPS"/>
+    </include>
+    <!-- flexx2's mono16 need to be converted to proper mono8 to avoid issues-->
+    <node type="mono16_to_mono8.py" name="flexx2_vga_1_mono16_to_mono8" pkg="royale_in_ros" output="screen">
+      <remap from="mono16_in" to="/royale_cam_flexx2_vga_1/gray_image_1"/>
+      <remap from="mono8_out" to="/royale_cam_flexx2_vga_1/gray_image_1_mono8/"/>
+    </node>
+  </group>
+
+  <!-- Launch flexx2_vga_2-->
+  <group if="$(eval 'flexx2_vga_2' in list_of_sensors)">
+    <include file="$(find royale_in_ros)/launch/camera_driver.launch">
+      <arg name="royale_cam_id" value="8E3C-29C7-2C26-1E7C"/>
+      <arg name="node_name" value="flexx2_vga_2"/>
+      <arg name="node_start_delay" value="10.0"/>
+      <arg name="royale_use_case" value="Face_ID_30FPS"/>
+    </include>
+    <!-- flexx2's mono16 need to be converted to proper mono8 to avoid issues-->
+    <node type="mono16_to_mono8.py" name="flexx2_vga_2_mono16_to_mono8" pkg="royale_in_ros" output="screen">
+      <remap from="mono16_in" to="/royale_cam_flexx2_vga_2/gray_image_1"/>
+      <remap from="mono8_out" to="/royale_cam_flexx2_vga_2/gray_image_1_mono8/"/>
+    </node>
+  </group>
+
+</launch>

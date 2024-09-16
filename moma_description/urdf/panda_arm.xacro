@@ -4,25 +4,26 @@
   <!-- Adapted from franka_description/robots/common/franka_robot.xacro -->
   <xacro:macro name="moma_panda"
     params="
-        arm_id:='panda'
-        parent:='world'
-        xyz:='0 0 0'
-        rpy:='0 0 0'
-        tcp_xyz:='0 0 0.1034'
-        tcp_rpy='0 0 0'
-        hand:=true
-        gazebo:=false
-        use_wrist_camera:=false
-        wrist_calibration_rpy:='-0.0109077 -1.5469874 2.3727493'
-        wrist_calibration_xyz:='0.02144228129647578 -0.028987519327164604 0.04877543953719046'
-        wrist_camera_parent_link:='panda_link8'
-        use_fixed_camera:=false
-        fixed_calibration_rpy:='-0.1566281 1.3870703 2.9725147'
-        fixed_calibration_xyz:='0.890 -0.162 1.293'
-        fixed_camera_parent_link:='panda_link0'
-        use_bota:=false
-        include_control_plugin:=true,
-        publish_realsense_extrinsics:=true">
+    arm_id:='panda'
+    parent:='world'
+    xyz:='0 0 0'
+    rpy:='0 0 0'
+    tcp_xyz:='0 0 0.1034'
+    tcp_rpy='0 0 0'
+    hand:=true
+    gazebo:=false
+    use_wrist_camera:=false
+    wrist_calibration_rpy:='0.0227369 -1.5550382 2.3388778'
+    wrist_calibration_xyz:='0.026189514316117823 -0.026817004845920814 0.0464006595138288'
+    wrist_camera_parent_link:='panda_link8'
+    use_fixed_camera:=false
+    fixed_calibration_rpy:='-0.1566281 1.3870703 2.9725147'
+    fixed_calibration_xyz:='0.890 -0.162 1.293'
+    fixed_camera_parent_link:='panda_link0'
+    use_bota:=false
+    multiple_robots:=false
+    include_control_plugin:=true,
+    publish_realsense_extrinsics:=true">
 
     <xacro:include filename="$(find franka_description)/robots/common/utils.xacro" />
     <xacro:include filename="$(find franka_description)/robots/common/franka_arm.xacro" />
@@ -50,8 +51,7 @@
         tcp_rpy="${tcp_rpy}"
         connected_to="${arm_id}_link8"
         safety_distance="0.03"
-        gazebo="${gazebo}"
-      />
+        gazebo="${gazebo}" />
     </xacro:if>
 
     <!-- wrist realsense -->
@@ -141,15 +141,14 @@
       <xacro:transmission-franka-state arm_id="${arm_id}" />
       <xacro:transmission-franka-model arm_id="${arm_id}"
         root="${arm_id}_joint1"
-        tip="${arm_id}_joint8"
-      />
+        tip="${arm_id}_joint8" />
 
       <xacro:if value="${hand}">
         <xacro:gazebo-joint joint="${arm_id}_finger_joint1"
           transmission="hardware_interface/EffortJointInterface" />
         <xacro:gazebo-joint joint="${arm_id}_finger_joint2"
           transmission="hardware_interface/EffortJointInterface" />
-        <!-- Friction specific material for Rubber/Rubber contact -->
+          <!-- Friction specific material for Rubber/Rubber contact -->
         <xacro:gazebo-friction link="${arm_id}_leftfinger" mu="1.13" />
         <xacro:gazebo-friction link="${arm_id}_rightfinger" mu="1.13" />
       </xacro:if>
@@ -159,11 +158,25 @@
           <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
             <controlPeriod>0.001</controlPeriod>
             <robotSimType>franka_gazebo/FrankaHWSim</robotSimType>
+            <xacro:if value="${multiple_robots}">
+              <robotNamespace>/panda</robotNamespace>
+              <robotParam>robot_description_arm</robotParam>
+              <robotDescription>robot_description_arm</robotDescription>
+            </xacro:if>
           </plugin>
           <self_collide>true</self_collide>
         </gazebo>
       </xacro:if>
 
     </xacro:if>
+
+    <!-- end effector frame for MoveIt -->
+    <link name="${arm_id}_default_ee"/>
+    <joint name="joint_link8_default_ee" type="fixed">
+      <parent link="${arm_id}_link8"/>
+      <child link="${arm_id}_default_ee"/>
+      <origin rpy="0 0 ${-pi/4}" xyz="${tcp_xyz}"/> 
+    </joint>
+
   </xacro:macro>
 </robot>

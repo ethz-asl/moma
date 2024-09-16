@@ -1,0 +1,18 @@
+input_sources:
+  ground_truth_cloud: # A name to identify the input source
+    type: pointcloud # Supported types: pointcloud
+    topic: /concatenated_cloud_passthrough_xyz_downsampled
+    queue_size: 1
+    publish_on_update: true # Whether to publish the elevation map after a callback from this source.
+    sensor_processor:
+      type: perfect
+map_frame_id: "world"
+robot_base_frame_id: "world"
+robot_pose_with_covariance_topic: ""
+track_point_frame_id: "world"
+track_point_x: 0.0
+track_point_y: 0.0
+track_point_z: 0.0
+resolution: 0.005
+length_in_x: 1.5
+length_in_y: 0.8
