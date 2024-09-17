@@ -21,6 +21,9 @@ apt-get -qq update && apt-get install -y git wget autoconf automake nano \
     doxygen libopencv-dev \
     libpoco-dev libtbb-dev libblas-dev liblapack-dev libv4l-dev libsuitesparse-dev
 
+# For voxblox:
+apt-get -qq update && apt-get install ros-noetic-grpc build-essential libtool
+
 apt-get install -y python3-dev python3-pip python3-scipy \
     python3-matplotlib ipython3 python3-igraph python3-pyx python3-tk
 # apt-get install -y python3-wxgtk4.0

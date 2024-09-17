@@ -14,9 +14,9 @@ class PointCloudMerger:
         self.pub = rospy.Publisher('/combined_cloud', PointCloud2, queue_size=10)
         
         # Subscribers
-        rospy.Subscriber('/rs_435_1/depth/color/points', PointCloud2, self.callback_cloud1)
-        rospy.Subscriber('/rs_435_2/depth/color/points', PointCloud2, self.callback_cloud2)
-        rospy.Subscriber('/rs_435_3/depth/color/points', PointCloud2, self.callback_cloud3)
+        rospy.Subscriber('topic1', PointCloud2, self.callback_cloud1)
+        rospy.Subscriber('topic2', PointCloud2, self.callback_cloud2)
+        rospy.Subscriber('topic3', PointCloud2, self.callback_cloud3)
         
         # Variables to store point clouds
         self.cloud1 = None
@@ -24,15 +24,15 @@ class PointCloudMerger:
         self.cloud3 = None
 
     def callback_cloud1(self, msg):
-        print('Received cloud 1')
+        # print('Received cloud 1')
         self.pub.publish(msg)
 
     def callback_cloud2(self, msg):
-        print('Received cloud 2')
+        # print('Received cloud 2')
         self.pub.publish(msg)
 
     def callback_cloud3(self, msg):
-        print('Received cloud 3')
+        # print('Received cloud 3')
         self.pub.publish(msg)
 
     def combine_and_publish(self):

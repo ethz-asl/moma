@@ -1,0 +1,195 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="world_frame" default="world"/>
+  <node pkg="nodelet" type="nodelet" name="pcl_manager" args="manager" output="screen" />
+  <!-- Passthrough filter pointcloud from RS1 -->
+  <node pkg="nodelet" type="nodelet" name="passthrough_x_1" args="load pcl/PassThrough pcl_manager" output="screen">
+      <remap from="~input" to="/rs_435_1/depth/color/points" />
+      <remap from="~output" to="/rs_435_1/depth/color/points_passthrough_x"/>
+      <rosparam>
+        input_frame: world
+        output_frame: world
+        filter_field_name: x
+        filter_limit_min: 0.2
+        filter_limit_max: 0.87
+        filter_limit_negative: False
+      </rosparam>
+  </node>
+  <node pkg="nodelet" type="nodelet" name="passthrough_y_1" args="load pcl/PassThrough pcl_manager" output="screen">
+      <remap from="~input" to="/rs_435_1/depth/color/points_passthrough_x" />
+      <remap from="~output" to="/rs_435_1/depth/color/points_passthrough_xy"/>
+      <rosparam>
+        input_frame: world
+        output_frame: world
+        filter_field_name: y
+        filter_limit_min: -0.6
+        filter_limit_max: 0.6
+        filter_limit_negative: False
+      </rosparam>
+  </node>
+  <node pkg="nodelet" type="nodelet" name="passthrough_z_1" args="load pcl/PassThrough pcl_manager" output="screen">
+      <remap from="~input" to="/rs_435_1/depth/color/points_passthrough_xy" />
+      <remap from="~output" to="/rs_435_1/depth/color/points_passthrough_xyz"/>
+      <rosparam>
+        input_frame: world
+        output_frame: world
+        filter_field_name: z
+        filter_limit_min: 0.25
+        filter_limit_max: 0.8
+        filter_limit_negative: False
+      </rosparam>
+  </node>
+  <node pkg="nodelet" type="nodelet" name="voxelgrid_downsample_1" args="load pcl/VoxelGrid pcl_manager" output="screen">
+      <remap from="~input" to="/rs_435_1/depth/color/points_passthrough_xyz" />
+      <remap from="~output" to="/rs_435_1/depth/color/points_passthrough_xyz_ds"/>
+      <rosparam>
+        input_frame: world
+        output_frame: rs_435_1_depth_optical_frame
+        leaf_size: 0.001
+        min_points_per_voxel: 10
+        filter_limit_min: -10.0
+        filter_limit_max: 10.0
+      </rosparam>
+  </node>
+  <!-- Passthrough filter pointcloud from RS2 -->
+  <node pkg="nodelet" type="nodelet" name="passthrough_x_2" args="load pcl/PassThrough pcl_manager" output="screen">
+      <remap from="~input" to="/rs_435_2/depth/color/points" />
+      <remap from="~output" to="/rs_435_2/depth/color/points_passthrough_x"/>
+      <rosparam>
+        input_frame: world
+        output_frame: world
+        filter_field_name: x
+        filter_limit_min: 0.2
+        filter_limit_max: 0.87
+        filter_limit_negative: False
+      </rosparam>
+  </node>
+  <node pkg="nodelet" type="nodelet" name="passthrough_y_2" args="load pcl/PassThrough pcl_manager" output="screen">
+      <remap from="~input" to="/rs_435_2/depth/color/points_passthrough_x" />
+      <remap from="~output" to="/rs_435_2/depth/color/points_passthrough_xy"/>
+      <rosparam>
+        input_frame: world
+        output_frame: world
+        filter_field_name: y
+        filter_limit_min: -0.6
+        filter_limit_max: 0.6
+        filter_limit_negative: False
+      </rosparam>
+  </node>
+  <node pkg="nodelet" type="nodelet" name="passthrough_z_2" args="load pcl/PassThrough pcl_manager" output="screen">
+      <remap from="~input" to="/rs_435_2/depth/color/points_passthrough_xy" />
+      <remap from="~output" to="/rs_435_2/depth/color/points_passthrough_xyz"/>
+      <rosparam>
+        input_frame: world
+        output_frame: world
+        filter_field_name: z
+        filter_limit_min: 0.25
+        filter_limit_max: 0.8
+        filter_limit_negative: False
+      </rosparam>
+  </node>
+  <node pkg="nodelet" type="nodelet" name="voxelgrid_downsample_2" args="load pcl/VoxelGrid pcl_manager" output="screen">
+      <remap from="~input" to="/rs_435_2/depth/color/points_passthrough_xyz" />
+      <remap from="~output" to="/rs_435_2/depth/color/points_passthrough_xyz_ds"/>
+      <rosparam>
+        input_frame: world
+        output_frame: rs_435_2_depth_optical_frame
+        leaf_size: 0.001
+        min_points_per_voxel: 10
+        filter_limit_min: -10.0
+        filter_limit_max: 10.0
+      </rosparam>
+  </node>
+  <!-- Passthrough filter pointcloud from RS3 -->
+  <node pkg="nodelet" type="nodelet" name="passthrough_x_3" args="load pcl/PassThrough pcl_manager" output="screen">
+      <remap from="~input" to="/rs_435_3/depth/color/points" />
+      <remap from="~output" to="/rs_435_3/depth/color/points_passthrough_x"/>
+      <rosparam>
+        input_frame: world
+        output_frame: world
+        filter_field_name: x
+        filter_limit_min: 0.2
+        filter_limit_max: 0.87
+        filter_limit_negative: False
+      </rosparam>
+  </node>
+  <node pkg="nodelet" type="nodelet" name="passthrough_y_3" args="load pcl/PassThrough pcl_manager" output="screen">
+      <remap from="~input" to="/rs_435_3/depth/color/points_passthrough_x" />
+      <remap from="~output" to="/rs_435_3/depth/color/points_passthrough_xy"/>
+      <rosparam>
+        input_frame: world
+        output_frame: world
+        filter_field_name: y
+        filter_limit_min: -0.6
+        filter_limit_max: 0.6
+        filter_limit_negative: False
+      </rosparam>
+  </node>
+  <node pkg="nodelet" type="nodelet" name="passthrough_z_3" args="load pcl/PassThrough pcl_manager" output="screen">
+      <remap from="~input" to="/rs_435_3/depth/color/points_passthrough_xy" />
+      <remap from="~output" to="/rs_435_3/depth/color/points_passthrough_xyz"/>
+      <rosparam>
+        input_frame: world
+        output_frame: world
+        filter_field_name: z
+        filter_limit_min: 0.25
+        filter_limit_max: 0.8
+        filter_limit_negative: False
+      </rosparam>
+  </node>
+  <node pkg="nodelet" type="nodelet" name="voxelgrid_downsample_3" args="load pcl/VoxelGrid pcl_manager" output="screen">
+      <remap from="~input" to="/rs_435_3/depth/color/points_passthrough_xyz" />
+      <remap from="~output" to="/rs_435_3/depth/color/points_passthrough_xyz_ds"/>
+      <rosparam>
+        input_frame: world
+        output_frame: rs_435_3_depth_optical_frame
+        leaf_size: 0.001
+        min_points_per_voxel: 10
+        filter_limit_min: -10.0
+        filter_limit_max: 10.0
+      </rosparam>
+  </node>
+
+  <!-- Merge all topics into one without changing the frame -->
+  <node pkg="moma_bringup" type="pc_topic_merger.py" name="pc_topic_merger" output="screen">
+    <remap from="topic1" to="/rs_435_1/depth/color/points_passthrough_xyz_ds"/>
+    <remap from="topic2" to="/rs_435_2/depth/color/points_passthrough_xyz_ds"/>
+    <remap from="topic3" to="/rs_435_3/depth/color/points_passthrough_xyz_ds"/>
+  </node>
+
+  <node name="voxblox_node" pkg="voxblox_ros" type="tsdf_server" output="screen" args="--alsologtostderr" clear_params="true">
+    <remap from="pointcloud" to="/combined_cloud"/>
+    <param name="tsdf_voxel_size" value="0.005" />
+    <param name="tsdf_voxels_per_side" value="16" />
+    <param name="voxel_carving_enabled" value="true" />
+    <param name="color_mode" value="color" />
+    <param name="use_tf_transforms" value="true" />
+    <param name="update_mesh_every_n_sec" value="0.2" />
+    <param name="verbose" value="true" />
+    <param name="min_time_between_msgs_sec" value="0.2" />
+    <param name="max_ray_length_m" value="1.0" />
+    <param name="publish_tsdf_map" value="true" />
+    <param name="publish_tsdf_info" value="true" />
+    <param name="publish_pointclouds" value="true" />
+    <param name="max_weight" value="10.0"/>
+  </node>
+
+
+  <node pkg="elevation_mapping" type="elevation_mapping" name="elevation_mapping" output="log">
+        <rosparam command="load" file="$(find moma_bringup)/config/elevation_map_panda_scan_box.yaml"/>
+      <rosparam command="load" file="$(find moma_bringup)/config/elevation_map_postprocessor_pipeline.yaml" />
+      <param name="enable_continuous_cleanup" value="false"/>
+  </node>
+  <!-- <node pkg="nodelet" type="nodelet" name="transform_pc_to_work_plane" args="load pcl/PassThrough pcl_manager" output="screen">
+      <remap from="~input" to="/pointcloud_passthrough_xyz/output_outlier_filtered" />
+      <remap from="~output" to="/pointcloud_passthrough_xyz/in_work_plane"/>
+      <rosparam>
+        input_frame: work_plane
+        output_frame: work_plane
+        filter_field_name: z
+        filter_limit_min: -1
+        filter_limit_max: 1
+        filter_limit_negative: False
+      </rosparam>
+  </node> -->
+</launch>

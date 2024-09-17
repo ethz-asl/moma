@@ -14,6 +14,7 @@
   <!-- Stuff that should always run -->
   <!-- Add this static TF, because of two existing names for the same thing. -->
   <node pkg="tf" type="static_transform_publisher" name="link2_broadcaster" args="0.0 0.0 0.0 0.0 0.0 0.0 wrist_camera_link rs_435_1_link 100" />
+  <node pkg="tf" type="static_transform_publisher" name="world_workplane_broadcaster" args="0.5 0.0 0.0 0.0 0.0 0.0 world workplane 100" />
   <!-- Kalibr Extrinsics to connect distinct cameras -->
   <!-- <rosparam>
     /kalibr_helper_node/tx: -0.025

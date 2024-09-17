@@ -3,9 +3,10 @@ Panels:
     Help Height: 0
     Name: Displays
     Property Tree Widget:
-      Expanded: ~
-      Splitter Ratio: 0.6647619009017944
-    Tree Height: 491
+      Expanded:
+        - /GridMap1
+      Splitter Ratio: 0.6670658588409424
+    Tree Height: 704
   - Class: rviz/Tool Properties
     Expanded:
       - /2D Pose Estimate1
@@ -21,7 +22,7 @@ Panels:
   - Class: rviz/Time
     Name: Time
     SyncMode: 0
-    SyncSource: rs_435_2 (depth)
+    SyncSource: rs_435_1 (raw cloud)
 Preferences:
   PromptSaveOnExit: true
 Toolbars:
@@ -234,62 +235,6 @@ Visualization Manager:
     - Class: rviz/Group
       Displays:
         - Class: rviz/Image
-          Enabled: true
-          Image Topic: /royale_cam_flexx2_vga_2/gray_image_1_mono8
-          Max Value: 1
-          Median window: 5
-          Min Value: 0
-          Name: flexx2_vga_2 (mono8)
-          Normalize Range: true
-          Queue Size: 2
-          Transport Hint: raw
-          Unreliable: false
-          Value: true
-        - Class: rviz/Image
-          Enabled: true
-          Image Topic: /flexx2_vga_2/tag_detections_image
-          Max Value: 1
-          Median window: 5
-          Min Value: 0
-          Name: flexx2_vga_2 (april_tags)
-          Normalize Range: true
-          Queue Size: 2
-          Transport Hint: raw
-          Unreliable: false
-          Value: true
-        - Alpha: 1
-          Autocompute Intensity Bounds: true
-          Autocompute Value Bounds:
-            Max Value: 0.4729960560798645
-            Min Value: -0.1583167314529419
-            Value: true
-          Axis: Z
-          Channel Name: intensity
-          Class: rviz/PointCloud2
-          Color: 0; 159; 0
-          Color Transformer: FlatColor
-          Decay Time: 0
-          Enabled: true
-          Invert Rainbow: false
-          Max Color: 255; 255; 255
-          Min Color: 0; 0; 0
-          Name: flexx2_vga_2
-          Position Transformer: XYZ
-          Queue Size: 10
-          Selectable: true
-          Size (Pixels): 2
-          Size (m): 0.009999999776482582
-          Style: Points
-          Topic: /royale_cam_flexx2_vga_2/point_cloud_1
-          Unreliable: false
-          Use Fixed Frame: true
-          Use rainbow: true
-          Value: true
-      Enabled: false
-      Name: flexx2_vga_2
-    - Class: rviz/Group
-      Displays:
-        - Class: rviz/Image
           Enabled: false
           Image Topic: /rs_435_1/infra1/image_rect_raw
           Max Value: 1
@@ -353,7 +298,7 @@ Visualization Manager:
           Invert Rainbow: false
           Max Color: 255; 255; 255
           Min Color: 0; 0; 0
-          Name: rs_435_1
+          Name: rs_435_1 (raw cloud)
           Position Transformer: XYZ
           Queue Size: 10
           Selectable: true
@@ -361,6 +306,34 @@ Visualization Manager:
           Size (m): 0.009999999776482582
           Style: Points
           Topic: /rs_435_1/depth/color/points
+          Unreliable: false
+          Use Fixed Frame: true
+          Use rainbow: true
+          Value: false
+        - Alpha: 1
+          Autocompute Intensity Bounds: true
+          Autocompute Value Bounds:
+            Max Value: 0.4729960560798645
+            Min Value: -0.1583167314529419
+            Value: true
+          Axis: Z
+          Channel Name: intensity
+          Class: rviz/PointCloud2
+          Color: 245; 121; 0
+          Color Transformer: RGB8
+          Decay Time: 0
+          Enabled: false
+          Invert Rainbow: false
+          Max Color: 255; 255; 255
+          Min Color: 0; 0; 0
+          Name: rs_435_1 (prefiltered cloud)
+          Position Transformer: XYZ
+          Queue Size: 10
+          Selectable: true
+          Size (Pixels): 2
+          Size (m): 0.009999999776482582
+          Style: Points
+          Topic: /rs_435_1/depth/color/points_passthrough_xyz_ds
           Unreliable: false
           Use Fixed Frame: true
           Use rainbow: true
@@ -394,7 +367,7 @@ Visualization Manager:
           Unreliable: false
           Value: false
         - Class: rviz/Image
-          Enabled: true
+          Enabled: false
           Image Topic: /rs_435_2/color/image_raw
           Max Value: 1
           Median window: 5
@@ -404,7 +377,7 @@ Visualization Manager:
           Queue Size: 2
           Transport Hint: raw
           Unreliable: false
-          Value: true
+          Value: false
         - Class: rviz/Image
           Enabled: false
           Image Topic: /rs_435_2/tag_detections_image
@@ -426,14 +399,14 @@ Visualization Manager:
           Axis: Z
           Channel Name: intensity
           Class: rviz/PointCloud2
-          Color: 239; 41; 41
+          Color: 245; 121; 0
           Color Transformer: RGB8
           Decay Time: 0
           Enabled: false
           Invert Rainbow: false
           Max Color: 255; 255; 255
           Min Color: 0; 0; 0
-          Name: rs_435_2
+          Name: rs_435_2 (raw cloud)
           Position Transformer: XYZ
           Queue Size: 10
           Selectable: true
@@ -441,6 +414,34 @@ Visualization Manager:
           Size (m): 0.009999999776482582
           Style: Points
           Topic: /rs_435_2/depth/color/points
+          Unreliable: false
+          Use Fixed Frame: true
+          Use rainbow: true
+          Value: false
+        - Alpha: 1
+          Autocompute Intensity Bounds: true
+          Autocompute Value Bounds:
+            Max Value: 0.4729960560798645
+            Min Value: -0.1583167314529419
+            Value: true
+          Axis: Z
+          Channel Name: intensity
+          Class: rviz/PointCloud2
+          Color: 245; 121; 0
+          Color Transformer: RGB8
+          Decay Time: 0
+          Enabled: false
+          Invert Rainbow: false
+          Max Color: 255; 255; 255
+          Min Color: 0; 0; 0
+          Name: rs_435_2 (prefiltered cloud)
+          Position Transformer: XYZ
+          Queue Size: 10
+          Selectable: true
+          Size (Pixels): 2
+          Size (m): 0.009999999776482582
+          Style: Points
+          Topic: /rs_435_2/depth/color/points_passthrough_xyz_ds
           Unreliable: false
           Use Fixed Frame: true
           Use rainbow: true
@@ -500,20 +501,20 @@ Visualization Manager:
         - Alpha: 1
           Autocompute Intensity Bounds: true
           Autocompute Value Bounds:
-            Max Value: 0.7117886543273926
-            Min Value: -0.8728965520858765
+            Max Value: 0.4729960560798645
+            Min Value: -0.1583167314529419
             Value: true
           Axis: Z
           Channel Name: intensity
           Class: rviz/PointCloud2
-          Color: 0; 0; 255
+          Color: 245; 121; 0
           Color Transformer: RGB8
           Decay Time: 0
           Enabled: false
           Invert Rainbow: false
           Max Color: 255; 255; 255
           Min Color: 0; 0; 0
-          Name: rs_435_3
+          Name: rs_435_3 (raw cloud)
           Position Transformer: XYZ
           Queue Size: 10
           Selectable: true
@@ -525,34 +526,6 @@ Visualization Manager:
           Use Fixed Frame: true
           Use rainbow: true
           Value: false
-      Enabled: true
-      Name: rs_435_3
-    - Class: rviz/Group
-      Displays:
-        - Class: rviz/Image
-          Enabled: false
-          Image Topic: /royale_cam_flexx2_vga_1/gray_image_1_mono8
-          Max Value: 1
-          Median window: 5
-          Min Value: 0
-          Name: flexx2_vga_1 (mono8)
-          Normalize Range: true
-          Queue Size: 2
-          Transport Hint: raw
-          Unreliable: false
-          Value: false
-        - Class: rviz/Image
-          Enabled: false
-          Image Topic: /flexx2_vga_1/tag_detections_image
-          Max Value: 1
-          Median window: 5
-          Min Value: 0
-          Name: flexx2_vga_1 (april_tags)
-          Normalize Range: true
-          Queue Size: 2
-          Transport Hint: raw
-          Unreliable: false
-          Value: false
         - Alpha: 1
           Autocompute Intensity Bounds: true
           Autocompute Value Bounds:
@@ -562,119 +535,27 @@ Visualization Manager:
           Axis: Z
           Channel Name: intensity
           Class: rviz/PointCloud2
-          Color: 252; 233; 79
-          Color Transformer: FlatColor
+          Color: 245; 121; 0
+          Color Transformer: RGB8
           Decay Time: 0
           Enabled: false
           Invert Rainbow: false
           Max Color: 255; 255; 255
           Min Color: 0; 0; 0
-          Name: flexx2_vga_1
+          Name: rs_435_3 (prefiltered cloud)
           Position Transformer: XYZ
           Queue Size: 10
           Selectable: true
           Size (Pixels): 2
           Size (m): 0.009999999776482582
           Style: Points
-          Topic: /royale_cam_flexx2_vga_1/point_cloud_1
+          Topic: /rs_435_3/depth/color/points_passthrough_xyz_ds
           Unreliable: false
           Use Fixed Frame: true
           Use rainbow: true
           Value: false
-        - Class: rviz/Image
-          Enabled: false
-          Image Topic: /rs_435_3/tag_detections_image
-          Max Value: 1
-          Median window: 5
-          Min Value: 0
-          Name: rs_435_3 (tag_detections)
-          Normalize Range: true
-          Queue Size: 2
-          Transport Hint: raw
-          Unreliable: false
-          Value: false
       Enabled: true
-      Name: flexx2_vga_1
-    - Alpha: 1
-      Autocompute Intensity Bounds: true
-      Autocompute Value Bounds:
-        Max Value: 10
-        Min Value: -10
-        Value: true
-      Axis: Z
-      Channel Name: intensity
-      Class: rviz/PointCloud2
-      Color: 255; 255; 255
-      Color Transformer: RGB8
-      Decay Time: 0
-      Enabled: false
-      Invert Rainbow: false
-      Max Color: 255; 255; 255
-      Min Color: 0; 0; 0
-      Name: ConcatCloud
-      Position Transformer: XYZ
-      Queue Size: 10
-      Selectable: true
-      Size (Pixels): 3
-      Size (m): 0.009999999776482582
-      Style: Points
-      Topic: /concatenated_cloud_passthrough_xyz_downsampled
-      Unreliable: false
-      Use Fixed Frame: true
-      Use rainbow: true
-      Value: false
-    - Alpha: 1
-      Autocompute Intensity Bounds: true
-      Autocompute Value Bounds:
-        Max Value: 10
-        Min Value: -10
-        Value: true
-      Axis: Z
-      Channel Name: intensity
-      Class: rviz/PointCloud2
-      Color: 255; 255; 255
-      Color Transformer: RGB8
-      Decay Time: 0
-      Enabled: true
-      Invert Rainbow: false
-      Max Color: 255; 255; 255
-      Min Color: 0; 0; 0
-      Name: ConcatCloud Filtered
-      Position Transformer: XYZ
-      Queue Size: 10
-      Selectable: true
-      Size (Pixels): 3
-      Size (m): 0.009999999776482582
-      Style: Points
-      Topic: /concatenated_cloud_passthrough_xyz_downsampled
-      Unreliable: false
-      Use Fixed Frame: true
-      Use rainbow: true
-      Value: true
-    - Alpha: 0.20000000298023224
-      Autocompute Intensity Bounds: true
-      Class: grid_map_rviz_plugin/GridMap
-      Color: 115; 210; 22
-      Color Layer: elevation
-      Color Transformer: FlatColor
-      ColorMap: default
-      Enabled: false
-      Grid Cell Decimation: 1
-      Grid Line Thickness: 0.10000000149011612
-      Height Layer: elevation
-      Height Transformer: ""
-      History Length: 1
-      Invert ColorMap: false
-      Max Color: 255; 255; 255
-      Max Intensity: 10
-      Min Color: 0; 0; 0
-      Min Intensity: 0
-      Name: GridMap
-      Show Grid Lines: true
-      Topic: /elevation_mapping/elevation_map
-      Unreliable: false
-      Use ColorMap: true
-      Value: false
+      Name: rs_435_3
     - Class: rviz/Image
       Enabled: false
       Image Topic: /mask_image
@@ -700,73 +581,101 @@ Visualization Manager:
       Unreliable: false
       Value: false
     - Alpha: 1
-      Class: kindr_rviz_plugins/VectorAtPosition
-      Color: 0; 0; 0
+      Autocompute Intensity Bounds: true
+      Autocompute Value Bounds:
+        Max Value: 10
+        Min Value: -10
+        Value: true
+      Axis: Z
+      Channel Name: intensity
+      Class: rviz/PointCloud2
+      Color: 255; 255; 255
+      Color Transformer: RGB8
+      Decay Time: 0
       Enabled: false
-      History Length: 1
-      Length scale: 1
-      Name: VectorAtPosition
+      Invert Rainbow: false
+      Max Color: 255; 255; 255
+      Min Color: 0; 0; 0
+      Name: CombinedCloud
+      Position Transformer: XYZ
       Queue Size: 10
-      Show text: true
+      Selectable: true
+      Size (Pixels): 3
+      Size (m): 0.009999999776482582
+      Style: Points
+      Topic: /combined_cloud
+      Unreliable: false
+      Use Fixed Frame: true
+      Use rainbow: true
+      Value: false
+    - Alpha: 1
+      Autocompute Intensity Bounds: true
+      Autocompute Value Bounds:
+        Max Value: 10
+        Min Value: -10
+        Value: true
+      Axis: Z
+      Channel Name: intensity
+      Class: rviz/PointCloud2
+      Color: 255; 255; 255
+      Color Transformer: RGB8
+      Decay Time: 0
+      Enabled: false
+      Invert Rainbow: false
+      Max Color: 255; 255; 255
+      Min Color: 0; 0; 0
+      Name: Voxblox SurfaceCloud
+      Position Transformer: XYZ
+      Queue Size: 10
+      Selectable: true
+      Size (Pixels): 3
+      Size (m): 0.009999999776482582
+      Style: Points
       Topic: /voxblox_node/surface_pointcloud
       Unreliable: false
+      Use Fixed Frame: true
+      Use rainbow: true
       Value: false
-      Width scale: 1
     - Alpha: 1
       Autocompute Intensity Bounds: true
-      Autocompute Value Bounds:
-        Max Value: 10
-        Min Value: -10
-        Value: true
-      Axis: Z
-      Channel Name: intensity
-      Class: rviz/PointCloud2
-      Color: 0; 255; 0
-      Color Transformer: FlatColor
-      Decay Time: 0
+      Class: grid_map_rviz_plugin/GridMap
+      Color: 115; 210; 22
+      Color Layer: color
+      Color Transformer: ColorLayer
+      ColorMap: default
       Enabled: true
-      Invert Rainbow: false
+      Grid Cell Decimation: 1
+      Grid Line Thickness: 0.10000000149011612
+      Height Layer: elevation
+      Height Transformer: ""
+      History Length: 1
+      Invert ColorMap: false
       Max Color: 255; 255; 255
+      Max Intensity: 10
       Min Color: 0; 0; 0
-      Name: InlierCloud
-      Position Transformer: XYZ
-      Queue Size: 10
-      Selectable: true
-      Size (Pixels): 3
-      Size (m): 0.009999999776482582
-      Style: Points
-      Topic: /inliers_pointcloud
+      Min Intensity: 0
+      Name: GridMap
+      Show Grid Lines: false
+      Topic: /elevation_mapping/elevation_map
       Unreliable: false
-      Use Fixed Frame: true
-      Use rainbow: true
+      Use ColorMap: true
       Value: true
+    - Class: rviz/MarkerArray
+      Enabled: false
+      Marker Topic: /voxblox_node/occupied_nodes
+      Name: MarkerArray
+      Namespaces:
+        {}
+      Queue Size: 100
+      Value: false
     - Alpha: 1
-      Autocompute Intensity Bounds: true
-      Autocompute Value Bounds:
-        Max Value: 10
-        Min Value: -10
-        Value: true
-      Axis: Z
-      Channel Name: intensity
-      Class: rviz/PointCloud2
-      Color: 239; 41; 41
-      Color Transformer: FlatColor
-      Decay Time: 0
+      Class: rviz/Axes
       Enabled: true
-      Invert Rainbow: false
-      Max Color: 255; 255; 255
-      Min Color: 0; 0; 0
-      Name: OutlierCloud
-      Position Transformer: XYZ
-      Queue Size: 10
-      Selectable: true
-      Size (Pixels): 3
-      Size (m): 0.009999999776482582
-      Style: Points
-      Topic: /outliers_pointcloud
-      Unreliable: false
-      Use Fixed Frame: true
-      Use rainbow: true
+      Length: 0.10000000149011612
+      Name: Axes
+      Radius: 0.0010000000474974513
+      Reference Frame: workplane
+      Show Trail: false
       Value: true
   Enabled: true
   Global Options:
@@ -795,26 +704,20 @@ Visualization Manager:
   Value: true
   Views:
     Current:
-      Class: rviz/ThirdPersonFollower
-      Distance: 1.5475692749023438
+      Angle: -1.6049996614456177
+      Class: rviz/TopDownOrtho
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
-      Field of View: 0.7853981852531433
-      Focal Point:
-        X: 0.3878190517425537
-        Y: 0.27995964884757996
-        Z: -1.1920928955078125e-07
-      Focal Shape Fixed Size: true
-      Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.9053978323936462
+      Scale: 861.7076416015625
       Target Frame: <Fixed Frame>
-      Yaw: 1.348570466041565
+      X: 0.5791653394699097
+      Y: 0.04232334345579147
     Saved: ~
 Window Geometry:
   Displays:
@@ -824,7 +727,7 @@ Window Geometry:
   Hide Right Dock: false
   Image:
     collapsed: false
-  QMainWindow State: 000000ff00000000fd00000004000000000000020f00000228fc020000000ffb0000001200530065006c0065006300740069006f006e00000001e10000009b0000000000000000fb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073010000017400000228000000c900fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb0000001c00720073005f003400330035005f0031002000280072006700620029000000027a000000840000000000000000fb0000002a0066006c0065007800780032005f0077006900640065005f003100200028006d006f006e006f0038002900000002ac000000eb0000000000000000fb0000002a0066006c0065007800780032005f0077006900640065005f003200200028006d006f006e006f0038002900000002dd000000ba0000000000000000fb0000002a00720073005f003400330035005f0031002000280061007000720069006c005f007400610067007300290000000304000000930000000000000000fb0000000c00430061006d00650072006100000002e9000000b30000000000000000fb0000002600720073005f003400330035005f003200200028005200470042002d00540061006700730029000000035e000000b60000000000000000fb0000000a0049006d00610067006500000002e6000000b60000001600ffffff000000010000010f00000228fc0200000003fb0000000a00560069006500770073010000017400000228000000a400fffffffb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000001200530065006c0065006300740069006f006e010000025a000000b20000000000000000000000020000074c00000131fc0100000018fb000000320066006c0065007800780032005f007600670061005f0031002000280061007000720069006c005f007400610067007300290000000000000000de000000de00fffffffb000000320066006c0065007800780032005f007600670061005f0032002000280061007000720069006c005f0074006100670073002900000001bc0000017e000000de00fffffffb000000280066006c0065007800780032005f007600670061005f003200200028006d006f006e006f0038002900000003400000025c000000cb00fffffffb0000000a0049006d0061006700650000000115000002e40000005e00fffffffb0000003200720073005f003400330035005f003300200028007400610067005f0064006500740065006300740069006f006e007300290000000000000001f3000000e500fffffffb0000001c00720073005f003400330035005f00310020002800520047004200290100000000000002890000009b00fffffffb0000002000720073005f003400330035005f00310020002800640065007000740068002900000001eb000001ce000000a700fffffffb0000000a0049006d00610067006500000001a1000002cb0000000000000000fb0000000a0049006d00610067006500000002a70000022c0000000000000000fb0000001c00720073005f003400330035005f0032002000280052004700420029010000028f000002470000009b00fffffffb0000002000720073005f003400330035005f0032002000280064006500700074006800290000000430000001b2000000a700fffffffb0000001c00720073005f003400330035005f003300200028005200470042002901000004dc000002700000009b00fffffffb0000002000720073005f003400330035005f003300200028006400650070007400680029000000053700000215000000a700fffffffb0000001a00720073005f003400330035005f00310020002800490052002900000006310000011b0000008c00fffffffb0000001a00720073005f003400330035005f0032002000280049005200290000000473000001580000008c00fffffffb0000001a00720073005f003400330035005f0033002000280049005200290000000579000001d30000008c00fffffffb000000280066006c0065007800780032005f007600670061005f003100200028006d006f006e006f0038002902000000730000014f00000280000001e0fb0000003200720073005f003400330035005f003100200028007400610067005f0064006500740065006300740069006f006e00730029000000042f00000105000000e500fffffffb0000003200720073005f003400330035005f003200200028007400610067005f0064006500740065006300740069006f006e0073002900000004e000000133000000e500fffffffb0000003200720073005f003400330035005f003300200028007400610067005f0064006500740065006300740069006f006e0073002900000005da00000172000000e500fffffffb0000003200720073005f003400330035005f003300200028007400610067005f0064006500740065006300740069006f006e007300290000000505000002470000000000000000fb0000002a00720073005f003400330035005f0033002000280061007000720069006c005f0074006100670073002900000002cd000002c60000000000000000fb0000001c00720073005f003400330035005f00330020002800720067006200290000000000000007380000000000000000fb0000000a00560069006500770073030000004e00000080000002e100000197000000030000074c00000039fc0100000002fb0000000800540069006d006501000000000000074c000003bc00fffffffb0000000800540069006d00650100000000000004500000000000000000000004220000022800000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd000000040000000000000224000002fdfc020000000ffb0000001200530065006c0065006300740069006f006e00000001e10000009b0000000000000000fb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073010000009f000002fd000000c900fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb0000001c00720073005f003400330035005f0031002000280072006700620029000000027a000000840000000000000000fb0000002a0066006c0065007800780032005f0077006900640065005f003100200028006d006f006e006f0038002900000002ac000000eb0000000000000000fb0000002a0066006c0065007800780032005f0077006900640065005f003200200028006d006f006e006f0038002900000002dd000000ba0000000000000000fb0000002a00720073005f003400330035005f0031002000280061007000720069006c005f007400610067007300290000000304000000930000000000000000fb0000000c00430061006d00650072006100000002e9000000b30000000000000000fb0000002600720073005f003400330035005f003200200028005200470042002d00540061006700730029000000035e000000b60000000000000000fb0000000a0049006d00610067006500000002e6000000b60000001600ffffff000000010000010f000002fdfc0200000003fb0000000a00560069006500770073010000009f000002fd000000a400fffffffb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000001200530065006c0065006300740069006f006e010000025a000000b20000000000000000000000020000074c0000005cfc0100000018fb000000320066006c0065007800780032005f007600670061005f0031002000280061007000720069006c005f007400610067007300290000000000000000de0000000000000000fb000000320066006c0065007800780032005f007600670061005f0032002000280061007000720069006c005f0074006100670073002900000001bc0000017e0000000000000000fb000000280066006c0065007800780032005f007600670061005f003200200028006d006f006e006f0038002900000003400000025c0000000000000000fb0000000a0049006d0061006700650000000115000002e40000005e00fffffffb0000003200720073005f003400330035005f003300200028007400610067005f0064006500740065006300740069006f006e007300290000000000000001f3000000e500fffffffb0000001c00720073005f003400330035005f00310020002800520047004200290100000000000003b50000009b00fffffffb0000002000720073005f003400330035005f00310020002800640065007000740068002900000001eb000001ce000000a700fffffffb0000000a0049006d00610067006500000001a1000002cb0000000000000000fb0000000a0049006d00610067006500000002a70000022c0000000000000000fb0000001c00720073005f003400330035005f0032002000280052004700420029000000028f000002470000009b00fffffffb0000002000720073005f003400330035005f0032002000280064006500700074006800290000000430000001b2000000a700fffffffb0000001c00720073005f003400330035005f003300200028005200470042002901000003bb000003910000009b00fffffffb0000002000720073005f003400330035005f003300200028006400650070007400680029000000053700000215000000a700fffffffb0000001a00720073005f003400330035005f00310020002800490052002900000006310000011b0000008c00fffffffb0000001a00720073005f003400330035005f0032002000280049005200290000000473000001580000008c00fffffffb0000001a00720073005f003400330035005f0033002000280049005200290000000579000001d30000008c00fffffffb000000280066006c0065007800780032005f007600670061005f003100200028006d006f006e006f0038002902000000730000014f00000280000001e0fb0000003200720073005f003400330035005f003100200028007400610067005f0064006500740065006300740069006f006e00730029000000042f00000105000000e500fffffffb0000003200720073005f003400330035005f003200200028007400610067005f0064006500740065006300740069006f006e0073002900000004e000000133000000e500fffffffb0000003200720073005f003400330035005f003300200028007400610067005f0064006500740065006300740069006f006e0073002900000005da000001720000000000000000fb0000003200720073005f003400330035005f003300200028007400610067005f0064006500740065006300740069006f006e007300290000000505000002470000000000000000fb0000002a00720073005f003400330035005f0033002000280061007000720069006c005f0074006100670073002900000002cd000002c60000000000000000fb0000001c00720073005f003400330035005f00330020002800720067006200290000000000000007380000000000000000fb0000000a00560069006500770073030000004e00000080000002e100000197000000030000074c00000039fc0100000002fb0000000800540069006d006501000000000000074c000003bc00fffffffb0000000800540069006d006501000000000000045000000000000000000000040d000002fd00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Time:
     collapsed: false
   Tool Properties:
@@ -834,14 +737,6 @@ Window Geometry:
   Width: 1868
   X: 52
   Y: 27
-  flexx2_vga_1 (april_tags):
-    collapsed: false
-  flexx2_vga_1 (mono8):
-    collapsed: false
-  flexx2_vga_2 (april_tags):
-    collapsed: false
-  flexx2_vga_2 (mono8):
-    collapsed: false
   rs_435_1 (IR):
     collapsed: false
   rs_435_1 (RGB):
