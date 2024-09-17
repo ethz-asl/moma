@@ -1,6 +1,7 @@
 <launch>
   <arg name="gui" default="true" />
   <arg name="moveit" default="true" />
+  <arg name="pipeline" default="ompl" />
   <arg name="rviz" default="true" />
   <arg name="use_bota" default="false" />
   <!-- This is the controller that moveit uses: -->
@@ -23,6 +24,7 @@
     <!-- MoveItSimpleControllerManager provides ros_control's JointTrajectory controllers
          as well as GripperCommand actions -->
     <arg name="moveit_controller_manager" value="simple" />
+    <arg name="pipeline" value="$(arg pipeline)"/>
   </include>
 
 </launch>

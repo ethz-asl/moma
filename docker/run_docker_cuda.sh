@@ -8,7 +8,7 @@
 
 # Default options
 DOCKER=moma_dev
-DOCKERFILE=dev.Dockerfile
+DOCKERFILE=dev_cuda.Dockerfile
 NAME=moma
 BUILD=false
 WORKSPACE=/home/$USER/moma_ws
@@ -99,10 +99,12 @@ docker run -it --rm \
     --volume=$WORKSPACE:/root/moma_ws \
     --volume=/home/$USER/data:/root/data \
     --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
+    --volume="/media/nikhilesh:/media/nikhilesh_ssd" \
     --env="XAUTHORITY=$XAUTH" \
     --volume="$XAUTH:$XAUTH" \
     --net=host \
     --privileged \
+    --gpus all \
     --name=$NAME \
     ${DOCKER} \
     bash

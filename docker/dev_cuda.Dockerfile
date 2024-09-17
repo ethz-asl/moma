@@ -1,4 +1,4 @@
-FROM nvidia/cuda:11.8.0-devel-ubuntu20.04
+FROM nvidia/cuda:12.2.2-base-ubuntu20.04
 
 # This docker is intended to run on a development machine.
 # No CUDA (for now), but with simulation and without sensor drivers.
@@ -52,6 +52,9 @@ RUN scripts/install_ros_deps.sh
 
 # Run the gazebo simulation installation
 RUN scripts/install_simulation.sh
+
+# Install python packages
+RUN scripts/install_python_packages_cuda.sh
 
 # Finally, build all the stuff we downloaded.
 RUN scripts/build_ros.sh

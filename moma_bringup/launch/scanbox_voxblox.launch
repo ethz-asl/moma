@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="ISO-8859-15"?>
+<launch>
+  <arg name="play_bag" default="true" />
+  <arg name="bag_file" default="/media/nikhilesh_ssd/Nikhilesh/demo_hackathon2024/2024-09-17-09-19-29.bag"/>
+  <arg name="voxel_size" default="0.005"/>
+
+  <!-- These are the datasets from http://www.v4rl.ethz.ch/research/datasets-code/V4RL-Dense-Reconstruction-Dataset.html -->
+
+  <node name="player" pkg="rosbag" type="play" output="screen" args=" -r 0.5 --clock $(arg bag_file) 
+  --topics 
+  /tf_static
+  /tf
+  /rs_435_1/depth/color/points    
+  /rs_435_2/depth/color/points
+  /rs_435_3/depth/color/points
+  /concatenated_cloud_passthrough_xyz_downsampled
+  " if="$(arg play_bag)"/>
+
+  <node name="voxblox_node" pkg="voxblox_ros" type="tsdf_server" output="screen" args="--alsologtostderr" clear_params="true">
+    <remap from="pointcloud" to="/combined_cloud"/>
+    <param name="tsdf_voxel_size" value="$(arg voxel_size)" />
+    <param name="tsdf_voxels_per_side" value="16" />
+    <param name="voxel_carving_enabled" value="true" />
+    <param name="color_mode" value="color" />
+    <param name="use_tf_transforms" value="true" />
+    <param name="update_mesh_every_n_sec" value="1.0" />
+    <param name="verbose" value="true" />
+    <param name="min_time_between_msgs_sec" value="0.2" />
+    <param name="max_ray_length_m" value="2.0" />
+    <param name="publish_tsdf_map" value="true" />
+    <param name="publish_tsdf_info" value="true" />
+    <param name="publish_pointclouds" value="true" />
+  </node>
+</launch>

@@ -13,6 +13,8 @@ apt-get update -qq && apt-get install -y librealsense2-dkms librealsense2-utils 
 # Install Franka stuff
 apt-get -qq update && apt-get install -y ros-noetic-franka-ros 
 
+# Install Bota stuff
+apt-get update -qq && apt install -y ros-noetic-bota-driver
 # Install Kalibr stuff
 apt-get -qq update && apt-get install -y git wget autoconf automake nano \    
     libeigen3-dev libboost-all-dev libsuitesparse-dev \

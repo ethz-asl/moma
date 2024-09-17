@@ -23,5 +23,8 @@ RUN scripts/install_ros_deps.sh
 # Run the driver (franka, RealSense, etc...) installation
 RUN scripts/install_drivers.sh
 
+# Install python packages
+RUN scripts/install_python_packages.sh
+
 # Finally, build all the stuff we downloaded.
 RUN scripts/build_ros.sh

@@ -12,8 +12,15 @@
     <arg name="paused" value="true"/>
   </include>
 
+<<<<<<< HEAD
+  <rosparam file="$(find franka_gazebo)/config/franka_hw_sim.yaml" subst_value="true" />
+  <rosparam file="$(find panda_moveit_config)/config/sim_controllers.yaml" subst_value="true" />
+
+  <param name="m_ee" value="0.76" if="$(arg use_gripper)" />
+=======
   <!-- Set the robot urdf on the parameter server -->
   <param name="robot_description" command="xacro use_fixed_camera:=false '$(find moma_description)/urdf/panda.urdf.xacro'" />
+>>>>>>> d8402331d3d440fb10b7d372b87384980b59adf1
 
   <!-- Unpause the simulation after loading the robot model -->
   <arg name="unpause" value="$(eval '' if arg('paused') else '-unpause')" />
