@@ -86,6 +86,7 @@ find_package(catkin REQUIRED dynamic_reconfigure)
 ## Generate dynamic reconfigure parameters in the 'cfg' folder
 generate_dynamic_reconfigure_options(
     cfg/Extrinsics.cfg
+    cfg/HSVConfig.cfg
 #   cfg/DynReconf1.cfg
 #   cfg/DynReconf2.cfg
 )
