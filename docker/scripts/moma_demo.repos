@@ -10,4 +10,4 @@ repositories:
   moma:
     type: git
     url: https://github.com/ethz-asl/moma.git
-    version: demo
+    version: 76850ac35235f97afb130746586d3047c37a81e0
