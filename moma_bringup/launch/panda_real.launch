@@ -56,7 +56,7 @@
 
   <!-- Start up table calibrator (which publishes the transforms to the table) unless requested not
   to. -->
-  <node if="$(arg table)" name="table_calibrator" pkg="moma_utils" type="table_calibrator.py">
-    <param name="file_path" value="$(find moma_bringup)/config/table.yaml" />
-  </node>
+  <!-- <node if="$(arg table)" name="table_calibrator" pkg="moma_utils" type="table_calibrator.py"> -->
+    <!-- <param name="file_path" value="$(find moma_bringup)/config/table.yaml" /> -->
+  <!-- </node> -->
 </launch>

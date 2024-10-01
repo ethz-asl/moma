@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+  <arg name="robot_id" default="giraffe" />
+  <arg name="base_controller" default="swerve_controller z_axis_controller joint_state_controller" />
+  <arg name="joystick" default="true" />
+  <arg name="rviz" default="true"/>
+
+  <!-- Robot Customization -->
+  <arg name="arm_id" default="panda" />
+  <arg name="use_gripper" default="true" />
+
+  <!-- Whether to launch the sensors or not. -->
+  <arg name="sensors" default="false" />
+
+  <!-- Load robot description  -->
+  <param name="robot_description" command="$(find xacro)/xacro $(find moma_description)/urdf/giraffe.urdf.xacro publish_realsense_extrinsics:=false include_control_plugin:=false simulation:=false"/>
+
+  <!-- Base controllers -->
+  <arg name="base_id" default="gmp" />
+
+  <group ns="mobile_base">
+    <param name="swerve_config_file" value="$(find gmp_robot)/config/platform_description.yaml" />
+    <rosparam file="$(find gmp_robot)/config/platform_description.yaml" command="load"/>
+    <param name="swerve_controller/invert_steering" type="bool" value="true"/>
+
+    <!-- Start main robot node to connect to hardware from root -->
+    <node name="gmp_robot" pkg="gmp_robot" type="gmp_launcher.sh" output="screen" />
+
+    <!-- Inverting the steering axis on the base -->
+    <param name="swerve_controller/invert_steering" type="bool" value="true"/>
+
+    <!-- Spawn the controllers  -->
+    <node name="$(arg robot_id)_controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="$(arg base_controller)"/>
+
+    <group if="$(arg joystick)">
+      <!-- Launch the teleoperation node -->
+      <include file="$(find gmp_bringup)/launch/teleop.launch">
+        <arg name="simulation" default="false" />
+      </include>
+
+      <!--Launch the twist publisher muliplexer -->
+      <node pkg="twist_mux" type="twist_mux" name="twist_mux">
+        <rosparam command="load" file="$(find gmp_bringup)/config/twist_mux.yaml" />
+        <remap from="cmd_vel_out" to="swerve_controller/cmd_vel"/>
+      </node>
+    </group>
+  </group>
+
+  <!-- Include the sensors if necessary. -->
+  <include if="$(arg sensors)" file="$(find moma_bringup)/launch/components/sensors.launch">
+  </include>
+
+  <!-- Start the state publisher  -->
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" output="screen" />
+
+  <node name="joint_state_publisher" type="joint_state_publisher" pkg="joint_state_publisher">
+    <rosparam param="source_list">
+          [panda/franka_state_controller/joint_states,
+          panda/franka_gripper/joint_states,
+          mobile_base/joint_states]
+    </rosparam>
+    <param name="rate" value="30"/>
+  </node>
+
+  <!-- Load RViz -->
+  <!-- <node pkg="rviz" name="rviz" type="rviz" args="-d $(find heron_demo)/config/heron_demo.rviz" /> -->
+</launch>

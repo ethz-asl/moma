@@ -1,0 +1,150 @@
+<?xml version="1.0"?>
+<launch>
+
+    <!-- Robot arguments -->
+    <arg name="robot_id" default="giraffe" />
+    <arg name="arm_id" default="panda" />
+    <arg name="arm_controller" default="effort_joint_trajectory_controller"/>
+    <arg name="base_controller" default="swerve_controller z_axis_sim_controller joint_state_controller"/>
+    <arg name="use_gripper" default="true" />
+    <arg name="moveit" default="true"/>
+    <arg name="scene_file" default="$(find giraffe_moveit_config)/config/z_axis_collision_sim.scene"/>
+    <arg name="z_axis_height" default="0.0"/>
+
+    <!-- Sim arguments -->
+    <arg name="gazebo" default="true" />
+    <arg name="headless" default="false" />
+    <arg name="paused" default="false" />
+    <arg name="use_sim_time" default="true" />
+    <arg name="world" default="$(find moma_gazebo)/worlds/simple.world" />
+    <!-- <arg name="world" default="$(find heron_demo)/worlds/road.world" /> -->
+    <arg name="rviz" default="true" />
+
+    <!-- Joint positions -->
+    <arg name="mobile_base_x" default="0" />
+    <arg name="mobile_base_y" default="0" />
+    <arg name="mobile_base_z" default="0" />
+    <arg name="mobile_base_yaw" default="0" />
+    <arg name="initial_joint_positions"
+        default="-J $(arg arm_id)_joint1 0
+                -J $(arg arm_id)_joint2 -0.3927
+                -J $(arg arm_id)_joint3 0
+                -J $(arg arm_id)_joint4 -2.95 
+                -J $(arg arm_id)_joint5 0
+                -J $(arg arm_id)_joint6 0
+                -J $(arg arm_id)_joint7 0.785398163397
+                -J $(arg arm_id)_finger_joint1 0.001
+                -J $(arg arm_id)_finger_joint2 0.001" />
+
+    <include file="$(find gazebo_ros)/launch/empty_world.launch" if="$(arg gazebo)">
+        <arg name="world_name" value="$(arg world)" />
+        <arg name="paused" value="$(arg paused)" />
+        <arg name="gui" value="$(eval not arg('headless'))" />
+        <arg name="use_sim_time" value="$(arg use_sim_time)" />
+    </include>
+
+    <!-- Load robot description  -->
+    <param name="robot_description"
+        command="$(find xacro)/xacro $(find moma_description)/urdf/giraffe.urdf.xacro
+            publish_realsense_extrinsics:=false 
+            include_control_plugin:=true
+            simulation:=true
+            z_axis_height:=$(arg z_axis_height)" />
+
+    <!-- Load arm robot description (later put inside group?) -->
+    <param name="robot_description_arm"
+        command="$(find xacro)/xacro $(find moma_description)/urdf/panda.urdf.xacro
+            publish_realsense_extrinsics:=true
+            gazebo:=true
+            include_control_plugin:=false"/>
+
+    <group ns="panda">
+        <!-- Arm controller params -->
+        <rosparam file="$(find franka_gazebo)/config/franka_hw_sim.yaml" subst_value="true" />
+        <rosparam file="$(find franka_gazebo)/config/sim_controllers.yaml" subst_value="true" />
+
+        <param name="m_ee" value="0.76" if="$(arg use_gripper)" />
+
+        <!-- Spawn required ROS controllers -->
+        <node pkg="controller_manager"
+                type="spawner"
+                name="$(arg arm_id)_gripper_spawner"
+                if="$(arg use_gripper)"
+                args="franka_gripper"
+                respawn="false" />
+
+        <!-- spawns the controller after the robot was put into its initial joint pose -->
+        <node pkg="controller_manager"
+                type="spawner"
+                name="$(arg arm_id)_controller_spawner"
+                respawn="false" output="screen"
+                args="--wait-for initialized franka_state_controller $(arg arm_controller)" />
+            
+    </group>
+
+    <!-- Start up MoveIt! for arm -->
+    <include if="$(arg moveit)" file="$(find giraffe_moveit_config)/launch/move_group.launch">
+        <arg name="load_robot_description" value="false"/>
+    </include>
+
+    <!-- Add collision scene -->
+    <node if="$(arg moveit)" name ="moveit_publish_scene_from_text"
+        pkg= "moveit_ros_planning"
+        type = "moveit_publish_scene_from_text"
+        args= "$(arg scene_file)"/>
+  
+
+    <group ns="mobile_base">
+        <!-- Base controller parameters -->
+        <rosparam file="$(find gmp_robot)/config/platform_description.yaml"/>
+        
+        <!-- Load robot description for base -->
+        <param name="robot_description" 
+            command="$(find xacro)/xacro $(find gmp_description)/urdf/gmp.urdf.xacro
+                include_control_plugin:=true 
+                multiple_robots:=true 
+                z_axis_height:=$(arg z_axis_height)"/>
+        
+        <!-- Launch controllers for base -->
+        <include file="$(find gmp_robot)/launch/controller.launch">
+            <arg name="controller" default="$(arg base_controller)"/>
+        </include>
+    </group>
+
+    <node name="robot_state_publisher" pkg="robot_state_publisher" 
+        type="robot_state_publisher" output="screen" />
+
+    <node name="joint_state_publisher" type="joint_state_publisher" pkg="joint_state_publisher">
+        <rosparam param="source_list">
+            [panda/franka_state_controller/joint_states,
+            panda/franka_gripper/joint_states,
+            mobile_base/joint_states]
+        </rosparam>
+        <param name="rate" value="30"/>
+    </node>
+
+    <!-- Spawn giraffe -->
+    <arg name="unpause" value="$(eval '' if arg('paused') else '-unpause')" />
+    <node name="$(arg robot_id)_model_spawner"
+        pkg="gazebo_ros"
+        type="spawn_model"
+        args="-param robot_description -urdf -model $(arg robot_id) $(arg unpause)
+              $(arg initial_joint_positions)
+              -x $(arg mobile_base_x) 
+              -y $(arg mobile_base_y) 
+              -z $(arg mobile_base_z) 
+              -Y $(arg mobile_base_yaw)" />
+
+    <!-- Publish ground truth odom from gazebo -->
+    <node name="odom_to_tf" pkg="gmp_utils" type="odom_to_tf.py" output="screen">
+        <param name="odom_frame_id" value="odom" />
+        <param name="base_frame_id" value="base_footprint" />
+    </node>
+
+    <!-- Giraffe RViz -->
+    <node if="$(arg rviz)" name="$(anon rviz)" pkg="rviz" type="rviz" 
+        respawn="false" 
+        args="-d $(find moma_gazebo)/config/giraffe.rviz" 
+        output="screen"/>
+
+</launch>

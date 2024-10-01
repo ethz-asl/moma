@@ -2,6 +2,7 @@
 <launch>
   <arg name="wrist_camera" default="true" />
   <arg name="fixed_camera" default="false" />
+  <!-- FOR JETSON: https://github.com/dnovischi/jetson-tutorials/pull/8/files -->
 
   <!-- Launch wrist camera -->
   <include if="$(arg wrist_camera)"
@@ -16,7 +17,7 @@
     <!-- <arg name="serial_no" value="828112072238" /> -->
   </include>
 
-  <!-- Luanch fixed camera -->
+  <!-- Launch fixed camera -->
   <include if="$(arg fixed_camera)"
     file="$(find realsense2_camera)/launch/rs_camera.launch">
     <arg name="camera" value="fixed_camera" />
