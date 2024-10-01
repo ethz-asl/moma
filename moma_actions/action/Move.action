@@ -1,0 +1,10 @@
+#goal definition
+std_msgs/String direction
+geometry_msgs/PoseStamped target_pose
+float32 distance
+---
+#result
+bool success
+---
+#feedback
+geometry_msgs/PoseStamped base_position

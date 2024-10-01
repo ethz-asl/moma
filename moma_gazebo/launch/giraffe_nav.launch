@@ -12,6 +12,7 @@
   <arg     if="$(arg info)" name="command_args" value="--debug" />
 
   <arg name="rviz" default="true"/>
+  <arg name="rviz_file" default="$(find moma_gazebo)/config/giraffe_nav.rviz"/>
   <arg name="simulation" default="true"/>
   <arg name="headless" default="false"/>
   <arg name="initial_pose_x" default="0" />
@@ -73,7 +74,7 @@
 
   <!-- View the robot and set Nav goal in RViz -->
   <node if="$(arg rviz)" name="$(anon rviz)" pkg="rviz" type="rviz" 
-    respawn="false" args="-d $(find moma_gazebo)/config/giraffe.rviz" output="screen">
+    respawn="false" args="-d $(arg rviz_file)" output="screen">
     <remap from="/move_base_simple/goal" to="/mobile_base/move_base_simple/goal"/>
   </node>
 

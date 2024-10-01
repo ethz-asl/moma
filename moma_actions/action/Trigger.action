@@ -1,0 +1,8 @@
+#goal definition
+std_msgs/String component
+std_msgs/String cmd
+---
+#result
+bool success
+---
+#feedback
