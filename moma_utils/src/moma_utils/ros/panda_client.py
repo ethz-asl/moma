@@ -365,14 +365,18 @@ class PandaGripperClient(object):
         speed: float = 0.1,
         force: float = 5.0,
     ):
-        rospy.loginfo("Closing gripper")
         msg = GraspGoal(width, GraspEpsilon(e_inner, e_outer), speed, force)
         self.grasp_client.send_goal(msg)
         self.grasp_client.wait_for_result(rospy.Duration(2.0))
 
-    def release(self, width: float = 0.1):
+    def close(self):
+        rospy.loginfo("Closing gripper")
+        self.grasp()
+
+    def release(self):
         rospy.loginfo("Opening gripper")
-        self.move(width)
+        # self.move(width)
+        self.grasp()
 
     def stop(self):
         msg = StopGoal()
@@ -440,7 +444,7 @@ def main():
             elif user_input == "o":
                 gripper.release()
             elif user_input == "c":
-                gripper.grasp()
+                gripper.close()
             elif user_input == "j":
                 arm.goto([0.605, -0.311, -0.163, -2.341, -0.077, 2.133, 1.248])
             elif user_input == "l":
