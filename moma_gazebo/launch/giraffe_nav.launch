@@ -1,0 +1,80 @@
+<?xml version="1.0"?>
+<launch>
+  <!-- GDB Debug Option -->
+  <arg name="debug" default="false" />
+  <arg unless="$(arg debug)" name="launch_prefix" value="" />
+  <arg if="$(arg debug)" name="launch_prefix"
+           value="gdb -x $(dirname)/gdb_settings.gdb --ex run --args" />
+
+  <!-- Verbose Mode Option -->
+  <arg name="info" default="$(arg debug)" />
+  <arg unless="$(arg info)" name="command_args" value="" />
+  <arg     if="$(arg info)" name="command_args" value="--debug" />
+
+  <arg name="rviz" default="true"/>
+  <arg name="simulation" default="true"/>
+  <arg name="headless" default="false"/>
+  <arg name="initial_pose_x" default="0" />
+  <arg name="initial_pose_y" default="0" />
+  <arg name="initial_pose_yaw" default="0" />
+  <arg name="scan_topic" default="/front/scan" />
+  <arg name="world_name" default="$(find moma_gazebo)/worlds/simple.world"/>
+  <arg name="z_axis_height" default="0.0" />
+
+  <!-- Teleops -->
+  <arg name="joystick" default="true" />
+  <arg name="keyboard" default="false" />
+
+  <!-- MoveIt! -->
+  <include file="$(find moma_gazebo)/launch/giraffe_sim.launch">
+    <arg name="rviz"    value="false"/>
+    <arg name="headless" value="$(arg headless)" />
+    <arg name="world"   value="$(arg world_name)"/>
+    <arg name="mobile_base_x" value="$(arg initial_pose_x)"/>
+    <arg name="mobile_base_y" value="$(arg initial_pose_y)"/>
+    <arg name="mobile_base_yaw" value="$(arg initial_pose_yaw)"/>
+    <arg name="z_axis_height" value="$(arg z_axis_height)"/>
+  </include>
+
+  <!-- Move base -->
+  <group ns="mobile_base">
+    <!-- Remap topics -->
+    <remap from="/mobile_base/front/scan" to="$(arg scan_topic)"/>
+
+    <!-- Launch the move_base pkg -->
+    <include file="$(find gmp_nav)/launch/move_base.launch"/>
+
+    <!-- Interactive marker in RViz  -->
+    <node pkg="interactive_marker_twist_server" 
+      type="marker_server" name="twist_marker_server" output="screen">
+      <rosparam command="load" file="$(find interactive_marker_twist_server)/config/planar.yaml"/>
+      <param name="link_name" value="base_footprint" />
+      <param name="link_offset/z" value="0.25" />
+      <param name="marker_size_scale" value="0.8" />
+    </node>
+
+    <!-- Launch the teleoperation node -->
+    <include file="$(find gmp_bringup)/launch/teleop.launch">
+      <arg name="joystick" default="$(arg joystick)" />
+      <arg name="keyboard" default="$(arg keyboard)" />
+      <arg name="simulation" default="true" />
+      <!-- Turn off teleop lock for movebase in sim -->
+      <arg name="lock_move_base" default="false"/>
+      <arg name="multiple_robots" default="true" />
+    </include>
+
+    <!--Launch the twist publisher muliplexer -->
+    <node pkg="twist_mux" type="twist_mux" name="twist_mux">
+      <rosparam command="load" file="$(find gmp_bringup)/config/twist_mux.yaml" />
+      <remap from="cmd_vel_out" to="swerve_controller/cmd_vel"/>
+    </node>
+        
+  </group>
+
+  <!-- View the robot and set Nav goal in RViz -->
+  <node if="$(arg rviz)" name="$(anon rviz)" pkg="rviz" type="rviz" 
+    respawn="false" args="-d $(find moma_gazebo)/config/giraffe.rviz" output="screen">
+    <remap from="/move_base_simple/goal" to="/mobile_base/move_base_simple/goal"/>
+  </node>
+
+</launch>
