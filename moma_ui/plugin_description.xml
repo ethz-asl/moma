@@ -1,0 +1,7 @@
+<library path="libmoma_ui">
+    <class name="moma_ui/MomaPanel" type="moma_ui::MomaPanel" base_class_type="rviz::Panel">
+        <description>
+            A description of the MomaPanel plugin.
+        </description>
+    </class>
+</library>
