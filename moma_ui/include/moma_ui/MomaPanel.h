@@ -19,16 +19,22 @@ public:
     virtual void save(rviz::Config config) const;
 
 public Q_SLOTS:
-  void setTopic( const QString& topic );
+  void setBagTopics( const QString& topic );
 
 protected Q_SLOTS:
-  void updateTopic();
+  void updateBagTopics();
 
 protected:
-    // One-line text editor for entering the outgoing ROS topic name.
-    QLineEdit* output_topic_editor_;
+    // rosbag recording
+    QLineEdit* rosbag_output_dir_editor_ = new QLineEdit;
+    QLineEdit* rosbag_topic_name_editor_ = new QLineEdit;
+    QPushButton* rosbag_start_button_ = new QPushButton("Start rosbag");
+    QPushButton* rosbag_stop_button_ = new QPushButton("Stop rosbag");
+
     // The current name of the output topic.
-    QString output_topic_;
+    QString bag_topics_;
+    std::vector<std::string> bag_topics_vector_;
+
     // ROS node handle (for any communication, if needed)
     ros::NodeHandle nh_;
 

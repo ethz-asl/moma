@@ -5,58 +5,69 @@
 #include <QLabel>
 #include <QTimer>
 
+#include <vector>
+#include <string>
+
+#include <ros/names.h>
+
 #include "moma_ui/MomaPanel.h"
 
 namespace moma_ui
 {
-// - Act as a container for GUI elements QLineEdit.
-// - Saving and restoring internal state from a config file.
-
-// We start with the constructor, doing the standard Qt thing of
-// passing the optional *parent* argument on to the superclass
-// constructor, and also zero-ing the velocities we will be
-// publishing.
 MomaPanel::MomaPanel(QWidget *parent)
     : rviz::Panel(parent)
 {
-  // Next we lay out the "output topic" text entry field using a
-  // QLabel and a QLineEdit in a QHBoxLayout.
-  QHBoxLayout* topic_layout = new QHBoxLayout;
-  topic_layout->addWidget( new QLabel( "ROS Topics to record:" ));
-  output_topic_editor_ = new QLineEdit;
-  topic_layout->addWidget( output_topic_editor_ );
 
-    QVBoxLayout* layout = new QVBoxLayout;
-    layout->addLayout( topic_layout );
-    setLayout( layout );
+  // rosbag recording
+  QHBoxLayout* topic_layout = new QHBoxLayout;
+  topic_layout->addWidget( new QLabel( "Bag DIR:" ));
+  topic_layout->addWidget( rosbag_output_dir_editor_ );
+  topic_layout->addWidget( new QLabel( "Topics:" ));
+  topic_layout->addWidget( rosbag_topic_name_editor_ );
+  topic_layout->addWidget( rosbag_start_button_ );
+  topic_layout->addWidget( rosbag_stop_button_ );
+  
+  QVBoxLayout* layout = new QVBoxLayout;
+  layout->addLayout( topic_layout );
+  setLayout( layout );
 
   // Next we make signal/slot connections.
-  connect( output_topic_editor_, SIGNAL( editingFinished() ), this, SLOT( updateTopic() ));
+  connect( rosbag_topic_name_editor_, SIGNAL( editingFinished() ), this, SLOT( updateBagTopics() ));
 }
 
 // Set the topic name we are publishing to.
-void MomaPanel::setTopic( const QString& new_topic )
+void MomaPanel::setBagTopics( const QString& new_topic )
 {
   // Only take action if the name has changed.
-  if( new_topic != output_topic_ )
+  if( new_topic != bag_topics_ )
   {
-    output_topic_ = new_topic;
+    bag_topics_ = new_topic;
     // If the topic is the empty string, don't publish anything.
-    if( output_topic_ == "" )
+    if( bag_topics_ == "" )
     {
-        ROS_WARN("Output topic is empty");
+        ROS_WARN("moma_ui: There are no topics to be recorded!");
     //   velocity_publisher_.shutdown();
     }
     else
     {
-        ROS_WARN("Output topic is not empty");
+        bag_topics_vector_.clear();
+        ROS_INFO("moma_ui: There are topics to be recorded!");
+        // Split the string using ';' as a delimiter
+        QStringList substrings = new_topic.split(";");
+        // You can then iterate over the list of substrings or access individual parts
+        for(const QString& topic : substrings) {
+            ROS_INFO("moma_ui: Topic: %s", topic.toStdString().c_str());
+            std::string error;
+            if (!ros::names::validate(topic.toStdString(), error)) {
+                ROS_ERROR("moma_ui: Invalid topic name: %s", error.c_str());
+                continue;
+            }
+            bag_topics_vector_.push_back(topic.toStdString());
+        }
+        nh_.setParam("moma_ui/topics_to_record", bag_topics_vector_);  // Store the list under the param name "topics_to_record"
+
+
     }
-    // rviz::Panel defines the configChanged() signal.  Emitting it
-    // tells RViz that something in this panel has changed that will
-    // affect a saved config file.  Ultimately this signal can cause
-    // QWidget::setWindowModified(true) to be called on the top-level
-    // rviz::VisualizationFrame, which causes a little asterisk ("*")
-    // to show in the window's title bar indicating unsaved changes.
     Q_EMIT configChanged();
   }
 }
@@ -67,7 +78,7 @@ void MomaPanel::setTopic( const QString& new_topic )
 void MomaPanel::save( rviz::Config config ) const
 {
   rviz::Panel::save( config );
-  config.mapSetValue( "Topic", output_topic_ );
+  config.mapSetValue( "Topic", bag_topics_ );
 }
 
 // Load all configuration data for this panel from the given Config object.
@@ -77,14 +88,14 @@ void MomaPanel::load( const rviz::Config& config )
   QString topic;
   if( config.mapGetString( "Topic", &topic ))
   {
-    output_topic_editor_->setText( topic );
-    updateTopic();
+    rosbag_topic_name_editor_->setText( topic );
+    updateBagTopics();
   }
 }
 
-void MomaPanel::updateTopic()
+void MomaPanel::updateBagTopics()
 {
-  setTopic( output_topic_editor_->text() );
+  setBagTopics( rosbag_topic_name_editor_->text() );
 }
 
 
