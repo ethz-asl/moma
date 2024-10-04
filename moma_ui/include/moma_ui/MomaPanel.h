@@ -19,25 +19,27 @@ public:
     virtual void save(rviz::Config config) const;
 
 public Q_SLOTS:
+  void setBagDir( const QString& dir );
   void setBagTopics( const QString& topic );
 
 protected Q_SLOTS:
+  void updateBagDir();
   void updateBagTopics();
 
-protected:
-    // rosbag recording
+protected:    
+    // ROS node handle (for any communication, if needed)
+    ros::NodeHandle nh_;
+
+    // ROSBAG RECORD
+    // Qt elements
     QLineEdit* rosbag_output_dir_editor_ = new QLineEdit;
     QLineEdit* rosbag_topic_name_editor_ = new QLineEdit;
     QPushButton* rosbag_start_button_ = new QPushButton("Start rosbag");
     QPushButton* rosbag_stop_button_ = new QPushButton("Stop rosbag");
-
-    // The current name of the output topic.
+    // internal variables
+    QString bag_output_dir_;
     QString bag_topics_;
     std::vector<std::string> bag_topics_vector_;
-
-    // ROS node handle (for any communication, if needed)
-    ros::NodeHandle nh_;
-
 };
 
 } // end namespace moma_ui

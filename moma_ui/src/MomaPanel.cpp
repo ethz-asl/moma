@@ -32,7 +32,20 @@ MomaPanel::MomaPanel(QWidget *parent)
   setLayout( layout );
 
   // Next we make signal/slot connections.
+  connect( rosbag_output_dir_editor_, SIGNAL( editingFinished() ), this, SLOT( updateBagDir() ));
   connect( rosbag_topic_name_editor_, SIGNAL( editingFinished() ), this, SLOT( updateBagTopics() ));
+}
+
+// Set the directory where the bag file will be saved.
+void MomaPanel::setBagDir( const QString& new_dir )
+{
+  // Only take action if the name has changed.
+  if( new_dir != bag_output_dir_ )
+  {
+    ROS_INFO("moma_ui: Setting bag output directory to %s", new_dir.toStdString().c_str());
+    bag_output_dir_ = new_dir;
+    Q_EMIT configChanged();
+  }
 }
 
 // Set the topic name we are publishing to.
@@ -78,31 +91,40 @@ void MomaPanel::setBagTopics( const QString& new_topic )
 void MomaPanel::save( rviz::Config config ) const
 {
   rviz::Panel::save( config );
-  config.mapSetValue( "Topic", bag_topics_ );
+  config.mapSetValue( "BagOutDir", bag_output_dir_ );
+  config.mapSetValue( "BagTopics", bag_topics_ );
 }
 
 // Load all configuration data for this panel from the given Config object.
 void MomaPanel::load( const rviz::Config& config )
 {
   rviz::Panel::load( config );
+  QString dir;
+  if( config.mapGetString( "BagOutDir", &dir ))
+  {
+    rosbag_output_dir_editor_->setText( dir );
+    updateBagDir();
+}
   QString topic;
-  if( config.mapGetString( "Topic", &topic ))
+  if( config.mapGetString( "BagTopics", &topic ))
   {
     rosbag_topic_name_editor_->setText( topic );
     updateBagTopics();
   }
 }
 
+void MomaPanel::updateBagDir()
+{
+    setBagDir( rosbag_output_dir_editor_->text() );
+} 
+
 void MomaPanel::updateBagTopics()
 {
   setBagTopics( rosbag_topic_name_editor_->text() );
 }
 
+}
+// end namespace moma_ui
 
-} // end namespace moma_ui
-
-// Tell pluginlib about this class.  Every class which should be
-// loadable by pluginlib::ClassLoader must have these two lines
-// compiled in its .cpp file, outside of any namespace scope.
 #include <pluginlib/class_list_macros.h>
 PLUGINLIB_EXPORT_CLASS(moma_ui::MomaPanel, rviz::Panel)
