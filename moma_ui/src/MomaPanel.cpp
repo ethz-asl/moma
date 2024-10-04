@@ -17,9 +17,27 @@ namespace moma_ui
 MomaPanel::MomaPanel(QWidget *parent)
     : rviz::Panel(parent)
 {
+    // PERCEPTION
+    // Set up the layout for the perception buttons
+    QHBoxLayout* perception_layout = new QHBoxLayout;
+    perception_layout->addWidget( new QLabel( "<b>PERCEPTION</b>" ));
+    perception_layout->addWidget( perception_bbox_button_ );
+    perception_layout->addWidget( perception_detect_plane_button_ );
+    perception_layout->addWidget( perception_clear_map_button_ );
 
-  // rosbag recording
+    // SAM
+    // Set up the layout for the SAM buttons
+    QHBoxLayout* sam_layout = new QHBoxLayout;
+    sam_layout->addWidget( new QLabel( "<b>SEGMENTATION</b>" ));
+    sam_layout->addWidget( sam_reset_button_ );
+    sam_layout->addWidget( new QLabel( "Label:" ));
+    sam_layout->addWidget( sam_label_editor_ );
+    sam_layout->addWidget( sam_reset_label_ctrlpts_button_ );
+
+  // ROSBAG
   QHBoxLayout* topic_layout = new QHBoxLayout;
+      topic_layout->addWidget( new QLabel( "<b>LOGGING</b>" ));
+
   topic_layout->addWidget( new QLabel( "Bag DIR:" ));
   topic_layout->addWidget( rosbag_output_dir_editor_ );
   topic_layout->addWidget( new QLabel( "Topics:" ));
@@ -27,8 +45,34 @@ MomaPanel::MomaPanel(QWidget *parent)
   topic_layout->addWidget( rosbag_start_button_ );
   topic_layout->addWidget( rosbag_stop_button_ );
   
+  // P2P
+    QHBoxLayout* p2p_layout = new QHBoxLayout;
+          p2p_layout->addWidget( new QLabel( "<b>POINT-TO-POINT</b>" ));
+
+    p2p_layout->addWidget( new QLabel( "Label:" ));
+    p2p_layout->addWidget( p2p_label_ );
+    p2p_layout->addWidget( p2p_store_ee_pose_button_ );
+    p2p_layout->addWidget( p2p_store_joints_button_ );
+    p2p_layout->addWidget( p2p_goto_label_button_ );
+    p2p_layout->addWidget( p2p_delete_label_button_ );
+
+    // TRJ
+    // Set up the layout for the trajectory buttons
+    QHBoxLayout* trj_layout = new QHBoxLayout;
+              trj_layout->addWidget( new QLabel( "<b>TRAJECTORY</b>" ));
+
+    trj_layout->addWidget( trj_select_start_button_ );
+    trj_layout->addWidget( trj_select_end_button_ );
+    trj_layout->addWidget( new QLabel( "Trajectory Height:" ));
+    trj_layout->addWidget( trj_execute_button_ );
+
+
   QVBoxLayout* layout = new QVBoxLayout;
+    layout->addLayout( perception_layout );
+    layout->addLayout( sam_layout );
   layout->addLayout( topic_layout );
+    layout->addLayout( p2p_layout );
+    layout->addLayout( trj_layout );
   setLayout( layout );
 
   // Next we make signal/slot connections.
