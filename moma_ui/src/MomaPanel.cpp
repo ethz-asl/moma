@@ -22,20 +22,16 @@ MomaPanel::MomaPanel(QWidget *parent)
   // Next we lay out the "output topic" text entry field using a
   // QLabel and a QLineEdit in a QHBoxLayout.
   QHBoxLayout* topic_layout = new QHBoxLayout;
-  topic_layout->addWidget( new QLabel( "Output Topic:" ));
+  topic_layout->addWidget( new QLabel( "ROS Topics to record:" ));
   output_topic_editor_ = new QLineEdit;
   topic_layout->addWidget( output_topic_editor_ );
 
+    QVBoxLayout* layout = new QVBoxLayout;
+    layout->addLayout( topic_layout );
+    setLayout( layout );
+
   // Next we make signal/slot connections.
-//   connect( drive_widget_, SIGNAL( outputVelocity( float, float )), this, SLOT( setVel( float, float )));
   connect( output_topic_editor_, SIGNAL( editingFinished() ), this, SLOT( updateTopic() ));
-//   connect( output_timer, SIGNAL( timeout() ), this, SLOT( sendVel() ));
-
-  // Start the timer.
-//   output_timer->start( 100 );
-
-  // Make the control widget start disabled, since we don't start with an output topic.
-//   drive_widget_->setEnabled( false );
 }
 
 // Set the topic name we are publishing to.
@@ -54,11 +50,6 @@ void MomaPanel::setTopic( const QString& new_topic )
     else
     {
         ROS_WARN("Output topic is not empty");
-      // The old ``velocity_publisher_`` is destroyed by this assignment,
-      // and thus the old topic advertisement is removed.  The call to
-      // nh_advertise() says we want to publish data on the new topic
-      // name.
-    //   velocity_publisher_ = nh_.advertise<geometry_msgs::Twist>( output_topic_.toStdString(), 1 );
     }
     // rviz::Panel defines the configChanged() signal.  Emitting it
     // tells RViz that something in this panel has changed that will
@@ -68,9 +59,6 @@ void MomaPanel::setTopic( const QString& new_topic )
     // to show in the window's title bar indicating unsaved changes.
     Q_EMIT configChanged();
   }
-
-  // Gray out the control widget when the output topic is empty.
-//   drive_widget_->setEnabled( output_topic_ != "" );
 }
 
 // Save all configuration data from this panel to the given
@@ -93,6 +81,13 @@ void MomaPanel::load( const rviz::Config& config )
     updateTopic();
   }
 }
+
+void MomaPanel::updateTopic()
+{
+  setTopic( output_topic_editor_->text() );
+}
+
+
 } // end namespace moma_ui
 
 // Tell pluginlib about this class.  Every class which should be
