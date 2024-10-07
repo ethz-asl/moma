@@ -175,6 +175,7 @@ class MomaUiNode:
                 # img_masked = cv2.cvtColor(self.bridge.imgmsg_to_cv2(self.stored_image), cv2.COLOR_BGR2RGB)
                 img_masked = cv2.cvtColor(self.bridge.imgmsg_to_cv2(self.control_image), cv2.COLOR_BGR2RGB)
                 # convert the image to 
+                rospy.loginfo(f"Received {len(response.masks)} masks from segmentation service")
                 for mask in response.masks:
                     actual_mask = self.bridge.imgmsg_to_cv2(mask, desired_encoding='mono8')
                     boolean_array = actual_mask.astype(bool)
@@ -187,6 +188,8 @@ class MomaUiNode:
                 
 
                 img_masked = self.bridge.cv2_to_imgmsg(img_masked, "bgr8")
+                mask_image = response.masks[0]
+                self.mask_pub.publish(mask_image)
                 self.masked_pub.publish(img_masked)
                 # self.mask_pub.publish(first_mask)
                 rospy.loginfo("Published the first mask from the segmentation response")
