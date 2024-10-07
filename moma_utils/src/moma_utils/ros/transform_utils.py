@@ -24,6 +24,24 @@ def array_from_pose(pose: Pose) -> np.array:
     )
     return array
 
+def pose_from_array(position: np.ndarray, orientation: np.ndarray = [0, 0, 0, 1]) -> Pose:
+
+    pose = Pose()
+    if len(position) >= 2:
+        pose.position.x = position[0]
+        pose.position.y = position[1]
+        if len(position) == 2:
+            pose.position.z = 0.0
+        else:
+            pose.position.z = position[2]
+    
+    pose.orientation.x = orientation[0]
+    pose.orientation.y = orientation[1]
+    pose.orientation.z = orientation[2]
+    pose.orientation.w = orientation[3]
+
+    return pose
+
 
 def wrap_angle(
     angle: float, min_angle: float = -np.pi, max_angle: float = np.pi
@@ -192,6 +210,8 @@ def pose_from_point(point: list, orientation: list = [0, 0, 0, 1]) -> Pose:
     pose = Pose()
     pose.position.x = point[0]
     pose.position.y = point[1]
+    if len(point) > 2:
+        pose.position.z = point[2]
     
     pose.orientation.x = orientation[0]
     pose.orientation.y = orientation[1]

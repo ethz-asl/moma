@@ -3,18 +3,21 @@
 # Python 2/3 compatibility imports
 from __future__ import print_function, annotations
 from six.moves import input
+from typing import Tuple
 
 import sys
 import copy
 import rospy
 import moveit_commander
 import actionlib
+import tf2_ros
 import numpy as np
 import scipy as sc
 from moveit_msgs.msg import RobotTrajectory, DisplayTrajectory
 from geometry_msgs.msg import Pose, PoseStamped
 from std_msgs.msg import String
 from sensor_msgs.msg import JointState
+import tf2_geometry_msgs 
 
 # from scipy.spatial.transform import Rotation
 from moma_utils.ros import conversions
@@ -155,10 +158,30 @@ class PandaArmClient(object):
         else:
             return True
 
-    def get_state(self):
+    def get_state(self) -> Tuple[np.ndarray, np.ndarray]:
         q = np.asarray(self._joint_state_msg.position[:7])
         dq = np.asarray(self._joint_state_msg.velocity[:7])
         return q, dq
+
+    def get_current_pose(self):
+        return self.move_group.get_current_pose(end_effector_link=self.eef_link)
+
+    def get_global_ee_pose(self, odom_topic='odom', base_link='base_footprint'):
+        """
+        if robot mobile robot
+        """
+        ee_pose_local = self.move_group.get_current_pose(self.eef_link)
+        tf_buffer = tf2_ros.Buffer()
+        tf_listener = tf2_ros.TransformListener(tf_buffer)
+
+        try:
+            transform = tf_buffer.lookup_transform(odom_topic, base_link, rospy.Time(0), rospy.Duration(1.0))
+            ee_pose_global = tf2_geometry_msgs.do_transform_pose(ee_pose_local, transform)
+            return ee_pose_global
+
+        except (tf2_ros.LookupException, tf2_ros.ExtrapolationException, tf2_ros.TransformException) as e:
+            rospy.logerr(f"Could not transform end-effector pose to global frame: {e}")
+            return None
 
     def recover(self):
         msg = ErrorRecoveryActionGoal()
@@ -235,6 +258,7 @@ class PandaArmClient(object):
         return all_close(joint_goal, current_joints)
 
     def get_pose(self, position: np.array, orientation: np.array) -> Pose:
+        # get rid of this potentially in favour for utis fnc
         pose_goal = Pose()
         pose_goal.orientation.x = orientation[0]
         pose_goal.orientation.y = orientation[1]
@@ -261,13 +285,19 @@ class PandaArmClient(object):
                 f"Pose goal must be of type Transform or Pose and is {type(pose_goal)}"
             )
             raise ValueError
-
+        
         self.move_group.go(wait=True)
         self.move_group.stop()
         self.move_group.clear_pose_targets()
 
         current_pose = self.move_group.get_current_pose().pose
         return all_close(pose_goal, current_pose)
+    
+    def get_planning_frame(self):
+        return self.move_group.get_planning_frame()
+    
+    def get_pose_ref_frame(self):
+        return self.move_group.get_pose_reference_frame()
 
     def go_to_pose_goal_cartesian(
         self,
