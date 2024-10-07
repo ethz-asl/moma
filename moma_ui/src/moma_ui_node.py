@@ -156,10 +156,19 @@ class MomaUiNode:
             seg_req.image = self.control_image  # Stored image
 
             # Convert clicks to geometry_msgs/Point[]
-            seg_req.query_points = [Point(x=click[0], y=click[1], z=0) for click in self.control_points_xy]
+            # seg_req.query_points = [Point(x=click[0], y=click[1], z=0) for click in self.control_points_xy]
 
             # Add labels (all '1')
-            seg_req.query_labels = [1] * len(self.control_points_xy)
+            # seg_req.query_labels = [1] * len(self.control_points_xy)
+
+            # fill up the query points and labels
+            for i in range(len(self.control_points_xy)):
+                query_point = Point(x=self.control_points_xy[i][0], y=self.control_points_xy[i][1], z=0)
+                seg_req.query_points.append(query_point)
+                label = self.control_points_label[i]
+                label_idx = self.label_list.index(label)
+                seg_req.query_labels.append(label_idx)
+            print('different labels:', seg_req.query_labels)
 
             # Specify the TL and BR corners using Int32MultiArray
             boxes = Int32MultiArray()

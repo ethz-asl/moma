@@ -22,7 +22,7 @@ Panels:
   - Class: rviz/Time
     Name: Time
     SyncMode: 0
-    SyncSource: rs_435_1 (RGB)
+    SyncSource: rs_435_3 (RGB)
   - BagOutDir: ""
     BagTopics: ""
     Class: moma_ui/MomaPanel
@@ -585,7 +585,7 @@ Visualization Manager:
   Value: true
   Views:
     Current:
-      Angle: -1.635000467300415
+      Angle: -1.5800005197525024
       Class: rviz/TopDownOrtho
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
@@ -595,7 +595,7 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Scale: 856.5621337890625
+      Scale: 844.2276000976562
       Target Frame: <Fixed Frame>
       X: 0.030152596533298492
       Y: 0.18065223097801208

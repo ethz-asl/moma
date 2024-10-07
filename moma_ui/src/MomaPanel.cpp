@@ -32,6 +32,7 @@ MomaPanel::MomaPanel(QWidget *parent)
     // Set up the layout for the SAM buttons
     QHBoxLayout* sam_layout = new QHBoxLayout;
     sam_layout->addWidget( new QLabel( "<b>SEGMENTATION</b>" ));
+    sam_layout->addWidget( sam_fg_toggle );
     sam_layout->addWidget( new QLabel( "Label:" ));
     sam_layout->addWidget( sam_label_editor_ );
     sam_layout->addWidget( sam_reset_label_ctrlpts_button_ );
