@@ -18,9 +18,11 @@
   <arg name="initial_pose_x" default="0" />
   <arg name="initial_pose_y" default="0" />
   <arg name="initial_pose_yaw" default="0" />
+  <arg name="moveit" default="true"/>
   <arg name="scan_topic" default="/front/scan" />
   <arg name="world_name" default="$(find moma_gazebo)/worlds/simple.world"/>
   <arg name="z_axis_height" default="0.0" />
+  <arg name="moveit_planner" default="ompl"/>
 
   <!-- Teleops -->
   <arg name="joystick" default="true" />
@@ -34,7 +36,9 @@
     <arg name="mobile_base_x" value="$(arg initial_pose_x)"/>
     <arg name="mobile_base_y" value="$(arg initial_pose_y)"/>
     <arg name="mobile_base_yaw" value="$(arg initial_pose_yaw)"/>
+    <arg name="moveit" value="$(arg moveit)"/>
     <arg name="z_axis_height" value="$(arg z_axis_height)"/>
+    <arg name="moveit_planner" value="$(arg moveit_planner)"/>
   </include>
 
   <!-- Move base -->
