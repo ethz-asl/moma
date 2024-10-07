@@ -25,16 +25,17 @@ public Q_SLOTS:
 
 protected Q_SLOTS:
   void resetSam();
-  void updateSamLabel();
+  void updateSamFgMinH();
   void runSam();
   void updateBagDir();
   void updateBagTopics();
+  void toggledFgSam();
 
 
 protected:    
     // ROS node handle (for any communication, if needed)
     ros::NodeHandle nh_;
-    ros::Publisher label_pub_;
+    ros::Publisher fg_min_height_pub_;
 
     // PERCEPTION
     // Qt elements
@@ -44,7 +45,7 @@ protected:
     
     // SAM
     // Qt elements
-    QCheckBox* sam_fg_toggle = new QCheckBox("Enable feature");
+    QCheckBox* sam_fg_toggle = new QCheckBox("FG/BG");
     QLineEdit* sam_label_editor_ = new QLineEdit;
     QPushButton* sam_reset_label_ctrlpts_button_ = new QPushButton("Reset");
     QPushButton* sam_run_button_ = new QPushButton("Segment");

@@ -10,8 +10,10 @@
 
 #include <ros/names.h>
 #include <std_srvs/Empty.h>
+#include <std_srvs/SetBool.h>
 #include <std_srvs/Trigger.h>
 #include <std_msgs/String.h>
+#include <std_msgs/Float32.h>
 
 #include "moma_ui/MomaPanel.h"
 
@@ -33,7 +35,7 @@ MomaPanel::MomaPanel(QWidget *parent)
     QHBoxLayout* sam_layout = new QHBoxLayout;
     sam_layout->addWidget( new QLabel( "<b>SEGMENTATION</b>" ));
     sam_layout->addWidget( sam_fg_toggle );
-    sam_layout->addWidget( new QLabel( "Label:" ));
+    sam_layout->addWidget( new QLabel( "FG Min. Height:" ));
     sam_layout->addWidget( sam_label_editor_ );
     sam_layout->addWidget( sam_reset_label_ctrlpts_button_ );
     sam_layout->addWidget( sam_run_button_ );
@@ -80,14 +82,14 @@ MomaPanel::MomaPanel(QWidget *parent)
 
   // Next we make signal/slot connections.
   connect( sam_reset_label_ctrlpts_button_, SIGNAL( clicked() ), this, SLOT( resetSam() ));
+  connect( sam_fg_toggle, SIGNAL( stateChanged(int) ), this, SLOT( toggledFgSam() ));
   connect( sam_run_button_, SIGNAL( clicked() ), this, SLOT( runSam() ));
-  connect( sam_label_editor_, SIGNAL( editingFinished() ), this, SLOT( updateSamLabel() ));
+  connect( sam_label_editor_, SIGNAL( editingFinished() ), this, SLOT( updateSamFgMinH() ));
   connect( rosbag_output_dir_editor_, SIGNAL( editingFinished() ), this, SLOT( updateBagDir() ));
   connect( rosbag_topic_name_editor_, SIGNAL( editingFinished() ), this, SLOT( updateBagTopics() ));
 
   // other stuff
-  label_pub_ = nh_.advertise<std_msgs::String>("moma_ui/sam/label", 1);
-
+  fg_min_height_pub_ = nh_.advertise<std_msgs::Float32>("moma_ui/sam/foreground_min_height", 1);
 }
 
 // Set the directory where the bag file will be saved.
@@ -201,16 +203,40 @@ void MomaPanel::runSam()
     }
 }
 
-void MomaPanel::updateSamLabel()
+void MomaPanel::toggledFgSam()
 {
-  ROS_INFO("moma_panel: Adding label to SAM: %s", sam_label_editor_->text().toStdString().c_str());
+    ROS_INFO("moma_panel: Toggled SAM FG/BG");
+    ROS_INFO("State: %d", sam_fg_toggle->isChecked());
     // Update the label of the SAM
     // Get the label from the editor
-    std::string label = sam_label_editor_->text().toStdString();
+    // std::string label = sam_label_editor_->text().toStdString();
+    bool fg = sam_fg_toggle->isChecked();
+    // make a setbool service call
+    ros::ServiceClient client = nh_.serviceClient<std_srvs::SetBool>("moma_ui/sam/set_label_fg_bg");
+    std_srvs::SetBool srv;
+    srv.request.data = fg;
+    client.call(srv);
+    if (srv.response.success)
+    {
+        ROS_INFO("moma_panel: SAM FG/BG has been toggled: %s", srv.response.message.c_str());
+    }
+    else
+    {
+        ROS_WARN("moma_panel: Failed to toggle SAM FG/BG: %s", srv.response.message.c_str());
+    }
+}
+
+void MomaPanel::updateSamFgMinH()
+{
+  // ROS_INFO("moma_panel: Adding label to SAM: %s", sam_label_editor_->text().toStdString().c_str());
+    // Update the label of the SAM
+    // Get the label from the editor
+    // std::string label = sam_label_editor_->text().toStdString();
+    float fg_min_height = sam_label_editor_->text().toFloat();
     // publish the label on a string topic
-    std_msgs::String msg;
-    msg.data = label;
-    label_pub_.publish(msg);
+    std_msgs::Float32 msg;
+    msg.data = fg_min_height;
+    fg_min_height_pub_.publish(msg);
 }
 
 void MomaPanel::updateBagDir()

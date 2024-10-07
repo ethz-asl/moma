@@ -8,7 +8,8 @@ from ros_sam_msgs.srv import Segmentation, SegmentationRequest
 from cv_bridge import CvBridge, CvBridgeError
 from std_msgs.msg import Int32MultiArray
 from grid_map_msgs.msg import GridMap
-from std_msgs.msg import String
+from std_msgs.msg import String, Float32
+from std_srvs.srv import SetBool, SetBoolResponse, SetBoolRequest
 
 import matplotlib.pyplot as plt
 
@@ -41,9 +42,11 @@ class MomaUiNode:
         self.control_points_label = []
 
         # label subscriber and storage
-        self.label_sub = rospy.Subscriber("moma_ui/sam/label", String, self.label_callback)
-        self.label_list = None
-        self.current_label = 'default'
+        self.fg_min_height_sub = rospy.Subscriber("moma_ui/sam/foreground_min_height", Float32, self.fg_min_height_callback)
+        
+        # self.label_list = None
+        self.current_label = 'fg'
+        self.fg_min_height = 0.0
 
         # Publishers
         self.control_img_pub = rospy.Publisher('moma_ui/sam/control_image', Image, queue_size=10)
@@ -53,7 +56,7 @@ class MomaUiNode:
         # Services
         self.reset_sam_cfg_srv = rospy.Service('moma_ui/sam/reset', Empty, self.reset_sam_config)
         self.run_sam_srv = rospy.Service('moma_ui/sam/run', Trigger, self.run_sam)
-
+        self.set_label_fg_bg_srv = rospy.Service('moma_ui/sam/set_label_fg_bg', SetBool, self.set_label_fg_bg)
         # CVBridge for image conversion
         self.bridge = CvBridge()
 
@@ -78,7 +81,10 @@ class MomaUiNode:
             return
         if msg is not None:
             self.control_points_xy.append((msg.point.x, msg.point.y))
-            self.control_points_label.append(self.current_label)
+            if self.current_label == 'fg':
+                self.control_points_label.append(1)
+            else:
+                self.control_points_label.append(0)
         control_img_cv2 = self.bridge.imgmsg_to_cv2(self.control_image, "bgr8") 
         # Draw the buffered clicks on the image
         if self.control_points_xy is not None and len(self.control_points_xy) > 0:
@@ -87,26 +93,16 @@ class MomaUiNode:
                 # print('label_list:', self.label_list)
                 click_xy = self.control_points_xy[i]
                 label = self.control_points_label[i]
-                label_idx = self.label_list.index(label)
-                color = self.rgba_to_bgr(plt.cm.tab20(label_idx))
+                color = self.rgba_to_bgr(plt.cm.tab20(label))
                 cv2.circle(control_img_cv2, (int(click_xy[0]), int(click_xy[1])), 5, color, -1)
         # Convert back to ROS image
         control_img_msg = self.bridge.cv2_to_imgmsg(control_img_cv2, "bgr8")       
         # Publish the control points overlaid on the control image
         self.control_img_pub.publish(control_img_msg)
 
-    def label_callback(self, msg):
-        # check if label dictionary is empty
-        if self.label_list is None:
-            self.label_list = ['default']
-        # check if the label is already in the dictionary
-        if msg.data not in self.label_list:
-            self.label_list.append(msg.data)
-        self.current_label = msg.data
-        rospy.loginfo(f"moma_ui: Added label {msg.data} to the label list, with labels: {self.label_list}")
-        rospy.loginfo(f"moma_ui: Current label is set to {self.current_label}")
-        num_labels = len(self.label_list)
-        # for each new label, add a new color to the color list
+    def fg_min_height_callback(self, msg):
+        rospy.loginfo(f"moma_ui: Received foreground min height: {msg.data}")
+        self.fg_min_height = msg.data
 
     # services
     def reset_sam_config(self, req):
@@ -114,13 +110,21 @@ class MomaUiNode:
         """Reset the buffer of click points."""
         self.control_points_xy = []
         self.control_points_label = []
-        self.update_ctrl_img = True
-        self.label_list = ['default']
-        self.current_label = 'default'
         if self.last_received_img is not None:
             self.control_image = self.last_received_img
             self.control_img_pub.publish(self.control_image)
         return EmptyResponse()
+
+    def set_label_fg_bg(self, req):
+        rospy.loginfo("moma_ui: Setting label to foreground or background")
+        """Set the label to either foreground or background"""
+        if req.data:
+            self.current_label = 'fg'
+            rospy.loginfo("Label set to foreground")
+        else:
+            self.current_label = 'bg'
+            rospy.loginfo("Label set to background")
+        return SetBoolResponse(success=True, message="Label set successfully")
 
     def run_sam(self, req):
         rospy.loginfo("moma_ui: Segmenting image...")
@@ -166,8 +170,7 @@ class MomaUiNode:
                 query_point = Point(x=self.control_points_xy[i][0], y=self.control_points_xy[i][1], z=0)
                 seg_req.query_points.append(query_point)
                 label = self.control_points_label[i]
-                label_idx = self.label_list.index(label)
-                seg_req.query_labels.append(label_idx)
+                seg_req.query_labels.append(label)
             print('different labels:', seg_req.query_labels)
 
             # Specify the TL and BR corners using Int32MultiArray
