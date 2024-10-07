@@ -11,6 +11,7 @@
 #include <ros/names.h>
 #include <std_srvs/Empty.h>
 #include <std_srvs/Trigger.h>
+#include <std_msgs/String.h>
 
 #include "moma_ui/MomaPanel.h"
 
@@ -79,8 +80,12 @@ MomaPanel::MomaPanel(QWidget *parent)
   // Next we make signal/slot connections.
   connect( sam_reset_label_ctrlpts_button_, SIGNAL( clicked() ), this, SLOT( resetSam() ));
   connect( sam_run_button_, SIGNAL( clicked() ), this, SLOT( runSam() ));
+  connect( sam_label_editor_, SIGNAL( editingFinished() ), this, SLOT( updateSamLabel() ));
   connect( rosbag_output_dir_editor_, SIGNAL( editingFinished() ), this, SLOT( updateBagDir() ));
   connect( rosbag_topic_name_editor_, SIGNAL( editingFinished() ), this, SLOT( updateBagTopics() ));
+
+  // other stuff
+  label_pub_ = nh_.advertise<std_msgs::String>("moma_ui/sam/label", 1);
 
 }
 
@@ -193,6 +198,18 @@ void MomaPanel::runSam()
     {
         ROS_WARN("moma_panel: Failed to run SAM: %s", srv.response.message.c_str());
     }
+}
+
+void MomaPanel::updateSamLabel()
+{
+  ROS_INFO("moma_panel: Adding label to SAM: %s", sam_label_editor_->text().toStdString().c_str());
+    // Update the label of the SAM
+    // Get the label from the editor
+    std::string label = sam_label_editor_->text().toStdString();
+    // publish the label on a string topic
+    std_msgs::String msg;
+    msg.data = label;
+    label_pub_.publish(msg);
 }
 
 void MomaPanel::updateBagDir()

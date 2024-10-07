@@ -8,6 +8,7 @@ from ros_sam_msgs.srv import Segmentation, SegmentationRequest
 from cv_bridge import CvBridge, CvBridgeError
 from std_msgs.msg import Int32MultiArray
 from grid_map_msgs.msg import GridMap
+from std_msgs.msg import String
 
 import cv2
 import numpy as np
@@ -39,21 +40,23 @@ class MomaUiNode:
         self.click_sub = rospy.Subscriber("/control_image/mouse_click", PointStamped, self.click_callback)
         self.clicks = []
 
+        # label subscriber and storage
+        self.label_sub = rospy.Subscriber("moma_ui/sam/label", String, self.label_callback)
+        self.label_list = None
+
         # Publishers
         self.control_img_pub = rospy.Publisher('/control_image', Image, queue_size=10)
         self.mask_pub = rospy.Publisher('/mask', Image, queue_size=10)
 
         # Services
-        self.update_ctrl_img_srv = rospy.Service('update_ctr_img', Empty, self.update_ctr_img)
-        self.reset_sam_ctrl_pts_srv = rospy.Service('moma_ui/sam/reset', Empty, self.reset_sam_ctrl_pts)
-        self.segment_srv = rospy.Service('moma_ui/sam/run', Trigger, self.segment_image)
+        self.reset_sam_cfg_srv = rospy.Service('moma_ui/sam/reset', Empty, self.reset_sam_config)
+        self.run_sam_srv = rospy.Service('moma_ui/sam/run', Trigger, self.run_sam)
 
         # CVBridge for image conversion
         self.bridge = CvBridge()
 
     # callbacks
     def image_callback(self, msg):
-        print("Image received")
         """Callback to update the most recent image."""
         self.last_image = msg
         if self.update_ctrl_img == True:
@@ -62,11 +65,11 @@ class MomaUiNode:
             self.update_ctrl_img = False
     
     def elevation_map_callback(self, msg):
-        self.last_elevation_map = msg
+        # assert not implemented
+        raise NotImplementedError("Elevation map callback not implemented yet")
 
     def click_callback(self, msg):
         """Store only x and y coordinates from incoming clicks."""
-        rospy.loginfo(f"Mouse click received at: {msg.point.x}, {msg.point.y}")
         if msg is not None:
             self.clicks.append((msg.point.x, msg.point.y))
         control_img_cv2 = self.bridge.imgmsg_to_cv2(self.control_image, "bgr8") 
@@ -79,43 +82,27 @@ class MomaUiNode:
         # Publish the control points overlaid on the control image
         self.control_img_pub.publish(control_img_msg)
 
+    def label_callback(self, msg):
+        # check if label dictionary is empty
+        if self.label_list is None:
+            self.label_list = []
+        # check if the label is already in the dictionary
+        if msg.data not in self.label_list:
+            self.label_list.append(msg.data)
+        rospy.loginfo(f"moma_ui: Added label {msg.data} to the label list, with labels: {self.label_list}")
+
     # services
-    def update_ctr_img(self, req):
-        """Update the control image with the most recent image."""
-        self.update_ctrl_img = True
-        # """Store the most recent image and create a visualization version."""
-        # if self.recent_image is not None:
-        #     self.stored_image = self.recent_image
-        #     try:
-        #         # Convert the image to OpenCV format
-        #         cv_image = self.bridge.imgmsg_to_cv2(self.stored_image, "bgr8")
-
-        #         # Create a copy for visualization
-        #         self.stored_image_viz = cv_image.copy()
-
-        #         # Convert back to ROS image
-        #         self.stored_image_viz = self.bridge.cv2_to_imgmsg(self.stored_image_viz, "bgr8")
-                
-        #         # Publish the visualization image
-        #         self.image_pub.publish(self.stored_image_viz)
-        #         rospy.loginfo("Stored image and visualized control points published successfully")
-            
-        #     except CvBridgeError as e:
-        #         rospy.logerr(f"Failed to process image: {e}")
-        # else:
-        #     rospy.logwarn("No image to store")
-        # return EmptyResponse()
-
-    def reset_sam_ctrl_pts(self, req):
-        rospy.loginfo("moma_ui: Resetting SAM control points...")
+    def reset_sam_config(self, req):
+        rospy.loginfo("moma_ui: Resetting SAM control image, points...")
         """Reset the buffer of click points."""
         self.clicks = []
-        rospy.loginfo("moma_ui: Reset SAM control points")
+        self.update_ctrl_img = True
+        self.label_list = None
         if self.control_image is not None:
             self.control_img_pub.publish(self.control_image)
         return EmptyResponse()
 
-    def segment_image(self, req):
+    def run_sam(self, req):
         rospy.loginfo("moma_ui: Segmenting image...")
         """Call segmentation service with stored image and buffered clicks."""
         if self.stored_image is None:

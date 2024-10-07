@@ -24,6 +24,7 @@ public Q_SLOTS:
 
 protected Q_SLOTS:
   void resetSam();
+  void updateSamLabel();
   void runSam();
   void updateBagDir();
   void updateBagTopics();
@@ -32,6 +33,7 @@ protected Q_SLOTS:
 protected:    
     // ROS node handle (for any communication, if needed)
     ros::NodeHandle nh_;
+    ros::Publisher label_pub_;
 
     // PERCEPTION
     // Qt elements
