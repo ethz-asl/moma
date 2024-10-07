@@ -159,19 +159,12 @@ class MomaUiNode:
             seg_req = SegmentationRequest()
             seg_req.image = self.control_image  # Stored image
 
-            # Convert clicks to geometry_msgs/Point[]
-            # seg_req.query_points = [Point(x=click[0], y=click[1], z=0) for click in self.control_points_xy]
-
-            # Add labels (all '1')
-            # seg_req.query_labels = [1] * len(self.control_points_xy)
-
             # fill up the query points and labels
             for i in range(len(self.control_points_xy)):
                 query_point = Point(x=self.control_points_xy[i][0], y=self.control_points_xy[i][1], z=0)
                 seg_req.query_points.append(query_point)
                 label = self.control_points_label[i]
                 seg_req.query_labels.append(label)
-            print('different labels:', seg_req.query_labels)
 
             # Specify the TL and BR corners using Int32MultiArray
             boxes = Int32MultiArray()
@@ -193,8 +186,6 @@ class MomaUiNode:
                     boolean_array = actual_mask.astype(bool)
                     num_true = np.sum(boolean_array)
                     num_false = np.sum(~boolean_array)
-                    print(f"Number of True pixels: {num_true}")
-                    print(f"Number of False pixels: {num_false}")
                     # mask the image where the mask is false
                     img_masked[~boolean_array] = 0
                 

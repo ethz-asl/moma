@@ -205,22 +205,12 @@ void MomaPanel::runSam()
 
 void MomaPanel::toggledFgSam()
 {
-    ROS_INFO("moma_panel: Toggled SAM FG/BG");
-    ROS_INFO("State: %d", sam_fg_toggle->isChecked());
-    // Update the label of the SAM
-    // Get the label from the editor
-    // std::string label = sam_label_editor_->text().toStdString();
     bool fg = sam_fg_toggle->isChecked();
-    // make a setbool service call
     ros::ServiceClient client = nh_.serviceClient<std_srvs::SetBool>("moma_ui/sam/set_label_fg_bg");
     std_srvs::SetBool srv;
     srv.request.data = fg;
     client.call(srv);
-    if (srv.response.success)
-    {
-        ROS_INFO("moma_panel: SAM FG/BG has been toggled: %s", srv.response.message.c_str());
-    }
-    else
+    if (!srv.response.success)
     {
         ROS_WARN("moma_panel: Failed to toggle SAM FG/BG: %s", srv.response.message.c_str());
     }
@@ -228,12 +218,7 @@ void MomaPanel::toggledFgSam()
 
 void MomaPanel::updateSamFgMinH()
 {
-  // ROS_INFO("moma_panel: Adding label to SAM: %s", sam_label_editor_->text().toStdString().c_str());
-    // Update the label of the SAM
-    // Get the label from the editor
-    // std::string label = sam_label_editor_->text().toStdString();
     float fg_min_height = sam_label_editor_->text().toFloat();
-    // publish the label on a string topic
     std_msgs::Float32 msg;
     msg.data = fg_min_height;
     fg_min_height_pub_.publish(msg);
