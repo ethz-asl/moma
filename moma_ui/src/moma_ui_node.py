@@ -23,17 +23,13 @@ class MomaUiNode:
         rospy.init_node('image_segmentation_node')
 
         # ros params
-        self.input_mode = rospy.get_param('~input_mode', 'image') # 'image' or 'grid_map
-        assert self.input_mode in ['image', 'grid_map'], "Invalid input_mode. Must be 'image' or 'grid_map'"
         self.update_ctrl_img = True
 
         # Image subscriber and storage
-        if self.input_mode == 'image':
-            self.last_received_img = None
-            self.image_sub = rospy.Subscriber("/rs_435_1/color/image_raw", Image, self.image_callback)
-        elif self.input_mode == 'grid_map':
-            self.last_elevation_map = None
-            self.elevation_map_sub = rospy.Subscriber("/elevation_mapping/elevation_map", GridMap, self.elevation_map_callback)
+        self.last_received_img = None
+        self.image_sub = rospy.Subscriber("/rs_435_1/color/image_raw", Image, self.image_callback)
+        self.last_elevation_map = None
+        self.elevation_map_sub = rospy.Subscriber("/elevation_mapping/elevation_map", GridMap, self.elevation_map_callback)
 
         # Mouse click subscriber and storage
         self.control_image = None
@@ -66,8 +62,21 @@ class MomaUiNode:
         self.last_received_img = msg
     
     def elevation_map_callback(self, msg):
-        # assert not implemented
-        raise NotImplementedError("Elevation map callback not implemented yet")
+        self.last_elevation_map = msg
+        # elevation_map = msg.data[msg.layers.index('elevation')]
+        # elevation_img = np.array(elevation_map.data).reshape((140, 140))
+        # color_map = msg.data[msg.layers.index('color')]
+        # color_img = np.array(color_map.data).reshape((140, 140))
+        # # mask out all nan and inf values
+        # color_img[np.isnan(color_img)] = 0
+        # color_img[np.isinf(color_img)] = 0
+        # color_img = self.convert_to_rgb(color_img)
+        # # scale the image to 0-255
+        # # color_img = (color_img - np.min(color_img)) / (np.max(color_img) - np.min(color_img)) * 255
+        # # convert to uint8
+        # # color_img = color_img.astype(np.uint8)
+        # # ros_image = self.bridge.cv2_to_imgmsg(color_img, encoding="bgr8")
+        # # self.last_received_img = ros_image
 
     def rgba_to_bgr(self, color):
         # Color comes as (R, G, B, A), we ignore A and multiply RGB by 255 for OpenCV
@@ -94,7 +103,8 @@ class MomaUiNode:
                 click_xy = self.control_points_xy[i]
                 label = self.control_points_label[i]
                 color = self.rgba_to_bgr(plt.cm.tab20(label))
-                cv2.circle(control_img_cv2, (int(click_xy[0]), int(click_xy[1])), 5, color, -1)
+                circle_radius = 5
+                cv2.circle(control_img_cv2, (int(click_xy[0]), int(click_xy[1])), circle_radius, color, -1)
         # Convert back to ROS image
         control_img_msg = self.bridge.cv2_to_imgmsg(control_img_cv2, "bgr8")       
         # Publish the control points overlaid on the control image
