@@ -23,8 +23,11 @@ public Q_SLOTS:
   void setBagTopics( const QString& topic );
 
 protected Q_SLOTS:
+  void resetSam();
+  void runSam();
   void updateBagDir();
   void updateBagTopics();
+
 
 protected:    
     // ROS node handle (for any communication, if needed)
@@ -38,9 +41,9 @@ protected:
     
     // SAM
     // Qt elements
-    QPushButton* sam_reset_button_ = new QPushButton("Reset SAM cfg");
     QLineEdit* sam_label_editor_ = new QLineEdit;
-    QPushButton* sam_reset_label_ctrlpts_button_ = new QPushButton("Reset Control Points");
+    QPushButton* sam_reset_label_ctrlpts_button_ = new QPushButton("Reset");
+    QPushButton* sam_run_button_ = new QPushButton("Segment");
 
     // ROSBAG
     // Qt elements

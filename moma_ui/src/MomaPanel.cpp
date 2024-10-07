@@ -9,6 +9,8 @@
 #include <string>
 
 #include <ros/names.h>
+#include <std_srvs/Empty.h>
+#include <std_srvs/Trigger.h>
 
 #include "moma_ui/MomaPanel.h"
 
@@ -29,10 +31,10 @@ MomaPanel::MomaPanel(QWidget *parent)
     // Set up the layout for the SAM buttons
     QHBoxLayout* sam_layout = new QHBoxLayout;
     sam_layout->addWidget( new QLabel( "<b>SEGMENTATION</b>" ));
-    sam_layout->addWidget( sam_reset_button_ );
     sam_layout->addWidget( new QLabel( "Label:" ));
     sam_layout->addWidget( sam_label_editor_ );
     sam_layout->addWidget( sam_reset_label_ctrlpts_button_ );
+    sam_layout->addWidget( sam_run_button_ );
 
   // ROSBAG
   QHBoxLayout* topic_layout = new QHBoxLayout;
@@ -47,8 +49,7 @@ MomaPanel::MomaPanel(QWidget *parent)
   
   // P2P
     QHBoxLayout* p2p_layout = new QHBoxLayout;
-          p2p_layout->addWidget( new QLabel( "<b>POINT-TO-POINT</b>" ));
-
+    p2p_layout->addWidget( new QLabel( "<b>POINT-TO-POINT</b>" ));
     p2p_layout->addWidget( new QLabel( "Label:" ));
     p2p_layout->addWidget( p2p_label_ );
     p2p_layout->addWidget( p2p_store_ee_pose_button_ );
@@ -76,8 +77,11 @@ MomaPanel::MomaPanel(QWidget *parent)
   setLayout( layout );
 
   // Next we make signal/slot connections.
+  connect( sam_reset_label_ctrlpts_button_, SIGNAL( clicked() ), this, SLOT( resetSam() ));
+  connect( sam_run_button_, SIGNAL( clicked() ), this, SLOT( runSam() ));
   connect( rosbag_output_dir_editor_, SIGNAL( editingFinished() ), this, SLOT( updateBagDir() ));
   connect( rosbag_topic_name_editor_, SIGNAL( editingFinished() ), this, SLOT( updateBagTopics() ));
+
 }
 
 // Set the directory where the bag file will be saved.
@@ -86,7 +90,7 @@ void MomaPanel::setBagDir( const QString& new_dir )
   // Only take action if the name has changed.
   if( new_dir != bag_output_dir_ )
   {
-    ROS_INFO("moma_ui: Setting bag output directory to %s", new_dir.toStdString().c_str());
+    ROS_INFO("moma_panel: Setting bag output directory to %s", new_dir.toStdString().c_str());
     bag_output_dir_ = new_dir;
     Q_EMIT configChanged();
   }
@@ -102,21 +106,21 @@ void MomaPanel::setBagTopics( const QString& new_topic )
     // If the topic is the empty string, don't publish anything.
     if( bag_topics_ == "" )
     {
-        ROS_WARN("moma_ui: There are no topics to be recorded!");
+        ROS_WARN("moma_panel: There are no topics to be recorded!");
     //   velocity_publisher_.shutdown();
     }
     else
     {
         bag_topics_vector_.clear();
-        ROS_INFO("moma_ui: There are topics to be recorded!");
+        ROS_INFO("moma_panel: There are topics to be recorded!");
         // Split the string using ';' as a delimiter
         QStringList substrings = new_topic.split(";");
         // You can then iterate over the list of substrings or access individual parts
         for(const QString& topic : substrings) {
-            ROS_INFO("moma_ui: Topic: %s", topic.toStdString().c_str());
+            ROS_INFO("moma_panel: Topic: %s", topic.toStdString().c_str());
             std::string error;
             if (!ros::names::validate(topic.toStdString(), error)) {
-                ROS_ERROR("moma_ui: Invalid topic name: %s", error.c_str());
+                ROS_ERROR("moma_panel: Invalid topic name: %s", error.c_str());
                 continue;
             }
             bag_topics_vector_.push_back(topic.toStdString());
@@ -155,6 +159,40 @@ void MomaPanel::load( const rviz::Config& config )
     rosbag_topic_name_editor_->setText( topic );
     updateBagTopics();
   }
+}
+
+void MomaPanel::resetSam()
+{
+    // Reset the control points of the SAM
+    // Call the service to reset the control points
+    ros::ServiceClient client = nh_.serviceClient<std_srvs::Empty>("moma_ui/sam/reset");
+    std_srvs::Empty srv;
+    if (client.call(srv))
+    {
+        ROS_INFO("moma_panel: SAM control points have been reset");
+    }
+    else
+    {
+        ROS_ERROR("moma_panel: Failed to reset SAM control points");
+    }
+}
+
+void MomaPanel::runSam()
+{
+    // Run SAM
+    ROS_INFO("moma_panel: Sending request to SAM...");
+    // Call the service to run the SAM
+    ros::ServiceClient client = nh_.serviceClient<std_srvs::Trigger>("moma_ui/sam/run");
+    std_srvs::Trigger srv;
+    client.call(srv);
+    if (srv.response.success)
+    {
+        ROS_INFO("moma_panel: SAM has been run: %s", srv.response.message.c_str());
+    }
+    else
+    {
+        ROS_WARN("moma_panel: Failed to run SAM: %s", srv.response.message.c_str());
+    }
 }
 
 void MomaPanel::updateBagDir()
