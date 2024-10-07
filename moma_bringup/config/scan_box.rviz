@@ -6,7 +6,7 @@ Panels:
       Expanded:
         - /Control Image1
       Splitter Ratio: 0.6670658588409424
-    Tree Height: 286
+    Tree Height: 443
   - Class: rviz/Tool Properties
     Expanded:
       - /2D Pose Estimate1

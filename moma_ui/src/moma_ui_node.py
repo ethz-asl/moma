@@ -10,6 +10,8 @@ from std_msgs.msg import Int32MultiArray
 from grid_map_msgs.msg import GridMap
 from std_msgs.msg import String
 
+import matplotlib.pyplot as plt
+
 import cv2
 import numpy as np
 import copy
@@ -26,23 +28,22 @@ class MomaUiNode:
 
         # Image subscriber and storage
         if self.input_mode == 'image':
-            self.last_image = None
+            self.last_received_img = None
             self.image_sub = rospy.Subscriber("/rs_435_1/color/image_raw", Image, self.image_callback)
         elif self.input_mode == 'grid_map':
             self.last_elevation_map = None
             self.elevation_map_sub = rospy.Subscriber("/elevation_mapping/elevation_map", GridMap, self.elevation_map_callback)
 
-        # variables
-        self.stored_image = None
-
         # Mouse click subscriber and storage
         self.control_image = None
         self.click_sub = rospy.Subscriber("/control_image/mouse_click", PointStamped, self.click_callback)
-        self.clicks = []
+        self.control_points_xy = []
+        self.control_points_label = []
 
         # label subscriber and storage
         self.label_sub = rospy.Subscriber("moma_ui/sam/label", String, self.label_callback)
         self.label_list = None
+        self.current_label = 'default'
 
         # Publishers
         self.control_img_pub = rospy.Publisher('/control_image', Image, queue_size=10)
@@ -58,25 +59,36 @@ class MomaUiNode:
     # callbacks
     def image_callback(self, msg):
         """Callback to update the most recent image."""
-        self.last_image = msg
-        if self.update_ctrl_img == True:
-            self.control_image = self.last_image
-            self.control_img_pub.publish(self.last_image)
-            self.update_ctrl_img = False
+        self.last_received_img = msg
     
     def elevation_map_callback(self, msg):
         # assert not implemented
         raise NotImplementedError("Elevation map callback not implemented yet")
 
+    def rgba_to_bgr(self, color):
+        # Color comes as (R, G, B, A), we ignore A and multiply RGB by 255 for OpenCV
+        r, g, b, _ = color
+        return (int(b * 255), int(g * 255), int(r * 255))
+
     def click_callback(self, msg):
         """Store only x and y coordinates from incoming clicks."""
+        if self.control_image is None:
+            rospy.logwarn("moma_ui: No stored image to click on")
+            return
         if msg is not None:
-            self.clicks.append((msg.point.x, msg.point.y))
+            self.control_points_xy.append((msg.point.x, msg.point.y))
+            self.control_points_label.append(self.current_label)
         control_img_cv2 = self.bridge.imgmsg_to_cv2(self.control_image, "bgr8") 
         # Draw the buffered clicks on the image
-        if self.clicks is not None and len(self.clicks) > 0:
-            for click in self.clicks:
-                cv2.circle(control_img_cv2, (int(click[0]), int(click[1])), 5, (0, 255, 0), -1)
+        if self.control_points_xy is not None and len(self.control_points_xy) > 0:
+            i = 0
+            for i in range(len(self.control_points_xy)):
+                # print('label_list:', self.label_list)
+                click_xy = self.control_points_xy[i]
+                label = self.control_points_label[i]
+                label_idx = self.label_list.index(label)
+                color = self.rgba_to_bgr(plt.cm.tab20(label_idx))
+                cv2.circle(control_img_cv2, (int(click_xy[0]), int(click_xy[1])), 5, color, -1)
         # Convert back to ROS image
         control_img_msg = self.bridge.cv2_to_imgmsg(control_img_cv2, "bgr8")       
         # Publish the control points overlaid on the control image
@@ -85,27 +97,35 @@ class MomaUiNode:
     def label_callback(self, msg):
         # check if label dictionary is empty
         if self.label_list is None:
-            self.label_list = []
+            self.label_list = ['default']
         # check if the label is already in the dictionary
         if msg.data not in self.label_list:
             self.label_list.append(msg.data)
+        self.current_label = msg.data
         rospy.loginfo(f"moma_ui: Added label {msg.data} to the label list, with labels: {self.label_list}")
+        rospy.loginfo(f"moma_ui: Current label is set to {self.current_label}")
+        num_labels = len(self.label_list)
+        # for each new label, add a new color to the color list
+
 
     # services
     def reset_sam_config(self, req):
         rospy.loginfo("moma_ui: Resetting SAM control image, points...")
         """Reset the buffer of click points."""
-        self.clicks = []
+        self.control_points_xy = []
+        self.control_points_label = []
         self.update_ctrl_img = True
-        self.label_list = None
-        if self.control_image is not None:
+        self.label_list = ['default']
+        self.current_label = 'default'
+        if self.last_received_img is not None:
+            self.control_image = self.last_received_img
             self.control_img_pub.publish(self.control_image)
         return EmptyResponse()
 
     def run_sam(self, req):
         rospy.loginfo("moma_ui: Segmenting image...")
         """Call segmentation service with stored image and buffered clicks."""
-        if self.stored_image is None:
+        if self.control_image is None:
             rospy.logwarn("moma_ui: No stored image to segment")
             resp = TriggerResponse()
             resp.success = False
@@ -126,7 +146,7 @@ class MomaUiNode:
 
             # Create segmentation request
             seg_req = SegmentationRequest()
-            seg_req.image = self.stored_image  # Stored image
+            seg_req.image = self.control_image  # Stored image
 
             # Convert clicks to geometry_msgs/Point[]
             seg_req.query_points = [Point(x=click[0], y=click[1], z=0) for click in self.clicks]
@@ -146,7 +166,7 @@ class MomaUiNode:
             # Process the response
             if response.masks:
                 # img_masked = cv2.cvtColor(self.bridge.imgmsg_to_cv2(self.stored_image), cv2.COLOR_BGR2RGB)
-                img_masked = cv2.cvtColor(self.bridge.imgmsg_to_cv2(self.stored_image), cv2.COLOR_BGR2RGB)
+                img_masked = cv2.cvtColor(self.bridge.imgmsg_to_cv2(self.control_image), cv2.COLOR_BGR2RGB)
                 # convert the image to 
                 for mask in response.masks:
                     actual_mask = self.bridge.imgmsg_to_cv2(mask, desired_encoding='mono8')
