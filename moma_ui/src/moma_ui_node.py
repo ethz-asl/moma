@@ -36,7 +36,7 @@ class MomaUiNode:
 
         # Mouse click subscriber and storage
         self.control_image = None
-        self.click_sub = rospy.Subscriber("/control_image/mouse_click", PointStamped, self.click_callback)
+        self.click_sub = rospy.Subscriber("/moma_ui/sam/control_image/mouse_click", PointStamped, self.click_callback)
         self.control_points_xy = []
         self.control_points_label = []
 
@@ -46,8 +46,9 @@ class MomaUiNode:
         self.current_label = 'default'
 
         # Publishers
-        self.control_img_pub = rospy.Publisher('/control_image', Image, queue_size=10)
-        self.mask_pub = rospy.Publisher('/mask', Image, queue_size=10)
+        self.control_img_pub = rospy.Publisher('moma_ui/sam/control_image', Image, queue_size=10)
+        self.mask_pub = rospy.Publisher('moma_ui/sam/mask_image', Image, queue_size=10)
+        self.masked_pub = rospy.Publisher('moma_ui/sam/masked_image', Image, queue_size=10)
 
         # Services
         self.reset_sam_cfg_srv = rospy.Service('moma_ui/sam/reset', Empty, self.reset_sam_config)
@@ -107,7 +108,6 @@ class MomaUiNode:
         num_labels = len(self.label_list)
         # for each new label, add a new color to the color list
 
-
     # services
     def reset_sam_config(self, req):
         rospy.loginfo("moma_ui: Resetting SAM control image, points...")
@@ -126,17 +126,24 @@ class MomaUiNode:
         rospy.loginfo("moma_ui: Segmenting image...")
         """Call segmentation service with stored image and buffered clicks."""
         if self.control_image is None:
-            rospy.logwarn("moma_ui: No stored image to segment")
+            rospy.logwarn("moma_ui: No control image to segment")
             resp = TriggerResponse()
             resp.success = False
-            resp.message = "No stored image to segment!"
+            resp.message = "No control image to segment!"
             return resp
 
-        if not self.clicks:
+        if not self.control_points_xy:
             rospy.logwarn("moma_ui: No control points to segment with")
             resp = TriggerResponse()
             resp.success = False
             resp.message = "No control points to segment with!"     
+            return resp
+        
+        if len(self.control_points_xy) != len(self.control_points_label):
+            rospy.logwarn("moma_ui: Number of points and labels do not match")
+            resp = TriggerResponse()
+            resp.success = False
+            resp.message = "Number of points and labels do not match!"
             return resp
 
         # Prepare the service call
@@ -149,10 +156,10 @@ class MomaUiNode:
             seg_req.image = self.control_image  # Stored image
 
             # Convert clicks to geometry_msgs/Point[]
-            seg_req.query_points = [Point(x=click[0], y=click[1], z=0) for click in self.clicks]
+            seg_req.query_points = [Point(x=click[0], y=click[1], z=0) for click in self.control_points_xy]
 
             # Add labels (all '1')
-            seg_req.query_labels = [1] * len(self.clicks)
+            seg_req.query_labels = [1] * len(self.control_points_xy)
 
             # Specify the TL and BR corners using Int32MultiArray
             boxes = Int32MultiArray()
@@ -180,7 +187,7 @@ class MomaUiNode:
                 
 
                 img_masked = self.bridge.cv2_to_imgmsg(img_masked, "bgr8")
-                self.mask_pub.publish(img_masked)
+                self.masked_pub.publish(img_masked)
                 # self.mask_pub.publish(first_mask)
                 rospy.loginfo("Published the first mask from the segmentation response")
             else:
@@ -189,7 +196,11 @@ class MomaUiNode:
         except rospy.ServiceException as e:
             rospy.logerr(f"Service call failed: {e}")
 
-        return EmptyResponse()
+        resp = TriggerResponse()
+        resp.success = True
+        resp.message = "Segmentation successful"
+        return resp
+    
 
 if __name__ == '__main__':
     try:
