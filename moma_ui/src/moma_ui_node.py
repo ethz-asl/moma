@@ -65,66 +65,26 @@ class MomaUiNode:
             self.last_received_img = msg
     
     def elevation_map_callback(self, msg):
-        rospy.loginfo("moma_ui: Received elevation map")
         self.last_elevation_map = msg
-        # go through msg.data[msg.layers.index('elevation')] and threshold with fg_min_height
-        # then publish the new elevation map
-        # elevation_data = list(msg.data[msg.layers.index('elevation')].data)
-        # for i in range(len(elevation_data)):
-        #     if elevation_data[i] < self.fg_min_height:
-        #         elevation_data[i] = 0.0
-        
-        # new_elevation_map = copy.deepcopy(msg)
-        # new_elevation_map.data[msg.layers.index('elevation')].data = tuple(elevation_data)
-        # self.filtered_elevation_map_pub.publish(new_elevation_map)
-
-        # elevation_map = msg.data[msg.layers.index('elevation')]
-        # elevation_img = np.array(elevation_map.data).reshape((140, 140))
-        color_map = msg.data[msg.layers.index('color')].data
-        types_in_tuple = [type(item) for item in color_map]
-        print(types_in_tuple)
-        color_img = np.array(color_map).reshape((140, 140))
-        # # mask out all nan and inf values
-        color_img[np.isnan(color_img)] = 0
-        color_img[np.isinf(color_img)] = 0
-        print('max:', np.max(color_img))
-        print('type:', color_img.dtype)
-        # convert to long uint 
-        max_val_raw = np.max(color_img)
-        max_val_as_raw_as_int = struct.unpack('I', struct.pack('f', max_val_raw))[0]
-        max_val_as_inthex = hex(max_val_as_raw_as_int)
-        # max_val_as_f32_hex = max_val_as_f32.hex()
-        print('max_val_raw:', max_val_raw)
-        print('max_val_as_raw_as_int:', max_val_as_raw_as_int)
-        print('max_val_as_inthex:', max_val_as_inthex)
-        # print('max_val_as_f32_hex:', max_val_as_f32_hex)
-        # r = (max_val_as_raw_hex >> 16) & 0x0000ff
-        r = (max_val_as_raw_as_int >> 16) & 0x0000ff
-        g = (max_val_as_raw_as_int >> 8) & 0x0000ff;
-        b =  max_val_as_raw_as_int & 0x0000ff;
-        print('r:', r)
-        print('g:', g)
-        print('b:', b)
-
+        num_rows = msg.data[0].layout.dim[0].size
+        num_cols = msg.data[0].layout.dim[1].size
+        color_layer = np.array(msg.data[msg.layers.index('color')].data).reshape((num_rows, num_cols))
+        # mask out all nan and inf values
+        color_layer[np.isnan(color_layer)] = 0
+        color_layer[np.isinf(color_layer)] = 0
         # convert color_img to rgb image
-        rgb_img = np.zeros((140, 140, 3), dtype=np.uint8)
-        for i in range(140):
-            for j in range(140):
-                color = color_img[i, j]
+        color_img = np.zeros((num_rows, num_cols, 3), dtype=np.uint8)
+        for i in range(num_rows):
+            for j in range(num_cols):
+                color = color_layer[i, j]
                 # convert 
                 color_raw = struct.unpack('I', struct.pack('f', color))[0]
                 b = (color_raw >> 16) & 0x0000ff
                 g = (color_raw >> 8) & 0x0000ff;
                 r =  color_raw & 0x0000ff;
-                rgb_img[i, j] = [r, g, b]
+                color_img[i, j] = [r, g, b]
 
-
-
-        # scale the image to 0-255
-        # color_img = (color_img - np.min(color_img)) / (np.max(color_img) - np.min(color_img)) * 255
-        # convert to uint8
-        # color_img = color_img.astype(np.uint8)
-        ros_image = self.bridge.cv2_to_imgmsg(rgb_img, encoding="bgr8")
+        ros_image = self.bridge.cv2_to_imgmsg(color_img, encoding="bgr8")
         self.elev_map_img_pub.publish(ros_image)
         if self.input_mode == 'elevation_map':
             self.last_received_img = ros_image
@@ -154,7 +114,10 @@ class MomaUiNode:
                 click_xy = self.control_points_xy[i]
                 label = self.control_points_label[i]
                 color = self.rgba_to_bgr(plt.cm.tab20(label))
-                circle_radius = 5
+                if self.input_mode == 'elevation_map':
+                    circle_radius = 1
+                elif self.input_mode == 'image':
+                    circle_radius = 5
                 cv2.circle(control_img_cv2, (int(click_xy[0]), int(click_xy[1])), circle_radius, color, -1)
         # Convert back to ROS image
         control_img_msg = self.bridge.cv2_to_imgmsg(control_img_cv2, "bgr8")       
@@ -238,8 +201,8 @@ class MomaUiNode:
 
             # Process the response
             if response.masks:
-                # img_masked = cv2.cvtColor(self.bridge.imgmsg_to_cv2(self.stored_image), cv2.COLOR_BGR2RGB)
-                img_masked = cv2.cvtColor(self.bridge.imgmsg_to_cv2(self.control_image), cv2.COLOR_BGR2RGB)
+                img_masked = self.bridge.imgmsg_to_cv2(self.control_image).copy()
+                # img_masked = funfun.copy() #cv2.cvtColor(self.bridge.imgmsg_to_cv2(self.control_image), cv2.COLOR_BGR2RGB)
                 # convert the image to 
                 rospy.loginfo(f"Received {len(response.masks)} masks from segmentation service")
                 for mask in response.masks:
