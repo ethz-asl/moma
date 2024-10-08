@@ -16,14 +16,15 @@ import matplotlib.pyplot as plt
 import cv2
 import numpy as np
 import copy
+import struct
 
 class MomaUiNode:
     def __init__(self):
         # Initialize node
         rospy.init_node('image_segmentation_node')
 
-        # ros params
-        self.update_ctrl_img = True
+        self.input_mode = rospy.get_param('~input_mode', 'elevation_map') # 'image' or 'elevation_map'
+        assert self.input_mode in ['image', 'elevation_map'], "Invalid input mode. Choose 'image' or 'elevation_map'"
 
         # Image subscriber and storage
         self.last_received_img = None
@@ -48,7 +49,8 @@ class MomaUiNode:
         self.control_img_pub = rospy.Publisher('moma_ui/sam/control_image', Image, queue_size=10)
         self.mask_pub = rospy.Publisher('moma_ui/sam/mask_image', Image, queue_size=10)
         self.masked_pub = rospy.Publisher('moma_ui/sam/masked_image', Image, queue_size=10)
-
+        self.filtered_elevation_map_pub = rospy.Publisher('moma_ui/sam/filtered_elevation_map', GridMap, queue_size=10)
+        self.elev_map_img_pub = rospy.Publisher('moma_ui/sam/elevation_map_image', Image, queue_size=10)
         # Services
         self.reset_sam_cfg_srv = rospy.Service('moma_ui/sam/reset', Empty, self.reset_sam_config)
         self.run_sam_srv = rospy.Service('moma_ui/sam/run', Trigger, self.run_sam)
@@ -59,24 +61,73 @@ class MomaUiNode:
     # callbacks
     def image_callback(self, msg):
         """Callback to update the most recent image."""
-        self.last_received_img = msg
+        if self.input_mode == 'image':
+            self.last_received_img = msg
     
     def elevation_map_callback(self, msg):
+        rospy.loginfo("moma_ui: Received elevation map")
         self.last_elevation_map = msg
+        # go through msg.data[msg.layers.index('elevation')] and threshold with fg_min_height
+        # then publish the new elevation map
+        # elevation_data = list(msg.data[msg.layers.index('elevation')].data)
+        # for i in range(len(elevation_data)):
+        #     if elevation_data[i] < self.fg_min_height:
+        #         elevation_data[i] = 0.0
+        
+        # new_elevation_map = copy.deepcopy(msg)
+        # new_elevation_map.data[msg.layers.index('elevation')].data = tuple(elevation_data)
+        # self.filtered_elevation_map_pub.publish(new_elevation_map)
+
         # elevation_map = msg.data[msg.layers.index('elevation')]
         # elevation_img = np.array(elevation_map.data).reshape((140, 140))
-        # color_map = msg.data[msg.layers.index('color')]
-        # color_img = np.array(color_map.data).reshape((140, 140))
+        color_map = msg.data[msg.layers.index('color')].data
+        types_in_tuple = [type(item) for item in color_map]
+        print(types_in_tuple)
+        color_img = np.array(color_map).reshape((140, 140))
         # # mask out all nan and inf values
-        # color_img[np.isnan(color_img)] = 0
-        # color_img[np.isinf(color_img)] = 0
-        # color_img = self.convert_to_rgb(color_img)
-        # # scale the image to 0-255
-        # # color_img = (color_img - np.min(color_img)) / (np.max(color_img) - np.min(color_img)) * 255
-        # # convert to uint8
-        # # color_img = color_img.astype(np.uint8)
-        # # ros_image = self.bridge.cv2_to_imgmsg(color_img, encoding="bgr8")
-        # # self.last_received_img = ros_image
+        color_img[np.isnan(color_img)] = 0
+        color_img[np.isinf(color_img)] = 0
+        print('max:', np.max(color_img))
+        print('type:', color_img.dtype)
+        # convert to long uint 
+        max_val_raw = np.max(color_img)
+        max_val_as_raw_as_int = struct.unpack('I', struct.pack('f', max_val_raw))[0]
+        max_val_as_inthex = hex(max_val_as_raw_as_int)
+        # max_val_as_f32_hex = max_val_as_f32.hex()
+        print('max_val_raw:', max_val_raw)
+        print('max_val_as_raw_as_int:', max_val_as_raw_as_int)
+        print('max_val_as_inthex:', max_val_as_inthex)
+        # print('max_val_as_f32_hex:', max_val_as_f32_hex)
+        # r = (max_val_as_raw_hex >> 16) & 0x0000ff
+        r = (max_val_as_raw_as_int >> 16) & 0x0000ff
+        g = (max_val_as_raw_as_int >> 8) & 0x0000ff;
+        b =  max_val_as_raw_as_int & 0x0000ff;
+        print('r:', r)
+        print('g:', g)
+        print('b:', b)
+
+        # convert color_img to rgb image
+        rgb_img = np.zeros((140, 140, 3), dtype=np.uint8)
+        for i in range(140):
+            for j in range(140):
+                color = color_img[i, j]
+                # convert 
+                color_raw = struct.unpack('I', struct.pack('f', color))[0]
+                b = (color_raw >> 16) & 0x0000ff
+                g = (color_raw >> 8) & 0x0000ff;
+                r =  color_raw & 0x0000ff;
+                rgb_img[i, j] = [r, g, b]
+
+
+
+        # scale the image to 0-255
+        # color_img = (color_img - np.min(color_img)) / (np.max(color_img) - np.min(color_img)) * 255
+        # convert to uint8
+        # color_img = color_img.astype(np.uint8)
+        ros_image = self.bridge.cv2_to_imgmsg(rgb_img, encoding="bgr8")
+        self.elev_map_img_pub.publish(ros_image)
+        if self.input_mode == 'elevation_map':
+            self.last_received_img = ros_image
 
     def rgba_to_bgr(self, color):
         # Color comes as (R, G, B, A), we ignore A and multiply RGB by 255 for OpenCV
