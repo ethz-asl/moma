@@ -37,6 +37,7 @@ class MomaUiNode:
         self.click_sub = rospy.Subscriber("/moma_ui/sam/control_image/mouse_click", PointStamped, self.click_callback)
         self.control_points_xy = []
         self.control_points_label = []
+        self.last_mask = None
 
         # label subscriber and storage
         self.fg_min_height_sub = rospy.Subscriber("moma_ui/sam/foreground_min_height", Float32, self.fg_min_height_callback)
@@ -80,14 +81,21 @@ class MomaUiNode:
                 # convert 
                 color_raw = struct.unpack('I', struct.pack('f', color))[0]
                 b = (color_raw >> 16) & 0x0000ff
-                g = (color_raw >> 8) & 0x0000ff;
-                r =  color_raw & 0x0000ff;
+                g = (color_raw >> 8) & 0x0000ff
+                r =  color_raw & 0x0000ff
                 color_img[i, j] = [r, g, b]
-
         ros_image = self.bridge.cv2_to_imgmsg(color_img, encoding="bgr8")
         self.elev_map_img_pub.publish(ros_image)
+        # if elev_map mode, store the it as the last received image
         if self.input_mode == 'elevation_map':
             self.last_received_img = ros_image
+            if self.last_mask is not None:
+                elevation_layer = np.array(msg.data[msg.layers.index('elevation')].data).reshape((num_rows, num_cols))
+                elevation_layer[~self.last_mask] = 0.0
+                msg.data[msg.layers.index('elevation')].data = elevation_layer.flatten().tolist()
+                self.filtered_elevation_map_pub.publish(msg)
+            else:
+                self.filtered_elevation_map_pub.publish(msg)
 
     def rgba_to_bgr(self, color):
         # Color comes as (R, G, B, A), we ignore A and multiply RGB by 255 for OpenCV
@@ -134,6 +142,7 @@ class MomaUiNode:
         """Reset the buffer of click points."""
         self.control_points_xy = []
         self.control_points_label = []
+        self.last_mask = None
         if self.last_received_img is not None:
             self.control_image = self.last_received_img
             self.control_img_pub.publish(self.control_image)
@@ -202,17 +211,14 @@ class MomaUiNode:
             # Process the response
             if response.masks:
                 img_masked = self.bridge.imgmsg_to_cv2(self.control_image).copy()
-                # img_masked = funfun.copy() #cv2.cvtColor(self.bridge.imgmsg_to_cv2(self.control_image), cv2.COLOR_BGR2RGB)
                 # convert the image to 
                 rospy.loginfo(f"Received {len(response.masks)} masks from segmentation service")
                 for mask in response.masks:
                     actual_mask = self.bridge.imgmsg_to_cv2(mask, desired_encoding='mono8')
                     boolean_array = actual_mask.astype(bool)
-                    num_true = np.sum(boolean_array)
-                    num_false = np.sum(~boolean_array)
+                    self.last_mask = boolean_array
                     # mask the image where the mask is false
-                    img_masked[~boolean_array] = 0
-                
+                    img_masked[~boolean_array] = 0              
 
                 img_masked = self.bridge.cv2_to_imgmsg(img_masked, "bgr8")
                 mask_image = response.masks[0]
