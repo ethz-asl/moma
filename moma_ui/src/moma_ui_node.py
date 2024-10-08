@@ -10,6 +10,7 @@ from std_msgs.msg import Int32MultiArray
 from grid_map_msgs.msg import GridMap
 from std_msgs.msg import String, Float32
 from std_srvs.srv import SetBool, SetBoolResponse, SetBoolRequest
+from visualization_msgs.msg import Marker, MarkerArray
 
 import matplotlib.pyplot as plt
 
@@ -39,6 +40,10 @@ class MomaUiNode:
         self.control_points_label = []
         self.last_mask = None
 
+        # stuff
+        self.workplane_frame = rospy.get_param('~workplane_frame', 'workplane')
+        self.last_marker_msg = None
+        
         # label subscriber and storage
         self.fg_min_height_sub = rospy.Subscriber("moma_ui/sam/foreground_min_height", Float32, self.fg_min_height_callback)
         
@@ -52,6 +57,8 @@ class MomaUiNode:
         self.masked_pub = rospy.Publisher('moma_ui/sam/masked_image', Image, queue_size=10)
         self.filtered_elevation_map_pub = rospy.Publisher('moma_ui/sam/filtered_elevation_map', GridMap, queue_size=10)
         self.elev_map_img_pub = rospy.Publisher('moma_ui/sam/elevation_map_image', Image, queue_size=10)
+        self.viz_marker_array_pub = rospy.Publisher('moma_ui/viz_marker_array', MarkerArray, queue_size=10)
+        
         # Services
         self.reset_sam_cfg_srv = rospy.Service('moma_ui/sam/reset', Empty, self.reset_sam_config)
         self.run_sam_srv = rospy.Service('moma_ui/sam/run', Trigger, self.run_sam)
@@ -96,6 +103,10 @@ class MomaUiNode:
                 self.filtered_elevation_map_pub.publish(msg)
             else:
                 self.filtered_elevation_map_pub.publish(msg)
+        
+        # marker
+        if self.last_marker_msg is not None:
+            self.viz_marker_array_pub.publish(self.last_marker_msg)
 
     def rgba_to_bgr(self, color):
         # Color comes as (R, G, B, A), we ignore A and multiply RGB by 255 for OpenCV
@@ -130,11 +141,35 @@ class MomaUiNode:
         # Convert back to ROS image
         control_img_msg = self.bridge.cv2_to_imgmsg(control_img_cv2, "bgr8")       
         # Publish the control points overlaid on the control image
-        self.control_img_pub.publish(control_img_msg)
+        self.control_img_pub.publish(control_img_msg)       
 
     def fg_min_height_callback(self, msg):
         rospy.loginfo(f"moma_ui: Received foreground min height: {msg.data}")
         self.fg_min_height = msg.data
+        # create a marker array to visualize the fg_min_height as a plane
+        marker_array = MarkerArray()
+        marker = Marker()
+        marker.header.frame_id = self.workplane_frame
+        marker.header.stamp = rospy.Time.now()
+        marker.type = Marker.CUBE
+        marker.action = Marker.ADD
+        marker.id = 0
+        marker.pose.position.x = 0
+        marker.pose.position.y = 0
+        marker.pose.position.z = self.fg_min_height
+        marker.pose.orientation.x = 0
+        marker.pose.orientation.y = 0
+        marker.pose.orientation.z = 0
+        marker.pose.orientation.w = 1
+        marker.scale.x = 1
+        marker.scale.y = 1
+        marker.scale.z = 0.001
+        marker.color.a = 0.3
+        marker.color.r = 0
+        marker.color.g = 1
+        marker.color.b = 0
+        marker_array.markers.append(marker)
+        self.viz_marker_array_pub.publish(marker_array)
 
     # services
     def reset_sam_config(self, req):
