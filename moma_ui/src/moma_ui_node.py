@@ -132,7 +132,11 @@ class MomaUiNode:
                 # print('label_list:', self.label_list)
                 click_xy = self.control_points_xy[i]
                 label = self.control_points_label[i]
-                color = self.rgba_to_bgr(plt.cm.tab20(label))
+                # color = self.rgba_to_bgr(plt.cm.tab20(label))
+                if label == 1:
+                    color = (0, 255, 0)
+                else:
+                    color = (0, 0, 255)
                 if self.input_mode == 'elevation_map':
                     circle_radius = 1
                 elif self.input_mode == 'image':
@@ -204,19 +208,86 @@ class MomaUiNode:
             resp.message = "No control image to segment!"
             return resp
 
-        if not self.control_points_xy:
+        # if not self.control_points_xy:
+        #     rospy.logwarn("moma_ui: No control points to segment with")
+        #     resp = TriggerResponse()
+        #     resp.success = False
+        #     resp.message = "No control points to segment with!"     
+        #     return resp
+        
+        # if len(self.control_points_xy) != len(self.control_points_label):
+        #     rospy.logwarn("moma_ui: Number of points and labels do not match")
+        #     resp = TriggerResponse()
+        #     resp.success = False
+        #     resp.message = "Number of points and labels do not match!"
+        #     return resp
+
+        ###########################################################
+        ## in last received height map, filter out the points that are above the fg_min_height
+        elevation_layer = np.array(self.last_elevation_map.data[self.last_elevation_map.layers.index('elevation')].data).reshape((self.last_elevation_map.data[0].layout.dim[0].size, self.last_elevation_map.data[0].layout.dim[1].size))
+        # iterate over this array and find the cells that are above the fg_min_height
+        control_points_xy_height = []
+        control_points_label_height = []
+        for i in range(elevation_layer.shape[0]):
+            for j in range(elevation_layer.shape[1]):
+                if elevation_layer[i, j] > self.fg_min_height:
+                    control_points_xy_height.append((i, j))
+                    control_points_label_height.append(1)
+                    
+        ## visualize both set of control on control image
+        control_img_cv2 = self.bridge.imgmsg_to_cv2(self.control_image, "bgr8")
+        # Draw the buffered clicks on the image
+        circle_radius = 5
+        if control_points_xy_height is not None and len(control_points_xy_height) > 0:
+            rospy.loginfo(f"Drawing {len(control_points_xy_height)} control points on the image from height map")
+            i = 0
+            for i in range(len(control_points_xy_height)):
+                click_xy = control_points_xy_height[i]
+                label = control_points_label_height[i]
+                # color = self.rgba_to_bgr(plt.cm.tab20(label))
+                # choose color as blue
+                color = (255, 0, 0)
+                if self.input_mode == 'elevation_map':
+                    circle_radius = 1
+                elif self.input_mode == 'image':
+                    circle_radius = 5
+                cv2.circle(control_img_cv2, (int(click_xy[1]), int(click_xy[0])), circle_radius, color, -1)
+
+        # Draw the buffered clicks on the image
+        if self.control_points_xy is not None and len(self.control_points_xy) > 0:
+            rospy.loginfo(f"Drawing {len(self.control_points_xy)} control points on the image from clicks")
+            i = 0
+            for i in range(len(self.control_points_xy)):
+                click_xy = self.control_points_xy[i]
+                label = self.control_points_label[i]
+                if self.control_points_label[i] == 1:
+                    color = (0, 255, 0)
+                else:
+                    color = (0, 0, 255)
+                if self.input_mode == 'elevation_map':
+                    circle_radius = 1
+                elif self.input_mode == 'image':
+                    circle_radius = 5
+                cv2.circle(control_img_cv2, (int(click_xy[0]), int(click_xy[1])), circle_radius, color, -1)
+
+        # Convert back to ROS image
+        control_img_msg = self.bridge.cv2_to_imgmsg(control_img_cv2, "bgr8")
+        # Publish the control points overlaid on the control image
+        self.control_img_pub.publish(control_img_msg)
+
+        # check befor we continue
+        if (control_points_xy_height is None or len(control_points_xy_height) == 0) and (self.control_points_xy is None or len(self.control_points_xy) == 0):
             rospy.logwarn("moma_ui: No control points to segment with")
             resp = TriggerResponse()
             resp.success = False
             resp.message = "No control points to segment with!"     
-            return resp
-        
-        if len(self.control_points_xy) != len(self.control_points_label):
-            rospy.logwarn("moma_ui: Number of points and labels do not match")
-            resp = TriggerResponse()
-            resp.success = False
-            resp.message = "Number of points and labels do not match!"
-            return resp
+            return resp       
+
+        ## create the sum of the set of control points for segmentation
+
+        control_points_xy_combined = control_points_xy_height + self.control_points_xy
+        control_points_label_combined = control_points_label_height + self.control_points_label
+        ###########################################################
 
         # Prepare the service call
         rospy.wait_for_service('/ros_sam/segment')  # Ensure service is available
@@ -228,10 +299,10 @@ class MomaUiNode:
             seg_req.image = self.control_image  # Stored image
 
             # fill up the query points and labels
-            for i in range(len(self.control_points_xy)):
-                query_point = Point(x=self.control_points_xy[i][0], y=self.control_points_xy[i][1], z=0)
+            for i in range(len(control_points_xy_combined)):
+                query_point = Point(x=control_points_xy_combined[i][0], y=control_points_xy_combined[i][1], z=0)
                 seg_req.query_points.append(query_point)
-                label = self.control_points_label[i]
+                label = control_points_label_combined[i]
                 seg_req.query_labels.append(label)
 
             # Specify the TL and BR corners using Int32MultiArray
