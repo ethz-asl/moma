@@ -36,7 +36,7 @@ MomaPanel::MomaPanel(QWidget *parent)
     sam_layout->addWidget( new QLabel( "<b>SEGMENTATION</b>" ));
     sam_layout->addWidget( sam_fg_toggle );
     sam_layout->addWidget( new QLabel( "FG Min. Height:" ));
-    sam_layout->addWidget( sam_label_editor_ );
+    sam_layout->addWidget( sam_min_height_editor_ );
     sam_layout->addWidget( sam_reset_label_ctrlpts_button_ );
     sam_layout->addWidget( sam_run_button_ );
 
@@ -84,7 +84,7 @@ MomaPanel::MomaPanel(QWidget *parent)
   connect( sam_reset_label_ctrlpts_button_, SIGNAL( clicked() ), this, SLOT( resetSam() ));
   connect( sam_fg_toggle, SIGNAL( stateChanged(int) ), this, SLOT( toggledFgSam() ));
   connect( sam_run_button_, SIGNAL( clicked() ), this, SLOT( runSam() ));
-  connect( sam_label_editor_, SIGNAL( editingFinished() ), this, SLOT( updateSamFgMinH() ));
+  connect( sam_min_height_editor_, SIGNAL( editingFinished() ), this, SLOT( updateSamFgMinH() ));
   connect( rosbag_output_dir_editor_, SIGNAL( editingFinished() ), this, SLOT( updateBagDir() ));
   connect( rosbag_topic_name_editor_, SIGNAL( editingFinished() ), this, SLOT( updateBagTopics() ));
 
@@ -149,6 +149,7 @@ void MomaPanel::save( rviz::Config config ) const
   rviz::Panel::save( config );
   config.mapSetValue( "BagOutDir", bag_output_dir_ );
   config.mapSetValue( "BagTopics", bag_topics_ );
+  config.mapSetValue( "FGMinHeight", sam_min_height_editor_->text() );
 }
 
 // Load all configuration data for this panel from the given Config object.
@@ -166,6 +167,13 @@ void MomaPanel::load( const rviz::Config& config )
   {
     rosbag_topic_name_editor_->setText( topic );
     updateBagTopics();
+  }
+
+  QString fg_min_height;
+  if( config.mapGetString( "FGMinHeight", &fg_min_height ))
+  {
+    sam_min_height_editor_->setText( fg_min_height );
+    updateSamFgMinH();
   }
 }
 
@@ -218,7 +226,7 @@ void MomaPanel::toggledFgSam()
 
 void MomaPanel::updateSamFgMinH()
 {
-    float fg_min_height = sam_label_editor_->text().toFloat();
+    float fg_min_height = sam_min_height_editor_->text().toFloat();
     std_msgs::Float32 msg;
     msg.data = fg_min_height;
     fg_min_height_pub_.publish(msg);
