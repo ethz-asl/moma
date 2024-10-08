@@ -4,8 +4,7 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
-        - /rs_435_21
-        - /Image2
+        - /GridMap1
       Splitter Ratio: 0.6670658588409424
     Tree Height: 140
   - Class: rviz/Tool Properties
@@ -479,7 +478,7 @@ Visualization Manager:
       Use Fixed Frame: true
       Use rainbow: true
       Value: false
-    - Alpha: 0.800000011920929
+    - Alpha: 1
       Autocompute Intensity Bounds: true
       Class: grid_map_rviz_plugin/GridMap
       Color: 115; 210; 22
@@ -567,7 +566,7 @@ Visualization Manager:
       Color Layer: elevation
       Color Transformer: FlatColor
       ColorMap: default
-      Enabled: true
+      Enabled: false
       Grid Cell Decimation: 1
       Grid Line Thickness: 0.10000000149011612
       Height Layer: elevation
@@ -583,7 +582,7 @@ Visualization Manager:
       Topic: /moma_ui/sam/filtered_elevation_map
       Unreliable: false
       Use ColorMap: true
-      Value: true
+      Value: false
     - Class: rviz/Image
       Enabled: true
       Image Topic: /moma_ui/sam/elevation_map_image
@@ -677,7 +676,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/ThirdPersonFollower
-      Distance: 1.1974775791168213
+      Distance: 1.1856387853622437
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -685,17 +684,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 0.11817195266485214
-        Y: -0.05530766397714615
-        Z: 7.003545761108398e-07
+        X: 0.37175020575523376
+        Y: 0.030532561242580414
+        Z: 7.599592208862305e-07
       Focal Shape Fixed Size: false
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.22979606688022614
+      Pitch: 0.15479660034179688
       Target Frame: <Fixed Frame>
-      Yaw: 4.450355529785156
+      Yaw: 3.380352020263672
     Saved: ~
 Window Geometry:
   Control Image:

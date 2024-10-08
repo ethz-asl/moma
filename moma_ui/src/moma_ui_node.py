@@ -43,13 +43,14 @@ class MomaUiNode:
         # stuff
         self.workplane_frame = rospy.get_param('~workplane_frame', 'workplane')
         self.last_marker_msg = None
+        self.fg_is_positive = rospy.get_param('~fg_is_positive', False)
         
         # label subscriber and storage
         self.fg_min_height_sub = rospy.Subscriber("moma_ui/sam/foreground_min_height", Float32, self.fg_min_height_callback)
         
         # self.label_list = None
-        self.current_label = 'fg'
-        self.fg_min_height = 0.0
+        self.current_label = 'positive'
+        self.fg_min_height = 10.0
 
         # Publishers
         self.control_img_pub = rospy.Publisher('moma_ui/sam/control_image', Image, queue_size=10)
@@ -98,9 +99,13 @@ class MomaUiNode:
             self.last_received_img = ros_image
             if self.last_mask is not None:
                 elevation_layer = np.array(msg.data[msg.layers.index('elevation')].data).reshape((num_rows, num_cols))
-                elevation_layer[~self.last_mask] = 0.0
-                msg.data[msg.layers.index('elevation')].data = elevation_layer.flatten().tolist()
-                self.filtered_elevation_map_pub.publish(msg)
+                if self.fg_is_positive:
+                    elevation_layer[~self.last_mask] = 0.0
+                else:
+                    elevation_layer[self.last_mask] = 0.0
+                msg_copy = copy.deepcopy(msg)
+                msg_copy.data[msg.layers.index('elevation')].data = elevation_layer.flatten().tolist()
+                self.filtered_elevation_map_pub.publish(msg_copy)
             else:
                 self.filtered_elevation_map_pub.publish(msg)
         
@@ -120,10 +125,13 @@ class MomaUiNode:
             return
         if msg is not None:
             self.control_points_xy.append((msg.point.x, msg.point.y))
-            if self.current_label == 'fg':
+            if self.current_label == 'positive':
                 self.control_points_label.append(1)
-            else:
+            elif self.current_label == 'negative':
                 self.control_points_label.append(0)
+            else:
+                rospy.logwarn("moma_ui: Unknown label type")
+                return
         control_img_cv2 = self.bridge.imgmsg_to_cv2(self.control_image, "bgr8") 
         # Draw the buffered clicks on the image
         if self.control_points_xy is not None and len(self.control_points_xy) > 0:
@@ -188,14 +196,14 @@ class MomaUiNode:
         return EmptyResponse()
 
     def set_label_fg_bg(self, req):
-        rospy.loginfo("moma_ui: Setting label to foreground or background")
+        rospy.loginfo("moma_ui: Setting label to POSITIVE or NEGATIVE")
         """Set the label to either foreground or background"""
         if req.data:
-            self.current_label = 'fg'
-            rospy.loginfo("Label set to foreground")
+            self.current_label = 'positive'
+            rospy.loginfo("Label set to POSITIVE")
         else:
-            self.current_label = 'bg'
-            rospy.loginfo("Label set to background")
+            self.current_label = 'negative'
+            rospy.loginfo("Label set to NEGATIVE")
         return SetBoolResponse(success=True, message="Label set successfully")
 
     def run_sam(self, req):
@@ -228,11 +236,20 @@ class MomaUiNode:
         # iterate over this array and find the cells that are above the fg_min_height
         control_points_xy_height = []
         control_points_label_height = []
+        cnt = 0
         for i in range(elevation_layer.shape[0]):
             for j in range(elevation_layer.shape[1]):
                 if elevation_layer[i, j] > self.fg_min_height:
                     control_points_xy_height.append((i, j))
-                    control_points_label_height.append(1)
+                    if self.fg_is_positive:
+                        # print('fg_is_positive:', self.fg_is_positive)
+                        control_points_label_height.append(1)
+                        cnt += 1
+                    else:
+                        # print('fg_is_positive:', self.fg_is_positive)
+                        control_points_label_height.append(0)
+                        cnt += 1
+        rospy.loginfo(f"Found {cnt} points above the fg_min_height")
                     
         ## visualize both set of control on control image
         control_img_cv2 = self.bridge.imgmsg_to_cv2(self.control_image, "bgr8")
@@ -246,7 +263,11 @@ class MomaUiNode:
                 label = control_points_label_height[i]
                 # color = self.rgba_to_bgr(plt.cm.tab20(label))
                 # choose color as blue
-                color = (255, 0, 0)
+                if self.fg_is_positive:
+                    color = (255, 0, 0)
+                else:
+                    # orange
+                    color = (0, 165, 255)
                 if self.input_mode == 'elevation_map':
                     circle_radius = 1
                 elif self.input_mode == 'image':
@@ -324,7 +345,11 @@ class MomaUiNode:
                     boolean_array = actual_mask.astype(bool)
                     self.last_mask = boolean_array
                     # mask the image where the mask is false
-                    img_masked[~boolean_array] = 0              
+                    if self.fg_is_positive:
+                        img_masked[~boolean_array] = 0
+                    else:
+                        img_masked[boolean_array] = 0
+                    # img_masked[~boolean_array] = 0              
 
                 img_masked = self.bridge.cv2_to_imgmsg(img_masked, "bgr8")
                 mask_image = response.masks[0]

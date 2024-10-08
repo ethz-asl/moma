@@ -45,7 +45,7 @@ protected:
     
     // SAM
     // Qt elements
-    QCheckBox* sam_fg_toggle = new QCheckBox("FG/BG");
+    QCheckBox* sam_fg_toggle = new QCheckBox("POS/NEG");
     QLineEdit* sam_min_height_editor_ = new QLineEdit;
     QPushButton* sam_reset_label_ctrlpts_button_ = new QPushButton("Reset");
     QPushButton* sam_run_button_ = new QPushButton("Segment");
