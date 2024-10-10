@@ -95,6 +95,7 @@ MomaPanel::MomaPanel(QWidget *parent)
   setLayout( layout );
 
   // Next we make signal/slot connections.
+  connect( perception_detect_plane_button_, SIGNAL( clicked() ), this, SLOT( detectPlane() ));
   connect( sam_reset_label_ctrlpts_button_, SIGNAL( clicked() ), this, SLOT( resetSam() ));
   connect( sam_fg_toggle, SIGNAL( stateChanged(int) ), this, SLOT( toggledFgSam() ));
   connect( sam_run_button_, SIGNAL( clicked() ), this, SLOT( runSam() ));
@@ -104,6 +105,21 @@ MomaPanel::MomaPanel(QWidget *parent)
 
   // other stuff
   fg_min_height_pub_ = nh_.advertise<std_msgs::Float32>("moma_ui/sam/foreground_min_height", 1);
+}
+
+void MomaPanel::detectPlane()
+{
+    // Call the service to detect the plane
+    ros::ServiceClient client = nh_.serviceClient<std_srvs::Trigger>("moma_ui/work_plane/detect");
+    std_srvs::Trigger srv;
+    if (client.call(srv))
+    {
+        ROS_INFO("moma_panel: Plane detection service has been called");
+    }
+    else
+    {
+        ROS_ERROR("moma_panel: Failed to call plane detection service");
+    }
 }
 
 // Set the directory where the bag file will be saved.

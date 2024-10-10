@@ -24,6 +24,7 @@ public Q_SLOTS:
   void setBagTopics( const QString& topic );
 
 protected Q_SLOTS:
+  void detectPlane();
   void resetSam();
   void updateSamFgMinH();
   void runSam();

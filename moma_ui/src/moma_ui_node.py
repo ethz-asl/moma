@@ -11,18 +11,35 @@ from grid_map_msgs.msg import GridMap
 from std_msgs.msg import String, Float32
 from std_srvs.srv import SetBool, SetBoolResponse, SetBoolRequest
 from visualization_msgs.msg import Marker, MarkerArray
+from dynamic_reconfigure.server import Server
+
+from moma_ui.cfg import moma_ui_paramConfig
+# ColorRGBA
+from std_msgs.msg import ColorRGBA
 
 import matplotlib.pyplot as plt
+
+from geometry_msgs.msg import TransformStamped, Vector3, Quaternion
 
 import cv2
 import numpy as np
 import copy
 import struct
+from sensor_msgs.msg import PointCloud2
+import pyransac3d as pyrsc
+import scipy.spatial.transform as sst
+from geometry_msgs.msg import Pose, Quaternion
+from sensor_msgs import point_cloud2 as pc2
+
+import tf2_ros
+from geometry_msgs.msg import TransformStamped, Vector3, Quaternion
+# import color
+
 
 class MomaUiNode:
     def __init__(self):
         # Initialize node
-        rospy.init_node('image_segmentation_node')
+        rospy.init_node('mom_ui_node')
 
         self.input_mode = rospy.get_param('~input_mode', 'elevation_map') # 'image' or 'elevation_map'
         assert self.input_mode in ['image', 'elevation_map'], "Invalid input mode. Choose 'image' or 'elevation_map'"
@@ -49,11 +66,10 @@ class MomaUiNode:
         # label subscriber and storage
         self.fg_min_height_sub = rospy.Subscriber("moma_ui/sam/foreground_min_height", Float32, self.fg_min_height_callback)
         
-        # self.label_list = None
         self.current_label = 'positive'
         self.fg_min_height = 10.0
 
-        # Publishers
+        ## Publishers
         self.control_img_pub = rospy.Publisher('moma_ui/sam/control_image', Image, queue_size=10)
         self.mask_pub = rospy.Publisher('moma_ui/sam/mask_image', Image, queue_size=10)
         self.masked_pub = rospy.Publisher('moma_ui/sam/masked_image', Image, queue_size=10)
@@ -61,12 +77,36 @@ class MomaUiNode:
         self.elev_map_img_pub = rospy.Publisher('moma_ui/sam/elevation_map_image', Image, queue_size=10)
         self.viz_marker_array_pub = rospy.Publisher('moma_ui/viz_marker_array', MarkerArray, queue_size=10)
         
-        # Services
+        ## Services
         self.reset_sam_cfg_srv = rospy.Service('moma_ui/sam/reset', Empty, self.reset_sam_config)
         self.run_sam_srv = rospy.Service('moma_ui/sam/run', Trigger, self.run_sam)
         self.set_label_fg_bg_srv = rospy.Service('moma_ui/sam/set_label_fg_bg', SetBool, self.set_label_fg_bg)
         # CVBridge for image conversion
         self.bridge = CvBridge()
+
+        ## for WP detection
+        self.wp_detection_srv = rospy.Service('moma_ui/work_plane/detect', Trigger, self.wp_detection)
+        self.point_cloud_sub = rospy.Subscriber('/rs_435_1/depth/color/points', PointCloud2, self.point_cloud_cb)
+        self.last_received_pointcloud = None
+        # the prior for the work plane either as a pose or as a support and normal
+        T_W_WP_as_tx_ty_tz_qx_qy_qz_qw_TF_W_WP = rospy.get_param('/T_W_WP_as_tx_ty_tz_qx_qy_qz_qw_TF_W_WP', '0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0')      
+        self.T_W_WP_as_tx_ty_tz_qx_qy_qz_qw_TF_W_WP_pose = Pose()
+        self.T_W_WP_as_tx_ty_tz_qx_qy_qz_qw_TF_W_WP_pose.position.x = float(T_W_WP_as_tx_ty_tz_qx_qy_qz_qw_TF_W_WP.split(',')[0])
+        self.T_W_WP_as_tx_ty_tz_qx_qy_qz_qw_TF_W_WP_pose.position.y = float(T_W_WP_as_tx_ty_tz_qx_qy_qz_qw_TF_W_WP.split(',')[1])
+        self.T_W_WP_as_tx_ty_tz_qx_qy_qz_qw_TF_W_WP_pose.position.z = float(T_W_WP_as_tx_ty_tz_qx_qy_qz_qw_TF_W_WP.split(',')[2])
+        self.T_W_WP_as_tx_ty_tz_qx_qy_qz_qw_TF_W_WP_pose.orientation.x = float(T_W_WP_as_tx_ty_tz_qx_qy_qz_qw_TF_W_WP.split(',')[3])
+        self.T_W_WP_as_tx_ty_tz_qx_qy_qz_qw_TF_W_WP_pose.orientation.y = float(T_W_WP_as_tx_ty_tz_qx_qy_qz_qw_TF_W_WP.split(',')[4])
+        self.T_W_WP_as_tx_ty_tz_qx_qy_qz_qw_TF_W_WP_pose.orientation.z = float(T_W_WP_as_tx_ty_tz_qx_qy_qz_qw_TF_W_WP.split(',')[5])
+        self.T_W_WP_as_tx_ty_tz_qx_qy_qz_qw_TF_W_WP_pose.orientation.w = float(T_W_WP_as_tx_ty_tz_qx_qy_qz_qw_TF_W_WP.split(',')[6])
+
+
+        self.tf_broadcaster = tf2_ros.TransformBroadcaster()
+
+        # dynrec server
+        self.dynrec_cfg = None
+        self.dynrec_srv = Server(moma_ui_paramConfig, self.dynrecCb)
+        # ros timer
+        self.timer = rospy.Timer(rospy.Duration(0.1), lambda msg: self.timer_cb(msg))
 
     # callbacks
     def image_callback(self, msg):
@@ -74,6 +114,55 @@ class MomaUiNode:
         if self.input_mode == 'image':
             self.last_received_img = msg
     
+    def timer_cb(self, msg):
+        # viz marker
+        # marker_array_msg = MarkerArray()
+        # thickness = 0.001
+        # plane_marker = Marker()
+        # plane_marker.header.frame_id = self.world_frame
+        # plane_marker.header.stamp = rospy.Time(0)
+        # plane_marker.ns = 'work_plane_marker'
+        # plane_marker.id = 0
+        # plane_marker.type = 1
+        # plane_marker.action = 0
+        # plane_marker.pose = self.T_W_WP_as_tx_ty_tz_qx_qy_qz_qw_TF_W_WP_pose
+        # plane_marker.scale = Vector3(0.5, 0.5, thickness)
+        # plane_marker.color = ColorRGBA(1.0, 0.0, 0.0, 0.5)
+        # marker_array_msg.markers.append(plane_marker)
+        # self.viz_marker_array_pub.publish(marker_array_msg)
+        # TF
+        pos = (self.T_W_WP_as_tx_ty_tz_qx_qy_qz_qw_TF_W_WP_pose.position.x,
+               self.T_W_WP_as_tx_ty_tz_qx_qy_qz_qw_TF_W_WP_pose.position.y, 
+               self.T_W_WP_as_tx_ty_tz_qx_qy_qz_qw_TF_W_WP_pose.position.z)
+        rot = (self.T_W_WP_as_tx_ty_tz_qx_qy_qz_qw_TF_W_WP_pose.orientation.x, 
+               self.T_W_WP_as_tx_ty_tz_qx_qy_qz_qw_TF_W_WP_pose.orientation.y,
+               self.T_W_WP_as_tx_ty_tz_qx_qy_qz_qw_TF_W_WP_pose.orientation.z, 
+               self.T_W_WP_as_tx_ty_tz_qx_qy_qz_qw_TF_W_WP_pose.orientation.w)
+        
+        # Create a TransformStamped message
+        transform = TransformStamped()
+
+        # Set the time, frame IDs, and the position/rotation
+        transform.header.stamp = rospy.Time.now()
+        transform.header.frame_id = self.world_frame
+        transform.child_frame_id = self.work_plane_frame
+
+        # Set the position (translation)
+        transform.transform.translation.x = pos[0]
+        transform.transform.translation.y = pos[1]
+        transform.transform.translation.z = pos[2]
+
+        # Set the orientation (rotation)
+        transform.transform.rotation.x = rot[0]
+        transform.transform.rotation.y = rot[1]
+        transform.transform.rotation.z = rot[2]
+        transform.transform.rotation.w = rot[3]
+
+        # Broadcast the transform
+        self.tf_broadcaster.sendTransform(transform)
+
+
+
     def elevation_map_callback(self, msg):
         self.last_elevation_map = msg
         num_rows = msg.data[0].layout.dim[0].size
@@ -113,6 +202,15 @@ class MomaUiNode:
         # marker
         if self.last_marker_msg is not None:
             self.viz_marker_array_pub.publish(self.last_marker_msg)
+
+    # DYNREC SERVER
+    def dynrecCb(self, config, level):
+        rospy.logwarn('moma_ui: Got dynrec request!')
+        self.dynrec_cfg = config
+        return self.dynrec_cfg
+
+    def point_cloud_cb(self, msg):
+        self.last_received_pointcloud = msg
 
     def rgba_to_bgr(self, color):
         # Color comes as (R, G, B, A), we ignore A and multiply RGB by 255 for OpenCV
@@ -185,6 +283,81 @@ class MomaUiNode:
         self.viz_marker_array_pub.publish(marker_array)
 
     # services
+    def planeSupportAndNormalToSupportPose(self, support_xyz, normal_xyz):
+        plane_support_pose = Pose()
+        plane_support_pose.position.x = support_xyz[0]
+        plane_support_pose.position.y = support_xyz[1]
+        plane_support_pose.position.z = support_xyz[2]
+        # compute quaternion from normal and x_prime
+        n_x_prime = np.array([1.0, 0.0, 0.0])
+        n_z = np.array(normal_xyz)
+        if n_z[2] < 0.0:
+            n_z = -n_z
+        n_z = n_z/np.linalg.norm(n_z)  # required?
+        n_y = np.cross(n_z, n_x_prime)
+        n_x = np.cross(n_y, n_z)
+        q_plane = sst.Rotation.from_matrix(
+            np.vstack((n_x, n_y, n_z)).T).as_quat()
+        # set new plane pose
+        plane_support_pose.orientation = Quaternion(
+            q_plane[0], q_plane[1], q_plane[2], q_plane[3])
+        return plane_support_pose
+
+    def planeSupportPoseFromPlaneParamsAndPriorPose(self, plane_params_abcd, prior_plane_support_pose):
+        # compute new plane in support+normal representation
+        support_x = prior_plane_support_pose.position.x
+        support_y = prior_plane_support_pose.position.y
+        support_z = (0.0 - plane_params_abcd[0]*support_x - plane_params_abcd[1]
+                     * support_y - plane_params_abcd[3])/plane_params_abcd[2]
+        support = np.array([support_x, support_y, support_z])
+        normal = np.array([plane_params_abcd[0], plane_params_abcd[1], plane_params_abcd[2]])
+        # convert to support pose
+        new_plane_support_pose = self.planeSupportAndNormalToSupportPose(
+            support, normal)
+        return new_plane_support_pose
+
+    def wp_detection(self, req):
+        rospy.loginfo("moma_ui: Detecting work plane...")
+        if self.last_received_pointcloud is None:
+            rospy.logwarn("moma_ui: No point cloud received")
+            resp = TriggerResponse()
+            resp.success = False
+            resp.message = "No point cloud received!"
+            return resp
+
+        # check if the point cloud is in the right frame
+        # if self.last_received_pointcloud.header.frame_id != self.world_frame:
+        #     rospy.logwarn("moma_ui: Point cloud is not in the right frame")
+        #     resp = TriggerResponse()
+        #     resp.success = False
+        #     resp.message = "Point cloud is not in the right frame!"
+        #     return resp
+
+        # run RANSAC to detect the work plane
+        # unpack array
+        gen = pc2.read_points(self.last_received_pointcloud, skip_nans=True)
+        int_data = list(gen)
+        xyz = []
+        for x in int_data:
+            xyz.append([x[0], x[1], x[2]])
+        xyz = np.array(xyz)
+        xyz_subs = xyz[::100, :]
+        # fit plane
+        plane1 = pyrsc.Plane()
+        plane_params, best_inliers = plane1.fit(
+            pts=xyz_subs, thresh=self.dynrec_cfg.plane_fit_ransac_inlier_distance, maxIteration=self.dynrec_cfg.plane_fit_ransac_max_iteration)
+        new_plane_support_pose = self.planeSupportPoseFromPlaneParamsAndPriorPose(
+            plane_params, self.T_W_WP_as_tx_ty_tz_qx_qy_qz_qw_TF_W_WP_pose)
+        
+        # extract the pose from the plane_params
+        self.T_W_WP_as_tx_ty_tz_qx_qy_qz_qw_TF_W_WP_pose = new_plane_support_pose
+
+        rospy.loginfo("moma_ui: Successfully detected work plane!")
+        resp = TriggerResponse()
+        resp.success = True
+        resp.message = "Successfully detected work plane!"
+        return resp
+
     def reset_sam_config(self, req):
         rospy.loginfo("moma_ui: Resetting SAM control image, points...")
         """Reset the buffer of click points."""

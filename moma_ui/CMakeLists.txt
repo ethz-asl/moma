@@ -1,6 +1,12 @@
 cmake_minimum_required(VERSION 3.0.2)
 project(moma_ui)
-find_package(catkin REQUIRED COMPONENTS rviz)
+find_package(catkin REQUIRED COMPONENTS rviz dynamic_reconfigure message_generation)
+
+generate_dynamic_reconfigure_options(
+  cfg/moma_ui_param.cfg
+)
+
+
 catkin_package()
 include_directories(
   include
@@ -36,6 +42,8 @@ add_definitions(-DQT_NO_KEYWORDS)
 set(SRC_FILES
   src/MomaPanel.cpp
 )
+
+
 
 ## An rviz plugin is just a shared library, so here we declare the
 ## library to be called ``${PROJECT_NAME}`` (which is
