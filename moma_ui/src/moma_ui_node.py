@@ -41,7 +41,8 @@ class MomaUiNode:
         self.last_mask = None
 
         # stuff
-        self.workplane_frame = rospy.get_param('~workplane_frame', 'workplane')
+        self.world_frame = rospy.get_param('world_frame_id', 'world')
+        self.work_plane_frame = rospy.get_param('work_plane_id', 'work_plane')
         self.last_marker_msg = None
         self.fg_is_positive = rospy.get_param('~fg_is_positive', False)
         
@@ -161,7 +162,7 @@ class MomaUiNode:
         # create a marker array to visualize the fg_min_height as a plane
         marker_array = MarkerArray()
         marker = Marker()
-        marker.header.frame_id = self.workplane_frame
+        marker.header.frame_id = self.work_plane_frame
         marker.header.stamp = rospy.Time.now()
         marker.type = Marker.CUBE
         marker.action = Marker.ADD

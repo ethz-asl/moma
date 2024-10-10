@@ -63,15 +63,26 @@ MomaPanel::MomaPanel(QWidget *parent)
     p2p_layout->addWidget( p2p_goto_label_button_ );
     p2p_layout->addWidget( p2p_delete_label_button_ );
 
-    // TRJ
+    // SWEEP
     // Set up the layout for the trajectory buttons
-    QHBoxLayout* trj_layout = new QHBoxLayout;
-              trj_layout->addWidget( new QLabel( "<b>TRAJECTORY</b>" ));
+    QHBoxLayout* sweep_layout = new QHBoxLayout;
+              sweep_layout->addWidget( new QLabel( "<b>SWEEP</b>" ));
 
-    trj_layout->addWidget( trj_select_start_button_ );
-    trj_layout->addWidget( trj_select_end_button_ );
-    trj_layout->addWidget( new QLabel( "Trajectory Height:" ));
-    trj_layout->addWidget( trj_execute_button_ );
+    sweep_layout->addWidget( sweep_select_start_button_ );
+    sweep_layout->addWidget( sweep_select_end_button_ );
+    sweep_layout->addWidget( new QLabel( "Sweep Height:" ));
+    sweep_layout->addWidget( sweep_execute_button_ );
+
+    // TEACH&REPEAT
+    // Set up the layout for the trajectory buttons
+    QHBoxLayout* teach_repeat_layout = new QHBoxLayout;
+    teach_repeat_layout->addWidget( new QLabel( "<b>TEACH&REPEAT</b>" ));
+    teach_repeat_layout->addWidget( new QLabel( "Teach Trajectory" ));
+    teach_repeat_layout->addWidget( teach_repeat_label_ );
+    teach_repeat_layout->addWidget( teach_repeat_start_button_ );
+    teach_repeat_layout->addWidget( teach_repeat_stop_button_ );
+    teach_repeat_layout->addWidget( teach_repeat_execute_button_ );
+
 
 
   QVBoxLayout* layout = new QVBoxLayout;
@@ -79,7 +90,8 @@ MomaPanel::MomaPanel(QWidget *parent)
     layout->addLayout( sam_layout );
   layout->addLayout( topic_layout );
     layout->addLayout( p2p_layout );
-    layout->addLayout( trj_layout );
+    layout->addLayout( sweep_layout );
+    layout->addLayout( teach_repeat_layout );
   setLayout( layout );
 
   // Next we make signal/slot connections.

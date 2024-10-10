@@ -69,12 +69,19 @@ protected:
     QPushButton* p2p_goto_label_button_ = new QPushButton("Go to Label");
     QPushButton* p2p_delete_label_button_ = new QPushButton("Delete Label");
 
-    // TRJ
+    // SWEEP
     // Qt elements
-    QPushButton* trj_select_start_button_ = new QPushButton("Select TRJ start");
-    QPushButton* trj_select_end_button_ = new QPushButton("Select TRJ end");
-    QLineEdit* trj_set_height_editor_ = new QLineEdit;
-    QPushButton* trj_execute_button_ = new QPushButton("Execute TRJ");
+    QPushButton* sweep_select_start_button_ = new QPushButton("Select Sweep start");
+    QPushButton* sweep_select_end_button_ = new QPushButton("Select Sweep end");
+    QLineEdit* sweep_set_height_editor_ = new QLineEdit;
+    QPushButton* sweep_execute_button_ = new QPushButton("Execute Sweep");
+
+    // TEACH&REPEAT
+    // Qt elements
+    QLineEdit* teach_repeat_label_ = new QLineEdit;
+    QPushButton* teach_repeat_start_button_ = new QPushButton("Start Teach");
+    QPushButton* teach_repeat_stop_button_ = new QPushButton("Stop Teach");
+    QPushButton* teach_repeat_execute_button_ = new QPushButton("Repeat");
 
 };
 
