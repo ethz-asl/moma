@@ -14,7 +14,7 @@
   <!-- Stuff that should always run -->
   <!-- Add this static TF, because of two existing names for the same thing. -->
   <node pkg="tf" type="static_transform_publisher" name="link2_broadcaster" args="0.0 0.0 0.0 0.0 0.0 0.0 wrist_camera_link rs_435_1_link 100" />
-  <node pkg="tf" type="static_transform_publisher" name="world_workplane_broadcaster" args="0.5 0.0 0.0 0.0 0.0 0.0 world workplane 100" />
+  <!-- <node pkg="tf" type="static_transform_publisher" name="world_workplane_broadcaster" args="0.5 0.0 0.0 0.0 0.0 0.0 world workplane 100" /> -->
   <!-- Kalibr Extrinsics to connect distinct cameras -->
   <!-- <rosparam>
     /kalibr_helper_node/tx: -0.025
@@ -28,8 +28,8 @@
   <!-- Stuff that should run in non-calib mode -->
   <group unless="$(arg calibration_mode)">
     <!-- Panda Base -> RS2 -->
-    <node pkg="tf" type="static_transform_publisher" name="static_tf_panda_rs2" args="0.415 0.623 0.843 0.240 0.227 -0.657 0.678 panda_link0 rs_435_2_link 100" />
-    <node pkg="tf" type="static_transform_publisher" name="static_tf_panda_rs3" args="0.338 -0.628 0.853 -0.170 0.239 0.616 0.731 panda_link0 rs_435_3_link 100" />
+    <node pkg="tf" type="static_transform_publisher" name="static_tf_panda_rs2" args="0.415 0.623 0.843 0.240 0.227 -0.657 0.678 world rs_435_2_link 100" />
+    <node pkg="tf" type="static_transform_publisher" name="static_tf_panda_rs3" args="0.338 -0.628 0.853 -0.170 0.239 0.616 0.731 world rs_435_3_link 100" />
 
   </group>
 

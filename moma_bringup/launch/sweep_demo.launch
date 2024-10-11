@@ -1,7 +1,0 @@
-<?xml version="1.0"?>
-<launch>
-  <!-- <include file="$(find moma_bringup)/launch/panda_real.launch"/> -->
-  <!-- <include file="$(find moma_bringup)/launch/components/scan_box_preproc.launch"/> -->
-  <include file="$(find moma_bringup)/launch/components/scan_box_sensors.launch"/>
-  <include file="$(find moma_bringup)/launch/components/scan_box_transformations.launch"/>
-</launch>

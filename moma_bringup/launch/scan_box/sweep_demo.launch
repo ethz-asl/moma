@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<launch>
+  <!-- <include file="$(find moma_bringup)/launch/panda_real.launch"/> -->
+  <!-- <include file="$(find moma_bringup)/launch/scan_box/scan_box_preproc.launch"/> -->
+  <include file="$(find moma_bringup)/launch/scan_box/scan_box_sensors.launch"/>
+  <include file="$(find moma_bringup)/launch/scan_box/scan_box_transformations.launch"/>
+  <include file="$(find moma_bringup)/launch/scan_box/scan_box_preproc_new_w_voxblox.launch"/>
+</launch>
