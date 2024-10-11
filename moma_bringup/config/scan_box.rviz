@@ -25,8 +25,8 @@ Panels:
     Name: Time
     SyncMode: 0
     SyncSource: ""
-  - BagOutDir: ""
-    BagTopics: ""
+  - BagOutDir: /tmp
+    BagTopics: /tf;/clock;/abc
     Class: moma_ui/MomaPanel
     FGMinHeight: 0.3
     Name: MomaPanel
@@ -758,10 +758,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Scale: 813.5877685546875
+      Scale: 458.2126159667969
       Target Frame: <Fixed Frame>
-      X: 0.39474889636039734
-      Y: 0.10281151533126831
+      X: 0.4187552332878113
+      Y: 0.0067862244322896
     Saved: ~
 Window Geometry:
   Control Image:
