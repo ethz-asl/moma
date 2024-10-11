@@ -102,6 +102,7 @@ MomaPanel::MomaPanel(QWidget *parent)
   connect( sam_min_height_editor_, SIGNAL( editingFinished() ), this, SLOT( updateSamFgMinH() ));
   connect( rosbag_output_dir_editor_, SIGNAL( editingFinished() ), this, SLOT( updateBagDir() ));
   connect( rosbag_topic_name_editor_, SIGNAL( editingFinished() ), this, SLOT( updateBagTopics() ));
+  connect( perception_clear_map_button_, SIGNAL( clicked() ), this, SLOT( clearMap() ));
 
   // other stuff
   fg_min_height_pub_ = nh_.advertise<std_msgs::Float32>("moma_ui/sam/foreground_min_height", 1);
@@ -119,6 +120,21 @@ void MomaPanel::detectPlane()
     else
     {
         ROS_ERROR("moma_panel: Failed to call plane detection service");
+    }
+}
+
+void MomaPanel::clearMap()
+{
+    // Call the service to clear the map
+    ros::ServiceClient client = nh_.serviceClient<std_srvs::Trigger>("moma_ui/map/clear");
+    std_srvs::Trigger srv;
+    if (client.call(srv))
+    {
+        ROS_INFO("moma_panel: Map has been cleared");
+    }
+    else
+    {
+        ROS_ERROR("moma_panel: Failed to clear the map");
     }
 }
 

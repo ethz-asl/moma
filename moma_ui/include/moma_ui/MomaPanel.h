@@ -31,6 +31,7 @@ protected Q_SLOTS:
   void updateBagDir();
   void updateBagTopics();
   void toggledFgSam();
+  void clearMap();
 
 
 protected:    

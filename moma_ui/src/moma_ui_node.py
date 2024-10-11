@@ -83,11 +83,14 @@ class MomaUiNode:
         self.filtered_elevation_map_pub = rospy.Publisher('moma_ui/sam/filtered_elevation_map', GridMap, queue_size=10)
         self.elev_map_img_pub = rospy.Publisher('moma_ui/sam/elevation_map_image', Image, queue_size=10)
         self.viz_marker_array_pub = rospy.Publisher('moma_ui/viz_marker_array', MarkerArray, queue_size=10)
-        
+
         ## Services
         self.reset_sam_cfg_srv = rospy.Service('moma_ui/sam/reset', Empty, self.reset_sam_config)
         self.run_sam_srv = rospy.Service('moma_ui/sam/run', Trigger, self.run_sam)
         self.set_label_fg_bg_srv = rospy.Service('moma_ui/sam/set_label_fg_bg', SetBool, self.set_label_fg_bg)
+        # self.start_stop_rosbag_rec_srv = rospy.Service('moma_ui/rosbag_recorder/start_stop', SetBool, self.start_stop_rosbag_rec)
+        self.clear_map_srv = rospy.Service('moma_ui/map/clear', Trigger, self.clear_map)
+
         # CVBridge for image conversion
         self.bridge = CvBridge()
 
@@ -118,6 +121,9 @@ class MomaUiNode:
         self.sweep_marker_enabled = True
         # self.interact_marker_server = InteractiveMarkerServer("moma_ui/interactive_marker_server")
         # self.init_interactive_markers()
+
+        # rosbag recorder
+        
 
     '''
     def processFeedback(self, feedback):
@@ -373,6 +379,16 @@ class MomaUiNode:
         self.viz_marker_array_pub.publish(marker_array)
 
     # services
+    def clear_map(self, req):
+        rospy.loginfo("moma_ui: Clearing the map...")
+
+        rospy.logwarn("moma_ui: Clearing map not implemented yet!")
+
+        resp = TriggerResponse()
+        resp.success = False
+        resp.message = "Clearing map not implemented yet!"
+        return resp
+
     def planeSupportAndNormalToSupportPose(self, support_xyz, normal_xyz):
         plane_support_pose = Pose()
         plane_support_pose.position.x = support_xyz[0]
