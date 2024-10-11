@@ -106,7 +106,6 @@ class MomaUiNode:
         self.T_W_WP_as_tx_ty_tz_qx_qy_qz_qw_TF_W_WP_pose.orientation.z = float(T_W_WP_as_tx_ty_tz_qx_qy_qz_qw_TF_W_WP.split(',')[5])
         self.T_W_WP_as_tx_ty_tz_qx_qy_qz_qw_TF_W_WP_pose.orientation.w = float(T_W_WP_as_tx_ty_tz_qx_qy_qz_qw_TF_W_WP.split(',')[6])
 
-
         self.tf_broadcaster = tf2_ros.TransformBroadcaster()
 
         # dynrec server
@@ -251,6 +250,10 @@ class MomaUiNode:
         self.tf_broadcaster.sendTransform(transform)
 
     def elevation_map_callback(self, msg):
+        # check if frame is in work plane frame
+        if msg.info.frame_id != self.work_plane_frame:
+            rospy.logwarn("moma_ui: Elevation map is not in the right frame")
+            return
         self.last_elevation_map = msg
         num_rows = msg.data[0].layout.dim[0].size
         num_cols = msg.data[0].layout.dim[1].size
