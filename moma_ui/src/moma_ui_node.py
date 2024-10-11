@@ -86,7 +86,7 @@ class MomaUiNode:
 
         ## for WP detection
         self.wp_detection_srv = rospy.Service('moma_ui/work_plane/detect', Trigger, self.wp_detection)
-        self.point_cloud_sub = rospy.Subscriber('/rs_435_1/depth/color/points', PointCloud2, self.point_cloud_cb)
+        self.point_cloud_sub = rospy.Subscriber('/world_cloud', PointCloud2, self.point_cloud_cb)
         self.last_received_pointcloud = None
         # the prior for the work plane either as a pose or as a support and normal
         T_W_WP_as_tx_ty_tz_qx_qy_qz_qw_TF_W_WP = rospy.get_param('/T_W_WP_as_tx_ty_tz_qx_qy_qz_qw_TF_W_WP', '0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0')      
@@ -116,20 +116,20 @@ class MomaUiNode:
     
     def timer_cb(self, msg):
         # viz marker
-        # marker_array_msg = MarkerArray()
-        # thickness = 0.001
-        # plane_marker = Marker()
-        # plane_marker.header.frame_id = self.world_frame
-        # plane_marker.header.stamp = rospy.Time(0)
-        # plane_marker.ns = 'work_plane_marker'
-        # plane_marker.id = 0
-        # plane_marker.type = 1
-        # plane_marker.action = 0
-        # plane_marker.pose = self.T_W_WP_as_tx_ty_tz_qx_qy_qz_qw_TF_W_WP_pose
-        # plane_marker.scale = Vector3(0.5, 0.5, thickness)
-        # plane_marker.color = ColorRGBA(1.0, 0.0, 0.0, 0.5)
-        # marker_array_msg.markers.append(plane_marker)
-        # self.viz_marker_array_pub.publish(marker_array_msg)
+        marker_array_msg = MarkerArray()
+        thickness = 0.001
+        plane_marker = Marker()
+        plane_marker.header.frame_id = self.world_frame
+        plane_marker.header.stamp = rospy.Time(0)
+        plane_marker.ns = 'work_plane_marker'
+        plane_marker.id = 0
+        plane_marker.type = 1
+        plane_marker.action = 0
+        plane_marker.pose = self.T_W_WP_as_tx_ty_tz_qx_qy_qz_qw_TF_W_WP_pose
+        plane_marker.scale = Vector3(0.5, 0.5, thickness)
+        plane_marker.color = ColorRGBA(1.0, 0.0, 0.0, 0.5)
+        marker_array_msg.markers.append(plane_marker)
+        self.viz_marker_array_pub.publish(marker_array_msg)
         # TF
         pos = (self.T_W_WP_as_tx_ty_tz_qx_qy_qz_qw_TF_W_WP_pose.position.x,
                self.T_W_WP_as_tx_ty_tz_qx_qy_qz_qw_TF_W_WP_pose.position.y, 
@@ -160,8 +160,6 @@ class MomaUiNode:
 
         # Broadcast the transform
         self.tf_broadcaster.sendTransform(transform)
-
-
 
     def elevation_map_callback(self, msg):
         self.last_elevation_map = msg
