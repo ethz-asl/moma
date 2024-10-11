@@ -19,6 +19,8 @@ from tf.transformations import quaternion_from_euler
 from visualization_msgs.msg import InteractiveMarkerControl, InteractiveMarker
 import tf
 
+import subprocess
+import datetime
 
 from moma_ui.cfg import moma_ui_paramConfig
 # ColorRGBA
@@ -27,6 +29,8 @@ from std_msgs.msg import ColorRGBA
 import matplotlib.pyplot as plt
 
 from geometry_msgs.msg import TransformStamped, Vector3, Quaternion
+
+import os
 
 import cv2
 import numpy as np
@@ -46,7 +50,7 @@ from geometry_msgs.msg import TransformStamped, Vector3, Quaternion
 class MomaUiNode:
     def __init__(self):
         # Initialize node
-        rospy.init_node('mom_ui_node')
+        rospy.init_node('moma_ui_node')
 
         self.input_mode = rospy.get_param('~input_mode', 'elevation_map') # 'image' or 'elevation_map'
         assert self.input_mode in ['image', 'elevation_map'], "Invalid input mode. Choose 'image' or 'elevation_map'"
@@ -88,7 +92,7 @@ class MomaUiNode:
         self.reset_sam_cfg_srv = rospy.Service('moma_ui/sam/reset', Empty, self.reset_sam_config)
         self.run_sam_srv = rospy.Service('moma_ui/sam/run', Trigger, self.run_sam)
         self.set_label_fg_bg_srv = rospy.Service('moma_ui/sam/set_label_fg_bg', SetBool, self.set_label_fg_bg)
-        # self.start_stop_rosbag_rec_srv = rospy.Service('moma_ui/rosbag_recorder/start_stop', SetBool, self.start_stop_rosbag_rec)
+        self.start_stop_rosbag_rec_srv = rospy.Service('moma_ui/rosbag_recorder/start_stop', SetBool, self.start_stop_rosbag_rec)
         self.clear_map_srv = rospy.Service('moma_ui/map/clear', Trigger, self.clear_map)
 
         # CVBridge for image conversion
@@ -123,7 +127,55 @@ class MomaUiNode:
         # self.init_interactive_markers()
 
         # rosbag recorder
-        
+        self.rosbag_record_subprocess = None
+
+    def start_stop_rosbag_rec(self, req):   
+        if req.data and self.rosbag_record_subprocess is None:
+            # get the params moma_ui/rosbag_recorder/bag_output_dir and moma_ui/rosbag_recorder/topics_to_record
+            bag_output_dir = rospy.get_param('moma_ui/rosbag_recorder/bag_output_dir', '/tmp')
+            topics_to_record = rospy.get_param('moma_ui/rosbag_recorder/topics_to_record', [])
+            # get all the individual topics from the list
+            topics_to_record_str = ' '.join(topics_to_record)
+            print(f"topics_to_record_str: {topics_to_record_str}")
+            # topics_to_record_str = ' '.join(topics_to_record)
+            # check if dir exists
+            if not os.path.exists(bag_output_dir):
+                rospy.logwarn(f"moma_ui: Bag output dir {bag_output_dir} does not exist, creating it...")
+                os.makedirs(bag_output_dir)
+            rospy.loginfo("moma_ui: Starting rosbag recording...")
+            # self.rosbag_record_subprocess = subprocess.Popen(["rosbag", "record", "-a"])
+            # get date and time as YYYY-MM-DD-HH-MM-SS
+            date_time = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+            cmd = ["rosbag", "record", "-O", f"{bag_output_dir}/moma_ui_{date_time}.bag"] + topics_to_record
+            self.rosbag_record_subprocess = subprocess.Popen(cmd)
+            # self.rosbag_record_subprocess = subprocess.Popen(["rosbag", "record", "-O", f"{bag_output_dir}/moma_ui_{rospy.Time.now().to_sec()}.bag", topics_to_record_str])
+            rospy.loginfo("moma_ui: Started rosbag recording")
+            resp = SetBoolResponse()
+            resp.success = True
+            resp.message = "Started rosbag recording"
+            return resp
+        elif req.data and self.rosbag_record_subprocess is not None:
+            rospy.logwarn("moma_ui: Rosbag recording already in progress, stop it first before starting again")
+            resp = SetBoolResponse()
+            resp.success = False
+            resp.message = "Rosbag recording already in progress, stop it first before starting again"
+            return resp
+        elif not req.data and self.rosbag_record_subprocess is None:
+            rospy.logwarn("moma_ui: Rosbag recording not started yet, nothing to stop")
+            resp = SetBoolResponse()
+            resp.success = False
+            resp.message = "Rosbag recording not started yet, nothing to stop"
+            return resp
+        elif not req.data and self.rosbag_record_subprocess is not None:
+            rospy.loginfo("moma_ui: Stopping rosbag recording...")
+            self.rosbag_record_subprocess.terminate()
+            self.rosbag_record_subprocess.wait()
+            rospy.loginfo("moma_ui: Stopped rosbag recording")
+            self.rosbag_record_subprocess = None
+            resp = SetBoolResponse()
+            resp.success = True
+            resp.message = "Stopped rosbag recording"
+            return resp
 
     '''
     def processFeedback(self, feedback):
@@ -301,7 +353,7 @@ class MomaUiNode:
 
     # DYNREC SERVER
     def dynrecCb(self, config, level):
-        rospy.logwarn('moma_ui: Got dynrec request!')
+        rospy.loginfo('moma_ui: Got dynamic reconfigure request.')
         self.dynrec_cfg = config
         return self.dynrec_cfg
 

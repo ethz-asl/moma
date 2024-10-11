@@ -84,14 +84,14 @@ MomaPanel::MomaPanel(QWidget *parent)
     teach_repeat_layout->addWidget( teach_repeat_execute_button_ );
 
 
-
+  // Now we set the main layout for the panel.
   QVBoxLayout* layout = new QVBoxLayout;
     layout->addLayout( perception_layout );
     layout->addLayout( sam_layout );
   layout->addLayout( topic_layout );
-    layout->addLayout( p2p_layout );
+    // layout->addLayout( p2p_layout );
     layout->addLayout( sweep_layout );
-    layout->addLayout( teach_repeat_layout );
+    // layout->addLayout( teach_repeat_layout );
   setLayout( layout );
 
   // Next we make signal/slot connections.
@@ -103,6 +103,8 @@ MomaPanel::MomaPanel(QWidget *parent)
   connect( rosbag_output_dir_editor_, SIGNAL( editingFinished() ), this, SLOT( updateBagDir() ));
   connect( rosbag_topic_name_editor_, SIGNAL( editingFinished() ), this, SLOT( updateBagTopics() ));
   connect( perception_clear_map_button_, SIGNAL( clicked() ), this, SLOT( clearMap() ));
+  connect( rosbag_start_button_, SIGNAL( clicked() ), this, SLOT( startRosbag() ));
+  connect( rosbag_stop_button_, SIGNAL( clicked() ), this, SLOT( stopRosbag() ));  
 
   // other stuff
   fg_min_height_pub_ = nh_.advertise<std_msgs::Float32>("moma_ui/sam/foreground_min_height", 1);
@@ -120,6 +122,44 @@ void MomaPanel::detectPlane()
     else
     {
         ROS_ERROR("moma_panel: Failed to call plane detection service");
+    }
+}
+
+void MomaPanel::startRosbag()
+{
+    // Start recording the bag file
+    ROS_INFO("moma_panel: Starting rosbag recording...");
+    // Call the service to start recording the bag file
+    ros::ServiceClient client = nh_.serviceClient<std_srvs::SetBool>("moma_ui/rosbag_recorder/start_stop");
+    std_srvs::SetBool srv;
+    srv.request.data = true;
+    client.call(srv);
+    if (srv.response.success)
+    {
+        ROS_INFO("moma_panel: Rosbag recording has started: %s", srv.response.message.c_str());
+    }
+    else
+    {
+        ROS_WARN("moma_panel: Failed to start rosbag recording: %s", srv.response.message.c_str());
+    }
+}
+
+void MomaPanel::stopRosbag()
+{
+    // Stop recording the bag file
+    ROS_INFO("moma_panel: Stopping rosbag recording...");
+    // Call the service to stop recording the bag file
+    ros::ServiceClient client = nh_.serviceClient<std_srvs::SetBool>("moma_ui/rosbag_recorder/start_stop");
+    std_srvs::SetBool srv;
+    srv.request.data = false;
+    client.call(srv);
+    if (srv.response.success)
+    {
+        ROS_INFO("moma_panel: Rosbag recording has stopped: %s", srv.response.message.c_str());
+    }
+    else
+    {
+        ROS_WARN("moma_panel: Failed to stop rosbag recording: %s", srv.response.message.c_str());
     }
 }
 
@@ -146,6 +186,7 @@ void MomaPanel::setBagDir( const QString& new_dir )
   {
     ROS_INFO("moma_panel: Setting bag output directory to %s", new_dir.toStdString().c_str());
     bag_output_dir_ = new_dir;
+    nh_.setParam("moma_ui/rosbag_recorder/bag_output_dir", bag_output_dir_.toStdString());  // Store the directory under the param name "bag_output_dir"
     Q_EMIT configChanged();
   }
 }
@@ -179,7 +220,7 @@ void MomaPanel::setBagTopics( const QString& new_topic )
             }
             bag_topics_vector_.push_back(topic.toStdString());
         }
-        nh_.setParam("moma_ui/topics_to_record", bag_topics_vector_);  // Store the list under the param name "topics_to_record"
+        nh_.setParam("moma_ui/rosbag_recorder/topics_to_record", bag_topics_vector_);  // Store the list under the param name "topics_to_record"
 
 
     }

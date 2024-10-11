@@ -32,7 +32,8 @@ protected Q_SLOTS:
   void updateBagTopics();
   void toggledFgSam();
   void clearMap();
-
+  void startRosbag();
+  void stopRosbag();
 
 protected:    
     // ROS node handle (for any communication, if needed)
