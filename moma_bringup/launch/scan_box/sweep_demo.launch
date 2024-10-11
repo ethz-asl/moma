@@ -5,4 +5,7 @@
   <include file="$(find moma_bringup)/launch/scan_box/scan_box_sensors.launch"/>
   <include file="$(find moma_bringup)/launch/scan_box/scan_box_transformations.launch"/>
   <include file="$(find moma_bringup)/launch/scan_box/scan_box_preproc_new_w_voxblox.launch"/>
+  <node name="ros_sam" pkg="ros_sam" type="sam_node.py" output="screen" args="--alsologtostderr" clear_params="true"/>
+  <node name="moma_ui" pkg="moma_ui" type="moma_ui_node.py" output="screen" args="--alsologtostderr" clear_params="true"/>
+
 </launch>
