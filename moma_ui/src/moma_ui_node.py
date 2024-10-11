@@ -13,6 +13,13 @@ from std_srvs.srv import SetBool, SetBoolResponse, SetBoolRequest
 from visualization_msgs.msg import Marker, MarkerArray
 from dynamic_reconfigure.server import Server
 
+from interactive_markers.interactive_marker_server import *
+from geometry_msgs.msg import Point
+from tf.transformations import quaternion_from_euler
+from visualization_msgs.msg import InteractiveMarkerControl, InteractiveMarker
+import tf
+
+
 from moma_ui.cfg import moma_ui_paramConfig
 # ColorRGBA
 from std_msgs.msg import ColorRGBA
@@ -107,6 +114,88 @@ class MomaUiNode:
         self.dynrec_srv = Server(moma_ui_paramConfig, self.dynrecCb)
         # ros timer
         self.timer = rospy.Timer(rospy.Duration(0.1), lambda msg: self.timer_cb(msg))
+
+        # sweep interactive marker
+        self.sweep_marker_enabled = True
+        # self.interact_marker_server = InteractiveMarkerServer("moma_ui/interactive_marker_server")
+        # self.init_interactive_markers()
+
+    '''
+    def processFeedback(self, feedback):
+        p = feedback.pose.position
+        print(feedback.marker_name + " is now at " + str(p.x) + ", " + str(p.y) + ", " + str(p.z))
+
+    def init_interactive_markers(self):
+        rospy.loginfo("Interactive markers initialized")
+        # create an interactive marker for our server
+        sweep_start_int_marker = InteractiveMarker()
+        sweep_start_int_marker.header.frame_id = self.world_frame
+        sweep_start_int_marker.name = "sweep_start_marker"
+        sweep_start_int_marker.description = "Sweep Start"
+        sweep_start_int_marker.pose.position.x = 0.5
+        sweep_start_int_marker.scale = 0.2
+
+        # Add controls for translation in x and y
+        control_x = InteractiveMarkerControl()
+        control_x.name = "move_x"
+        control_x.interaction_mode = InteractiveMarkerControl.MOVE_AXIS
+        control_x.orientation.w = 1.0  # No rotation for the x-axis movement
+        sweep_start_int_marker.controls.append(control_x)
+
+        # create a grey box marker
+        sweep_start_box_marker = Marker()
+        sweep_start_box_marker.type = Marker.CYLINDER
+        sweep_start_box_marker.scale.x = 0.07   
+        sweep_start_box_marker.scale.y = 0.07
+        sweep_start_box_marker.scale.z = 0.1
+        # sweep_start_box_marker.pose.position.z = 0.025
+        sweep_start_box_marker.color.r = 0.0
+        sweep_start_box_marker.color.g = 0.5
+        sweep_start_box_marker.color.b = 0.5
+        sweep_start_box_marker.color.a = 1.0
+
+        # create a non-interactive control which contains the box
+        sweep_start_box_control = InteractiveMarkerControl()
+        sweep_start_box_control.always_visible = True
+
+        sweep_start_box_control.markers.append( sweep_start_box_marker )
+        # add the control to the interactive marker
+        sweep_start_int_marker.controls.append( sweep_start_box_control )
+
+        # create a control which will move the box along the x-axis
+        sweep_start_trans_x_ctrl = InteractiveMarkerControl()
+        sweep_start_trans_x_ctrl.name = "move_x"
+        sweep_start_trans_x_ctrl.interaction_mode = InteractiveMarkerControl.MOVE_AXIS
+        # sweep_start_trans_x_ctrl.scale = 0.1
+        sweep_start_int_marker.controls.append(sweep_start_trans_x_ctrl)
+
+        # create a control which will move the box along the y-axis
+        sweep_start_trans_y_ctrl = InteractiveMarkerControl()
+        sweep_start_trans_y_ctrl.name = "move_y"
+        sweep_start_trans_y_ctrl.interaction_mode = InteractiveMarkerControl.MOVE_AXIS
+        rot_as_arr = tf.transformations.quaternion_from_euler(0, 0, 1.5708)
+        sweep_start_trans_y_ctrl.orientation.x = rot_as_arr[0]
+        sweep_start_trans_y_ctrl.orientation.y = rot_as_arr[1]
+        sweep_start_trans_y_ctrl.orientation.z = rot_as_arr[2]
+        sweep_start_trans_y_ctrl.orientation.w = rot_as_arr[3]
+        sweep_start_int_marker.controls.append(sweep_start_trans_y_ctrl)
+
+        # add the interactive marker to our collection &
+        # tell the server to call processFeedback() when feedback arrives for it
+        self.interact_marker_server.insert(sweep_start_int_marker, self.processFeedback)
+        
+        # add sweep end marker
+        sweep_end_int_marker = InteractiveMarker()
+        sweep_end_int_marker.header.frame_id = self.work_plane_frame
+        sweep_end_int_marker.name = "sweep_end_marker"
+        sweep_end_int_marker.description = "Sweep End"
+        sweep_end_int_marker.pose.position.x = 0.5
+        sweep_end_int_marker.pose.position.y = 0.0
+        sweep_end_int_marker.scale = 0.2
+        
+        # 'commit' changes and send to all clients
+        self.interact_marker_server.applyChanges()
+    '''
 
     # callbacks
     def image_callback(self, msg):
