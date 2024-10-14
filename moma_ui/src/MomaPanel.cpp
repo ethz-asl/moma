@@ -83,6 +83,13 @@ MomaPanel::MomaPanel(QWidget *parent)
     teach_repeat_layout->addWidget( teach_repeat_stop_button_ );
     teach_repeat_layout->addWidget( teach_repeat_execute_button_ );
 
+    // TASK
+    // Set up the layout for the task buttons
+    QHBoxLayout* task_layout = new QHBoxLayout;
+    task_layout->addWidget( new QLabel( "<b>TASK</b>" ));
+    task_layout->addWidget( task_plan_button_ );
+    task_layout->addWidget( task_execute_button_ );
+
 
   // Now we set the main layout for the panel.
   QVBoxLayout* layout = new QVBoxLayout;
@@ -92,6 +99,7 @@ MomaPanel::MomaPanel(QWidget *parent)
     // layout->addLayout( p2p_layout );
     layout->addLayout( sweep_layout );
     // layout->addLayout( teach_repeat_layout );
+    layout->addLayout( task_layout );
   setLayout( layout );
 
   // Next we make signal/slot connections.
@@ -105,10 +113,25 @@ MomaPanel::MomaPanel(QWidget *parent)
   connect( perception_clear_map_button_, SIGNAL( clicked() ), this, SLOT( clearMap() ));
   connect( rosbag_start_button_, SIGNAL( clicked() ), this, SLOT( startRosbag() ));
   connect( rosbag_stop_button_, SIGNAL( clicked() ), this, SLOT( stopRosbag() ));  
-
+  connect( task_plan_button_, SIGNAL( clicked() ), this, SLOT( planTask() ));
   // other stuff
   fg_min_height_pub_ = nh_.advertise<std_msgs::Float32>("moma_ui/sam/foreground_min_height", 1);
 }
+
+void MomaPanel::planTask()
+{
+    // Call the service to plan the task
+    ros::ServiceClient client = nh_.serviceClient<std_srvs::Trigger>("moma_ui/task/plan");
+    std_srvs::Trigger srv;
+    if (client.call(srv))
+    {
+        ROS_INFO("moma_panel: Task planning service has been called");
+    }
+    else
+    {
+        ROS_ERROR("moma_panel: Failed to call task planning service");
+    }
+}   
 
 void MomaPanel::detectPlane()
 {

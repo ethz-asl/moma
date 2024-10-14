@@ -34,6 +34,8 @@ protected Q_SLOTS:
   void clearMap();
   void startRosbag();
   void stopRosbag();
+  void planTask();
+  void executeTask();
 
 protected:    
     // ROS node handle (for any communication, if needed)
@@ -86,6 +88,10 @@ protected:
     QPushButton* teach_repeat_stop_button_ = new QPushButton("Stop Teach");
     QPushButton* teach_repeat_execute_button_ = new QPushButton("Repeat");
 
+    // TASK
+    // Qt elements
+    QPushButton* task_plan_button_ = new QPushButton("Plan Task");
+    QPushButton* task_execute_button_ = new QPushButton("Execute Task");
 };
 
 } // end namespace moma_ui
