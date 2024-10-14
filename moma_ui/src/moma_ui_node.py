@@ -70,7 +70,7 @@ class MomaUiNode:
 
         # stuff
         self.world_frame = rospy.get_param('world_frame_id', 'world')
-        self.work_plane_frame = rospy.get_param('work_plane_id', 'work_plane')
+        self.work_plane_frame = rospy.get_param('work_plane_id', 'workplane')
         self.last_marker_msg = None
         self.fg_is_positive = rospy.get_param('~fg_is_positive', False)
         
@@ -100,7 +100,7 @@ class MomaUiNode:
 
         ## for WP detection
         self.wp_detection_srv = rospy.Service('moma_ui/work_plane/detect', Trigger, self.wp_detection)
-        self.point_cloud_sub = rospy.Subscriber('/world_cloud', PointCloud2, self.point_cloud_cb)
+        self.point_cloud_sub = rospy.Subscriber('/rs_435_3/depth/color/points_passthrough_xyz', PointCloud2, self.point_cloud_cb)
         self.last_received_pointcloud = None
         # the prior for the work plane either as a pose or as a support and normal
         T_W_WP_as_tx_ty_tz_qx_qy_qz_qw_TF_W_WP = rospy.get_param('/T_W_WP_as_tx_ty_tz_qx_qy_qz_qw_TF_W_WP', '0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0')      
@@ -309,7 +309,7 @@ class MomaUiNode:
 
     def elevation_map_callback(self, msg):
         # check if frame is in work plane frame
-        if msg.info.frame_id != self.work_plane_frame:
+        if msg.info.header.frame_id != self.work_plane_frame:
             rospy.logwarn("moma_ui: Elevation map is not in the right frame")
             return
         self.last_elevation_map = msg
@@ -434,11 +434,32 @@ class MomaUiNode:
     def clear_map(self, req):
         rospy.loginfo("moma_ui: Clearing the map...")
 
-        rospy.logwarn("moma_ui: Clearing map not implemented yet!")
+        rospy.wait_for_service('/voxblox_node/clear_map')
+        try:
+            # Create a service proxy (client)
+            clear_vb_map = rospy.ServiceProxy('/voxblox_node/clear_map', Empty)
+            # Call the service
+            response = clear_vb_map()
+            rospy.loginfo("moma_ui: Succesfully cleared voxblox map!")
 
+        except rospy.ServiceException as e:
+            rospy.logerr("Service call failed: %s", e)
+
+
+        rospy.wait_for_service('/elevation_mapping/clear_map')
+        try:
+            # Create a service proxy (client)
+            clear_elev_map = rospy.ServiceProxy('/elevation_mapping/clear_map', Empty)
+            # Call the service
+            response = clear_elev_map()
+            rospy.loginfo("moma_ui: Succesfully cleared elevation map!")
+
+        except rospy.ServiceException as e:
+            rospy.logerr("Service call failed: %s", e)
+        
         resp = TriggerResponse()
-        resp.success = False
-        resp.message = "Clearing map not implemented yet!"
+        resp.success = True
+        resp.message = "Clearing map was succesful!"
         return resp
 
     def planeSupportAndNormalToSupportPose(self, support_xyz, normal_xyz):

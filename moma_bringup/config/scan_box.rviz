@@ -226,8 +226,6 @@ Visualization Manager:
       Visual Enabled: true
     - Class: rviz/TF
       Enabled: false
-      Filter (blacklist): ""
-      Filter (whitelist): ""
       Frame Timeout: 15
       Frames:
         All Enabled: true

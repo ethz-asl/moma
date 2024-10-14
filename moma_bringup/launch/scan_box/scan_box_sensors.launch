@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <launch>
-  <arg name='list_of_sensors' default='[rs_435_1, rs_435_2, rs_435_3]'/>
+  <arg name='list_of_sensors' default='[rs_435_2, rs_435_3]'/>
   <arg name="rs_fps" default="6"/>
   <arg name="calibration_mode" value="false"/>
   <!-- All options: 
