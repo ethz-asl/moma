@@ -97,7 +97,7 @@ class MomaUiNode:
         self.set_label_fg_bg_srv = rospy.Service('moma_ui/sam/set_label_fg_bg', SetBool, self.set_label_fg_bg)
         self.start_stop_rosbag_rec_srv = rospy.Service('moma_ui/rosbag_recorder/start_stop', SetBool, self.start_stop_rosbag_rec)
         self.clear_map_srv = rospy.Service('moma_ui/map/clear', Trigger, self.clear_map)
-        self.use_sweep_from_topic_srv = rospy.Service('moma_ui/sweep/use_sweep_from_topic', SetBool, self.use_sweep_from_topic)
+        self.use_sweep_from_topic_srv = rospy.Service('moma_ui/sweep/use_sweep_topic', SetBool, self.use_sweep_from_topic)
 
         # CVBridge for image conversion
         self.bridge = CvBridge()
