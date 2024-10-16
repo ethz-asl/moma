@@ -36,6 +36,7 @@ protected Q_SLOTS:
   void stopRosbag();
   void planTask();
   void executeTask();
+  void toggleSweepTopic();
 
 protected:    
     // ROS node handle (for any communication, if needed)
@@ -76,6 +77,7 @@ protected:
 
     // SWEEP
     // Qt elements
+    QCheckBox* sweep_topic_toggle = new QCheckBox("Sweep from topic");
     QPushButton* sweep_select_start_button_ = new QPushButton("Select Sweep start");
     QPushButton* sweep_select_end_button_ = new QPushButton("Select Sweep end");
     QLineEdit* sweep_set_height_editor_ = new QLineEdit;

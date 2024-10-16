@@ -68,10 +68,13 @@ MomaPanel::MomaPanel(QWidget *parent)
     QHBoxLayout* sweep_layout = new QHBoxLayout;
               sweep_layout->addWidget( new QLabel( "<b>SWEEP</b>" ));
 
+    sweep_layout->addWidget( new QLabel( "Sweep from topic" ));
+    sweep_layout->addWidget( sweep_topic_toggle );
     sweep_layout->addWidget( sweep_select_start_button_ );
     sweep_layout->addWidget( sweep_select_end_button_ );
     sweep_layout->addWidget( new QLabel( "Sweep Height:" ));
     sweep_layout->addWidget( sweep_execute_button_ );
+    sweep_topic_toggle->setChecked(true);
 
     // TEACH&REPEAT
     // Set up the layout for the trajectory buttons
@@ -114,6 +117,7 @@ MomaPanel::MomaPanel(QWidget *parent)
   connect( rosbag_start_button_, SIGNAL( clicked() ), this, SLOT( startRosbag() ));
   connect( rosbag_stop_button_, SIGNAL( clicked() ), this, SLOT( stopRosbag() ));  
   connect( task_plan_button_, SIGNAL( clicked() ), this, SLOT( planTask() ));
+  connect( sweep_topic_toggle, SIGNAL( stateChanged(int) ), this, SLOT( toggleSweepTopic() ));
   // other stuff
   fg_min_height_pub_ = nh_.advertise<std_msgs::Float32>("moma_ui/sam/foreground_min_height", 1);
 }
@@ -132,6 +136,21 @@ void MomaPanel::planTask()
         ROS_ERROR("moma_panel: Failed to call task planning service");
     }
 }   
+
+void MomaPanel::toggleSweepTopic()
+{
+    bool sweep = sweep_topic_toggle->isChecked();
+    ros::ServiceClient client = nh_.serviceClient<std_srvs::SetBool>("moma_ui/sweep/use_sweep_topic");
+    std_srvs::SetBool srv;
+    srv.request.data = sweep;
+    client.call(srv);
+    if (!srv.response.success)
+    {
+        ROS_WARN("moma_panel: Failed to toggle sweep topic: %s", srv.response.message.c_str());
+    }
+}
+
+
 
 void MomaPanel::detectPlane()
 {

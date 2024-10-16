@@ -80,6 +80,8 @@ class MomaUiNode:
         self.current_label = 'positive'
         self.fg_min_height = 10.0
 
+        self.sweep_marker_enabled = True
+
         ## Publishers
         self.control_img_pub = rospy.Publisher('moma_ui/sam/control_image', Image, queue_size=10)
         self.mask_pub = rospy.Publisher('moma_ui/sam/mask_image', Image, queue_size=10)
@@ -95,6 +97,7 @@ class MomaUiNode:
         self.set_label_fg_bg_srv = rospy.Service('moma_ui/sam/set_label_fg_bg', SetBool, self.set_label_fg_bg)
         self.start_stop_rosbag_rec_srv = rospy.Service('moma_ui/rosbag_recorder/start_stop', SetBool, self.start_stop_rosbag_rec)
         self.clear_map_srv = rospy.Service('moma_ui/map/clear', Trigger, self.clear_map)
+        self.use_sweep_from_topic_srv = rospy.Service('moma_ui/sweep/use_sweep_from_topic', SetBool, self.use_sweep_from_topic)
 
         # CVBridge for image conversion
         self.bridge = CvBridge()
@@ -129,6 +132,15 @@ class MomaUiNode:
 
         # rosbag recorder
         self.rosbag_record_subprocess = None
+
+    def use_sweep_from_topic(self, req):
+        self.sweep_marker_enabled = req.data
+        rospy.loginfo(f"moma_ui: Sweep marker enabled: {self.sweep_marker_enabled}")
+        # return SetBoolResponse(True, "Sweep marker enabled")
+        if self.sweep_marker_enabled:
+            return SetBoolResponse(True, "Sweep marker enabled")
+        else:
+            return SetBoolResponse(True, "Sweep marker disabled")
 
     def start_stop_rosbag_rec(self, req):   
         if req.data and self.rosbag_record_subprocess is None:
