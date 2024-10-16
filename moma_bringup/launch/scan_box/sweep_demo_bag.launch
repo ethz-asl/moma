@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <launch>
-  <arg name="bag_file" default="/media/nikhilesh_ssd/Nikhilesh/demo_hackathon2024/moma_ui_2024-10-14-12-04-44.bag"/>
+  <arg name="bag_file" default="/media/nikhilesh_ssd/Nikhilesh/demo_hackathon2024/moma_ui_2024-10-14-12-12-56.bag"/>
   <node name="rosbag_play" pkg="rosbag" type="play" args="$(arg bag_file) -l --topics /clock /tf /tf_static /rs_435_2/color/image_raw /rs_435_3/color/image_raw /elevation_mapping/elevation_map" output="screen"/>
 
   <!-- <include file="$(find moma_bringup)/launch/panda_real.launch"/> -->

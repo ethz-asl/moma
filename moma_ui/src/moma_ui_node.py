@@ -85,7 +85,8 @@ class MomaUiNode:
         self.mask_pub = rospy.Publisher('moma_ui/sam/mask_image', Image, queue_size=10)
         self.masked_pub = rospy.Publisher('moma_ui/sam/masked_image', Image, queue_size=10)
         self.filtered_elevation_map_pub = rospy.Publisher('moma_ui/sam/filtered_elevation_map', GridMap, queue_size=10)
-        self.elev_map_img_pub = rospy.Publisher('moma_ui/sam/elevation_map_image', Image, queue_size=10)
+        self.elev_map_rgb_img_pub = rospy.Publisher('moma_ui/sam/elevation_map_rgb_image', Image, queue_size=10)
+        self.elev_map_height_img_pub = rospy.Publisher('moma_ui/sam/elevation_map_height_image', Image, queue_size=10)
         self.viz_marker_array_pub = rospy.Publisher('moma_ui/viz_marker_array', MarkerArray, queue_size=10)
 
         ## Services
@@ -331,22 +332,54 @@ class MomaUiNode:
                 r =  color_raw & 0x0000ff
                 color_img[i, j] = [r, g, b]
         ros_image = self.bridge.cv2_to_imgmsg(color_img, encoding="bgr8")
-        self.elev_map_img_pub.publish(ros_image)
+        self.elev_map_rgb_img_pub.publish(ros_image)
         # if elev_map mode, store the it as the last received image
         if self.input_mode == 'elevation_map':
             self.last_received_img = ros_image
-            if self.last_mask is not None:
-                elevation_layer = np.array(msg.data[msg.layers.index('elevation')].data).reshape((num_rows, num_cols))
-                if self.fg_is_positive:
-                    elevation_layer[~self.last_mask] = 0.0
-                else:
-                    elevation_layer[self.last_mask] = 0.0
-                msg_copy = copy.deepcopy(msg)
-                msg_copy.data[msg.layers.index('elevation')].data = elevation_layer.flatten().tolist()
-                self.filtered_elevation_map_pub.publish(msg_copy)
+            '''
+            # extract elevation layer and create a height image
+            elevation_layer = np.array(msg.data[msg.layers.index('elevation')].data).reshape((num_rows, num_cols))
+            # mask out all nan and inf values
+            elevation_layer[np.isnan(elevation_layer)] = 0
+            elevation_layer[np.isinf(elevation_layer)] = 0
+            # create a height image
+            height_img = np.zeros((num_rows, num_cols), dtype=np.uint8)
+            max_height = np.max(elevation_layer)
+            height_img = (elevation_layer / max_height) * 255.0
+            height_img = height_img.astype(np.uint8)
+            ros_height_img = self.bridge.cv2_to_imgmsg(height_img, encoding="mono8")
+            self.elev_map_height_img_pub.publish(ros_height_img)
+            '''
+
+            if self.last_mask is None and self.fg_is_positive:
+                self.last_mask = np.ones((num_rows, num_cols), dtype=bool)
+            elif self.last_mask is None and not self.fg_is_positive:
+                self.last_mask = np.zeros((num_rows, num_cols), dtype=bool)
+            msg_copy = copy.deepcopy(msg)
+            elevation_layer = np.array(msg_copy.data[msg_copy.layers.index('elevation')].data).reshape((num_rows, num_cols))
+            if self.fg_is_positive:
+                elevation_layer[~self.last_mask] = 0.0
             else:
-                self.filtered_elevation_map_pub.publish(msg)
-        
+                elevation_layer[self.last_mask] = 0.0
+            msg_copy.data[msg_copy.layers.index('elevation')].data = elevation_layer.flatten().tolist()
+            self.filtered_elevation_map_pub.publish(msg_copy)
+            
+            # extract elevation layer and create a height image
+            elevation_layer = copy.deepcopy(np.array(msg_copy.data[msg_copy.layers.index('elevation')].data).reshape((num_rows, num_cols)))
+            # mask out all nan and inf values
+            elevation_layer[np.isnan(elevation_layer)] = 0
+            elevation_layer[np.isinf(elevation_layer)] = 0
+            # make all positive
+            if np.min(elevation_layer) < 0:
+                elevation_layer -= np.min(elevation_layer)
+            # create a height image
+            height_img = np.zeros((num_rows, num_cols), dtype=np.uint8)
+            max_height = np.max(elevation_layer)
+            height_img = (elevation_layer / max_height) * 255.0
+            height_img = height_img.astype(np.uint8)
+            ros_height_img = self.bridge.cv2_to_imgmsg(height_img, encoding="mono8")
+            self.elev_map_height_img_pub.publish(ros_height_img)
+ 
         # marker
         if self.last_marker_msg is not None:
             self.viz_marker_array_pub.publish(self.last_marker_msg)
