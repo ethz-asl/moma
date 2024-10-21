@@ -6,7 +6,8 @@ import numpy as np
 #  import scipy as sc
 from scipy.spatial.transform import Rotation
 
-from geometry_msgs.msg import Pose
+from std_msgs.msg import Time
+from geometry_msgs.msg import Pose, PoseStamped
 from actionlib_msgs.msg import GoalStatus
 
 
@@ -42,6 +43,31 @@ def pose_from_array(position: np.ndarray, orientation: np.ndarray = [0, 0, 0, 1]
 
     return pose
 
+def pose_stamped_from_array(
+        point: np.ndarray, 
+        quat: np.ndarray, 
+        frame: str
+    ) -> PoseStamped:
+
+    pose = PoseStamped()
+    pose.pose.position.x = point[0]
+    pose.pose.position.y = point[1]
+    if np.shape(point)[0] == 2:
+        pose.pose.position.z = 0
+    elif np.shape(point)[0] == 3:
+        pose.pose.position.z = point[2]
+    else:
+        raise IndexError
+    
+    pose.pose.orientation.x = quat[0]
+    pose.pose.orientation.y = quat[1]
+    pose.pose.orientation.z = quat[2]
+    pose.pose.orientation.w = quat[3]
+
+    pose.header.frame_id = frame
+    pose.header.stamp = rospy.Time.now()
+
+    return pose
 
 def wrap_angle(
     angle: float, min_angle: float = -np.pi, max_angle: float = np.pi
@@ -120,7 +146,8 @@ def empty_pose() -> Pose:
     pose.position.z = 0.0
     pose.orientation.w = 1.0
     return pose
-    
+
+
 def find_midpoint(point_a: list, point_b: list) -> list:
 
     midpoint = [

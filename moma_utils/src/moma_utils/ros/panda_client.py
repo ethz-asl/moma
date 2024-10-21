@@ -112,6 +112,9 @@ class PandaArmClient(object):
         self._init_state_publishers()
         self._init_recovery()
 
+        # self.ee_pose_pub = rospy.Publisher("ee_pose", PoseStamped, queue_size=10, latch=True)
+        # self.ee_global_pose_pub = rospy.Publisher("ee_from_base", PoseStamped, queue_size=10, latch=True)
+
         # Misc variables
         self.robot = robot
         self.scene = scene
@@ -166,6 +169,25 @@ class PandaArmClient(object):
     def get_current_pose(self):
         return self.move_group.get_current_pose(end_effector_link=self.eef_link)
 
+    def publish_ee_pose(self):
+        """
+        NOTE don't implement
+        """
+        rate = rospy.Rate(10)
+
+        while not rospy.is_shutdown():
+
+            ee_pose = self.move_group.get_current_pose(end_effector_link=self.eef_link)
+
+            ee_pose_stamped = PoseStamped()
+            ee_pose_stamped.pose = ee_pose
+            ee_pose_stamped.header.stamp = rospy.Time.now()
+            ee_pose_stamped.header.frame_id = self.eef_link
+
+            self.ee_pose_pub.publish(ee_pose_stamped)
+            
+            rate.sleep()
+
     def get_global_ee_pose(self, odom_topic='odom', base_link='base_footprint'):
         """
         if robot mobile robot
@@ -182,6 +204,30 @@ class PandaArmClient(object):
         except (tf2_ros.LookupException, tf2_ros.ExtrapolationException, tf2_ros.TransformException) as e:
             rospy.logerr(f"Could not transform end-effector pose to global frame: {e}")
             return None
+        
+    def publish_global_ee_pose(self, odom_topic='odom', base_link='base_footprint'):
+        """
+        NOTE don't implement, needs adjusting
+        """
+        rate = rospy.Rate(10)
+
+        while  not rospy.is_shutdown():
+            ee_pose_local = self.move_group.get_current_pose(self.eef_link)
+            tf_buffer = tf2_ros.Buffer()
+            tf_listener = tf2_ros.TransformListener(tf_buffer)
+
+            try:
+                transform = tf_buffer.lookup_transform(odom_topic, base_link, rospy.Time(0), rospy.Duration(1.0))
+                ee_pose_global = tf2_geometry_msgs.do_transform_pose(ee_pose_local, transform)
+                
+                self.ee_global_pose_pub.publish(ee_pose_global)
+
+
+            except (tf2_ros.LookupException, tf2_ros.ExtrapolationException, tf2_ros.TransformException) as e:
+                rospy.logerr(f"Could not transform end-effector pose to global frame: {e}")
+            
+            rate.sleep()
+
 
     def recover(self):
         msg = ErrorRecoveryActionGoal()
@@ -285,7 +331,9 @@ class PandaArmClient(object):
                 f"Pose goal must be of type Transform or Pose and is {type(pose_goal)}"
             )
             raise ValueError
-        
+
+        # rospy.loginfo(f"Pose goal to send: {pose_goal}")
+
         self.move_group.go(wait=True)
         self.move_group.stop()
         self.move_group.clear_pose_targets()
@@ -295,9 +343,35 @@ class PandaArmClient(object):
     
     def get_planning_frame(self):
         return self.move_group.get_planning_frame()
-    
+
     def get_pose_ref_frame(self):
         return self.move_group.get_pose_reference_frame()
+
+    def get_planning_pipeline(self):
+        self.move_group.get_planning_pipeline_id()
+
+    def get_planner(self):
+        self.move_group.get_planner_id()
+
+    def set_planning_pipeline(self, planning_pipeline):
+        """
+        Specify which planning pipeline to use
+        [ompl, pilz_industrial_motion_planner]
+        """
+        rospy.logwarn(f"Now setting planning pipeline to: {planning_pipeline}")
+        self.move_group.set_planning_pipeline_id(planning_pipeline)
+        #TODO should also set planner here default if not done
+        if planning_pipeline == "ompl":
+            self.set_planner("RRTConnect")
+        elif planning_pipeline == "pilz_industrial_motion_planner":
+            self.set_planner("PTP")
+        else:
+            rospy.logerr(f"planning pipeline not supported: {planning_pipeline}")
+            raise ValueError
+
+    def set_planner(self, planner):
+        rospy.logwarn(f"Now setting planner to: {planner}")
+        self.move_group.set_planner_id(planner)   
 
     def go_to_pose_goal_cartesian(
         self,
