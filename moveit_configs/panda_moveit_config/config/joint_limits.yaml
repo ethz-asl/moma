@@ -11,35 +11,35 @@ joint_limits:
   panda_joint1:
     has_velocity_limits: true
     max_velocity: 2.175
-    has_acceleration_limits: true
-    max_acceleration: 15.0
+    has_acceleration_limits: false
+    max_acceleration: 0
   panda_joint2:
     has_velocity_limits: true
     max_velocity: 2.175
-    has_acceleration_limits: true
-    max_acceleration: 7.5
+    has_acceleration_limits: false
+    max_acceleration: 0
   panda_joint3:
     has_velocity_limits: true
     max_velocity: 2.175
-    has_acceleration_limits: true
-    max_acceleration: 10.0
+    has_acceleration_limits: false
+    max_acceleration: 0
   panda_joint4:
     has_velocity_limits: true
     max_velocity: 2.175
-    has_acceleration_limits: true
-    max_acceleration: 12.5
+    has_acceleration_limits: false
+    max_acceleration: 0
   panda_joint5:
     has_velocity_limits: true
     max_velocity: 2.61
-    has_acceleration_limits: true
-    max_acceleration: 15.0
+    has_acceleration_limits: false
+    max_acceleration: 0
   panda_joint6:
     has_velocity_limits: true
     max_velocity: 2.61
-    has_acceleration_limits: true
-    max_acceleration: 20.0
+    has_acceleration_limits: false
+    max_acceleration: 0
   panda_joint7:
     has_velocity_limits: true
     max_velocity: 2.61
-    has_acceleration_limits: true
-    max_acceleration: 20.0
+    has_acceleration_limits: false
+    max_acceleration: 0

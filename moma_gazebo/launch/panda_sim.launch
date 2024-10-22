@@ -6,10 +6,9 @@
     <arg name="use_gripper" default="true" />
     <arg name="moveit" default="true"/>
     <arg name="arm_controller" 
-        if="$(arg moveit)" default="effort_joint_trajectory_controller"/>
+        if="$(arg moveit)" default="position_joint_trajectory_controller"/>
     <arg name="arm_controller" 
         unless="$(arg moveit)" default="cartesian_impedance_example_controller"/>
-    <arg name="scene_file" default="$(find giraffe_moveit_config)/config/z_axis_collision_sim.scene"/>
     <arg name="moveit_planner" default="ompl"/>
 
     <!-- If we don't do moveit, start the interactive markers. -->
@@ -28,18 +27,18 @@
     <!-- Joint positions -->
     <arg name="initial_joint_positions"
         default="-J $(arg arm_id)_joint1 0
-                -J $(arg arm_id)_joint2 -0.3927
+                -J $(arg arm_id)_joint2 0
                 -J $(arg arm_id)_joint3 0
-                -J $(arg arm_id)_joint4 -2.95 
+                -J $(arg arm_id)_joint4 -1.5708
                 -J $(arg arm_id)_joint5 0
-                -J $(arg arm_id)_joint6 0
+                -J $(arg arm_id)_joint6 1.5708
                 -J $(arg arm_id)_joint7 0.785398163397
-                -J $(arg arm_id)_finger_joint1 0.001
-                -J $(arg arm_id)_finger_joint2 0.001" />
+                -J $(arg arm_id)_finger_joint1 0.01
+                -J $(arg arm_id)_finger_joint2 0.01" />
 
 
     <include file="$(find gazebo_ros)/launch/empty_world.launch" if="$(arg gazebo)">
-        <arg name="world_name" value="$(arg world)" />
+        <!-- <arg name="world_name" value="$(arg world)" /> -->
         <arg name="paused" value="$(arg paused)" />
         <arg name="gui" value="$(eval not arg('headless'))" />
         <arg name="use_sim_time" value="$(arg use_sim_time)" />
@@ -89,13 +88,6 @@
         <arg name="pipeline" value="$(arg moveit_planner)"/>
     </include>
 
-    <!-- Add collision scene -->
-    <node if="$(arg moveit)" name ="moveit_publish_scene_from_text"
-        pkg= "moveit_ros_planning"
-        type = "moveit_publish_scene_from_text"
-        args= "$(arg scene_file)"/>
-  
-
     <node name="robot_state_publisher" pkg="robot_state_publisher" 
         type="robot_state_publisher" output="screen" />
 
@@ -115,10 +107,15 @@
         args="-param robot_description -urdf -model $(arg arm_id) $(arg unpause)
               $(arg initial_joint_positions)" />
 
+    <node pkg="tf2_ros" type="static_transform_publisher" 
+        name="virtual_joint_broadcaster_0" 
+        args="0 0 0 0 0 0 world panda_link0" />
+
+
     <!-- panda RViz -->
     <node if="$(arg rviz)" name="$(anon rviz)" pkg="rviz" type="rviz" 
         respawn="false" 
-        args="-d $(find moma_gazebo)/config/giraffe.rviz" 
+        args="-d $(find moma_gazebo)/config/panda.rviz" 
         output="screen"/>
 
 </launch>

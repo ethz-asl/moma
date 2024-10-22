@@ -5,7 +5,7 @@
   <arg name="paused" default="false" doc="Start Gazebo paused"/>
   <arg name="world_name" default="worlds/empty.world" doc="Gazebo world file"/>
   <arg name="world_pose" default="-x 0 -y 0 -z 0 -R 0 -P 0 -Y 0" doc="Pose to spawn the robot at"/>
-  <arg name="initial_joint_positions" default=" -J panda_joint1 0 -J panda_joint2 -0.785 -J panda_joint3 0 -J panda_joint4 -2.356 -J panda_joint5 0 -J panda_joint6 1.57 -J panda_joint7 0.785" doc="Initial joint configuration of the robot"/>
+  <arg name="initial_joint_positions" default=" -J panda_joint1 0 -J panda_joint2 0 -J panda_joint3 0 -J panda_joint4 -1.5708 -J panda_joint5 0 -J panda_joint6 1.5708 -J panda_joint7 0.7854" doc="Initial joint configuration of the robot"/>
 
   <!-- Start Gazebo paused to allow the controllers to pickup the initial pose -->
   <include file="$(find gazebo_ros)/launch/empty_world.launch" pass_all_args="true">
@@ -13,7 +13,7 @@
   </include>
 
   <!-- Set the robot urdf on the parameter server -->
-  <param name="robot_description" command="xacro use_fixed_camera:=false '$(find moma_description)/urdf/panda.urdf.xacro'" />
+  <param name="robot_description" textfile="$(find panda_moveit_config)/config/gazebo_panda.urdf" />
 
   <!-- Unpause the simulation after loading the robot model -->
   <arg name="unpause" value="$(eval '' if arg('paused') else '-unpause')" />
