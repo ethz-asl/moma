@@ -116,6 +116,7 @@ class PandaArmClient(object):
         # self.ee_global_pose_pub = rospy.Publisher("ee_from_base", PoseStamped, queue_size=10, latch=True)
 
         # Misc variables
+
         self.robot = robot
         self.scene = scene
         self.move_group = move_group
@@ -340,7 +341,7 @@ class PandaArmClient(object):
 
         current_pose = self.move_group.get_current_pose().pose
         return all_close(pose_goal, current_pose)
-    
+
     def get_planning_frame(self):
         return self.move_group.get_planning_frame()
 
@@ -365,13 +366,16 @@ class PandaArmClient(object):
             self.set_planner("RRTConnect")
         elif planning_pipeline == "pilz_industrial_motion_planner":
             self.set_planner("PTP")
+        elif planning_pipeline == "chomp":
+            self.set_planner("CHOMP")
         else:
             rospy.logerr(f"planning pipeline not supported: {planning_pipeline}")
             raise ValueError
 
     def set_planner(self, planner):
         rospy.logwarn(f"Now setting planner to: {planner}")
-        self.move_group.set_planner_id(planner)   
+        self.move_group.set_planner_id(planner)
+        self.move_group.set_start_state_to_current_state()
 
     def go_to_pose_goal_cartesian(
         self,
