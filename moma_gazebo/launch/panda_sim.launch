@@ -10,10 +10,12 @@
     <arg name="arm_controller" 
         unless="$(arg moveit)" default="cartesian_impedance_example_controller"/>
     <arg name="moveit_planner" default="ompl"/>
+    <arg name="use_fixed_camera" default="false"/>
+    <arg name="use_wrist_camera" default="true" />
 
-    <!-- If we don't do moveit, start the interactive markers. -->
-    <arg name="interactive_marker"
-      default="$(eval arg('arm_controller') == 'cartesian_impedance_example_controller')"/>
+  <!-- If we don't do moveit, start the interactive markers. -->
+  <arg name="interactive_marker"
+    default="$(eval arg('arm_controller') == 'cartesian_impedance_example_controller')"/>
 
     <!-- Sim arguments -->
     <arg name="gazebo" default="true" />
@@ -21,7 +23,6 @@
     <arg name="paused" default="false" />
     <arg name="use_sim_time" default="true" />
     <arg name="world" default="$(find moma_gazebo)/worlds/simple.world" />
-    <!-- <arg name="world" default="$(find heron_demo)/worlds/road.world" /> -->
     <arg name="rviz" default="true" />
 
     <!-- Joint positions -->
@@ -44,43 +45,43 @@
         <arg name="use_sim_time" value="$(arg use_sim_time)" />
     </include>
 
-    <!-- Load arm robot description (later put inside group?) -->
+    <!-- Load robot description  -->
     <param name="robot_description"
         command="$(find xacro)/xacro $(find moma_description)/urdf/panda.urdf.xacro
             publish_realsense_extrinsics:=true
             gazebo:=true
-            include_control_plugin:=true"/>
+            include_control_plugin:=true
+            use_fixed_camera:=$(arg use_fixed_camera)
+            use_wrist_camera:=$(arg use_wrist_camera)"/>
 
-    <group ns="panda">
-        <!-- Arm controller params -->
-        <rosparam file="$(find franka_gazebo)/config/franka_hw_sim.yaml" subst_value="true" />
-        <rosparam file="$(find franka_gazebo)/config/sim_controllers.yaml" subst_value="true" />
+    <!-- Arm controller params -->
+    <rosparam file="$(find franka_gazebo)/config/franka_hw_sim.yaml" subst_value="true" />
+    <rosparam file="$(find franka_gazebo)/config/sim_controllers.yaml" subst_value="true" />
 
-        <param name="m_ee" value="0.76" if="$(arg use_gripper)" />
+    <param name="m_ee" value="0.76" if="$(arg use_gripper)" />
 
-        <!-- Spawn required ROS controllers -->
-        <node pkg="controller_manager"
-                type="spawner"
-                name="$(arg arm_id)_gripper_spawner"
-                if="$(arg use_gripper)"
-                args="franka_gripper"
-                respawn="false" />
+    <!-- Spawn required ROS controllers -->
+    <node pkg="controller_manager"
+            type="spawner"
+            name="$(arg arm_id)_gripper_spawner"
+            if="$(arg use_gripper)"
+            args="franka_gripper"
+            respawn="false" />
 
-        <!-- spawns the controller after the robot was put into its initial joint pose -->
-        <node pkg="controller_manager"
-                type="spawner"
-                name="$(arg arm_id)_controller_spawner"
-                respawn="false" output="screen"
-                args="--wait-for initialized franka_state_controller $(arg arm_controller)" />
-            
-        <node name="interactive_marker"
-            pkg="franka_example_controllers"
-            type="interactive_marker.py"
-            if="$(arg interactive_marker)">
-            <param name="link_name" value="$(arg arm_id)_link0" />
-            <remap to="cartesian_impedance_example_controller/equilibrium_pose" from="equilibrium_pose" />
-        </node>
-    </group>
+    <!-- spawns the controller after the robot was put into its initial joint pose -->
+    <node pkg="controller_manager"
+            type="spawner"
+            name="$(arg arm_id)_controller_spawner"
+            respawn="false" output="screen"
+            args="--wait-for initialized franka_state_controller $(arg arm_controller)" />
+        
+    <node name="interactive_marker"
+        pkg="franka_example_controllers"
+        type="interactive_marker.py"
+        if="$(arg interactive_marker)">
+        <param name="link_name" value="$(arg arm_id)_link0" />
+        <remap to="cartesian_impedance_example_controller/equilibrium_pose" from="equilibrium_pose" />
+    </node>
 
     <!-- Start up MoveIt! for arm -->
     <include if="$(arg moveit)" file="$(find panda_moveit_config)/launch/move_group.launch">
@@ -93,8 +94,8 @@
 
     <node name="joint_state_publisher" type="joint_state_publisher" pkg="joint_state_publisher">
         <rosparam param="source_list">
-            [panda/franka_state_controller/joint_states,
-            panda/franka_gripper/joint_states]
+            [franka_state_controller/joint_states,
+            franka_gripper/joint_states]
         </rosparam>
         <param name="rate" value="30"/>
     </node>
@@ -107,12 +108,7 @@
         args="-param robot_description -urdf -model $(arg arm_id) $(arg unpause)
               $(arg initial_joint_positions)" />
 
-    <node pkg="tf2_ros" type="static_transform_publisher" 
-        name="virtual_joint_broadcaster_0" 
-        args="0 0 0 0 0 0 world panda_link0" />
-
-
-    <!-- panda RViz -->
+    <!-- RViz -->
     <node if="$(arg rviz)" name="$(anon rviz)" pkg="rviz" type="rviz" 
         respawn="false" 
         args="-d $(find moma_gazebo)/config/panda.rviz" 
