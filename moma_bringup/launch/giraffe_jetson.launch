@@ -1,19 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <launch>
+  <!-- Robot args -->
   <arg name="robot_id" default="giraffe" />
   <arg name="base_controller" default="swerve_controller z_axis_controller joint_state_controller" />
   <arg name="joystick" default="true" />
   <arg name="rviz" default="true"/>
-
-  <!-- Robot Customization -->
   <arg name="arm_id" default="panda" />
   <arg name="use_gripper" default="true" />
+  <arg name="z_axis_height" default="0.0" />
 
   <!-- Whether to launch the sensors or not. -->
   <arg name="sensors" default="false" />
 
   <!-- Load robot description  -->
-  <param name="robot_description" command="$(find xacro)/xacro $(find moma_description)/urdf/giraffe.urdf.xacro publish_realsense_extrinsics:=false include_control_plugin:=false simulation:=false"/>
+  <param name="robot_description" 
+    command="$(find xacro)/xacro $(find moma_description)/urdf/giraffe.urdf.xacro 
+      publish_realsense_extrinsics:=false 
+      include_control_plugin:=false 
+      simulation:=false
+      z_axis_height:=$(z_axis_height)"/>
 
   <!-- Base controllers -->
   <arg name="base_id" default="gmp" />
