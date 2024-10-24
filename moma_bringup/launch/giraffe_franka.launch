@@ -10,7 +10,7 @@
   <arg name="arm_id" default="panda" />
   <arg name="use_gripper" default="true" />
 
-  <arg name="controller" if="$(arg moveit)" default="effort_joint_trajectory_controller" />
+  <arg name="controller" if="$(arg moveit)" default="position_joint_trajectory_controller" />
   <arg name="controller" unless="$(arg moveit)" default="cartesian_impedance_example_controller" />
 
   <param name="move_group/default_planning_pipeline" value="ompl" />
