@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+  <arg name="ns" default="/"/>
+  
+  <group ns="$(arg ns)">
+    <node name="panda_client" pkg="moma_utils" type="panda_client.py"/>
+  </group>
+
+</launch>
