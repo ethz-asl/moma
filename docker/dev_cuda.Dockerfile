@@ -1,4 +1,5 @@
-FROM nvidia/cuda:12.2.2-base-ubuntu20.04
+# FROM nvidia/cuda:12.2.2-base-ubuntu20.04
+FROM nvidia/cuda:12.0.0-base-ubuntu20.04
 
 # This docker is intended to run on a development machine.
 # No CUDA (for now), but with simulation and without sensor drivers.
@@ -49,6 +50,9 @@ RUN scripts/install_sys_deps.sh
 
 # Run the ROS workspace set-up and dep installation
 RUN scripts/install_ros_deps.sh
+
+# Run the driver (franka, RealSense, etc...) installation
+RUN scripts/install_drivers.sh
 
 # Run the gazebo simulation installation
 RUN scripts/install_simulation.sh

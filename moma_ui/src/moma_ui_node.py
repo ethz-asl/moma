@@ -387,6 +387,11 @@ class MomaUiNode:
                 g = (color_raw >> 8) & 0x0000ff
                 r =  color_raw & 0x0000ff
                 color_img[i, j] = [r, g, b]
+
+        # rotate it by +90 degrees
+        color_img = np.rot90(color_img, k=-1)
+        # # flip lr
+        color_img = np.fliplr(color_img)    
         ros_image = self.bridge.cv2_to_imgmsg(color_img, encoding="bgr8")
         self.elev_map_rgb_img_pub.publish(ros_image)
         # if elev_map mode, store the it as the last received image
@@ -413,10 +418,17 @@ class MomaUiNode:
                 self.last_mask = np.zeros((num_rows, num_cols), dtype=bool)
             msg_copy = copy.deepcopy(msg)
             elevation_layer = np.array(msg_copy.data[msg_copy.layers.index('elevation')].data).reshape((num_rows, num_cols))
+            
+            corrected_mask = copy.deepcopy(self.last_mask)
+            # flip lr
+            corrected_mask = np.fliplr(corrected_mask)
+            # rotate it by +90 degrees
+            corrected_mask = np.rot90(corrected_mask, k=1)
+
             if self.fg_is_positive:
-                elevation_layer[~self.last_mask] = 0.0
+                elevation_layer[~corrected_mask] = 0.0
             else:
-                elevation_layer[self.last_mask] = 0.0
+                elevation_layer[corrected_mask] = 0.0
             msg_copy.data[msg_copy.layers.index('elevation')].data = elevation_layer.flatten().tolist()
             self.filtered_elevation_map_pub.publish(msg_copy)
             
