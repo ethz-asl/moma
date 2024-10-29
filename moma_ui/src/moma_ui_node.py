@@ -30,6 +30,8 @@ import matplotlib.pyplot as plt
 
 from geometry_msgs.msg import TransformStamped, Vector3, Quaternion
 
+from nav_msgs.msg import Path
+
 import os
 
 import cv2
@@ -61,6 +63,8 @@ class MomaUiNode:
         self.last_elevation_map = None
         self.elevation_map_sub = rospy.Subscriber("/elevation_mapping/elevation_map", GridMap, self.elevation_map_callback)
 
+        self.sweep_sub = rospy.Subscriber("moma_ui/sweep/plan_in", Path, self.sweep_callback) 
+
         # Mouse click subscriber and storage
         self.control_image = None
         self.click_sub = rospy.Subscriber("/moma_ui/sam/control_image/mouse_click", PointStamped, self.click_callback)
@@ -81,6 +85,8 @@ class MomaUiNode:
         self.fg_min_height = 10.0
 
         self.sweep_marker_enabled = True
+
+        self.last_received_sweep_path = None
 
         ## Publishers
         self.control_img_pub = rospy.Publisher('moma_ui/sam/control_image', Image, queue_size=10)
@@ -132,6 +138,44 @@ class MomaUiNode:
 
         # rosbag recorder
         self.rosbag_record_subprocess = None
+
+
+    def sweep_callback(self, msg):
+        rospy.loginfo(f"moma_ui: Received sweep path")
+        # check how many waypoints are in the path
+        last_received_sweep_path = copy.deepcopy(msg)
+        num_waypoints = len(last_received_sweep_path.poses)
+        if num_waypoints == 0:
+            rospy.logwarn("moma_ui: Received sweep path has no waypoints")
+            return
+        if num_waypoints == 1:
+            rospy.logwarn("moma_ui: Received sweep path has only one waypoint")
+            return
+        if num_waypoints > 1:
+            rospy.loginfo(f"moma_ui: Received sweep path has {num_waypoints} waypoints will just use first and last")
+            last_received_sweep_path.poses = [last_received_sweep_path.poses[0], last_received_sweep_path.poses[-1]]
+        # the sweep has to be in the work plane frame!
+        if self.last_received_sweep_path.header.frame_id != self.work_plane_frame:
+            rospy.logwarn("moma_ui: Sweep path is not in the right frame")
+            return
+        self.last_received_sweep_path = last_received_sweep_path
+        # visualize the sweep path
+        marker_array_msg = MarkerArray()
+        # make a box that starts at the first waypoint and ends at the last waypoint, it should start on the work plane and be perpendicular to the work plane
+        thickness = 0.001
+        sweep_marker = Marker()
+        sweep_marker.header.frame_id = self.work_plane_frame
+        sweep_marker.header.stamp = rospy.Time(0)
+        sweep_marker.ns = 'sweep_marker'
+        sweep_marker.id = 0
+        sweep_marker.type = 1
+        sweep_marker.action = 0
+        sweep_marker.pose.position = self.last_received_sweep_path.poses[0].position
+        sweep_marker.scale = Vector3(0.5, 0.5, thickness)
+        sweep_marker.color = ColorRGBA(0.0, 1.0, 0.0, 0.5)
+        marker_array_msg.markers.append(sweep_marker)
+        self.viz_marker_array_pub.publish(marker_array_msg)
+
 
     def use_sweep_from_topic(self, req):
         self.sweep_marker_enabled = req.data
