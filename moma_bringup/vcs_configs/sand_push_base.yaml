@@ -1,16 +1,4 @@
 repositories:
-  elevation_mapping:
-    type: git
-    url: git@github.com:ANYbotics/elevation_mapping.git
-    version: master
-  grid_map:
-    type: git
-    url: git@github.com:ANYbotics/grid_map.git
-    version: master
-  gym-examples:
-    type: git
-    url: git@github.com:Farama-Foundation/gym-examples.git
-    version: main
   heron_earth_moving_planner:
     type: git
     url: git@github.com:ethz-asl/heron_earth_moving_planner.git
@@ -19,14 +7,6 @@ repositories:
     type: git
     url: git@github.com:ethz-asl/heron_ros.git
     version: main
-  kindr:
-    type: git
-    url: git@github.com:ANYbotics/kindr.git
-    version: master
-  kindr_ros:
-    type: git
-    url: git@github.com:ANYbotics/kindr_ros.git
-    version: master
   mapping/catkin_boost_python_buildtool:
     type: git
     url: git@github.com:ethz-asl/catkin_boost_python_buildtool.git
@@ -43,6 +23,10 @@ repositories:
     type: git
     url: git@github.com:ethz-asl/eigen_checks.git
     version: master
+  mapping/elevation_mapping:
+    type: git
+    url: git@github.com:ANYbotics/elevation_mapping.git
+    version: master
   mapping/gflags_catkin:
     type: git
     url: git@github.com:ethz-asl/gflags_catkin.git
@@ -50,6 +34,22 @@ repositories:
   mapping/glog_catkin:
     type: git
     url: git@github.com:ethz-asl/glog_catkin.git
+    version: master
+  mapping/grid_map:
+    type: git
+    url: git@github.com:ANYbotics/grid_map.git
+    version: master
+  mapping/kindr:
+    type: git
+    url: git@github.com:ANYbotics/kindr.git
+    version: master
+  mapping/kindr_ros:
+    type: git
+    url: git@github.com:ANYbotics/kindr_ros.git
+    version: master
+  mapping/message_logger:
+    type: git
+    url: git@github.com:ANYbotics/message_logger.git
     version: master
   mapping/minkindr:
     type: git
@@ -71,10 +71,6 @@ repositories:
     type: git
     url: git@github.com:ethz-asl/voxblox.git
     version: master
-  message_logger:
-    type: git
-    url: git@github.com:ANYbotics/message_logger.git
-    version: master
   moma:
     type: git
     url: git@github.com:ethz-asl/moma.git
@@ -83,7 +79,3 @@ repositories:
     type: git
     url: git@github.com:robot-learning-freiburg/ros_sam.git
     version: main
-  visualization_tutorials:
-    type: git
-    url: git@github.com:ros-visualization/visualization_tutorials.git
-    version: noetic-devel
