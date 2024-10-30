@@ -113,7 +113,8 @@ class MomaUiNode:
         self.point_cloud_sub = rospy.Subscriber('/rs_435_3/depth/color/points_passthrough_xyz', PointCloud2, self.point_cloud_cb)
         self.last_received_pointcloud = None
         # the prior for the work plane either as a pose or as a support and normal
-        T_W_WP_as_tx_ty_tz_qx_qy_qz_qw_TF_W_WP = rospy.get_param('/T_W_WP_as_tx_ty_tz_qx_qy_qz_qw_TF_W_WP', '0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0')      
+        # T_W_WP_as_tx_ty_tz_qx_qy_qz_qw_TF_W_WP = rospy.get_param('/T_W_WP_as_tx_ty_tz_qx_qy_qz_qw_TF_W_WP', '0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0')      
+        T_W_WP_as_tx_ty_tz_qx_qy_qz_qw_TF_W_WP = rospy.get_param('/T_W_WP_as_tx_ty_tz_qx_qy_qz_qw_TF_W_WP', '0.5, 0.0, 0.0, 0, 0, -0.7071068, 0.7071068')      
         self.T_W_WP_as_tx_ty_tz_qx_qy_qz_qw_TF_W_WP_pose = Pose()
         self.T_W_WP_as_tx_ty_tz_qx_qy_qz_qw_TF_W_WP_pose.position.x = float(T_W_WP_as_tx_ty_tz_qx_qy_qz_qw_TF_W_WP.split(',')[0])
         self.T_W_WP_as_tx_ty_tz_qx_qy_qz_qw_TF_W_WP_pose.position.y = float(T_W_WP_as_tx_ty_tz_qx_qy_qz_qw_TF_W_WP.split(',')[1])
@@ -389,7 +390,7 @@ class MomaUiNode:
                 color_img[i, j] = [r, g, b]
 
         # rotate it by +90 degrees
-        color_img = np.rot90(color_img, k=-1)
+        # color_img = np.rot90(color_img, k=-1)
         # # flip lr
         color_img = np.fliplr(color_img)    
         ros_image = self.bridge.cv2_to_imgmsg(color_img, encoding="bgr8")
@@ -423,7 +424,7 @@ class MomaUiNode:
             # flip lr
             corrected_mask = np.fliplr(corrected_mask)
             # rotate it by +90 degrees
-            corrected_mask = np.rot90(corrected_mask, k=1)
+            # corrected_mask = np.rot90(corrected_mask, k=1)
 
             if self.fg_is_positive:
                 elevation_layer[~corrected_mask] = 0.0
@@ -569,7 +570,7 @@ class MomaUiNode:
         plane_support_pose.position.y = support_xyz[1]
         plane_support_pose.position.z = support_xyz[2]
         # compute quaternion from normal and x_prime
-        n_x_prime = np.array([1.0, 0.0, 0.0])
+        n_x_prime = np.array([0.0, -1.0, 0.0])
         n_z = np.array(normal_xyz)
         if n_z[2] < 0.0:
             n_z = -n_z
