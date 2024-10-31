@@ -21,6 +21,8 @@
   <build_depend>message_generation</build_depend>
   <exec_depend>message_runtime</exec_depend>
 
+  <exec_depend>moveit_commander</exec_depend>
+
 
   <exec_depend>ros_sam</exec_depend>
   <exec_depend>grid_map_rviz_plugin</exec_depend>

@@ -5,7 +5,7 @@ import moveit_commander
 from geometry_msgs.msg import Pose
 from std_msgs.msg import String, Bool
 from sensor_msgs.msg import JointState
-from std_srvs.srv import Trigger, TriggerResponse
+from std_srvs.srv import Trigger, TriggerResponse, TriggerRequest
 
 class MoveItClient:
     def __init__(self):
@@ -16,17 +16,28 @@ class MoveItClient:
         self.arm_group = moveit_commander.MoveGroupCommander("panda_arm")
 
         # Initialize storage for poses and joint states
-        self.labels = {}
+        # self.labels = {}
+        self.stored_poses = {}
+        self.stored_joint_states = {}
         self.current_label = None
 
         # Subscribers
         rospy.Subscriber("label", String, self.label_callback)
 
         # Services
-        rospy.Service("store_pose", Trigger, self.store_current_pose)
-        rospy.Service("store_joint_state", Trigger, self.store_current_joint_state)
-        rospy.Service("delete_current_state", Trigger, self.delete_current_state)
-        rospy.Service("goto_label", Trigger, self.goto_current_label)
+        rospy.Service("store_pose", Trigger, self.store_current_pose_srv)
+        rospy.Service("store_joint_state", Trigger, self.store_current_joint_state_srv)
+        rospy.Service("delete_label", Trigger, self.delete_label_srv)
+        rospy.Service("goto_label", Trigger, self.goto_current_label_srv)
+        rospy.Service("print_labels", Trigger, self.print_labels)
+
+        # label_callback("default")
+        self.label_callback(String("init_pose"))
+        self.store_current_pose_srv(TriggerRequest())
+        self.label_callback(String("init_joint_state"))
+        self.store_current_joint_state_srv(TriggerRequest())
+        rospy.loginfo("MoveIt client node initialized.")
+
 
     # Helper function to go to a specified pose
     def go_to_pose(self, pose):
@@ -49,65 +60,98 @@ class MoveItClient:
         rospy.loginfo(f"Active label set to: {self.current_label}")
 
     # Service to store current end-effector pose under the current label
-    def store_current_pose(self, req):
-        if not self.current_label:
-            return TriggerResponse(success=False, message="No label set.")
+    def store_current_pose_srv(self, req):
+        if self.current_label is None:
+            rospy.logwarn("No label set, cannot store pose.")
+            return TriggerResponse(success=False, message="No label set, cannot store pose.")
         current_pose = self.arm_group.get_current_pose().pose
-        if self.current_label in self.labels and "pose" in self.labels[self.current_label]:
-            return TriggerResponse(success=False, message="Pose already exists for this label.")
-        self.labels.setdefault(self.current_label, {})["pose"] = current_pose
-        return TriggerResponse(success=True, message="Pose stored.")
+        if self.current_label in self.stored_poses or self.current_label in self.stored_joint_states:
+            rospy.logwarn("Pose or joint already exists for this label: " + self.current_label)
+            return TriggerResponse(success=False, message="Pose or joint already exists for this label: " + self.current_label)
+        else:
+            rospy.loginfo("Storing pose as: " + self.current_label)
+            self.stored_poses[self.current_label] = current_pose
+            return TriggerResponse(success=True, message="Pose stored as: " + self.current_label)
 
     # Service to store current joint state under the current label
-    def store_current_joint_state(self, req):
-        if not self.current_label:
-            return TriggerResponse(success=False, message="No label set.")
+    def store_current_joint_state_srv(self, req):
+        if self.current_label is None:
+            rospy.logwarn("No label set, cannot store joint state.")
+            return TriggerResponse(success=False, message="No label set, cannot store joint state.")
         current_joint_state = self.arm_group.get_current_joint_values()
-        if self.current_label in self.labels and "joint_state" in self.labels[self.current_label]:
-            return TriggerResponse(success=False, message="Joint state already exists for this label.")
-        self.labels.setdefault(self.current_label, {})["joint_state"] = current_joint_state
-        return TriggerResponse(success=True, message="Joint state stored.")
+        if self.current_label in self.stored_poses or self.current_label in self.stored_joint_states:
+            rospy.logwarn("Joint or pose state already exists for this label: " + self.current_label)
+            return TriggerResponse(success=False, message="Joint or pose state already exists for this label: " + self.current_label)
+        else:
+            rospy.loginfo("Storing joint state as: " + self.current_label)
+            self.stored_joint_states[self.current_label] = current_joint_state
+            return TriggerResponse(success=True, message="Joint state stored as: " + self.current_label)
 
     # Service to delete pose or joint state under the current label
-    def delete_current_state(self, req):
+    def delete_label_srv(self, req):
         if not self.current_label:
-            return TriggerResponse(success=False, message="No label set.")
-        if self.current_label in self.labels:
-            self.labels.pop(self.current_label, None)
-            return TriggerResponse(success=True, message="Deleted label state.")
-        return TriggerResponse(success=False, message="No stored state to delete.")
+            rospy.logwarn("No label set, cannot delete state.")
+            return TriggerResponse(success=False, message="No label set, cannot delete state.")
+        if self.current_label in self.stored_poses or self.current_label in self.stored_joint_states:
+            if self.current_label in self.stored_poses:
+                self.stored_poses.pop(self.current_label, None)
+            if self.current_label in self.stored_joint_states:
+                self.stored_joint_states.pop(self.current_label, None)
+            rospy.loginfo("Deleted label state: " + self.current_label)
+            return TriggerResponse(success=True, message="Deleted label state: " + self.current_label)
+        else:
+            rospy.logwarn("No stored state to delete.")
+            return TriggerResponse(success=False, message="No stored state to delete.")
 
     # Service to go to the stored pose or joint state at the current label
-    def goto_current_label(self, req):
+    def goto_current_label_srv(self, req):
         if not self.current_label:
+            rospy.logwarn("No label set.")
             return TriggerResponse(success=False, message="No label set.")
-        if self.current_label not in self.labels:
-            return TriggerResponse(success=False, message="No stored state for this label.")
-        if "pose" in self.labels[self.current_label]:
-            success = self.go_to_pose(self.labels[self.current_label]["pose"])
-            return TriggerResponse(success=success, message="Moved to pose." if success else "Failed to move to pose.")
-        elif "joint_state" in self.labels[self.current_label]:
-            success = self.go_to_joint_state(self.labels[self.current_label]["joint_state"])
-            return TriggerResponse(success=success, message="Moved to joint state." if success else "Failed to move to joint state.")
-        return TriggerResponse(success=False, message="No stored pose or joint state for this label.")
+        self.go_to_label(self.current_label)
+        return TriggerResponse(success=True, message="Moved to stored state: " + self.current_label)
+        # if not self.current_label:
+        #     return TriggerResponse(success=False, message="No label set.")
+        # if (self.current_label not in self.stored_poses) and (self.current_label not in self.stored_joint_states):
+        #     return TriggerResponse(success=False, message="No stored state for this label: " + self.current_label)
+        # if self.current_label in self.stored_poses:
+        #     success = self.go_to_pose(self.labels[self.stored_poses][self.current_label])
+        #     return TriggerResponse(success=success, message="Moved to pose." if success else "Failed to move to pose.")
+        # elif self.current_label in self.stored_joint_states:
+        #     success = self.go_to_joint_state(self.stored_joint_states[self.current_label])
+        #     return TriggerResponse(success=success, message="Moved to joint state." if success else "Failed to move to joint state.")
+        # return TriggerResponse(success=False, message="No stored pose or joint state for this label.")
+
+    def print_labels(self, req):
+        rospy.loginfo("Stored labels:")
+        rospy.loginfo("Poses:")
+        for label, pose in self.stored_poses.items():
+            rospy.loginfo(f"  {label}: {pose}")
+        rospy.loginfo("Joint states:")
+        for label, joint_state in self.stored_joint_states.items():
+            rospy.loginfo(f"  {label}: {joint_state}")
+        return TriggerResponse(success=True, message="Printed stored labels.")
 
     # Function to delete a specific label
     def delete_label(self, label):
-        if label in self.labels:
-            del self.labels[label]
+        if label in self.stored_poses:
+            del self.stored_poses[label]
+            rospy.loginfo(f"Label '{label}' deleted.")
+        elif label in self.stored_joint_states:
+            del self.stored_joint_states[label]
             rospy.loginfo(f"Label '{label}' deleted.")
         else:
             rospy.loginfo(f"Label '{label}' does not exist.")
 
     # Function to go to a specific label's stored state
     def go_to_label(self, label):
-        if label not in self.labels:
+        if label not in self.stored_poses and label not in self.stored_joint_states:
             rospy.loginfo(f"Label '{label}' does not have any stored state.")
             return False
-        if "pose" in self.labels[label]:
-            return self.go_to_pose(self.labels[label]["pose"])
-        elif "joint_state" in self.labels[label]:
-            return self.go_to_joint_state(self.labels[label]["joint_state"])
+        if label in self.stored_poses:
+            return self.go_to_pose(self.stored_poses[label])
+        elif label in self.stored_joint_states:
+            return self.go_to_joint_state(self.stored_joint_states[label])
         return False
 
 if __name__ == "__main__":
