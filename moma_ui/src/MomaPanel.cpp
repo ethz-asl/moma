@@ -93,10 +93,10 @@ MomaPanel::MomaPanel(QWidget *parent)
     goto_layout->addWidget( new QLabel( "Label:" ));
     goto_layout->addWidget( goto_label_ );
     goto_layout->addWidget( go_to_button_ );
-    goto_layout->addWidget( go_to_delete_label_button_ );
-    goto_layout->addWidget( go_to_clear_all_labels_button_ );
     goto_layout->addWidget( go_to_store_ee_pose_button_ );
     goto_layout->addWidget( go_to_store_joints_button_ );
+    goto_layout->addWidget( go_to_delete_label_button_ );
+    goto_layout->addWidget( go_to_clear_all_labels_button_ );
 
     // TASK
     // Set up the layout for the task buttons
@@ -131,8 +131,20 @@ MomaPanel::MomaPanel(QWidget *parent)
   connect( rosbag_stop_button_, SIGNAL( clicked() ), this, SLOT( stopRosbag() ));  
   connect( task_plan_button_, SIGNAL( clicked() ), this, SLOT( planTask() ));
   connect( sweep_topic_toggle, SIGNAL( stateChanged(int) ), this, SLOT( toggleSweepTopic() ));
+
+  connect( goto_label_ , SIGNAL( editingFinished() ), this, SLOT( updateGoToLabel() ));
   // other stuff
   fg_min_height_pub_ = nh_.advertise<std_msgs::Float32>("moma_ui/sam/foreground_min_height", 1);
+  go_to_label_pub_ = nh_.advertise<std_msgs::String>("moma_ui/commander/label", 1);
+}
+
+
+void MomaPanel::updateGoToLabel()
+{
+    ROS_WARN("moma_panel: Updating go to label");
+    std_msgs::String msg;
+    msg.data = goto_label_->text().toStdString();
+    go_to_label_pub_.publish(msg);
 }
 
 void MomaPanel::planTask()

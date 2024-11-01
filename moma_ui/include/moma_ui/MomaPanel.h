@@ -37,11 +37,13 @@ protected Q_SLOTS:
   void planTask();
   void executeTask();
   void toggleSweepTopic();
+  void updateGoToLabel();
 
 protected:    
     // ROS node handle (for any communication, if needed)
     ros::NodeHandle nh_;
     ros::Publisher fg_min_height_pub_;
+    ros::Publisher go_to_label_pub_;
 
     // PERCEPTION
     // Qt elements

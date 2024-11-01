@@ -22,14 +22,14 @@ class MoveItClient:
         self.current_label = None
 
         # Subscribers
-        rospy.Subscriber("label", String, self.label_callback)
+        rospy.Subscriber("moma_ui/commander/label", String, self.label_callback)
 
         # Services
-        rospy.Service("store_pose", Trigger, self.store_current_pose_srv)
-        rospy.Service("store_joint_state", Trigger, self.store_current_joint_state_srv)
-        rospy.Service("delete_label", Trigger, self.delete_label_srv)
-        rospy.Service("goto_label", Trigger, self.goto_current_label_srv)
-        rospy.Service("print_labels", Trigger, self.print_labels)
+        rospy.Service("moma_ui/commander/store_pose", Trigger, self.store_current_pose_srv)
+        rospy.Service("moma_ui/commander/store_joint_state", Trigger, self.store_current_joint_state_srv)
+        rospy.Service("moma_ui/commander/delete_label", Trigger, self.delete_label_srv)
+        rospy.Service("moma_ui/commander/goto_label", Trigger, self.goto_current_label_srv)
+        rospy.Service("moma_ui/commander/print_labels", Trigger, self.print_labels)
 
         # label_callback("default")
         self.label_callback(String("init_pose"))
