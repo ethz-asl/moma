@@ -37,13 +37,21 @@ protected Q_SLOTS:
   void planTask();
   void executeTask();
   void toggleSweepTopic();
-  void updateGoToLabel();
+  void goToUpdateLabel();
+  void gotoLabel();
+  void goToStoreEePose();
+  void goToStoreJoints();
+  void goToDeleteLabel();
+  void goToClearAllLabels();
+  void resetMoveit();
+
 
 protected:    
     // ROS node handle (for any communication, if needed)
     ros::NodeHandle nh_;
     ros::Publisher fg_min_height_pub_;
     ros::Publisher go_to_label_pub_;
+    ros::Publisher error_recovery_moveit_pub_;
 
     // PERCEPTION
     // Qt elements
@@ -100,6 +108,7 @@ protected:
     QPushButton* go_to_clear_all_labels_button_ = new QPushButton("Clear All Labels");
     QPushButton* go_to_store_ee_pose_button_ = new QPushButton("Store EE Pose");
     QPushButton* go_to_store_joints_button_ = new QPushButton("Store Joints");
+    QPushButton* go_to_reset_moveit_button_ = new QPushButton("Reset MoveIt");
 
     // TASK
     // Qt elements
