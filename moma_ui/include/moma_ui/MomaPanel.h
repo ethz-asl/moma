@@ -90,6 +90,15 @@ protected:
     QPushButton* teach_repeat_stop_button_ = new QPushButton("Stop Teach");
     QPushButton* teach_repeat_execute_button_ = new QPushButton("Repeat");
 
+    // GOTO
+    // Qt elements
+    QLineEdit* goto_label_ = new QLineEdit;
+    QPushButton* go_to_button_ = new QPushButton("Go-To Label");
+    QPushButton* go_to_delete_label_button_ = new QPushButton("Delete Label");
+    QPushButton* go_to_clear_all_labels_button_ = new QPushButton("Clear All Labels");
+    QPushButton* go_to_store_ee_pose_button_ = new QPushButton("Store EE Pose");
+    QPushButton* go_to_store_joints_button_ = new QPushButton("Store Joints");
+
     // TASK
     // Qt elements
     QPushButton* task_plan_button_ = new QPushButton("Plan Task");

@@ -86,6 +86,18 @@ MomaPanel::MomaPanel(QWidget *parent)
     teach_repeat_layout->addWidget( teach_repeat_stop_button_ );
     teach_repeat_layout->addWidget( teach_repeat_execute_button_ );
 
+    // GOTO
+    // Set up the layout for the trajectory buttons
+    QHBoxLayout* goto_layout = new QHBoxLayout;
+    goto_layout->addWidget( new QLabel( "<b>GOTO</b>" ));
+    goto_layout->addWidget( new QLabel( "Label:" ));
+    goto_layout->addWidget( goto_label_ );
+    goto_layout->addWidget( go_to_button_ );
+    goto_layout->addWidget( go_to_delete_label_button_ );
+    goto_layout->addWidget( go_to_clear_all_labels_button_ );
+    goto_layout->addWidget( go_to_store_ee_pose_button_ );
+    goto_layout->addWidget( go_to_store_joints_button_ );
+
     // TASK
     // Set up the layout for the task buttons
     QHBoxLayout* task_layout = new QHBoxLayout;
@@ -102,6 +114,7 @@ MomaPanel::MomaPanel(QWidget *parent)
     // layout->addLayout( p2p_layout );
     layout->addLayout( sweep_layout );
     // layout->addLayout( teach_repeat_layout );
+    layout->addLayout( goto_layout );
     layout->addLayout( task_layout );
   setLayout( layout );
 
