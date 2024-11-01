@@ -28,6 +28,7 @@ class MoveItClient:
         rospy.Service("moma_ui/commander/store_pose", Trigger, self.store_current_pose_srv)
         rospy.Service("moma_ui/commander/store_joint_state", Trigger, self.store_current_joint_state_srv)
         rospy.Service("moma_ui/commander/delete_label", Trigger, self.delete_label_srv)
+        rospy.Service("moma_ui/commander/delete_all_labels", Trigger, self.delete_all_labels_srv)
         rospy.Service("moma_ui/commander/goto_label", Trigger, self.goto_current_label_srv)
         rospy.Service("moma_ui/commander/print_labels", Trigger, self.print_labels)
 
@@ -38,6 +39,13 @@ class MoveItClient:
         self.store_current_joint_state_srv(TriggerRequest())
         rospy.loginfo("MoveIt client node initialized.")
 
+
+    # Service to delete all stored labels
+    def delete_all_labels_srv(self, req):
+        self.stored_poses = {}
+        self.stored_joint_states = {}
+        rospy.loginfo("Deleted all stored labels.")
+        return TriggerResponse(success=True, message="Deleted all stored labels.")
 
     # Helper function to go to a specified pose
     def go_to_pose(self, pose):
