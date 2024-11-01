@@ -2,10 +2,12 @@
 
 import rospy
 import moveit_commander
-from geometry_msgs.msg import Pose
+from geometry_msgs.msg import Pose, PoseStamped
 from std_msgs.msg import String, Bool
 from sensor_msgs.msg import JointState
 from std_srvs.srv import Trigger, TriggerResponse, TriggerRequest
+from nav_msgs.msg import Path
+import tf
 
 class MoveItClient:
     def __init__(self):
@@ -14,6 +16,10 @@ class MoveItClient:
         # Initialize moveit_commander and the move group for the arm
         moveit_commander.roscpp_initialize([])
         self.arm_group = moveit_commander.MoveGroupCommander("panda_arm")
+        self.frame_id = self.arm_group.get_planning_frame()
+        self.controlled_frame = self.arm_group.get_end_effector_link()
+        rospy.loginfo(f"Planning frame: {self.frame_id}")
+        rospy.loginfo(f"End effector link: {self.controlled_frame}")
 
         # Initialize storage for poses and joint states
         # self.labels = {}
@@ -23,6 +29,12 @@ class MoveItClient:
 
         # Subscribers
         rospy.Subscriber("moma_ui/commander/label", String, self.label_callback)
+        rospy.Subscriber("moma_ui/commander/target_pose", PoseStamped, self.target_pose_cb)
+        rospy.Subscriber("moma_ui/commander/target_joint_state", JointState, self.target_joint_state_cb)
+        # rospy.Subscriber("moma_ui/commander/target_path", Path, self.follow_path)
+
+        # TF listener
+        self.tf_listener = tf.TransformListener()
 
         # Services
         rospy.Service("moma_ui/commander/store_pose", Trigger, self.store_current_pose_srv)
@@ -39,7 +51,29 @@ class MoveItClient:
         self.store_current_joint_state_srv(TriggerRequest())
         rospy.loginfo("MoveIt client node initialized.")
 
-
+    def target_pose_cb(self, pose):
+        rospy.loginfo(f"Received target pose: {pose}")
+        if pose.header.frame_id != self.frame_id:
+            rospy.logwarn(f"Pose frame_id: {pose.header.frame_id} does not match planning frame: {self.frame_id}")
+            rospy.logwarn("Will try to transform pose to planning frame.")
+            try:
+                pose = self.tf_listener.transformPose(self.frame_id, pose)
+            except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
+                rospy.logerr("Failed to transform pose to planning frame.")
+                return False
+        self.arm_group.set_pose_target(pose.pose)
+        success = self.arm_group.go(wait=True)
+        self.arm_group.stop()
+        self.arm_group.clear_pose_targets()
+        return success
+    
+    def target_joint_state_cb(self, joint_state):
+        rospy.loginfo(f"Received target joint state: {joint_state}")
+        self.arm_group.set_joint_value_target(joint_state.position)
+        success = self.arm_group.go(wait=True)
+        self.arm_group.stop()
+        return success
+    
     # Service to delete all stored labels
     def delete_all_labels_srv(self, req):
         self.stored_poses = {}
@@ -118,17 +152,6 @@ class MoveItClient:
             return TriggerResponse(success=False, message="No label set.")
         self.go_to_label(self.current_label)
         return TriggerResponse(success=True, message="Moved to stored state: " + self.current_label)
-        # if not self.current_label:
-        #     return TriggerResponse(success=False, message="No label set.")
-        # if (self.current_label not in self.stored_poses) and (self.current_label not in self.stored_joint_states):
-        #     return TriggerResponse(success=False, message="No stored state for this label: " + self.current_label)
-        # if self.current_label in self.stored_poses:
-        #     success = self.go_to_pose(self.labels[self.stored_poses][self.current_label])
-        #     return TriggerResponse(success=success, message="Moved to pose." if success else "Failed to move to pose.")
-        # elif self.current_label in self.stored_joint_states:
-        #     success = self.go_to_joint_state(self.stored_joint_states[self.current_label])
-        #     return TriggerResponse(success=success, message="Moved to joint state." if success else "Failed to move to joint state.")
-        # return TriggerResponse(success=False, message="No stored pose or joint state for this label.")
 
     def print_labels(self, req):
         rospy.loginfo("Stored labels:")
