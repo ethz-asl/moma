@@ -44,6 +44,7 @@ protected Q_SLOTS:
   void goToDeleteLabel();
   void goToClearAllLabels();
   void resetMoveit();
+  void taskExecute();
 
 
 protected:    

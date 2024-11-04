@@ -147,6 +147,8 @@ MomaPanel::MomaPanel(QWidget *parent)
   connect( go_to_clear_all_labels_button_, SIGNAL( clicked() ), this, SLOT( goToClearAllLabels() ));
   connect( go_to_reset_moveit_button_, SIGNAL( clicked() ), this, SLOT( resetMoveit() ));
 
+  connect( task_execute_button_, SIGNAL( clicked() ), this, SLOT( taskExecute() ));
+
 
   // other stuff
   fg_min_height_pub_ = nh_.advertise<std_msgs::Float32>("moma_ui/sam/foreground_min_height", 1);
@@ -182,6 +184,21 @@ void MomaPanel::gotoLabel()
     else
     {
         ROS_ERROR("moma_panel: Failed to call go to label service");
+    }
+}
+
+void MomaPanel::taskExecute()
+{
+    ROS_WARN("moma_panel: Executing task");
+    ros::ServiceClient client = nh_.serviceClient<std_srvs::Trigger>("moma_ui/commander/execute_path");
+    std_srvs::Trigger srv;
+    if (client.call(srv))
+    {
+        ROS_INFO("moma_panel: Task execution service has been called");
+    }
+    else
+    {
+        ROS_ERROR("moma_panel: Failed to call task execution service");
     }
 }
 
