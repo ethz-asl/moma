@@ -91,10 +91,19 @@ MomaPanel::MomaPanel(QWidget *parent)
     teach_repeat_layout->addWidget( teach_repeat_stop_button_ );
     teach_repeat_layout->addWidget( teach_repeat_execute_button_ );
 
+
+    // MOVE IT COMMANDER
+    QHBoxLayout* move_it_cmd_layout = new QHBoxLayout;
+    move_it_cmd_layout->addWidget( new QLabel( "<b>MOVEIT CMD BASIC</b>" ));
+    move_it_cmd_layout->addWidget( moveit_cmd_toggle_cmd_input_ );
+    moveit_cmd_toggle_cmd_input_->setChecked(true);
+    move_it_cmd_layout->addWidget( moveit_cmd_execute_path_button_ );
+    move_it_cmd_layout->addWidget( moveit_reset_button_ );
+
     // GOTO
     // Set up the layout for the trajectory buttons
     QHBoxLayout* goto_layout = new QHBoxLayout;
-    goto_layout->addWidget( new QLabel( "<b>MOVEIT CMD</b>" ));
+    goto_layout->addWidget( new QLabel( "<b>MOVEIT CMD GOTO</b>" ));
     goto_layout->addWidget( new QLabel( "Label:" ));
     goto_layout->addWidget( goto_label_ );
     goto_layout->addWidget( go_to_button_ );
@@ -102,7 +111,7 @@ MomaPanel::MomaPanel(QWidget *parent)
     goto_layout->addWidget( go_to_store_joints_button_ );
     goto_layout->addWidget( go_to_delete_label_button_ );
     goto_layout->addWidget( go_to_clear_all_labels_button_ );
-    goto_layout->addWidget( go_to_reset_moveit_button_ );
+
 
     // TASK
     // Set up the layout for the task buttons
@@ -118,10 +127,11 @@ MomaPanel::MomaPanel(QWidget *parent)
     layout->addLayout( sam_layout );
   layout->addLayout( topic_layout );
     // layout->addLayout( p2p_layout );
-    layout->addLayout( sweep_layout );
+    // layout->addLayout( sweep_layout );
     // layout->addLayout( teach_repeat_layout );
+    layout->addLayout( move_it_cmd_layout );
     layout->addLayout( goto_layout );
-    layout->addLayout( task_layout );
+    // layout->addLayout( task_layout );
   setLayout( layout );
 
   // Next we make signal/slot connections.
@@ -138,6 +148,9 @@ MomaPanel::MomaPanel(QWidget *parent)
   connect( task_plan_button_, SIGNAL( clicked() ), this, SLOT( planTask() ));
   connect( sweep_topic_toggle, SIGNAL( stateChanged(int) ), this, SLOT( toggleSweepTopic() ));
 
+    connect( moveit_cmd_toggle_cmd_input_, SIGNAL( stateChanged(int) ), this, SLOT( toggleMoveitCmdInput() ));
+    connect( moveit_cmd_execute_path_button_, SIGNAL( clicked() ), this, SLOT( executeMoveitPath() ));
+  connect( moveit_reset_button_, SIGNAL( clicked() ), this, SLOT( resetMoveit() ));
 
   connect( goto_label_ , SIGNAL( editingFinished() ), this, SLOT( goToUpdateLabel() ));
   connect( go_to_button_, SIGNAL( clicked() ), this, SLOT( gotoLabel() ));
@@ -145,7 +158,6 @@ MomaPanel::MomaPanel(QWidget *parent)
   connect( go_to_store_joints_button_, SIGNAL( clicked() ), this, SLOT( goToStoreJoints() ));
   connect( go_to_delete_label_button_, SIGNAL( clicked() ), this, SLOT( goToDeleteLabel() ));
   connect( go_to_clear_all_labels_button_, SIGNAL( clicked() ), this, SLOT( goToClearAllLabels() ));
-  connect( go_to_reset_moveit_button_, SIGNAL( clicked() ), this, SLOT( resetMoveit() ));
 
   connect( task_execute_button_, SIGNAL( clicked() ), this, SLOT( taskExecute() ));
 
@@ -155,6 +167,37 @@ MomaPanel::MomaPanel(QWidget *parent)
   go_to_label_pub_ = nh_.advertise<std_msgs::String>("moma_ui/commander/label", 1);
     error_recovery_moveit_pub_ = nh_.advertise<franka_msgs::ErrorRecoveryActionGoal>("/franka_control/error_recovery/goal", 1);
 }
+
+
+void MomaPanel::toggleMoveitCmdInput()
+{
+    bool cmd_input = moveit_cmd_toggle_cmd_input_->isChecked();
+    ros::ServiceClient client = nh_.serviceClient<std_srvs::SetBool>("moma_ui/commander/toggle_cmd_input");
+    std_srvs::SetBool srv;
+    srv.request.data = cmd_input;
+    client.call(srv);
+    if (!srv.response.success)
+    {
+        ROS_WARN("moma_panel: Failed to toggle MoveIt command input: %s", srv.response.message.c_str());
+    }
+}
+
+void MomaPanel::executeMoveitPath()
+{
+    ROS_WARN("moma_panel: Executing MoveIt path");
+    ros::ServiceClient client = nh_.serviceClient<std_srvs::Trigger>("moma_ui/commander/execute_path");
+    std_srvs::Trigger srv;
+    if (client.call(srv))
+    {
+        ROS_INFO("moma_panel: MoveIt path execution service has been called");
+    }
+    else
+    {
+        ROS_ERROR("moma_panel: Failed to call MoveIt path execution service");
+    }
+}
+
+
 
 void MomaPanel::resetMoveit()
 {
@@ -184,21 +227,6 @@ void MomaPanel::gotoLabel()
     else
     {
         ROS_ERROR("moma_panel: Failed to call go to label service");
-    }
-}
-
-void MomaPanel::taskExecute()
-{
-    ROS_WARN("moma_panel: Executing task");
-    ros::ServiceClient client = nh_.serviceClient<std_srvs::Trigger>("moma_ui/commander/execute_path");
-    std_srvs::Trigger srv;
-    if (client.call(srv))
-    {
-        ROS_INFO("moma_panel: Task execution service has been called");
-    }
-    else
-    {
-        ROS_ERROR("moma_panel: Failed to call task execution service");
     }
 }
 
@@ -261,21 +289,6 @@ void MomaPanel::goToClearAllLabels()
         ROS_ERROR("moma_panel: Failed to call clear all labels service");
     }
 }
-
-void MomaPanel::planTask()
-{
-    // Call the service to plan the task
-    ros::ServiceClient client = nh_.serviceClient<std_srvs::Trigger>("moma_ui/task/plan");
-    std_srvs::Trigger srv;
-    if (client.call(srv))
-    {
-        ROS_INFO("moma_panel: Task planning service has been called");
-    }
-    else
-    {
-        ROS_ERROR("moma_panel: Failed to call task planning service");
-    }
-}   
 
 void MomaPanel::toggleSweepTopic()
 {
