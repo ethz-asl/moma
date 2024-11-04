@@ -45,6 +45,9 @@ protected Q_SLOTS:
   void goToClearAllLabels();
   void resetMoveit();
   void taskExecute();
+  void toggleMoveitCmdInput();
+  void executeMoveitPath();
+
 
 
 protected:    
@@ -100,6 +103,12 @@ protected:
     QPushButton* teach_repeat_start_button_ = new QPushButton("Start Teach");
     QPushButton* teach_repeat_stop_button_ = new QPushButton("Stop Teach");
     QPushButton* teach_repeat_execute_button_ = new QPushButton("Repeat");
+
+    // MOVEIT
+    // Qt elements
+    QCheckBox* moveit_cmd_toggle_cmd_input_ = new QCheckBox("Pose/Joints");
+    QPushButton* moveit_cmd_execute_path_button_ = new QPushButton("Execute Path");
+    QPushButton* moveit_reset_button_ = new QPushButton("Reset MoveIt");
 
     // GOTO
     // Qt elements
