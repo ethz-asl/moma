@@ -5,7 +5,7 @@ import moveit_commander
 from geometry_msgs.msg import Pose, PoseStamped
 from std_msgs.msg import String, Bool
 from sensor_msgs.msg import JointState
-from std_srvs.srv import Trigger, TriggerResponse, TriggerRequest
+from std_srvs.srv import Trigger, TriggerResponse, TriggerRequest, SetBool, SetBoolRequest, SetBoolResponse
 from nav_msgs.msg import Path
 import tf
 import copy
@@ -20,14 +20,15 @@ class MoveItClient:
         self.frame_id = self.arm_group.get_planning_frame()
         self.controlled_frame = self.arm_group.get_end_effector_link()
         self.current_planner = self.arm_group.get_planner_id()
-        # self.available_planners = self.arm_group.get_planner_params()
         rospy.loginfo(f"Planning frame: {self.frame_id}")
         rospy.loginfo(f"End effector link: {self.controlled_frame}")
         self.arm_group.set_planner_id("RRTConnect") # options: RRTConnect, P2P, LIN, CIRC, CHOMP
         rospy.loginfo(f"Current planner: {self.arm_group.get_planner_id()}")
 
+
+        self.topic_input = "pose"
+
         # Initialize storage for poses and joint states
-        # self.labels = {}
         self.stored_poses = {}
         self.stored_joint_states = {}
         self.current_label = None
@@ -36,10 +37,13 @@ class MoveItClient:
         rospy.Subscriber("moma_ui/commander/label", String, self.label_callback)
         rospy.Subscriber("moma_ui/commander/target_pose", PoseStamped, self.target_pose_cb)
         rospy.Subscriber("moma_ui/commander/target_joint_state", JointState, self.target_joint_state_cb)
-        rospy.Subscriber("moma_ui/commander/target_path", Path, self.follow_path)
+        rospy.Subscriber("moma_ui/commander/target_path", Path, self.target_path_cb)
 
         # TF listener
         self.tf_listener = tf.TransformListener()
+
+        self.last_target_path = None
+        self.executing_path = False
 
         # Services
         rospy.Service("moma_ui/commander/store_pose", Trigger, self.store_current_pose_srv)
@@ -48,8 +52,8 @@ class MoveItClient:
         rospy.Service("moma_ui/commander/delete_all_labels", Trigger, self.delete_all_labels_srv)
         rospy.Service("moma_ui/commander/goto_label", Trigger, self.goto_current_label_srv)
         rospy.Service("moma_ui/commander/print_labels", Trigger, self.print_labels)
-        rospy.Service("moma_ui/commander/plan_cartesian_path", Trigger, self.plan_cartesian_path_srv)
-        rospy.Service("moma_ui/commander/execute_path", Trigger, self.execute_path_srv)
+        rospy.Service("moma_ui/commander/execute_path", Trigger, self.execute_plan_srv)
+        rospy.Service("moma_ui/commander/toggle_cmd_input", SetBool, self.toggle_cmd_input_srv)
 
         # label_callback("default")
         self.label_callback(String("init_pose"))
@@ -57,96 +61,83 @@ class MoveItClient:
         self.label_callback(String("init_joint_state"))
         self.store_current_joint_state_srv(TriggerRequest())
         rospy.loginfo("MoveIt client node initialized.")
+        
 
-    def plan_cartesian_path_srv(self, req):
-        # (plan, fraction) = move_group.compute_cartesian_path(waypoints, 0.01  # waypoints to follow  # eef_step)
-        # plan a cartesian path from the current pose to the 0.1 m in front of the current pose and 0.1 m above the current pose
-        waypoints = []
-        wpose = self.arm_group.get_current_pose().pose
-        wpose.position.z += 0.1  # First move up (z)
-        # waypoints.append(copy.deepcopy(wpose))
-        wpose.position.y += 0.1  # and sideways (y)
-        # waypoints.append(copy.deepcopy(wpose))
-        wpose.position.x += 0.1  # Second move forward (x)
+    def toggle_cmd_input_srv(self, req):
+        if req.data:
+            rospy.loginfo("Topic input set to pose.")
+            self.topic_input = "pose"
+        else:
+            rospy.loginfo("Topic input set to joint state.")
+            self.topic_input = "joint_state"
+        return SetBoolResponse(success=True, message="Topic input set to: " + self.topic_input)
+    
+    def execute_plan_srv(self, req):
+        if self.last_target_path is None:
+            rospy.logwarn("No path to execute.")
+            return TriggerResponse(success=True, message="No path to execute.")
+        elif self.executing_path:
+            rospy.logwarn("Already executing path.")
+            return TriggerResponse(success=True, message="Already executing path")
+        else:
+            self.executing_path = True
+            rospy.loginfo("Executing path plan.")
+            path = self.last_target_path
+            # from current to first point in path
+            waypoints = []
+            current_pose = self.arm_group.get_current_pose().pose
 
-        # adjust the orientation such that the end effector is perpendicular to the path
-        # wpose.orientation.x = 0.0
-
-        waypoints.append(copy.deepcopy(wpose))
-        (plan, fraction) = self.arm_group.compute_cartesian_path(
-            waypoints=waypoints,  # waypoints to follow
-            eef_step=0.01,  # eef_step
-            avoid_collisions = True)
-        # Note: We are just planning, not asking move_group to actually move the robot yet:
-        # execute 
-        success = self.arm_group.execute(plan)
-        return TriggerResponse(success=success, message="Executed cartesian path.")
-
-    def follow_path(self, path):
-        rospy.loginfo(f"===================== Received path =====================")
-        waypoints = []
-        current_pose = self.arm_group.get_current_pose().pose
-        waypoints.append(current_pose)
-        if True: #path.header.frame_id != self.frame_id:
-            # rospy.logwarn(f"Path frame_id: {path.header.frame_id} does not match planning frame: {self.frame_id}")
-            # rospy.logwarn("Will try to transform path to planning frame.")
-            poses_added = 0
+            # go through each point in the path, convert to planning frame, and add to waypoints
             for pose in path.poses:
-                # rospy.loginfo(f"Will try to transform pose: {pose}")
-                pose.header.stamp.nsecs = 0
-                pose.header.stamp.secs = 0
+                if pose.header.frame_id != self.frame_id:
+                    # convert the first point in the path to the planning frame
+                    pose.header.stamp.nsecs = 0
+                    pose.header.stamp.secs = 0
+                    try:
+                        pose = self.tf_listener.transformPose(self.frame_id, pose)
+                    except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
+                        rospy.logerr("Failed to transform pose to planning frame.")
+                        return False
+                new_pose = copy.deepcopy(current_pose)
+                new_pose.position = pose.pose.position
+                waypoints.append(new_pose)
+            # plan 
+            (plan, fraction) = self.arm_group.compute_cartesian_path(
+                waypoints=waypoints,  # waypoints to follow
+                eef_step=0.01,  # eef_step
+                avoid_collisions = False)
+            # execute
+            success = self.arm_group.execute(plan)
+            self.executing_path = False
+            return TriggerResponse(success=success, message="Executed path plan.")
+
+    def target_path_cb(self, path):
+        rospy.loginfo(f"Received target path")
+        self.last_target_path = path
+
+    def target_pose_cb(self, pose):
+        rospy.loginfo(f"Received target pose")
+        if self.topic_input == "pose" and not self.executing_path:
+            rospy.loginfo("Will go to target pose.")
+            if pose.header.frame_id != self.frame_id:
+                rospy.logwarn(f"Pose frame_id: {pose.header.frame_id} does not match planning frame: {self.frame_id}")
+                rospy.logwarn("Will try to transform pose to planning frame.")
                 try:
                     pose = self.tf_listener.transformPose(self.frame_id, pose)
                 except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
                     rospy.logerr("Failed to transform pose to planning frame.")
                     return False
-                # rospy.loginfo(f"Transformed pose: {pose}")
-                new_pose = copy.deepcopy(current_pose)
-                new_pose.position = pose.pose.position
-                waypoints.append(new_pose)
-                break
-
-        # rospy.loginfo(f"Waypoints: {waypoints}")
-        (plan, fraction) = self.arm_group.compute_cartesian_path(
-            waypoints=waypoints,  # waypoints to follow
-            eef_step=0.001,  # eef_step
-            avoid_collisions = False)
-        for i, point in enumerate(plan.joint_trajectory.points):
-            if i > 1:
-                delta = plan.joint_trajectory.points[i].time_from_start - plan.joint_trajectory.points[i-1].time_from_start
-                # convert to seconds
-                delta = delta.secs + delta.nsecs * 1e-9
-                rospy.loginfo(f"Delta time: {delta}")
-                if delta < 0.0:
-                    rospy.logwarn(f"Delta time too small, adjusting.")
-        # execute
-        success = self.arm_group.execute(plan)
-
-
-    def target_pose_cb(self, pose):
-        rospy.loginfo(f"Received target pose: {pose}")
-        if pose.header.frame_id != self.frame_id:
-            rospy.logwarn(f"Pose frame_id: {pose.header.frame_id} does not match planning frame: {self.frame_id}")
-            rospy.logwarn("Will try to transform pose to planning frame.")
-            try:
-                pose = self.tf_listener.transformPose(self.frame_id, pose)
-            except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
-                rospy.logerr("Failed to transform pose to planning frame.")
-                return False
-        self.arm_group.set_pose_target(pose.pose)
-        success = self.arm_group.go(wait=True)
-        self.arm_group.stop()
-        self.arm_group.clear_pose_targets()
-        return success
+            self.arm_group.set_pose_target(pose.pose)
+            success = self.arm_group.go(wait=True)
+            self.arm_group.stop()
+            self.arm_group.clear_pose_targets()
     
     def target_joint_state_cb(self, joint_state):
-        rospy.loginfo(f"Received target joint state: {joint_state}")
-        self.arm_group.set_joint_value_target(joint_state.position)
-        success = self.arm_group.go(wait=True)
-        self.arm_group.stop()
-        return success
-
-    # def follow_path(self, path):
+        rospy.loginfo(f"Received target joint state")
+        if self.topic_input == "joint_state" and not self.executing_path:
+            self.arm_group.set_joint_value_target(joint_state.position)
+            success = self.arm_group.go(wait=True)
+            self.arm_group.stop()
 
     # Service to delete all stored labels
     def delete_all_labels_srv(self, req):
