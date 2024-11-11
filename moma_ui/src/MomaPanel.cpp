@@ -99,7 +99,13 @@ MomaPanel::MomaPanel(QWidget *parent)
     moveit_cmd_toggle_cmd_input_->setChecked(true);
     move_it_cmd_layout->addWidget( moveit_cmd_execute_path_button_ );
     move_it_cmd_layout->addWidget( moveit_reset_button_ );
-
+    move_it_cmd_layout->addWidget( new QLabel( "Offset tx:" ));
+    move_it_cmd_layout->addWidget( moveit_offset_tx_ );
+    move_it_cmd_layout->addWidget( new QLabel( "Offset ty:" ));
+    move_it_cmd_layout->addWidget( moveit_offset_ty_ );
+    move_it_cmd_layout->addWidget( new QLabel( "Offset tz:" ));
+    move_it_cmd_layout->addWidget( moveit_offset_tz_ );
+    
     // GOTO
     // Set up the layout for the trajectory buttons
     QHBoxLayout* goto_layout = new QHBoxLayout;
@@ -151,6 +157,9 @@ MomaPanel::MomaPanel(QWidget *parent)
     connect( moveit_cmd_toggle_cmd_input_, SIGNAL( stateChanged(int) ), this, SLOT( toggleMoveitCmdInput() ));
     connect( moveit_cmd_execute_path_button_, SIGNAL( clicked() ), this, SLOT( executeMoveitPath() ));
   connect( moveit_reset_button_, SIGNAL( clicked() ), this, SLOT( resetMoveit() ));
+  connect( moveit_offset_tx_, SIGNAL( editingFinished() ), this, SLOT( updateMoveitOffsetX() ));
+    connect( moveit_offset_ty_, SIGNAL( editingFinished() ), this, SLOT( updateMoveitOffsetY() ));
+    connect( moveit_offset_tz_, SIGNAL( editingFinished() ), this, SLOT( updateMoveitOffsetZ() ));
 
   connect( goto_label_ , SIGNAL( editingFinished() ), this, SLOT( goToUpdateLabel() ));
   connect( go_to_button_, SIGNAL( clicked() ), this, SLOT( gotoLabel() ));
@@ -166,6 +175,33 @@ MomaPanel::MomaPanel(QWidget *parent)
   fg_min_height_pub_ = nh_.advertise<std_msgs::Float32>("moma_ui/sam/foreground_min_height", 1);
   go_to_label_pub_ = nh_.advertise<std_msgs::String>("moma_ui/commander/label", 1);
     error_recovery_moveit_pub_ = nh_.advertise<franka_msgs::ErrorRecoveryActionGoal>("/franka_control/error_recovery/goal", 1);
+    moveit_offset_x_pub_ = nh_.advertise<std_msgs::Float32>("moma_ui/commander/ee_offset_t_x", 1);
+    moveit_offset_y_pub_ = nh_.advertise<std_msgs::Float32>("moma_ui/commander/ee_offset_t_y", 1);
+    moveit_offset_z_pub_ = nh_.advertise<std_msgs::Float32>("moma_ui/commander/ee_offset_t_z", 1);
+}
+
+void MomaPanel::updateMoveitOffsetX()
+{
+    float offset_x = moveit_offset_tx_->text().toFloat();
+    std_msgs::Float32 msg;
+    msg.data = offset_x;
+    moveit_offset_x_pub_.publish(msg);
+}
+
+void MomaPanel::updateMoveitOffsetY()
+{
+    float offset_y = moveit_offset_ty_->text().toFloat();
+    std_msgs::Float32 msg;
+    msg.data = offset_y;
+    moveit_offset_y_pub_.publish(msg);
+}
+
+void MomaPanel::updateMoveitOffsetZ()
+{
+    float offset_z = moveit_offset_tz_->text().toFloat();
+    std_msgs::Float32 msg;
+    msg.data = offset_z;
+    moveit_offset_z_pub_.publish(msg);
 }
 
 
