@@ -9,6 +9,11 @@ from std_srvs.srv import Trigger, TriggerResponse, TriggerRequest, SetBool, SetB
 from nav_msgs.msg import Path
 import tf
 import copy
+from scipy.spatial.transform import Rotation as R
+import numpy as np
+
+from std_msgs.msg import Float32, Float64
+
 
 class MoveItClient:
     def __init__(self):
@@ -38,6 +43,13 @@ class MoveItClient:
         rospy.Subscriber("moma_ui/commander/target_pose", PoseStamped, self.target_pose_cb)
         rospy.Subscriber("moma_ui/commander/target_joint_state", JointState, self.target_joint_state_cb)
         rospy.Subscriber("moma_ui/commander/target_path", Path, self.target_path_cb)
+        rospy.Subscriber("moma_ui/commander/ee_offset_t_x", Float32, self.ee_offset_t_x_cb)
+        rospy.Subscriber("moma_ui/commander/ee_offset_t_y", Float32, self.ee_offset_t_y_cb)
+        rospy.Subscriber("moma_ui/commander/ee_offset_t_z", Float32, self.ee_offset_t_z_cb)
+
+        self.ee_offset_t_x = 0
+        self.ee_offset_t_y = 0
+        self.ee_offset_t_z = 0
 
         # TF listener
         self.tf_listener = tf.TransformListener()
@@ -55,6 +67,9 @@ class MoveItClient:
         rospy.Service("moma_ui/commander/execute_path", Trigger, self.execute_plan_srv)
         rospy.Service("moma_ui/commander/toggle_cmd_input", SetBool, self.toggle_cmd_input_srv)
 
+        # path publisher
+        self.path_pub = rospy.Publisher("moma_ui/commander/path", Path, queue_size=1)
+
         # label_callback("default")
         self.label_callback(String("init_pose"))
         self.store_current_pose_srv(TriggerRequest())
@@ -62,6 +77,14 @@ class MoveItClient:
         self.store_current_joint_state_srv(TriggerRequest())
         rospy.loginfo("MoveIt client node initialized.")
         
+    def ee_offset_t_x_cb(self, msg):    
+        self.ee_offset_t_x = msg.data
+
+    def ee_offset_t_y_cb(self, msg):
+        self.ee_offset_t_y = msg.data
+    
+    def ee_offset_t_z_cb(self, msg):
+        self.ee_offset_t_z = msg.data
 
     def toggle_cmd_input_srv(self, req):
         if req.data:
@@ -86,9 +109,20 @@ class MoveItClient:
             # from current to first point in path
             waypoints = []
             current_pose = self.arm_group.get_current_pose().pose
-
+            first_pose = path.poses[0]
+            
+            if first_pose.header.frame_id != self.frame_id:
+                try:
+                    rospy.loginfo("Transforming first pose to planning frame.")
+                    first_pose = self.tf_listener.transformPose(self.frame_id, first_pose)
+                except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
+                    rospy.logerr("Failed to transform pose to planning frame.")
+                    return False
+                
             # go through each point in the path, convert to planning frame, and add to waypoints
+            idx = 0
             for pose in path.poses:
+                print('HELLLOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO')
                 if pose.header.frame_id != self.frame_id:
                     # convert the first point in the path to the planning frame
                     pose.header.stamp.nsecs = 0
@@ -98,9 +132,125 @@ class MoveItClient:
                     except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
                         rospy.logerr("Failed to transform pose to planning frame.")
                         return False
+
+                # compute orientation based on the difference between current and next point in path
+                if idx < len(path.poses) - 1:                
+                    pos_current = path.poses[idx].pose.position
+                    pos_next = path.poses[idx+1].pose.position
+                elif idx == len(path.poses) - 1:
+                    pos_current = path.poses[idx-1].pose.position
+                    pos_next = path.poses[idx].pose.position
+                '''
+                # compute yaw
+                dy = pos_next.y - pos_current.y
+                dx = pos_next.x - pos_current.x
+                yaw = np.arctan2(dy, dx)
+                yaw_deg = -np.degrees(yaw)
+                # wrap to +/- 90
+                if yaw_deg > 90:
+                    yaw_deg = yaw_deg - 180
+                elif yaw_deg < -90:
+                    yaw_deg = yaw_deg + 180
+                print('pos_current.x', pos_current.x)
+                print('pos_current.y', pos_current.y)
+                print('pos_next.x', pos_next.x)
+                print('pos_next.y', pos_next.y)
+
+                print('dx', dx)
+                print('dy', dy)
+                print('yaw', yaw)
+                print('yaw_deg', yaw_deg)
+                
+                rospy.loginfo(f"Yaw: {yaw_deg}")    
+
+                # fix orientation
+                roll_deg = 180
+                pitch_deg = 0
+                # yaw_deg = 45 # 
+                r = R.from_euler('xyz', [roll_deg, pitch_deg, yaw_deg], degrees=True)
+                rq  = r.as_quat()
+                '''
+                
+                nx_sweep_dir = np.array([pos_next.x - pos_current.x, pos_next.y - pos_current.y])
+                print('nx_sweep_dir', nx_sweep_dir)
+
+                if nx_sweep_dir[1] < 0:
+                    print('Need to flip')
+                    nx_sweep_dir = -nx_sweep_dir
+                print('After flip nx_sweep_dir', nx_sweep_dir)
+                nx_sweep_dir = nx_sweep_dir / np.linalg.norm(nx_sweep_dir)
+                ny_sweep_dir = np.array([nx_sweep_dir[1], -nx_sweep_dir[0]])
+
+                print('nx_sweep_dir', nx_sweep_dir)
+                print('ny_sweep_dir', ny_sweep_dir)
+                print('norm nx_sweep_dir', np.linalg.norm(nx_sweep_dir))
+                print('norm ny_sweep_dir', np.linalg.norm(ny_sweep_dir))
+                print('dot', np.dot(nx_sweep_dir, ny_sweep_dir))
+
+                # 3x3 rotation matrix
+                rotmat = np.array([
+                    [nx_sweep_dir[0], ny_sweep_dir[0], 0],
+                    [nx_sweep_dir[1], ny_sweep_dir[1], 0],
+                    [0, 0, -1]])
+                
+                #is it a rotation matrix?
+                dete = np.linalg.det(rotmat)
+                print('dete', dete)
+                
+                print('rotmat', rotmat)
+                print('shape', rotmat.shape)
+                # convert to quaternion
+                rrr = R.from_matrix(rotmat)
+                # offset by 90 degrees
+                rrr = rrr * R.from_euler('xyz', [0, 0, 90], degrees=True)
+                print('rrr', rrr)
+                rq = rrr.as_quat()
+                print('rq', rq)
+
                 new_pose = copy.deepcopy(current_pose)
                 new_pose.position = pose.pose.position
+                new_pose.orientation.x = rq[0]
+                new_pose.orientation.y = rq[1]
+                new_pose.orientation.z = rq[2]
+                new_pose.orientation.w = rq[3]
+
+                # apply offset (todo: do this in the EE frame)
+                new_pose.position.x += self.ee_offset_t_x
+                new_pose.position.y += self.ee_offset_t_y
+                new_pose.position.z += self.ee_offset_t_z
+
                 waypoints.append(new_pose)
+
+
+            # publish waypoints as path for visualization
+            path = Path()
+            path.header.stamp = rospy.Time.now()
+            path.header.frame_id = self.frame_id
+            path.poses = []
+            for wp in waypoints:
+                pose = PoseStamped()
+                pose.header.stamp = rospy.Time.now()
+                pose.header.frame_id = self.frame_id
+                pose.pose = wp
+                path.poses.append(pose)
+
+            self.path_pub.publish(path)
+
+            # decorate with first and last pose that are the same height as the current pose
+            first_pose = copy.deepcopy(waypoints[0])
+            first_pose.position.z = current_pose.position.z + 0.1
+            waypoints.insert(0, first_pose)
+            last_pose = copy.deepcopy(waypoints[-1])
+            last_pose.position.z = current_pose.position.z + 0.1
+            waypoints.append(last_pose)
+
+
+            # go to first point in path but with RRTConnect
+            # switch to RRTConnect
+            # self.arm_group.set_planner_id("RRTConnect")
+            # self.arm_group.set_pose_target(waypoints[0])
+            # self.arm_group.go(wait=True)
+
             # plan 
             (plan, fraction) = self.arm_group.compute_cartesian_path(
                 waypoints=waypoints,  # waypoints to follow
@@ -127,6 +277,7 @@ class MoveItClient:
                 except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
                     rospy.logerr("Failed to transform pose to planning frame.")
                     return False
+                
             self.arm_group.set_pose_target(pose.pose)
             success = self.arm_group.go(wait=True)
             self.arm_group.stop()
@@ -149,7 +300,7 @@ class MoveItClient:
     # Helper function to go to a specified pose
     def go_to_pose(self, pose):
         self.arm_group.set_pose_target(pose)
-        success = self.arm_group.go(wait=True)
+        success = self.arm_group.go(wait=False)
         self.arm_group.stop()
         self.arm_group.clear_pose_targets()
         return success
@@ -157,7 +308,7 @@ class MoveItClient:
     # Helper function to go to a specified joint state
     def go_to_joint_state(self, joint_state):
         self.arm_group.set_joint_value_target(joint_state)
-        success = self.arm_group.go(wait=True)
+        success = self.arm_group.go(wait=False)
         self.arm_group.stop()
         return success
 
