@@ -1,18 +1,18 @@
 <?xml version="1.0"?>
 <launch>
-  <arg name="rviz" default="false" />
+  <arg name="rviz" default="true" />
   <arg name="robot_ip" default="$(env FRANKA_IP)" />
   <arg name="publish_world_link" default="true" />
-  <arg name="moveit" default="true" />
+  <arg name="moveit" default="false" />
   <arg name="moveit_pipeline" default="ompl"/> <!-- Options: ompl | chomp | pilz_industrial_motion_planner-->
   <arg name="arm_id" default="panda" />
-  <arg name="controller" default="position_joint_trajectory_controller" />
+  <arg name="controller" default="position_joint_trajectory_controller" /> <!-- Options:cartesian_impedance_example_controller position_joint_trajectory_controller, CartesianImpedance_trajectory_controller-->
   <arg name="table" default="true" />
   <arg name="use_bota" default="false" />
  
   <!-- If we don't do moveit, start the interactive markers. -->
   <arg name="interactive_marker"
-    default="$(eval arg('controller') == 'cartesian_impedance_example_controller')"
+    default="$(eval arg('controller') in ['cartesian_impedance_example_controller', 'CartesianImpedance_trajectory_controller'])"
     doc="Should the interactive marker node be started?" />
 
   <!-- Launch control -->
@@ -24,7 +24,7 @@
 
   <!-- Controller settings. -->
   <rosparam command="load"
-    file="$(find franka_example_controllers)/config/franka_example_controllers.yaml"
+    file="$(find moma_bringup)/config/panda_controllers.yaml"
     subst_value="true" />
 
   <!-- Start required controller -->
@@ -53,7 +53,7 @@
     type="interactive_marker.py"
     if="$(arg interactive_marker)">
     <param name="link_name" value="$(arg arm_id)_link0" />
-    <remap to="cartesian_impedance_example_controller/equilibrium_pose" from="equilibrium_pose" />
+    <remap to="/CartesianImpedance_trajectory_controller/reference_pose" from="equilibrium_pose" />
   </node>
 
   <!-- Start up table calibrator (which publishes the transforms to the table) unless requested not

@@ -1,20 +1,185 @@
-effort_joint_trajectory_controller:
-  type: effort_controllers/JointTrajectoryController
+CartesianImpedance_trajectory_controller:
+  type: cartesian_impedance_controller/CartesianImpedanceController
   joints:
-    - panda_joint1
-    - panda_joint2
-    - panda_joint3
-    - panda_joint4
-    - panda_joint5
-    - panda_joint6
-    - panda_joint7
-  constraints:
-    goal_time: 10.0
-  gains:
-    panda_joint1: { p: 50, i: 0, d: 20 }
-    panda_joint2: { p: 10000, i: 0, d: 500 }
-    panda_joint3: { p: 100, i: 0, d: 10 }
-    panda_joint4: { p: 1000, i: 0, d: 50 }
-    panda_joint5: { p: 100, i: 0, d: 10 }
-    panda_joint6: { p: 100, i: 0, d: 10 }
-    panda_joint7: { p: 10, i: 0.5, d: 0.1 }
+      - panda_joint1
+      - panda_joint2
+      - panda_joint3
+      - panda_joint4
+      - panda_joint5
+      - panda_joint6
+      - panda_joint7
+  end_effector: panda_default_ee            # Link to control arm in
+  update_frequency: 100000                 # Controller update frequency in Hz
+  # Optional parameters - the mentioned values are the defaults
+  dynamic_reconfigure: true             # Starts dynamic reconfigure server
+  handle_trajectories: false             # Accept traj., e.g. from MoveIt
+  robot_description: /robot_description # In case of a varying name
+  wrench_ee_frame: panda_default_ee         # Default frame for wrench commands
+  delta_tau_max: 1.0                    # Max. commanded torque diff between steps in Nm
+  filtering:                            # Update existing values (0.0 1.0] per s
+    nullspace_config: 0.1               # Nullspace configuration filtering
+    pose: 0.1                           # Reference pose filtering
+    stiffness: 0.1                      # Cartesian and nullspace stiffness
+    wrench: 0.1                         # Commanded torque
+  verbosity:
+    verbose_print: false                # Enables additional prints
+    state_msgs: false                   # Messages of controller state
+    tf_frames: false                    # Extra tf frames
+
+joint_velocity_example_controller:
+    type: franka_example_controllers/JointVelocityExampleController
+    arm_id: $(arg arm_id)
+    joint_names:
+        - $(arg arm_id)_joint1
+        - $(arg arm_id)_joint2
+        - $(arg arm_id)_joint3
+        - $(arg arm_id)_joint4
+        - $(arg arm_id)_joint5
+        - $(arg arm_id)_joint6
+        - $(arg arm_id)_joint7
+
+joint_position_example_controller:
+    type: franka_example_controllers/JointPositionExampleController
+    joint_names:
+        - $(arg arm_id)_joint1
+        - $(arg arm_id)_joint2
+        - $(arg arm_id)_joint3
+        - $(arg arm_id)_joint4
+        - $(arg arm_id)_joint5
+        - $(arg arm_id)_joint6
+        - $(arg arm_id)_joint7
+
+cartesian_pose_example_controller:
+    type: franka_example_controllers/CartesianPoseExampleController
+    arm_id: $(arg arm_id)
+
+elbow_example_controller:
+    type: franka_example_controllers/ElbowExampleController
+    arm_id: $(arg arm_id)
+
+cartesian_velocity_example_controller:
+    type: franka_example_controllers/CartesianVelocityExampleController
+    arm_id: $(arg arm_id)
+
+model_example_controller:
+    type: franka_example_controllers/ModelExampleController
+    arm_id: $(arg arm_id)
+
+force_example_controller:
+    type: franka_example_controllers/ForceExampleController
+    arm_id: $(arg arm_id)
+    joint_names:
+        - $(arg arm_id)_joint1
+        - $(arg arm_id)_joint2
+        - $(arg arm_id)_joint3
+        - $(arg arm_id)_joint4
+        - $(arg arm_id)_joint5
+        - $(arg arm_id)_joint6
+        - $(arg arm_id)_joint7
+
+joint_impedance_example_controller:
+    type: franka_example_controllers/JointImpedanceExampleController
+    arm_id: $(arg arm_id)
+    joint_names:
+        - $(arg arm_id)_joint1
+        - $(arg arm_id)_joint2
+        - $(arg arm_id)_joint3
+        - $(arg arm_id)_joint4
+        - $(arg arm_id)_joint5
+        - $(arg arm_id)_joint6
+        - $(arg arm_id)_joint7
+    k_gains:
+        - 600.0
+        - 600.0
+        - 600.0
+        - 600.0
+        - 250.0
+        - 150.0
+        - 50.0
+    d_gains:
+        - 50.0
+        - 50.0
+        - 50.0
+        - 20.0
+        - 20.0
+        - 20.0
+        - 10.0
+    radius: 0.1
+    acceleration_time: 2.0
+    vel_max: 0.15
+    publish_rate: 10.0
+    coriolis_factor: 1.0
+
+cartesian_impedance_example_controller:
+    type: franka_example_controllers/CartesianImpedanceExampleController
+    arm_id: $(arg arm_id)
+    joint_names:
+        - $(arg arm_id)_joint1
+        - $(arg arm_id)_joint2
+        - $(arg arm_id)_joint3
+        - $(arg arm_id)_joint4
+        - $(arg arm_id)_joint5
+        - $(arg arm_id)_joint6
+        - $(arg arm_id)_joint7
+
+dual_arm_cartesian_impedance_example_controller:
+    type: franka_example_controllers/DualArmCartesianImpedanceExampleController
+    right:
+        arm_id: panda_1
+        joint_names:
+            - panda_1_joint1
+            - panda_1_joint2
+            - panda_1_joint3
+            - panda_1_joint4
+            - panda_1_joint5
+            - panda_1_joint6
+            - panda_1_joint7
+    left:
+        arm_id: panda_2
+        joint_names:
+            - panda_2_joint1
+            - panda_2_joint2
+            - panda_2_joint3
+            - panda_2_joint4
+            - panda_2_joint5
+            - panda_2_joint6
+            - panda_2_joint7
+
+teleop_joint_pd_example_controller:
+   type: franka_example_controllers/TeleopJointPDExampleController
+   leader:
+       arm_id: leader
+       joint_names:
+            - leader_joint1
+            - leader_joint2
+            - leader_joint3
+            - leader_joint4
+            - leader_joint5
+            - leader_joint6
+            - leader_joint7
+       # WARNING: Varying the following parameters may result in instability!
+       d_gains_lower: [1.0, 1.0, 1.0, 1.0, 0.33, 0.33, 0.17]
+       d_gains_upper: [35.0, 35.0, 35.0, 35.0, 10.0, 10.0, 8.0]
+       dq_max_lower: [1.3, 1.3, 1.3, 1.3, 1.4, 1.4, 1.4] # [rad/s]
+       dq_max_upper: [1.9, 1.9, 1.9, 1.9, 2.2, 2.2, 2.2] # [rad/s]
+       contact_force_threshold: 4.0 # [N]
+
+   follower:
+       arm_id: follower
+       joint_names:
+            - follower_joint1
+            - follower_joint2
+            - follower_joint3
+            - follower_joint4
+            - follower_joint5
+            - follower_joint6
+            - follower_joint7
+       # WARNING: Varying the following parameters may result in instability!
+       p_gains: [900.0, 900.0, 900.0, 900.0, 375.0, 225.0, 100.0]
+       d_gains: [45.0, 45.0, 45.0, 45.0, 15.0, 15.0, 10.0]
+       drift_comp_gains: [4.3, 4.3, 4.3, 4.3, 4.3, 4.3, 4.3]
+       dq_max_lower: [0.8, 0.8, 0.8, 0.8, 2.5, 2.5, 2.5] # [rad/s]
+       dq_max_upper: [2.0, 2.0, 2.0, 2.0, 2.5, 2.5, 2.5] # [rad/s]
+       ddq_max_lower: [0.8, 0.8, 0.8, 0.8, 10.0, 10.0, 10.0] # [rad/s^2]
+       ddq_max_upper: [6.0, 6.0, 6.0, 6.0, 15.0, 20.0, 20.0] # [rad/s^2]
+       contact_force_threshold: 5.0 # [N]
