@@ -55,8 +55,10 @@ class GraspExecutionAction(object):
         rospy.loginfo("Moving to grasp pose")
         target = T_base_grasp * T_grasp_ee_offset
         self.moveit_target_pub.publish(to_pose_stamped_msg(target, self.base_frame))
-        self.moveit.gotoL(target, self.velocity_scaling)
-    
+        # code fails here
+        # self.moveit.gotoL(target, self.velocity_scaling)
+        self.moveit.goto(target, self.velocity_scaling)
+
         if self.arm.has_error:
             rospy.loginfo("Robot error. Aborting.")
             self.action_server.set_aborted()
@@ -73,7 +75,8 @@ class GraspExecutionAction(object):
         rospy.loginfo("Lifting object")
         target = Transform.translation([0, 0, 0.2]) * T_base_grasp * T_grasp_ee_offset
         self.moveit_target_pub.publish(to_pose_stamped_msg(target, self.base_frame))
-        self.moveit.gotoL(target, self.velocity_scaling)
+        # self.moveit.gotoL(target, self.velocity_scaling)
+        self.moveit.goto(target, self.velocity_scaling)
 
         if self.gripper.read() > 0.002:
             rospy.loginfo("Object grasped successfully")

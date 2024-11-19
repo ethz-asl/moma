@@ -4,10 +4,8 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
-
         - /MarkerArray1/Namespaces1
       Splitter Ratio: 0.48490944504737854
-
     Tree Height: 808
   - Class: rviz/Selection
     Name: Selection
@@ -26,7 +24,7 @@ Panels:
   - Class: rviz/Time
     Name: Time
     SyncMode: 0
-    SyncSource: SceneCloud
+    SyncSource: RSCloud
   - Class: control_gui/ButtonPanel
     Name: Mission Control
 Preferences:
@@ -55,9 +53,7 @@ Visualization Manager:
       Reference Frame: <Fixed Frame>
       Value: true
     - Class: rviz/TF
-
       Enabled: true
-
       Filter (blacklist): ""
       Filter (whitelist): ""
       Frame Timeout: 15
@@ -554,7 +550,7 @@ Visualization Manager:
       Color: 255; 255; 255
       Color Transformer: Intensity
       Decay Time: 0
-      Enabled: true
+      Enabled: false
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Max Intensity: 1
@@ -571,7 +567,7 @@ Visualization Manager:
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: true
+      Value: false
     - Alpha: 1
       Autocompute Intensity Bounds: false
       Autocompute Value Bounds:
@@ -624,18 +620,15 @@ Visualization Manager:
       Marker Topic: /visualization_marker_array
       Name: MarkerArray
       Namespaces:
-        grasp: true
         roi: true
       Queue Size: 100
       Value: true
     - Alpha: 1
-
       Axes Length: 0.05000000074505806
       Axes Radius: 0.009999999776482582
       Class: rviz/Pose
       Color: 255; 25; 0
       Enabled: true
-
       Head Length: 0.30000001192092896
       Head Radius: 0.10000000149011612
       Name: Pose
@@ -645,9 +638,7 @@ Visualization Manager:
       Shape: Axes
       Topic: /target
       Unreliable: false
-
       Value: true
-
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -676,9 +667,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-
       Distance: 1.2434059381484985
-
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -694,11 +683,9 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-
-      Pitch: -0.06520330905914307
+      Pitch: 0.11979672312736511
       Target Frame: <Fixed Frame>
-      Yaw: 5.464844703674316
-
+      Yaw: 0.006663207896053791
     Saved: ~
 Window Geometry:
   Displays:
