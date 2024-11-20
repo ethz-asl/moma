@@ -84,7 +84,7 @@
     <remap from="/mobile_base/swerve_controller/cmd_vel" to="/cmd_vel"/>
     <!-- <remap from="/mobile_base/swerve_controller/odom" to="/odom"/> -->
 
-    <rosparam file="$(find gmp_description)/config/platform_description.yaml" command="load"/>
+    <rosparam file="$(find gmp_bringup)/config/sim_controllers.yaml" command="load"/>
 
     <!-- Spawn required packages  -->
     <arg name="base_controller" default="swerve_controller z_axis_sim_controller joint_state_controller" />

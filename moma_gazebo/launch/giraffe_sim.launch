@@ -114,7 +114,7 @@
 
     <group ns="mobile_base">
         <!-- Base controller parameters -->
-        <rosparam file="$(find gmp_description)/config/platform_description.yaml"/>
+        <rosparam file="$(find gmp_bringup)/config/sim_controllers.yaml"/>
         
         <!-- Load robot description for base -->
         <param name="robot_description" 
@@ -124,7 +124,7 @@
                 z_axis_height:=$(arg z_axis_height)"/>
         
         <!-- Launch controllers for base -->
-        <include file="$(find gmp_bringup)/launch/controller.launch">
+        <include file="$(find gmp_bringup)/launch/sim_controllers.launch">
             <arg name="controller" default="$(arg base_controller)"/>
         </include>
     </group>

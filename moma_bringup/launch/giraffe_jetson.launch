@@ -25,7 +25,7 @@
 
   <group ns="mobile_base">
     <param name="swerve_config_file" value="$(find gmp_robot)/config/platform_description.yaml" />
-    <rosparam file="$(find gmp_robot)/config/platform_description.yaml" command="load"/>
+    <rosparam file="$(find gmp_bringup)/config/real_controllers.yaml" command="load"/>
     <param name="swerve_controller/invert_steering" type="bool" value="true"/>
 
     <!-- Start main robot node to connect to hardware from root -->
