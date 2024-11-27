@@ -1,0 +1,13 @@
+tsdf_server:
+  frame_id: task
+  length: 0.3
+  resolution: 40
+  depth_scaling: 0.001
+  camera:
+    names: [rs_435_2, rs_435_3]
+    frame_ids: [rs_435_2_depth_optical_frame, rs_435_3_depth_optical_frame]
+    info_topics: [/rs_435_2/depth/camera_info, /rs_435_3/depth/camera_info]
+    depth_topics: [/rs_435_2/depth/image_rect_raw, /rs_435_3/depth/image_rect_raw]
+
+vgn:
+  model: $(find vgn)/assets/models/vgn_conv.pth

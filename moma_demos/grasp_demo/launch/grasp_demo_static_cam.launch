@@ -1,0 +1,38 @@
+<?xml version="1.0" ?>
+<launch>
+    <!-- Arguments -->
+    <arg name="semantic" default="false" doc="use Voxblox++ for semantic scene reconstruction" />
+    <arg name="launch_rviz" default="true"/>
+    <arg name="simulation_mode" default="false"/>
+
+    <!-- ======== Launch everything ======== -->
+
+    <!-- Parameters -->
+    <rosparam command="load" file="$(find grasp_demo)/config/grasp_demo_static_cam.yaml" ns="moma_demo" subst_value="true"/>
+
+    Panda
+     <include file="$(find moma_bringup)/launch/panda_real.launch">
+        <arg name="rviz" value="false"/>
+    </include>
+    <include file="$(find moma_bringup)/launch/components/scan_box_sensors.launch">
+    </include>
+    <include file="$(find moma_bringup)/launch/components/scan_box_transformations.launch">
+    </include>
+
+    <!-- VGN nodes -->
+    <rosparam command="load" file="$(find grasp_demo)/config/vgn_nodes_static_cam.yaml" subst_value="true" />
+    <node unless="$(arg semantic)" pkg="grasp_demo" type="tsdf_server_static_cam.py" name="tsdf_server" output="screen"/>
+
+    <!-- Action nodes -->
+    <node pkg="grasp_demo" type="reset.py" name="reset" output="screen"/>
+    <node pkg="grasp_demo" type="reconstruct_scene_static_cam.py" name="scan_action_node" args="$(arg semantic)" output="screen" />
+    <node pkg="grasp_demo" type="plan_grasp.py" name="plan_grasp" output="screen"/>
+    <!-- <node pkg="grasp_demo" type="execute_grasp.py" name="execute_grasp" output="screen"/>
+    <node pkg="grasp_demo" type="drop_object.py" name="drop_object" output="screen"/> -->
+
+    <!-- Launch demo script-->
+    <node pkg="grasp_demo" type="run_half_plan.py" name="grasp_demo" output="screen"/>
+
+    <!-- Open rviz if desired -->
+    <node if="$(arg launch_rviz)" type="rviz" name="rviz" pkg="rviz" args="-d $(find grasp_demo)/config/grasp_demo_static_cam.rviz"/>
+</launch>

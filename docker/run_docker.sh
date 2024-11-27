@@ -91,7 +91,8 @@ ls -FAlh $XAUTH
 echo ""
 echo "Running docker..."
 
-docker run -it --rm \
+# docker run -it --rm \
+docker run -it \
     --env="DISPLAY=$DISPLAY" \
     --env="FRANKA_IP=$FRANKA_IP" \
     --volume=$WORKSPACE:/root/moma_ws \
