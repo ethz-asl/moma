@@ -136,3 +136,6 @@ cartesian_impedance_trajectory_controller:
     verbose_print: false                # Enables additional prints
     state_msgs: false                   # Messages of controller state
     tf_frames: false                    # Extra tf frames
+  stiffness_reconfigure:
+    update_stiffness: true              # Update stiffness values
+    nullspace_stiffness: 0.123            # Nullspace stiffness
