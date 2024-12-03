@@ -62,6 +62,11 @@ class MoveServer(object):
             else:
                 rospy.logerr(f"goal.direction must be [combined, forward, reverse], yours is {goal.direction.data}")
                 raise ValueError
+            
+        elif self._robot_name == "heron":
+            # make interface to "move commander" to call services here
+            rospy.logerr("Need to implement here!!")
+            raise ValueError
         else:
             rospy.logerr(f"Only implemented robot \"giraffe\", yours: {self._robot_name}")
             raise ValueError

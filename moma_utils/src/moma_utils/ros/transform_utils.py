@@ -11,6 +11,9 @@ from geometry_msgs.msg import Pose, PoseStamped
 from actionlib_msgs.msg import GoalStatus
 
 
+def array_from_pose_stamped(pose_stamped: PoseStamped) -> np.array:
+    return array_from_pose(pose_stamped.pose)
+
 def array_from_pose(pose: Pose) -> np.array:
     array = np.array(
         [

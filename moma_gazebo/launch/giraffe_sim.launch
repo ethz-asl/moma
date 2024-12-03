@@ -26,7 +26,7 @@
     <arg name="paused" default="false" />
     <arg name="use_sim_time" default="true" />
     <arg name="world" default="$(find moma_gazebo)/worlds/simple.world" />
-    <!-- <arg name="world" default="$(find heron_demo)/worlds/road.world" /> -->
+    <!-- <arg name="world" default="$(find moma_gazebo)/worlds/road.world" /> -->
     <arg name="rviz" default="true" />
 
     <!-- Joint positions -->
