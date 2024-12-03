@@ -30,6 +30,8 @@
               -J $(arg arm_id)_finger_joint2 0.01" />
 
   <include file="$(find moma_gazebo)/launch/panda_sim.launch" 
-    pass_all_args="true"/>
+    pass_all_args="true">
+    <arg name="arm_controller" value="cartesian_impedance_trajectory_controller"/>
+  </include>
 
 </launch>
