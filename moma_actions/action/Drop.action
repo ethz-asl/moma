@@ -1,0 +1,7 @@
+# Define the goal
+std_msgs/Float32MultiArray joints
+---
+# Define the result
+bool success
+---
+# Define the feedback

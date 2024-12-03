@@ -163,6 +163,11 @@
               <robotParam>robot_description_arm</robotParam>
               <robotDescription>robot_description_arm</robotDescription>
             </xacro:if>
+            <xacro:unless value="${multiple_robots}">
+              <robotNamespace>/</robotNamespace>
+              <robotParam>robot_description</robotParam>
+              <robotDescription>robot_description</robotDescription>
+            </xacro:unless>
           </plugin>
           <self_collide>true</self_collide>
         </gazebo>

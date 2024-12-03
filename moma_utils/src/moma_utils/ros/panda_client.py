@@ -3,18 +3,21 @@
 # Python 2/3 compatibility imports
 from __future__ import print_function, annotations
 from six.moves import input
+from typing import Tuple
 
 import sys
 import copy
 import rospy
 import moveit_commander
 import actionlib
+import tf2_ros
 import numpy as np
 import scipy as sc
 from moveit_msgs.msg import RobotTrajectory, DisplayTrajectory
 from geometry_msgs.msg import Pose, PoseStamped
 from std_msgs.msg import String
 from sensor_msgs.msg import JointState
+import tf2_geometry_msgs 
 
 # from scipy.spatial.transform import Rotation
 from moma_utils.ros import conversions
@@ -109,7 +112,11 @@ class PandaArmClient(object):
         self._init_state_publishers()
         self._init_recovery()
 
+        # self.ee_pose_pub = rospy.Publisher("ee_pose", PoseStamped, queue_size=10, latch=True)
+        # self.ee_global_pose_pub = rospy.Publisher("ee_from_base", PoseStamped, queue_size=10, latch=True)
+
         # Misc variables
+
         self.robot = robot
         self.scene = scene
         self.move_group = move_group
@@ -155,10 +162,73 @@ class PandaArmClient(object):
         else:
             return True
 
-    def get_state(self):
+    def get_state(self) -> Tuple[np.ndarray, np.ndarray]:
         q = np.asarray(self._joint_state_msg.position[:7])
         dq = np.asarray(self._joint_state_msg.velocity[:7])
         return q, dq
+
+    def get_current_pose(self):
+        return self.move_group.get_current_pose(end_effector_link=self.eef_link)
+
+    def publish_ee_pose(self):
+        """
+        NOTE don't implement
+        """
+        rate = rospy.Rate(10)
+
+        while not rospy.is_shutdown():
+
+            ee_pose = self.move_group.get_current_pose(end_effector_link=self.eef_link)
+
+            ee_pose_stamped = PoseStamped()
+            ee_pose_stamped.pose = ee_pose
+            ee_pose_stamped.header.stamp = rospy.Time.now()
+            ee_pose_stamped.header.frame_id = self.eef_link
+
+            self.ee_pose_pub.publish(ee_pose_stamped)
+            
+            rate.sleep()
+
+    def get_global_ee_pose(self, odom_topic='odom', base_link='base_footprint'):
+        """
+        if robot mobile robot
+        """
+        ee_pose_local = self.move_group.get_current_pose(self.eef_link)
+        tf_buffer = tf2_ros.Buffer()
+        tf_listener = tf2_ros.TransformListener(tf_buffer)
+
+        try:
+            transform = tf_buffer.lookup_transform(odom_topic, base_link, rospy.Time(0), rospy.Duration(1.0))
+            ee_pose_global = tf2_geometry_msgs.do_transform_pose(ee_pose_local, transform)
+            return ee_pose_global
+
+        except (tf2_ros.LookupException, tf2_ros.ExtrapolationException, tf2_ros.TransformException) as e:
+            rospy.logerr(f"Could not transform end-effector pose to global frame: {e}")
+            return None
+        
+    def publish_global_ee_pose(self, odom_topic='odom', base_link='base_footprint'):
+        """
+        NOTE don't implement, needs adjusting
+        """
+        rate = rospy.Rate(10)
+
+        while  not rospy.is_shutdown():
+            ee_pose_local = self.move_group.get_current_pose(self.eef_link)
+            tf_buffer = tf2_ros.Buffer()
+            tf_listener = tf2_ros.TransformListener(tf_buffer)
+
+            try:
+                transform = tf_buffer.lookup_transform(odom_topic, base_link, rospy.Time(0), rospy.Duration(1.0))
+                ee_pose_global = tf2_geometry_msgs.do_transform_pose(ee_pose_local, transform)
+                
+                self.ee_global_pose_pub.publish(ee_pose_global)
+
+
+            except (tf2_ros.LookupException, tf2_ros.ExtrapolationException, tf2_ros.TransformException) as e:
+                rospy.logerr(f"Could not transform end-effector pose to global frame: {e}")
+            
+            rate.sleep()
+
 
     def recover(self):
         msg = ErrorRecoveryActionGoal()
@@ -235,6 +305,7 @@ class PandaArmClient(object):
         return all_close(joint_goal, current_joints)
 
     def get_pose(self, position: np.array, orientation: np.array) -> Pose:
+        # get rid of this potentially in favour for utis fnc
         pose_goal = Pose()
         pose_goal.orientation.x = orientation[0]
         pose_goal.orientation.y = orientation[1]
@@ -262,12 +333,49 @@ class PandaArmClient(object):
             )
             raise ValueError
 
+        # rospy.loginfo(f"Pose goal to send: {pose_goal}")
+
         self.move_group.go(wait=True)
         self.move_group.stop()
         self.move_group.clear_pose_targets()
 
         current_pose = self.move_group.get_current_pose().pose
         return all_close(pose_goal, current_pose)
+
+    def get_planning_frame(self):
+        return self.move_group.get_planning_frame()
+
+    def get_pose_ref_frame(self):
+        return self.move_group.get_pose_reference_frame()
+
+    def get_planning_pipeline(self):
+        self.move_group.get_planning_pipeline_id()
+
+    def get_planner(self):
+        self.move_group.get_planner_id()
+
+    def set_planning_pipeline(self, planning_pipeline):
+        """
+        Specify which planning pipeline to use
+        [ompl, pilz_industrial_motion_planner]
+        """
+        rospy.logwarn(f"Now setting planning pipeline to: {planning_pipeline}")
+        self.move_group.set_planning_pipeline_id(planning_pipeline)
+        #TODO should also set planner here default if not done
+        if planning_pipeline == "ompl":
+            self.set_planner("RRTConnect")
+        elif planning_pipeline == "pilz_industrial_motion_planner":
+            self.set_planner("PTP")
+        elif planning_pipeline == "chomp":
+            self.set_planner("CHOMP")
+        else:
+            rospy.logerr(f"planning pipeline not supported: {planning_pipeline}")
+            raise ValueError
+
+    def set_planner(self, planner):
+        rospy.logwarn(f"Now setting planner to: {planner}")
+        self.move_group.set_planner_id(planner)
+        self.move_group.set_start_state_to_current_state()
 
     def go_to_pose_goal_cartesian(
         self,
@@ -365,14 +473,18 @@ class PandaGripperClient(object):
         speed: float = 0.1,
         force: float = 5.0,
     ):
-        rospy.loginfo("Closing gripper")
         msg = GraspGoal(width, GraspEpsilon(e_inner, e_outer), speed, force)
         self.grasp_client.send_goal(msg)
         self.grasp_client.wait_for_result(rospy.Duration(2.0))
 
-    def release(self, width: float = 0.1):
+    def close(self):
+        rospy.loginfo("Closing gripper")
+        self.grasp()
+
+    def release(self):
         rospy.loginfo("Opening gripper")
-        self.move(width)
+        # self.move(width)
+        self.grasp()
 
     def stop(self):
         msg = StopGoal()
@@ -440,7 +552,7 @@ def main():
             elif user_input == "o":
                 gripper.release()
             elif user_input == "c":
-                gripper.grasp()
+                gripper.close()
             elif user_input == "j":
                 arm.goto([0.605, -0.311, -0.163, -2.341, -0.077, 2.133, 1.248])
             elif user_input == "l":

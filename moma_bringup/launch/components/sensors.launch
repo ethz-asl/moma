@@ -3,6 +3,7 @@
   <arg name="wrist_camera" default="true" />
   <arg name="fixed_camera" default="false" />
   <arg name="sensor" default="rs_d435"/> <!-- Options: rs_d435 | pmd_monstar-->
+  <!-- FOR JETSON: https://github.com/dnovischi/jetson-tutorials/pull/8/files -->
 
   <!-- Intel RealSense D435 -->
   <group if="$(eval arg('sensor') == 'rs_d435')">
