@@ -6,7 +6,7 @@
     <arg name="use_gripper" default="true" />
     <arg name="moveit" default="true"/>
     <arg name="arm_controller" 
-        if="$(arg moveit)" default="position_joint_trajectory_controller"/>
+        if="$(arg moveit)" default="cartesian_impedance_trajectory_controller"/>
     <arg name="arm_controller" 
         unless="$(arg moveit)" default="cartesian_impedance_example_controller"/>
     <arg name="moveit_planner" default="ompl"/>
@@ -14,8 +14,9 @@
     <arg name="use_wrist_camera" default="true" />
 
   <!-- If we don't do moveit, start the interactive markers. -->
-  <arg name="interactive_marker"
-    default="$(eval arg('arm_controller') in ['cartesian_impedance_example_controller', 'cartesian_impedance_trajectory_controller'])"/>
+  <!-- <arg name="interactive_marker"
+    default="$(eval arg('arm_controller') in ['cartesian_impedance_example_controller', 'cartesian_impedance_trajectory_controller'])"/> -->
+  <arg name="interactive_marker" value="false"/>
 
     <!-- Sim arguments -->
     <arg name="gazebo" default="true" />
