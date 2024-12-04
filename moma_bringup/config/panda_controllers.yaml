@@ -1,4 +1,4 @@
-CartesianImpedance_trajectory_controller:
+cartesian_impedance_trajectory_controller:
   type: cartesian_impedance_controller/CartesianImpedanceController
   joints:
       - panda_joint1
@@ -9,10 +9,10 @@ CartesianImpedance_trajectory_controller:
       - panda_joint6
       - panda_joint7
   end_effector: panda_default_ee            # Link to control arm in
-  update_frequency: 100000                 # Controller update frequency in Hz
+  update_frequency: 500                 # Controller update frequency in Hz
   # Optional parameters - the mentioned values are the defaults
   dynamic_reconfigure: true             # Starts dynamic reconfigure server
-  handle_trajectories: false             # Accept traj., e.g. from MoveIt
+  handle_trajectories: true             # Accept traj., e.g. from MoveIt
   robot_description: /robot_description # In case of a varying name
   wrench_ee_frame: panda_default_ee         # Default frame for wrench commands
   delta_tau_max: 1.0                    # Max. commanded torque diff between steps in Nm
@@ -21,6 +21,9 @@ CartesianImpedance_trajectory_controller:
     pose: 0.1                           # Reference pose filtering
     stiffness: 0.1                      # Cartesian and nullspace stiffness
     wrench: 0.1                         # Commanded torque
+  stiffness_reconfigure:
+    update_stiffness: true
+
   verbosity:
     verbose_print: false                # Enables additional prints
     state_msgs: false                   # Messages of controller state
