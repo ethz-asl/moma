@@ -3,7 +3,7 @@
   <arg name="rviz" default="true" />
   <arg name="robot_ip" default="$(env FRANKA_IP)" />
   <arg name="publish_world_link" default="true" />
-  <arg name="moveit" default="false" />
+  <arg name="moveit" default="true" />
   <arg name="moveit_pipeline" default="ompl"/> <!-- Options: ompl | chomp | pilz_industrial_motion_planner-->
   <arg name="arm_id" default="panda" />
   <arg name="controller" default="cartesian_impedance_trajectory_controller" /> <!-- Options:cartesian_impedance_example_controller position_joint_trajectory_controller, cartesian_impedance_trajectory_controller-->
@@ -12,7 +12,7 @@
  
   <!-- If we don't do moveit, start the interactive markers. -->
   <arg name="interactive_marker"
-    default="$(eval arg('controller') in ['cartesian_impedance_example_controller', 'cartesian_impedance_trajectory_controller'])"
+    default="$(eval arg('controller') in ['cartesian_impedance_example_controller', 'cartesian_impedance_trajectory_controller'] and arg('moveit')==false)"
     doc="Should the interactive marker node be started?" />
 
   <!-- Launch control -->
