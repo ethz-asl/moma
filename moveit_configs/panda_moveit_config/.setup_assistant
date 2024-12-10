@@ -1,11 +1,11 @@
 moveit_setup_assistant_config:
   URDF:
-    package: franka_description
-    relative_path: robots/panda/panda.urdf.xacro
-    xacro_args: hand:=true
+    package: moma_description
+    relative_path: urdf/panda.urdf.xacro
+    xacro_args: use_fixed_camera:=false
   SRDF:
-    relative_path: config/panda.srdf.xacro
+    relative_path: config/panda.srdf
   CONFIG:
-    author_name: MoveIt maintainer team
-    author_email: moveit_releasers@googlegroups.com
-    generated_timestamp: 1636310680
+    author_name: Lucy Harris
+    author_email: harrisl@ethz.ch
+    generated_timestamp: 1729526303

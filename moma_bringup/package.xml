@@ -14,4 +14,8 @@
   <depend>franka_gazebo</depend>
   <build_depend>dynamic_reconfigure</build_depend>
   <exec_depend>dynamic_reconfigure</exec_depend>
+
+  <exec_depend>moma_ui</exec_depend>
+  <exec_depend>elevation_mapping_demos</exec_depend>
+  <exec_depend>voxblox_ros</exec_depend>
 </package>

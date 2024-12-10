@@ -30,6 +30,8 @@ import matplotlib.pyplot as plt
 
 from geometry_msgs.msg import TransformStamped, Vector3, Quaternion
 
+from nav_msgs.msg import Path
+
 import os
 
 import cv2
@@ -61,6 +63,8 @@ class MomaUiNode:
         self.last_elevation_map = None
         self.elevation_map_sub = rospy.Subscriber("/elevation_mapping/elevation_map", GridMap, self.elevation_map_callback)
 
+        self.sweep_sub = rospy.Subscriber("moma_ui/sweep/plan_in", Path, self.sweep_callback) 
+
         # Mouse click subscriber and storage
         self.control_image = None
         self.click_sub = rospy.Subscriber("/moma_ui/sam/control_image/mouse_click", PointStamped, self.click_callback)
@@ -82,6 +86,8 @@ class MomaUiNode:
 
         self.sweep_marker_enabled = True
 
+        self.last_received_sweep_path = None
+
         ## Publishers
         self.control_img_pub = rospy.Publisher('moma_ui/sam/control_image', Image, queue_size=10)
         self.mask_pub = rospy.Publisher('moma_ui/sam/mask_image', Image, queue_size=10)
@@ -97,7 +103,7 @@ class MomaUiNode:
         self.set_label_fg_bg_srv = rospy.Service('moma_ui/sam/set_label_fg_bg', SetBool, self.set_label_fg_bg)
         self.start_stop_rosbag_rec_srv = rospy.Service('moma_ui/rosbag_recorder/start_stop', SetBool, self.start_stop_rosbag_rec)
         self.clear_map_srv = rospy.Service('moma_ui/map/clear', Trigger, self.clear_map)
-        self.use_sweep_from_topic_srv = rospy.Service('moma_ui/sweep/use_sweep_from_topic', SetBool, self.use_sweep_from_topic)
+        self.use_sweep_from_topic_srv = rospy.Service('moma_ui/sweep/use_sweep_topic', SetBool, self.use_sweep_from_topic)
 
         # CVBridge for image conversion
         self.bridge = CvBridge()
@@ -107,7 +113,8 @@ class MomaUiNode:
         self.point_cloud_sub = rospy.Subscriber('/rs_435_3/depth/color/points_passthrough_xyz', PointCloud2, self.point_cloud_cb)
         self.last_received_pointcloud = None
         # the prior for the work plane either as a pose or as a support and normal
-        T_W_WP_as_tx_ty_tz_qx_qy_qz_qw_TF_W_WP = rospy.get_param('/T_W_WP_as_tx_ty_tz_qx_qy_qz_qw_TF_W_WP', '0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0')      
+        # T_W_WP_as_tx_ty_tz_qx_qy_qz_qw_TF_W_WP = rospy.get_param('/T_W_WP_as_tx_ty_tz_qx_qy_qz_qw_TF_W_WP', '0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0')      
+        T_W_WP_as_tx_ty_tz_qx_qy_qz_qw_TF_W_WP = rospy.get_param('/T_W_WP_as_tx_ty_tz_qx_qy_qz_qw_TF_W_WP', '0.5, 0.0, 0.0, 0, 0, -0.7071068, 0.7071068')      
         self.T_W_WP_as_tx_ty_tz_qx_qy_qz_qw_TF_W_WP_pose = Pose()
         self.T_W_WP_as_tx_ty_tz_qx_qy_qz_qw_TF_W_WP_pose.position.x = float(T_W_WP_as_tx_ty_tz_qx_qy_qz_qw_TF_W_WP.split(',')[0])
         self.T_W_WP_as_tx_ty_tz_qx_qy_qz_qw_TF_W_WP_pose.position.y = float(T_W_WP_as_tx_ty_tz_qx_qy_qz_qw_TF_W_WP.split(',')[1])
@@ -132,6 +139,44 @@ class MomaUiNode:
 
         # rosbag recorder
         self.rosbag_record_subprocess = None
+
+
+    def sweep_callback(self, msg):
+        rospy.loginfo(f"moma_ui: Received sweep path")
+        # check how many waypoints are in the path
+        last_received_sweep_path = copy.deepcopy(msg)
+        num_waypoints = len(last_received_sweep_path.poses)
+        if num_waypoints == 0:
+            rospy.logwarn("moma_ui: Received sweep path has no waypoints")
+            return
+        if num_waypoints == 1:
+            rospy.logwarn("moma_ui: Received sweep path has only one waypoint")
+            return
+        if num_waypoints > 1:
+            rospy.loginfo(f"moma_ui: Received sweep path has {num_waypoints} waypoints will just use first and last")
+            last_received_sweep_path.poses = [last_received_sweep_path.poses[0], last_received_sweep_path.poses[-1]]
+        # the sweep has to be in the work plane frame!
+        if self.last_received_sweep_path.header.frame_id != self.work_plane_frame:
+            rospy.logwarn("moma_ui: Sweep path is not in the right frame")
+            return
+        self.last_received_sweep_path = last_received_sweep_path
+        # visualize the sweep path
+        marker_array_msg = MarkerArray()
+        # make a box that starts at the first waypoint and ends at the last waypoint, it should start on the work plane and be perpendicular to the work plane
+        thickness = 0.001
+        sweep_marker = Marker()
+        sweep_marker.header.frame_id = self.work_plane_frame
+        sweep_marker.header.stamp = rospy.Time(0)
+        sweep_marker.ns = 'sweep_marker'
+        sweep_marker.id = 0
+        sweep_marker.type = 1
+        sweep_marker.action = 0
+        sweep_marker.pose.position = self.last_received_sweep_path.poses[0].position
+        sweep_marker.scale = Vector3(0.5, 0.5, thickness)
+        sweep_marker.color = ColorRGBA(0.0, 1.0, 0.0, 0.5)
+        marker_array_msg.markers.append(sweep_marker)
+        self.viz_marker_array_pub.publish(marker_array_msg)
+
 
     def use_sweep_from_topic(self, req):
         self.sweep_marker_enabled = req.data
@@ -343,6 +388,11 @@ class MomaUiNode:
                 g = (color_raw >> 8) & 0x0000ff
                 r =  color_raw & 0x0000ff
                 color_img[i, j] = [r, g, b]
+
+        # rotate it by +90 degrees
+        # color_img = np.rot90(color_img, k=-1)
+        # # flip lr
+        color_img = np.fliplr(color_img)    
         ros_image = self.bridge.cv2_to_imgmsg(color_img, encoding="bgr8")
         self.elev_map_rgb_img_pub.publish(ros_image)
         # if elev_map mode, store the it as the last received image
@@ -369,10 +419,17 @@ class MomaUiNode:
                 self.last_mask = np.zeros((num_rows, num_cols), dtype=bool)
             msg_copy = copy.deepcopy(msg)
             elevation_layer = np.array(msg_copy.data[msg_copy.layers.index('elevation')].data).reshape((num_rows, num_cols))
+            
+            corrected_mask = copy.deepcopy(self.last_mask)
+            # flip lr
+            corrected_mask = np.fliplr(corrected_mask)
+            # rotate it by +90 degrees
+            # corrected_mask = np.rot90(corrected_mask, k=1)
+
             if self.fg_is_positive:
-                elevation_layer[~self.last_mask] = 0.0
+                elevation_layer[~corrected_mask] = 0.0
             else:
-                elevation_layer[self.last_mask] = 0.0
+                elevation_layer[corrected_mask] = 0.0
             msg_copy.data[msg_copy.layers.index('elevation')].data = elevation_layer.flatten().tolist()
             self.filtered_elevation_map_pub.publish(msg_copy)
             
@@ -513,7 +570,7 @@ class MomaUiNode:
         plane_support_pose.position.y = support_xyz[1]
         plane_support_pose.position.z = support_xyz[2]
         # compute quaternion from normal and x_prime
-        n_x_prime = np.array([1.0, 0.0, 0.0])
+        n_x_prime = np.array([0.0, -1.0, 0.0])
         n_z = np.array(normal_xyz)
         if n_z[2] < 0.0:
             n_z = -n_z

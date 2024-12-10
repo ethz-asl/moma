@@ -16,3 +16,4 @@ track_point_z: 0.0
 resolution: 0.005
 length_in_x: 0.5
 length_in_y: 0.5
+# min_update_rate: 

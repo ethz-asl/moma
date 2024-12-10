@@ -5,16 +5,16 @@ postprocessor_pipeline: # set by postprocessor_pipeline_name
     params:
       input_layer: elevation
       output_layer: elevation_inpainted
-      radius: 0.05
+      radius: 0.07
 
-  # Compute Surface normals
-  - name: surface_normals
-    type: gridMapFilters/NormalVectorsFilter
-    params:
-      input_layer: elevation_inpainted
-      output_layers_prefix: normal_vectors_
-      radius: 0.1
-      normal_vector_positive_axis: z
+  # # Compute Surface normals
+  # - name: surface_normals
+  #   type: gridMapFilters/NormalVectorsFilter
+  #   params:
+  #     input_layer: elevation_inpainted
+  #     output_layers_prefix: normal_vectors_
+  #     radius: 0.1
+  #     normal_vector_positive_axis: z
 
   #  Delete layers that are not needed to reduce bandwidth
   #  - name: delete_original_layers

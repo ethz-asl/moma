@@ -37,11 +37,29 @@ protected Q_SLOTS:
   void planTask();
   void executeTask();
   void toggleSweepTopic();
+  void goToUpdateLabel();
+  void gotoLabel();
+  void goToStoreEePose();
+  void goToStoreJoints();
+  void goToDeleteLabel();
+  void goToClearAllLabels();
+  void resetMoveit();
+  void taskExecute();
+  void toggleMoveitCmdInput();
+  void executeMoveitPath();
+  void updateMoveitOffsetX();
+  void updateMoveitOffsetY();
+  void updateMoveitOffsetZ();
 
 protected:    
     // ROS node handle (for any communication, if needed)
     ros::NodeHandle nh_;
     ros::Publisher fg_min_height_pub_;
+    ros::Publisher go_to_label_pub_;
+    ros::Publisher error_recovery_moveit_pub_;
+    ros::Publisher moveit_offset_x_pub_;
+    ros::Publisher moveit_offset_y_pub_;
+    ros::Publisher moveit_offset_z_pub_;
 
     // PERCEPTION
     // Qt elements
@@ -89,6 +107,26 @@ protected:
     QPushButton* teach_repeat_start_button_ = new QPushButton("Start Teach");
     QPushButton* teach_repeat_stop_button_ = new QPushButton("Stop Teach");
     QPushButton* teach_repeat_execute_button_ = new QPushButton("Repeat");
+
+    // MOVEIT
+    // Qt elements
+    QCheckBox* moveit_cmd_toggle_cmd_input_ = new QCheckBox("Pose/Joints");
+    QPushButton* moveit_cmd_execute_path_button_ = new QPushButton("Execute Path");
+    QPushButton* moveit_reset_button_ = new QPushButton("Reset MoveIt");
+    // LineEdit for offset tx, ty, tz
+    QLineEdit* moveit_offset_tx_ = new QLineEdit;
+    QLineEdit* moveit_offset_ty_ = new QLineEdit;
+    QLineEdit* moveit_offset_tz_ = new QLineEdit;
+
+    // GOTO
+    // Qt elements
+    QLineEdit* goto_label_ = new QLineEdit;
+    QPushButton* go_to_button_ = new QPushButton("Go-To Label");
+    QPushButton* go_to_delete_label_button_ = new QPushButton("Delete Label");
+    QPushButton* go_to_clear_all_labels_button_ = new QPushButton("Clear All Labels");
+    QPushButton* go_to_store_ee_pose_button_ = new QPushButton("Store EE Pose");
+    QPushButton* go_to_store_joints_button_ = new QPushButton("Store Joints");
+    QPushButton* go_to_reset_moveit_button_ = new QPushButton("Reset MoveIt");
 
     // TASK
     // Qt elements

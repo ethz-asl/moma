@@ -35,7 +35,7 @@
         output_frame: world
         filter_field_name: z
         filter_limit_min: 0.25
-        filter_limit_max: 0.8
+        filter_limit_max: 0.4
         filter_limit_negative: False
       </rosparam>
   </node>
@@ -84,7 +84,7 @@
         output_frame: world
         filter_field_name: z
         filter_limit_min: 0.25
-        filter_limit_max: 0.8
+        filter_limit_max: 0.4
         filter_limit_negative: False
       </rosparam>
   </node>
@@ -133,7 +133,7 @@
         output_frame: world
         filter_field_name: z
         filter_limit_min: 0.25
-        filter_limit_max: 0.8
+        filter_limit_max: 0.4
         filter_limit_negative: False
       </rosparam>
   </node>
@@ -174,12 +174,15 @@
     <param name="max_weight" value="10.0"/>
   </node>
 
+  
+
 
   <node pkg="elevation_mapping" type="elevation_mapping" name="elevation_mapping" output="log">
         <rosparam command="load" file="$(find moma_bringup)/config/elevation_map_panda_scan_box.yaml"/>
       <rosparam command="load" file="$(find moma_bringup)/config/elevation_map_postprocessor_pipeline.yaml" />
-      <param name="enable_continuous_cleanup" value="false"/>
+      <param name="enable_visibility_cleanup" value="false"/>
   </node>
+
   <!-- <node pkg="nodelet" type="nodelet" name="transform_pc_to_work_plane" args="load pcl/PassThrough pcl_manager" output="screen">
       <remap from="~input" to="/pointcloud_passthrough_xyz/output_outlier_filtered" />
       <remap from="~output" to="/pointcloud_passthrough_xyz/in_work_plane"/>

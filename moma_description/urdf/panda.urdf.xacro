@@ -5,7 +5,7 @@
   <xacro:arg name="gazebo" default="false" />
   <xacro:arg name="xyz" default="0 0 0" />
   <xacro:arg name="rpy" default="0 0 0" />
-  <xacro:arg name="use_fixed_camera" default="true" />
+  <xacro:arg name="use_fixed_camera" default="false" />
   <xacro:arg name="use_wrist_camera" default="true" />
   <xacro:arg name="use_bota" default="false" />
   <xacro:arg name="include_control_plugin" default="true" />
