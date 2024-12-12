@@ -11,7 +11,7 @@ import tf
 import copy
 from scipy.spatial.transform import Rotation as R
 import numpy as np
-
+from geometry_msgs.msg import PoseStamped
 from std_msgs.msg import Float32, Float64
 
 
@@ -43,9 +43,11 @@ class MoveItClient:
         rospy.Subscriber("moma_ui/commander/target_pose", PoseStamped, self.target_pose_cb)
         rospy.Subscriber("moma_ui/commander/target_joint_state", JointState, self.target_joint_state_cb)
         rospy.Subscriber("moma_ui/commander/target_path", Path, self.target_path_cb)
+        rospy.Subscriber("moma_ui/commander/target_waypoints", PoseStamped, self.target_waypoints_cb)
         rospy.Subscriber("moma_ui/commander/ee_offset_t_x", Float32, self.ee_offset_t_x_cb)
         rospy.Subscriber("moma_ui/commander/ee_offset_t_y", Float32, self.ee_offset_t_y_cb)
         rospy.Subscriber("moma_ui/commander/ee_offset_t_z", Float32, self.ee_offset_t_z_cb)
+        
 
         self.ee_offset_t_x = 0
         self.ee_offset_t_y = 0
@@ -53,6 +55,8 @@ class MoveItClient:
 
         # TF listener
         self.tf_listener = tf.TransformListener()
+
+        self.waypoints = None
 
         self.last_target_path = None
         self.executing_path = False
@@ -289,6 +293,13 @@ class MoveItClient:
             self.arm_group.set_joint_value_target(joint_state.position)
             success = self.arm_group.go(wait=True)
             self.arm_group.stop()
+
+    def target_waypoints_cb(self, pose):    
+        # buffer new waypoint
+        if self.waypoints is None:
+            self.waypoints = []
+        self.waypoints.append(pose)
+        rospy.loginfo(f"Received target waypoint")
 
     # Service to delete all stored labels
     def delete_all_labels_srv(self, req):
