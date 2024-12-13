@@ -48,7 +48,6 @@ class MoveItClient:
         rospy.Subscriber("moma_ui/commander/ee_offset_t_y", Float32, self.ee_offset_t_y_cb)
         rospy.Subscriber("moma_ui/commander/ee_offset_t_z", Float32, self.ee_offset_t_z_cb)
         
-
         self.ee_offset_t_x = 0
         self.ee_offset_t_y = 0
         self.ee_offset_t_z = 0
@@ -56,7 +55,7 @@ class MoveItClient:
         # TF listener
         self.tf_listener = tf.TransformListener()
 
-        self.waypoints = None
+        self.waypoints_path = None
 
         self.last_target_path = None
         self.executing_path = False
@@ -70,6 +69,8 @@ class MoveItClient:
         rospy.Service("moma_ui/commander/print_labels", Trigger, self.print_labels)
         rospy.Service("moma_ui/commander/execute_path", Trigger, self.execute_plan_srv)
         rospy.Service("moma_ui/commander/toggle_cmd_input", SetBool, self.toggle_cmd_input_srv)
+        rospy.Service("moma_ui/commander/delete_waypoints", Trigger, self.delete_waypoints_srv)
+        rospy.Service("moma_ui/commander/execute_waypoints", Trigger, self.execute_waypoints_srv)
 
         # path publisher
         self.path_pub = rospy.Publisher("moma_ui/commander/path", Path, queue_size=1)
@@ -100,7 +101,21 @@ class MoveItClient:
         return SetBoolResponse(success=True, message="Topic input set to: " + self.topic_input)
     
     def execute_plan_srv(self, req):
-        if self.last_target_path is None:
+        # replace path with a dummy path
+        # self.last_target_path = Path()
+        # self.last_target_path.header.stamp = rospy.Time.now()
+        # self.last_target_path.header.frame_id = self.frame_id
+        # current_pose = PoseStamped()
+        # current_pose.pose = self.arm_group.get_current_pose().pose
+        # current_pose.header.stamp = rospy.Time.now()
+        # current_pose.header.frame_id = self.frame_id
+        # print('type(current_pose)', type(current_pose)) 
+        # self.last_target_path.poses = [current_pose]
+        # # second one is just 0.1m in front of the first one
+        # second_pose = copy.deepcopy(current_pose)
+        # second_pose.pose.position.x += 0.1
+        # self.last_target_path.poses.append(second_pose)
+        if self.last_target_path is None and self.waypoints_path is None:
             rospy.logwarn("No path to execute.")
             return TriggerResponse(success=True, message="No path to execute.")
         elif self.executing_path:
@@ -109,7 +124,16 @@ class MoveItClient:
         else:
             self.executing_path = True
             rospy.loginfo("Executing path plan.")
-            path = self.last_target_path
+            if self.last_target_path is not None:
+                rospy.loginfo("Using last target path.")
+                path = self.last_target_path
+            elif self.waypoints_path is not None:
+                rospy.loginfo("Using waypoints path.")
+                path = self.waypoints_path
+            else:
+                rospy.logwarn("No path to execute.")
+                return TriggerResponse(success=True, message="No path to execute")
+            # path = self.last_target_path
             # from current to first point in path
             waypoints = []
             current_pose = self.arm_group.get_current_pose().pose
@@ -122,7 +146,7 @@ class MoveItClient:
                 except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
                     rospy.logerr("Failed to transform pose to planning frame.")
                     return False
-                
+           
             # go through each point in the path, convert to planning frame, and add to waypoints
             idx = 0
             for pose in path.poses:
@@ -256,14 +280,21 @@ class MoveItClient:
             # self.arm_group.go(wait=True)
 
             # plan 
-            (plan, fraction) = self.arm_group.compute_cartesian_path(
-                waypoints=waypoints,  # waypoints to follow
-                eef_step=0.01,  # eef_step
-                avoid_collisions = False)
-            # execute
-            success = self.arm_group.execute(plan)
-            self.executing_path = False
-            return TriggerResponse(success=success, message="Executed path plan.")
+            try:
+                (plan, fraction) = self.arm_group.compute_cartesian_path(
+                    waypoints=waypoints,  # waypoints to follow
+                    eef_step=0.01,  # eef_step
+                    avoid_collisions = False,
+                    jump_threshold=1.0)
+                # execute
+                success = self.arm_group.execute(plan)
+                self.executing_path = False
+                return TriggerResponse(success=success, message="Executed path plan.")
+            except Exception as e:
+                rospy.logerr(f"Failed to execute path plan: {e}")
+                self.executing_path = False
+                return TriggerResponse(success=False, message="Failed to execute path plan.")
+
 
     def target_path_cb(self, path):
         rospy.loginfo(f"Received target path")
@@ -296,10 +327,42 @@ class MoveItClient:
 
     def target_waypoints_cb(self, pose):    
         # buffer new waypoint
-        if self.waypoints is None:
-            self.waypoints = []
-        self.waypoints.append(pose)
         rospy.loginfo(f"Received target waypoint")
+        if self.waypoints_path is None:
+            self.waypoints_path = Path()
+            self.waypoints_path.header.frame_id = self.frame_id
+        if pose.header.frame_id != self.frame_id:
+            rospy.logwarn(f"Pose frame_id: {pose.header.frame_id} does not match planning frame: {self.frame_id}")
+            rospy.logwarn("Will try to transform pose to planning frame.")
+            print('Frame 1 ', pose.header.frame_id)
+            print('Frame 2 ', self.frame_id)
+            # wait for transform
+            self.tf_listener.waitForTransform(self.frame_id, pose.header.frame_id, rospy.Time.now(), rospy.Duration(1.0))
+            try:
+                pose = self.tf_listener.transformPose(self.frame_id, pose)
+            except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
+                rospy.logerr("Failed to transform pose to planning frame.")
+                return False
+        self.waypoints_path.poses.append(pose)
+        self.path_pub.publish(self.waypoints_path)
+
+    def delete_waypoints_srv(self, req):
+        self.waypoints_path = None
+        rospy.loginfo("Deleted waypoints.")
+        return TriggerResponse(success=True, message="Deleted waypoints.")
+    
+    def execute_waypoints_srv(self, req):
+        # if self.waypoints_path is None:
+        #     rospy.logwarn("No waypoints to execute.")
+        #     return TriggerResponse(success=False, message="No waypoints to execute.")
+        # elif self.executing_path:
+        #     rospy.logwarn("Already executing path.")
+        #     return TriggerResponse(success=True, message="Already executing path")
+        # else:
+        self.last_target_path = self.waypoints_path
+        # call execute plan service
+        resp = self.execute_plan_srv(TriggerRequest())
+        return resp
 
     # Service to delete all stored labels
     def delete_all_labels_srv(self, req):
