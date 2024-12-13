@@ -6,9 +6,9 @@
     <arg name="use_gripper" default="true" />
     <arg name="moveit" default="true"/>
     <arg name="arm_controller" 
-        if="$(arg moveit)" default="cartesian_impedance_trajectory_controller"/>
+        if="$(arg moveit)" default="position_joint_trajectory_controller"/>
     <arg name="arm_controller" 
-        unless="$(arg moveit)" default="cartesian_impedance_example_controller"/>
+        unless="$(arg moveit)" default="position_joint_trajectory_controller"/>
     <arg name="moveit_planner" default="ompl"/>
     <arg name="use_fixed_camera" default="false"/>
     <arg name="use_wrist_camera" default="true" />

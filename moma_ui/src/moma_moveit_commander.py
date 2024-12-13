@@ -230,7 +230,7 @@ class MoveItClient:
                 # convert to quaternion
                 rrr = R.from_matrix(rotmat)
                 # offset by 90 degrees
-                rrr = rrr * R.from_euler('xyz', [0, 0, 90], degrees=True)
+                # rrr = rrr * R.from_euler('xyz', [0, 0, 90], degrees=True)
                 print('rrr', rrr)
                 rq = rrr.as_quat()
                 print('rq', rq)
@@ -266,10 +266,10 @@ class MoveItClient:
 
             # decorate with first and last pose that are the same height as the current pose
             first_pose = copy.deepcopy(waypoints[0])
-            first_pose.position.z = current_pose.position.z + 0.1
+            first_pose.position.z = current_pose.position.z
             waypoints.insert(0, first_pose)
             last_pose = copy.deepcopy(waypoints[-1])
-            last_pose.position.z = current_pose.position.z + 0.1
+            last_pose.position.z = current_pose.position.z
             waypoints.append(last_pose)
 
 
