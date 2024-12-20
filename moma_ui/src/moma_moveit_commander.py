@@ -13,7 +13,8 @@ from scipy.spatial.transform import Rotation as R
 import numpy as np
 from geometry_msgs.msg import PoseStamped
 from std_msgs.msg import Float32, Float64
-
+from pilz_robot_programming import Circ, from_euler
+from geometry_msgs.msg import Pose, Point
 
 class MoveItClient:
     def __init__(self):
@@ -101,20 +102,21 @@ class MoveItClient:
         return SetBoolResponse(success=True, message="Topic input set to: " + self.topic_input)
     
     def execute_plan_srv(self, req):
-        # replace path with a dummy path
-        # self.last_target_path = Path()
-        # self.last_target_path.header.stamp = rospy.Time.now()
-        # self.last_target_path.header.frame_id = self.frame_id
-        # current_pose = PoseStamped()
-        # current_pose.pose = self.arm_group.get_current_pose().pose
-        # current_pose.header.stamp = rospy.Time.now()
-        # current_pose.header.frame_id = self.frame_id
-        # print('type(current_pose)', type(current_pose)) 
-        # self.last_target_path.poses = [current_pose]
-        # # second one is just 0.1m in front of the first one
-        # second_pose = copy.deepcopy(current_pose)
-        # second_pose.pose.position.x += 0.1
-        # self.last_target_path.poses.append(second_pose)
+        # Define a circular motion
+        goal = Circ(
+            center_pose=Pose(position=Point(0.5, 0.5, 0.5), orientation=from_euler(0, 0, 0)),
+            interim_point=Point(0.5, 0.5, 0.7),
+            target_point=Point(0.7, 0.7, 0.5),
+            velocity_scaling=0.3,
+            acceleration_scaling=0.3,
+        )
+        self.arm_group.plan(goal)
+        self.arm_group.execute(goal)
+
+        # group.plan(goal)
+        # group.execute(goal)
+
+        '''
         if self.last_target_path is None and self.waypoints_path is None:
             rospy.logwarn("No path to execute.")
             return TriggerResponse(success=True, message="No path to execute.")
@@ -133,7 +135,6 @@ class MoveItClient:
             else:
                 rospy.logwarn("No path to execute.")
                 return TriggerResponse(success=True, message="No path to execute")
-            # path = self.last_target_path
             # from current to first point in path
             waypoints = []
             current_pose = self.arm_group.get_current_pose().pose
@@ -150,7 +151,6 @@ class MoveItClient:
             # go through each point in the path, convert to planning frame, and add to waypoints
             idx = 0
             for pose in path.poses:
-                print('HELLLOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO')
                 if pose.header.frame_id != self.frame_id:
                     # convert the first point in the path to the planning frame
                     pose.header.stamp.nsecs = 0
@@ -168,36 +168,6 @@ class MoveItClient:
                 elif idx == len(path.poses) - 1:
                     pos_current = path.poses[idx-1].pose.position
                     pos_next = path.poses[idx].pose.position
-                '''
-                # compute yaw
-                dy = pos_next.y - pos_current.y
-                dx = pos_next.x - pos_current.x
-                yaw = np.arctan2(dy, dx)
-                yaw_deg = -np.degrees(yaw)
-                # wrap to +/- 90
-                if yaw_deg > 90:
-                    yaw_deg = yaw_deg - 180
-                elif yaw_deg < -90:
-                    yaw_deg = yaw_deg + 180
-                print('pos_current.x', pos_current.x)
-                print('pos_current.y', pos_current.y)
-                print('pos_next.x', pos_next.x)
-                print('pos_next.y', pos_next.y)
-
-                print('dx', dx)
-                print('dy', dy)
-                print('yaw', yaw)
-                print('yaw_deg', yaw_deg)
-                
-                rospy.loginfo(f"Yaw: {yaw_deg}")    
-
-                # fix orientation
-                roll_deg = 180
-                pitch_deg = 0
-                # yaw_deg = 45 # 
-                r = R.from_euler('xyz', [roll_deg, pitch_deg, yaw_deg], degrees=True)
-                rq  = r.as_quat()
-                '''
                 
                 nx_sweep_dir = np.array([pos_next.x - pos_current.x, pos_next.y - pos_current.y])
                 print('nx_sweep_dir', nx_sweep_dir)
@@ -230,7 +200,7 @@ class MoveItClient:
                 # convert to quaternion
                 rrr = R.from_matrix(rotmat)
                 # offset by 90 degrees
-                # rrr = rrr * R.from_euler('xyz', [0, 0, 90], degrees=True)
+                rrr = rrr * R.from_euler('xyz', [0, 0, 180], degrees=True)
                 print('rrr', rrr)
                 rq = rrr.as_quat()
                 print('rq', rq)
@@ -272,20 +242,12 @@ class MoveItClient:
             last_pose.position.z = current_pose.position.z
             waypoints.append(last_pose)
 
-
-            # go to first point in path but with RRTConnect
-            # switch to RRTConnect
-            # self.arm_group.set_planner_id("RRTConnect")
-            # self.arm_group.set_pose_target(waypoints[0])
-            # self.arm_group.go(wait=True)
-
             # plan 
             try:
                 (plan, fraction) = self.arm_group.compute_cartesian_path(
                     waypoints=waypoints,  # waypoints to follow
                     eef_step=0.01,  # eef_step
-                    avoid_collisions = False,
-                    jump_threshold=1.0)
+                    avoid_collisions = False)
                 # execute
                 success = self.arm_group.execute(plan)
                 self.executing_path = False
@@ -294,7 +256,7 @@ class MoveItClient:
                 rospy.logerr(f"Failed to execute path plan: {e}")
                 self.executing_path = False
                 return TriggerResponse(success=False, message="Failed to execute path plan.")
-
+        '''
 
     def target_path_cb(self, path):
         rospy.loginfo(f"Received target path")
