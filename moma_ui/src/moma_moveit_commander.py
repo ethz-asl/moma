@@ -13,8 +13,11 @@ from scipy.spatial.transform import Rotation as R
 import numpy as np
 from geometry_msgs.msg import PoseStamped
 from std_msgs.msg import Float32, Float64
-from pilz_robot_programming import Circ, from_euler
+from pilz_robot_programming import *
 from geometry_msgs.msg import Pose, Point
+from pilz_msgs.srv import GetSpeedOverride, GetSpeedOverrideResponse
+
+__REQUIRED_API_VERSION__ = "1"
 
 class MoveItClient:
     def __init__(self):
@@ -23,6 +26,7 @@ class MoveItClient:
         # Initialize moveit_commander and the move group for the arm
         moveit_commander.roscpp_initialize([])
         self.arm_group = moveit_commander.MoveGroupCommander("panda_arm")
+
         self.frame_id = self.arm_group.get_planning_frame()
         self.controlled_frame = self.arm_group.get_end_effector_link()
         self.current_planner = self.arm_group.get_planner_id()
@@ -30,7 +34,6 @@ class MoveItClient:
         rospy.loginfo(f"End effector link: {self.controlled_frame}")
         self.arm_group.set_planner_id("RRTConnect") # options: RRTConnect, P2P, LIN, CIRC, CHOMP
         rospy.loginfo(f"Current planner: {self.arm_group.get_planner_id()}")
-
 
         self.topic_input = "pose"
 
@@ -81,6 +84,18 @@ class MoveItClient:
         self.store_current_pose_srv(TriggerRequest())
         self.label_callback(String("init_joint_state"))
         self.store_current_joint_state_srv(TriggerRequest())
+
+        # store home pose
+        self.arm_group.remember_joint_values("home")
+
+        '''
+        # example for using the pilz industrial motion planner  
+        self.arm_group.set_planning_pipeline_id("pilz_industrial_motion_planner")
+        self.arm_group.set_planner_id("LIN")
+        self.arm_group.shift_pose_target(0, 0.1, self.controlled_frame)
+        self.arm_group.go(wait=True)
+        '''
+
         rospy.loginfo("MoveIt client node initialized.")
         
     def ee_offset_t_x_cb(self, msg):    
@@ -102,30 +117,24 @@ class MoveItClient:
         return SetBoolResponse(success=True, message="Topic input set to: " + self.topic_input)
     
     def execute_plan_srv(self, req):
-        # Define a circular motion
-        goal = Circ(
-            center_pose=Pose(position=Point(0.5, 0.5, 0.5), orientation=from_euler(0, 0, 0)),
-            interim_point=Point(0.5, 0.5, 0.7),
-            target_point=Point(0.7, 0.7, 0.5),
-            velocity_scaling=0.3,
-            acceleration_scaling=0.3,
-        )
-        self.arm_group.plan(goal)
-        self.arm_group.execute(goal)
-
-        # group.plan(goal)
-        # group.execute(goal)
-
-        '''
+        # go to home first with RRTConnect
+        self.arm_group.set_planning_pipeline_id("ompl")
+        self.arm_group.set_planner_id("RRTConnect")
+        self.arm_group.go(self.arm_group.get_named_target_values("home"), wait=True)
+        rospy.logwarn("Going to home")
+        self.arm_group.go(wait=True)
+        rospy.logwarn("Went to home")
+        
         if self.last_target_path is None and self.waypoints_path is None:
             rospy.logwarn("No path to execute.")
             return TriggerResponse(success=True, message="No path to execute.")
-        elif self.executing_path:
-            rospy.logwarn("Already executing path.")
-            return TriggerResponse(success=True, message="Already executing path")
+        # elif self.executing_path:
+        #     rospy.logwarn("Already executing path.")
+        #     return TriggerResponse(success=True, message="Already executing path")
         else:
             self.executing_path = True
             rospy.loginfo("Executing path plan.")
+            # Either use last target path or waypoints path, depending on which was set.
             if self.last_target_path is not None:
                 rospy.loginfo("Using last target path.")
                 path = self.last_target_path
@@ -135,7 +144,8 @@ class MoveItClient:
             else:
                 rospy.logwarn("No path to execute.")
                 return TriggerResponse(success=True, message="No path to execute")
-            # from current to first point in path
+            
+            # assemble path in planning frame
             waypoints = []
             current_pose = self.arm_group.get_current_pose().pose
             first_pose = path.poses[0]
@@ -161,7 +171,7 @@ class MoveItClient:
                         rospy.logerr("Failed to transform pose to planning frame.")
                         return False
 
-                # compute orientation based on the difference between current and next point in path
+                # compute yaw based on the difference between current and next point in path
                 if idx < len(path.poses) - 1:                
                     pos_current = path.poses[idx].pose.position
                     pos_next = path.poses[idx+1].pose.position
@@ -242,21 +252,20 @@ class MoveItClient:
             last_pose.position.z = current_pose.position.z
             waypoints.append(last_pose)
 
-            # plan 
-            try:
-                (plan, fraction) = self.arm_group.compute_cartesian_path(
-                    waypoints=waypoints,  # waypoints to follow
-                    eef_step=0.01,  # eef_step
-                    avoid_collisions = False)
-                # execute
-                success = self.arm_group.execute(plan)
-                self.executing_path = False
-                return TriggerResponse(success=success, message="Executed path plan.")
-            except Exception as e:
-                rospy.logerr(f"Failed to execute path plan: {e}")
-                self.executing_path = False
-                return TriggerResponse(success=False, message="Failed to execute path plan.")
-        '''
+        self.arm_group.set_planning_pipeline_id("pilz_industrial_motion_planner")
+        self.arm_group.set_planner_id("LIN")
+        for wp in waypoints:
+            rospy.logwarn(f"Going to waypoint: {wp}")
+            self.arm_group.set_pose_target(wp)
+            self.arm_group.go(wait=True)
+            rospy.sleep(1)
+            rospy.logwarn(f"Reached waypoint")
+
+        # switch back to RRTConnect
+        self.arm_group.set_planning_pipeline_id("ompl")
+        self.arm_group.set_planner_id("RRTConnect")
+
+        return TriggerResponse(success=True, message="Executed path plan.")
 
     def target_path_cb(self, path):
         rospy.loginfo(f"Received target path")
@@ -438,6 +447,7 @@ class MoveItClient:
         return False
 
 if __name__ == "__main__":
+
 
     try:
         client = MoveItClient()
