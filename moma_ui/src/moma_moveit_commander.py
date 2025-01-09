@@ -252,12 +252,13 @@ class MoveItClient:
             last_pose.position.z = current_pose.position.z
             waypoints.append(last_pose)
 
-        self.arm_group.set_planning_pipeline_id("pilz_industrial_motion_planner")
-        self.arm_group.set_planner_id("LIN")
+        # Option 1: Use the planner (should be LIN)
         for wp in waypoints:
             rospy.logwarn(f"Going to waypoint: {wp}")
-            self.arm_group.set_pose_target(wp)
-            self.arm_group.go(wait=True)
+            # self.arm_group.set_pose_target(wp)
+            # self.arm_group.go(wait=True)
+            (plan, fraction) = self.arm_group.compute_cartesian_path([wp], 0.01, 0.0)
+            self.arm_group.execute(plan, wait=True)
             rospy.sleep(1)
             rospy.logwarn(f"Reached waypoint")
 
