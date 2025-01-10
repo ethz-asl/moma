@@ -251,27 +251,59 @@ class MoveItClient:
             last_pose.position.z = current_pose.position.z
             waypoints.append(last_pose)
         
-        # Option 1: Use the planner (should be LIN)
-        for wp in waypoints:
-            rospy.logwarn(f"Going to waypoint: {wp}")
-            # Option 1: Use the planner (ideally LIN)
-            # self.arm_group.set_pose_target(wp)
-            # self.arm_group.go(wait=True)
-            # Option 2: Use the cartesian path planner
-            (plan, fraction) = self.arm_group.compute_cartesian_path([wp], 0.01, 0.0)
-            # need to retime the trajectory to enforce velocity and acceleration scaling
-            traj_out = self.arm_group.retime_trajectory(self.arm_group.get_current_state(), plan, 0.1, 0.1)
-            self.arm_group.execute(traj_out, wait=True)
-            rospy.sleep(1)
-            rospy.logwarn(f"Reached waypoint")
+            # '''
+            # Option 1: Use the planner (should be LIN)
+            for wp in waypoints:
+                rospy.logwarn(f"Going to waypoint: {wp}")
+                # Option 1: Use the planner (ideally LIN)
+                # self.arm_group.set_pose_target(wp)
+                # self.arm_group.go(wait=True)
+                # Option 2: Use the cartesian path planner
+                (plan, fraction) = self.arm_group.compute_cartesian_path([wp], 0.01)
+                # need to retime the trajectory to enforce velocity and acceleration scaling
+                traj_out = self.arm_group.retime_trajectory(self.arm_group.get_current_state(), plan, 0.1, 0.1)
+                self.arm_group.execute(traj_out, wait=True)
+                rospy.sleep(1)
+                rospy.logwarn(f"Reached waypoint")
+            # '''
 
-        # switch back to RRTConnect
-        self.arm_group.set_planning_pipeline_id("ompl")
-        self.arm_group.set_planner_id("RRTConnect")
+            # (plan, fraction) = self.arm_group.compute_cartesian_path(waypoints, 0.01)
+            # # need to retime the trajectory to enforce velocity and acceleration scaling
+            # traj_out = self.arm_group.retime_trajectory(self.arm_group.get_current_state(), plan, 0.1, 0.1)
+            # self.arm_group.execute(traj_out, wait=True)
+
+            # switch back to RRTConnect
+            # self.arm_group.set_planning_pipeline_id("ompl")
+            # self.arm_group.set_planner_id("RRTConnect")
 
         # go to home with RRTConnect    
         # self.arm_group.go(self.arm_group.get_named_target_values("home"), wait=True)
         # rospy.logwarn("Going to home")
+        # waypoints = []
+        # scale = 1.0
+
+        # wpose = self.arm_group.get_current_pose().pose
+        # print('helllooo')
+        # print(type(wpose))
+        # wpose.position.z -= scale * 0.1  # First move up (z)
+        # wpose.position.y += scale * 0.2  # and sideways (y)
+        # waypoints.append(copy.deepcopy(wpose))
+
+        # wpose.position.x += scale * 0.1  # Second move forward/backwards in (x)
+        # waypoints.append(copy.deepcopy(wpose))
+
+        # wpose.position.y -= scale * 0.1  # Third move sideways (y)
+        # waypoints.append(copy.deepcopy(wpose))
+
+        # We want the Cartesian path to be interpolated at a resolution of 1 cm
+        # which is why we will specify 0.01 as the eef_step in Cartesian
+        # translation.  We will disable the jump threshold by setting it to 0.0,
+        # ignoring the check for infeasible jumps in joint space, which is sufficient
+        # for this tutorial.
+        # (plan, fraction) = self.arm_group.compute_cartesian_path(
+        #     waypoints, 0.01  # waypoints to follow  # eef_step
+        # )
+        # self.arm_group.execute(plan, wait=True)
 
         return TriggerResponse(success=True, message="Executed path plan.")
 
