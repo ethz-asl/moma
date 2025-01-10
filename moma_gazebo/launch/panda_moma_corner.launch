@@ -32,8 +32,8 @@
   <include file="$(find moma_gazebo)/launch/panda_sim.launch" 
     pass_all_args="true">
     <arg name="moveit" value="$(arg moveit)"/>
-    <arg name="arm_controller" value="position_joint_trajectory_controller"/>
-    <!-- <arg name="arm_controller" value="cartesian_impedance_trajectory_controller"/> -->
+    <!-- <arg name="arm_controller" value="position_joint_trajectory_controller"/> -->
+    <arg name="arm_controller" value="cartesian_impedance_trajectory_controller"/>
   </include>
 
 </launch>

@@ -13,11 +13,8 @@ from scipy.spatial.transform import Rotation as R
 import numpy as np
 from geometry_msgs.msg import PoseStamped
 from std_msgs.msg import Float32, Float64
-from pilz_robot_programming import *
 from geometry_msgs.msg import Pose, Point
-from pilz_msgs.srv import GetSpeedOverride, GetSpeedOverrideResponse
 
-__REQUIRED_API_VERSION__ = "1"
 
 class MoveItClient:
     def __init__(self):
@@ -95,6 +92,8 @@ class MoveItClient:
         self.arm_group.shift_pose_target(0, 0.1, self.controlled_frame)
         self.arm_group.go(wait=True)
         '''
+        # self.arm_group.set_max_velocity_scaling_factor(0.3)
+        # self.arm_group.set_max_acceleration_scaling_factor(0.21)
 
         rospy.loginfo("MoveIt client node initialized.")
         
@@ -251,20 +250,28 @@ class MoveItClient:
             last_pose = copy.deepcopy(waypoints[-1])
             last_pose.position.z = current_pose.position.z
             waypoints.append(last_pose)
-
+        
         # Option 1: Use the planner (should be LIN)
         for wp in waypoints:
             rospy.logwarn(f"Going to waypoint: {wp}")
+            # Option 1: Use the planner (ideally LIN)
             # self.arm_group.set_pose_target(wp)
             # self.arm_group.go(wait=True)
+            # Option 2: Use the cartesian path planner
             (plan, fraction) = self.arm_group.compute_cartesian_path([wp], 0.01, 0.0)
-            self.arm_group.execute(plan, wait=True)
+            # need to retime the trajectory to enforce velocity and acceleration scaling
+            traj_out = self.arm_group.retime_trajectory(self.arm_group.get_current_state(), plan, 0.1, 0.1)
+            self.arm_group.execute(traj_out, wait=True)
             rospy.sleep(1)
             rospy.logwarn(f"Reached waypoint")
 
         # switch back to RRTConnect
         self.arm_group.set_planning_pipeline_id("ompl")
         self.arm_group.set_planner_id("RRTConnect")
+
+        # go to home with RRTConnect    
+        # self.arm_group.go(self.arm_group.get_named_target_values("home"), wait=True)
+        # rospy.logwarn("Going to home")
 
         return TriggerResponse(success=True, message="Executed path plan.")
 
