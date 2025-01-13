@@ -60,6 +60,7 @@ protected:
     ros::Publisher moveit_offset_x_pub_;
     ros::Publisher moveit_offset_y_pub_;
     ros::Publisher moveit_offset_z_pub_;
+    ros::Publisher moveit_trigger_pub_;
 
     // PERCEPTION
     // Qt elements
