@@ -15,6 +15,7 @@
 #include <std_msgs/String.h>
 #include <std_msgs/Float32.h>
 
+#include <std_msgs/Bool.h>
 
 #include "moma_ui/MomaPanel.h"
 
@@ -178,6 +179,9 @@ MomaPanel::MomaPanel(QWidget *parent)
     moveit_offset_x_pub_ = nh_.advertise<std_msgs::Float32>("moma_ui/commander/ee_offset_t_x", 1);
     moveit_offset_y_pub_ = nh_.advertise<std_msgs::Float32>("moma_ui/commander/ee_offset_t_y", 1);
     moveit_offset_z_pub_ = nh_.advertise<std_msgs::Float32>("moma_ui/commander/ee_offset_t_z", 1);
+
+    moveit_trigger_pub_ = nh_.advertise<std_msgs::Bool>("moma_ui/commander/execute_path_topic", 1);
+
 }
 
 void MomaPanel::updateMoveitOffsetX()
@@ -221,16 +225,22 @@ void MomaPanel::toggleMoveitCmdInput()
 void MomaPanel::executeMoveitPath()
 {
     ROS_WARN("moma_panel: Executing MoveIt path");
-    ros::ServiceClient client = nh_.serviceClient<std_srvs::Trigger>("moma_ui/commander/execute_path");
-    std_srvs::Trigger srv;
-    if (client.call(srv))
-    {
-        ROS_INFO("moma_panel: MoveIt path execution service has been called");
-    }
-    else
-    {
-        ROS_ERROR("moma_panel: Failed to call MoveIt path execution service");
-    }
+    // ros::ServiceClient client = nh_.serviceClient<std_srvs::Trigger>("moma_ui/commander/execute_path");
+    // std_srvs::Trigger srv;
+    // if (client.call(srv))
+    // {
+    //     ROS_INFO("moma_panel: MoveIt path execution service has been called");
+    // }
+    // else
+    // {
+    //     ROS_ERROR("moma_panel: Failed to call MoveIt path execution service");
+    // }
+
+    // Publish true to moma_ui/commander/execute_path
+    std_msgs::Bool msg;
+    msg.data = true;
+    // create a publisher
+    moveit_trigger_pub_.publish(msg);
 }
 
 
