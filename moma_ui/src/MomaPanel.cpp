@@ -240,6 +240,18 @@ void MomaPanel::resetMoveit()
     ROS_WARN("moma_panel: Resetting MoveIt");
     franka_msgs::ErrorRecoveryActionGoal msg;
     error_recovery_moveit_pub_.publish(msg);
+    // Also make a service call to moma_ui/commander/delete_waypoints of type std_srvs/Trigger
+    ros::ServiceClient client = nh_.serviceClient<std_srvs::Trigger>("moma_ui/commander/delete_waypoints");
+    std_srvs::Trigger srv;
+    if (client.call(srv))
+    {
+        ROS_INFO("moma_panel: Waypoints have been deleted");
+    }
+    else
+    {
+        ROS_ERROR("moma_panel: Failed to delete waypoints");
+    }
+
 }
 
 
