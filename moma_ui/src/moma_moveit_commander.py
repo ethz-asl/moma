@@ -15,6 +15,7 @@ from geometry_msgs.msg import PoseStamped
 from std_msgs.msg import Float32, Float64
 from geometry_msgs.msg import Pose, Point
 
+from std_msgs.msg import Bool
 
 class MoveItClient:
     def __init__(self):
@@ -48,6 +49,8 @@ class MoveItClient:
         rospy.Subscriber("moma_ui/commander/ee_offset_t_x", Float32, self.ee_offset_t_x_cb)
         rospy.Subscriber("moma_ui/commander/ee_offset_t_y", Float32, self.ee_offset_t_y_cb)
         rospy.Subscriber("moma_ui/commander/ee_offset_t_z", Float32, self.ee_offset_t_z_cb)
+
+        rospy.Subscriber("moma_ui/commander/execute_path_topic", Bool, self.execute_path_trigger_cb)
         
         self.ee_offset_t_x = 0
         self.ee_offset_t_y = 0
@@ -116,6 +119,22 @@ class MoveItClient:
         return SetBoolResponse(success=True, message="Topic input set to: " + self.topic_input)
     
     def execute_plan_srv(self, req):
+        self.execute_plan()
+        return TriggerResponse(success=True, message="Executed path plan.")
+    
+    def execute_path_trigger_cb(self, msg):
+        if self.executing_path:
+            rospy.logwarn("Already executing path.")
+        else:
+            if msg.data:
+                succ = self.execute_plan()
+                if succ:
+                    rospy.loginfo("Executed path plan.")
+                else:
+                    rospy.logwarn("Failed to execute path plan.")
+
+    def execute_plan(self):
+        self.executing_path = True
         # go to home first with RRTConnect
         self.arm_group.set_planning_pipeline_id("ompl")
         self.arm_group.set_planner_id("RRTConnect")
@@ -126,7 +145,9 @@ class MoveItClient:
         
         if self.last_target_path is None and self.waypoints_path is None:
             rospy.logwarn("No path to execute.")
-            return TriggerResponse(success=True, message="No path to execute.")
+            self.executing_path = False
+            return False
+            # return TriggerResponse(success=True, message="No path to execute.")
         # elif self.executing_path:
         #     rospy.logwarn("Already executing path.")
         #     return TriggerResponse(success=True, message="Already executing path")
@@ -304,8 +325,8 @@ class MoveItClient:
         #     waypoints, 0.01  # waypoints to follow  # eef_step
         # )
         # self.arm_group.execute(plan, wait=True)
-
-        return TriggerResponse(success=True, message="Executed path plan.")
+        self.executing_path = False
+        return True
 
     def target_path_cb(self, path):
         rospy.loginfo(f"Received target path")
