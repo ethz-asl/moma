@@ -177,7 +177,28 @@ class MoveItClient:
                 except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
                     rospy.logerr("Failed to transform pose to planning frame.")
                     return False
-           
+
+            # if path only contains one pose, go to that pose directly
+            if len(path.poses) == 1:
+                target_pose = path.poses[0].pose
+                # get the orientation of the target pose
+                r_tgt = R.from_quat([target_pose.orientation.x, target_pose.orientation.y, target_pose.orientation.z, target_pose.orientation.w])
+                # rotate the target pose by 180 degrees around the x
+                r_tgt = r_tgt * R.from_euler('xyz', [180, 0, 0], degrees=True)
+                # update target pose
+                target_pose.orientation.x = r_tgt.as_quat()[0]
+                target_pose.orientation.y = r_tgt.as_quat()[1]
+                target_pose.orientation.z = r_tgt.as_quat()[2]
+                target_pose.orientation.w = r_tgt.as_quat()[3]
+
+                # move to the target pose
+                self.arm_group.set_pose_target(target_pose)
+
+                # g
+                self.arm_group.go(wait=True)
+                self.executing_path = False
+                return True
+            
             # go through each point in the path, convert to planning frame, and add to waypoints
             idx = 0
             for pose in path.poses:
@@ -200,20 +221,11 @@ class MoveItClient:
                     pos_next = path.poses[idx].pose.position
                 
                 nx_sweep_dir = np.array([pos_next.x - pos_current.x, pos_next.y - pos_current.y])
-                print('nx_sweep_dir', nx_sweep_dir)
 
                 if nx_sweep_dir[1] < 0:
-                    print('Need to flip')
                     nx_sweep_dir = -nx_sweep_dir
-                print('After flip nx_sweep_dir', nx_sweep_dir)
                 nx_sweep_dir = nx_sweep_dir / np.linalg.norm(nx_sweep_dir)
                 ny_sweep_dir = np.array([nx_sweep_dir[1], -nx_sweep_dir[0]])
-
-                print('nx_sweep_dir', nx_sweep_dir)
-                print('ny_sweep_dir', ny_sweep_dir)
-                print('norm nx_sweep_dir', np.linalg.norm(nx_sweep_dir))
-                print('norm ny_sweep_dir', np.linalg.norm(ny_sweep_dir))
-                print('dot', np.dot(nx_sweep_dir, ny_sweep_dir))
 
                 # 3x3 rotation matrix
                 rotmat = np.array([
@@ -221,19 +233,11 @@ class MoveItClient:
                     [nx_sweep_dir[1], ny_sweep_dir[1], 0],
                     [0, 0, -1]])
                 
-                #is it a rotation matrix?
-                dete = np.linalg.det(rotmat)
-                print('dete', dete)
-                
-                print('rotmat', rotmat)
-                print('shape', rotmat.shape)
                 # convert to quaternion
                 rrr = R.from_matrix(rotmat)
                 # offset by 90 degrees
                 rrr = rrr * R.from_euler('xyz', [0, 0, 180], degrees=True)
-                print('rrr', rrr)
                 rq = rrr.as_quat()
-                print('rq', rq)
 
                 new_pose = copy.deepcopy(current_pose)
                 new_pose.position = pose.pose.position
@@ -272,10 +276,8 @@ class MoveItClient:
             last_pose.position.z = current_pose.position.z
             waypoints.append(last_pose)
         
-            # '''
             # Option 1: Use the planner (should be LIN)
             for wp in waypoints:
-                rospy.logwarn(f"Going to waypoint: {wp}")
                 # Option 1: Use the planner (ideally LIN)
                 # self.arm_group.set_pose_target(wp)
                 # self.arm_group.go(wait=True)
@@ -283,48 +285,11 @@ class MoveItClient:
                 (plan, fraction) = self.arm_group.compute_cartesian_path([wp], 0.01)
                 # need to retime the trajectory to enforce velocity and acceleration scaling
                 traj_out = self.arm_group.retime_trajectory(self.arm_group.get_current_state(), plan, 0.1, 0.1)
-                self.arm_group.execute(traj_out, wait=True)
+                returnvalue = self.arm_group.execute(traj_out, wait=True)
                 rospy.sleep(1)
                 rospy.logwarn(f"Reached waypoint")
-            # '''
+                print('returnvalue', returnvalue)
 
-            # (plan, fraction) = self.arm_group.compute_cartesian_path(waypoints, 0.01)
-            # # need to retime the trajectory to enforce velocity and acceleration scaling
-            # traj_out = self.arm_group.retime_trajectory(self.arm_group.get_current_state(), plan, 0.1, 0.1)
-            # self.arm_group.execute(traj_out, wait=True)
-
-            # switch back to RRTConnect
-            # self.arm_group.set_planning_pipeline_id("ompl")
-            # self.arm_group.set_planner_id("RRTConnect")
-
-        # go to home with RRTConnect    
-        # self.arm_group.go(self.arm_group.get_named_target_values("home"), wait=True)
-        # rospy.logwarn("Going to home")
-        # waypoints = []
-        # scale = 1.0
-
-        # wpose = self.arm_group.get_current_pose().pose
-        # print('helllooo')
-        # print(type(wpose))
-        # wpose.position.z -= scale * 0.1  # First move up (z)
-        # wpose.position.y += scale * 0.2  # and sideways (y)
-        # waypoints.append(copy.deepcopy(wpose))
-
-        # wpose.position.x += scale * 0.1  # Second move forward/backwards in (x)
-        # waypoints.append(copy.deepcopy(wpose))
-
-        # wpose.position.y -= scale * 0.1  # Third move sideways (y)
-        # waypoints.append(copy.deepcopy(wpose))
-
-        # We want the Cartesian path to be interpolated at a resolution of 1 cm
-        # which is why we will specify 0.01 as the eef_step in Cartesian
-        # translation.  We will disable the jump threshold by setting it to 0.0,
-        # ignoring the check for infeasible jumps in joint space, which is sufficient
-        # for this tutorial.
-        # (plan, fraction) = self.arm_group.compute_cartesian_path(
-        #     waypoints, 0.01  # waypoints to follow  # eef_step
-        # )
-        # self.arm_group.execute(plan, wait=True)
         self.executing_path = False
         return True
 
