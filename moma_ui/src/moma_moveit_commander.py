@@ -34,6 +34,7 @@ class MoveItClient:
         rospy.loginfo(f"Current planner: {self.arm_group.get_planner_id()}")
 
         self.topic_input = "pose"
+        self.path_not_waypoints = True
 
         # Initialize storage for poses and joint states
         self.stored_poses = {}
@@ -50,7 +51,7 @@ class MoveItClient:
         rospy.Subscriber("moma_ui/commander/ee_offset_t_y", Float32, self.ee_offset_t_y_cb)
         rospy.Subscriber("moma_ui/commander/ee_offset_t_z", Float32, self.ee_offset_t_z_cb)
 
-        rospy.Subscriber("moma_ui/commander/execute_path_topic", Bool, self.execute_path_trigger_cb)
+        rospy.Subscriber("moma_ui/commander/execute_path_topic", Bool, self.execute_plan_topic_cb)
         
         self.ee_offset_t_x = 0
         self.ee_offset_t_y = 0
@@ -60,9 +61,7 @@ class MoveItClient:
 
         # TF listener
         self.tf_listener = tf.TransformListener()
-
         self.waypoints_path = None
-
         self.last_target_path = None
         self.executing_path = False
 
@@ -73,10 +72,8 @@ class MoveItClient:
         rospy.Service("moma_ui/commander/delete_all_labels", Trigger, self.delete_all_labels_srv)
         rospy.Service("moma_ui/commander/goto_label", Trigger, self.goto_current_label_srv)
         rospy.Service("moma_ui/commander/print_labels", Trigger, self.print_labels)
-        rospy.Service("moma_ui/commander/execute_path", Trigger, self.execute_plan_srv)
         rospy.Service("moma_ui/commander/toggle_cmd_input", SetBool, self.toggle_cmd_input_srv)
         rospy.Service("moma_ui/commander/delete_waypoints", Trigger, self.delete_waypoints_srv)
-        rospy.Service("moma_ui/commander/execute_waypoints", Trigger, self.execute_waypoints_srv)
 
         # path publisher
         self.path_pub = rospy.Publisher("moma_ui/commander/path", Path, queue_size=1)
@@ -97,10 +94,8 @@ class MoveItClient:
         self.arm_group.shift_pose_target(0, 0.1, self.controlled_frame)
         self.arm_group.go(wait=True)
         '''
-        # self.arm_group.set_max_velocity_scaling_factor(0.3)
-        # self.arm_group.set_max_acceleration_scaling_factor(0.21)
 
-        rospy.loginfo("MoveIt client node initialized.")
+        rospy.loginfo("MoMaMoveIt Commander initialized!")
         
     def ee_offset_t_x_cb(self, msg):    
         self.ee_offset_t_x = msg.data
@@ -119,54 +114,46 @@ class MoveItClient:
             rospy.loginfo("Topic input set to joint state.")
             self.topic_input = "joint_state"
         return SetBoolResponse(success=True, message="Topic input set to: " + self.topic_input)
-    
-    def execute_plan_srv(self, req):
-        self.execute_plan()
-        return TriggerResponse(success=True, message="Executed path plan.")
-    
-    def execute_path_trigger_cb(self, msg):
+        
+    def execute_plan_topic_cb(self, msg):
         if self.executing_path:
-            rospy.logwarn("Already executing path.")
+            rospy.logwarn("Already executing plan!")
         else:
+            succ = self.execute_plan(msg.data)
             if msg.data:
-                succ = self.execute_plan()
                 if succ:
-                    rospy.loginfo("Executed path plan.")
+                    rospy.loginfo("Executed last received path.")
                 else:
                     rospy.logwarn("Failed to execute path plan.")
+            else:
+                if succ:
+                    rospy.loginfo("Executed waypoints path.")
+                else:
+                    rospy.logwarn("Failed to execute waypoints path.")
 
-    def execute_plan(self):
-        self.executing_path = True
-        # go to home first with RRTConnect
-        self.arm_group.set_planning_pipeline_id("ompl")
-        self.arm_group.set_planner_id("RRTConnect")
-        self.arm_group.go(self.arm_group.get_named_target_values("home"), wait=True)
-        rospy.logwarn("Going to home")
-        self.arm_group.go(wait=True)
-        rospy.logwarn("Went to home")
-        
+    def execute_plan(self, path_or_waypoints=True):
+        # hack
+        # path_or_waypoints = self.path_not_waypoints
         if self.last_target_path is None and self.waypoints_path is None:
             rospy.logwarn("No path to execute.")
             self.executing_path = False
             return False
-            # return TriggerResponse(success=True, message="No path to execute.")
-        # elif self.executing_path:
-        #     rospy.logwarn("Already executing path.")
-        #     return TriggerResponse(success=True, message="Already executing path")
         else:
-            self.executing_path = True
-            rospy.loginfo("Executing path plan.")
+            rospy.loginfo("Will execute plan.")
             # Either use last target path or waypoints path, depending on which was set.
-            if self.last_target_path is not None:
+            if path_or_waypoints and (self.last_target_path is not None):
                 rospy.loginfo("Using last target path.")
                 path = copy.deepcopy(self.last_target_path)
-            elif self.waypoints_path is not None:
+            elif path_or_waypoints and (self.last_target_path is None):
+                rospy.logwarn("No last target path to execute, will terminate.")
+                return False
+            elif not path_or_waypoints and (self.waypoints_path is not None):
                 rospy.loginfo("Using waypoints path.")
                 path = copy.deepcopy(self.waypoints_path)
-            else:
-                rospy.logwarn("No path to execute.")
-                return TriggerResponse(success=True, message="No path to execute")
-            
+            elif not path_or_waypoints and (self.waypoints_path is None):
+                rospy.logwarn("No waypoints path to execute, will terminate.")
+                return False
+
             # assemble path in planning frame
             waypoints = []
             current_pose = self.arm_group.get_current_pose().pose
@@ -193,20 +180,10 @@ class MoveItClient:
                 target_pose.orientation.z = r_tgt.as_quat()[2]
                 target_pose.orientation.w = r_tgt.as_quat()[3]
 
-                print('target_pose before offset', target_pose)
-
-                print('ee_offset_t_x', self.ee_offset_t_x)
-                print('ee_offset_t_y', self.ee_offset_t_y)
-                print('ee_offset_t_z', self.ee_offset_t_z)
-
-
                 # add the offset
                 target_pose.position.x += self.ee_offset_t_x
                 target_pose.position.y += self.ee_offset_t_y
                 target_pose.position.z += self.ee_offset_t_z
-
-                print('target_pose after offset', target_pose)
-
 
                 # move to the target pose
                 self.arm_group.set_pose_target(target_pose)
@@ -255,7 +232,6 @@ class MoveItClient:
 
                 # print the Z euler angle
                 yaw_rrr = rrr.as_euler('xyz', degrees=True)[2]
-                print('yaw_rrr', yaw_rrr)
 
                 # offset by 180 degrees, if yaw_rrr > 90 or < -90
                 if yaw_rrr > 90 or yaw_rrr < -90:
@@ -289,8 +265,6 @@ class MoveItClient:
                 pose.pose = wp
                 path.poses.append(pose)
 
-
-
             self.path_pub.publish(path)
 
             # decorate with first and last pose that are the same height as the current pose
@@ -308,12 +282,17 @@ class MoveItClient:
                 height_of_second_last_pose = waypoints[-2].position.z
                 last_pose.position.z = self.hover_height + height_of_second_last_pose
             waypoints.append(last_pose)
-       
-            # Option 1: Use the planner (should be LIN)
+
+            self.executing_path = True        
+            # go to home first with RRTConnect
+            self.arm_group.set_planning_pipeline_id("ompl")
+            self.arm_group.set_planner_id("RRTConnect")
+            self.arm_group.go(self.arm_group.get_named_target_values("home"), wait=True)
+            rospy.logwarn("Going home")
+            self.arm_group.go(wait=True)
+            rospy.logwarn("Went home")
+
             for wp in waypoints:
-                # Option 1: Use the planner (ideally LIN)
-                # self.arm_group.set_pose_target(wp)
-                # self.arm_group.go(wait=True)
                 # Option 2: Use the cartesian path planner
                 (plan, fraction) = self.arm_group.compute_cartesian_path([wp], 0.01)
                 # need to retime the trajectory to enforce velocity and acceleration scaling
@@ -321,7 +300,6 @@ class MoveItClient:
                 returnvalue = self.arm_group.execute(traj_out, wait=True)
                 rospy.sleep(1)
                 rospy.logwarn(f"Reached waypoint")
-                print('returnvalue', returnvalue)
 
         self.executing_path = False
         return True
@@ -378,22 +356,10 @@ class MoveItClient:
 
     def delete_waypoints_srv(self, req):
         self.waypoints_path = None
+        self.executing_path = False
         rospy.loginfo("Deleted waypoints.")
         return TriggerResponse(success=True, message="Deleted waypoints.")
     
-    def execute_waypoints_srv(self, req):
-        # if self.waypoints_path is None:
-        #     rospy.logwarn("No waypoints to execute.")
-        #     return TriggerResponse(success=False, message="No waypoints to execute.")
-        # elif self.executing_path:
-        #     rospy.logwarn("Already executing path.")
-        #     return TriggerResponse(success=True, message="Already executing path")
-        # else:
-        self.last_target_path = self.waypoints_path
-        # call execute plan service
-        resp = self.execute_plan_srv(TriggerRequest())
-        return resp
-
     # Service to delete all stored labels
     def delete_all_labels_srv(self, req):
         self.stored_poses = {}
