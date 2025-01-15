@@ -159,10 +159,10 @@ class MoveItClient:
             # Either use last target path or waypoints path, depending on which was set.
             if self.last_target_path is not None:
                 rospy.loginfo("Using last target path.")
-                path = self.last_target_path
+                path = copy.deepcopy(self.last_target_path)
             elif self.waypoints_path is not None:
                 rospy.loginfo("Using waypoints path.")
-                path = self.waypoints_path
+                path = copy.deepcopy(self.waypoints_path)
             else:
                 rospy.logwarn("No path to execute.")
                 return TriggerResponse(success=True, message="No path to execute")
@@ -182,7 +182,7 @@ class MoveItClient:
 
             # if path only contains one pose, go to that pose directly
             if len(path.poses) == 1:
-                target_pose = path.poses[0].pose
+                target_pose = copy.deepcopy(path.poses[0].pose)
                 # get the orientation of the target pose
                 r_tgt = R.from_quat([target_pose.orientation.x, target_pose.orientation.y, target_pose.orientation.z, target_pose.orientation.w])
                 # rotate the target pose by 180 degrees around the x
@@ -192,6 +192,21 @@ class MoveItClient:
                 target_pose.orientation.y = r_tgt.as_quat()[1]
                 target_pose.orientation.z = r_tgt.as_quat()[2]
                 target_pose.orientation.w = r_tgt.as_quat()[3]
+
+                print('target_pose before offset', target_pose)
+
+                print('ee_offset_t_x', self.ee_offset_t_x)
+                print('ee_offset_t_y', self.ee_offset_t_y)
+                print('ee_offset_t_z', self.ee_offset_t_z)
+
+
+                # add the offset
+                target_pose.position.x += self.ee_offset_t_x
+                target_pose.position.y += self.ee_offset_t_y
+                target_pose.position.z += self.ee_offset_t_z
+
+                print('target_pose after offset', target_pose)
+
 
                 # move to the target pose
                 self.arm_group.set_pose_target(target_pose)
