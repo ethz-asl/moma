@@ -114,7 +114,7 @@ class MomaUiNode:
         self.last_received_pointcloud = None
         # the prior for the work plane either as a pose or as a support and normal
         # T_W_WP_as_tx_ty_tz_qx_qy_qz_qw_TF_W_WP = rospy.get_param('/T_W_WP_as_tx_ty_tz_qx_qy_qz_qw_TF_W_WP', '0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0')      
-        T_W_WP_as_tx_ty_tz_qx_qy_qz_qw_TF_W_WP = rospy.get_param('/T_W_WP_as_tx_ty_tz_qx_qy_qz_qw_TF_W_WP', '0.5, 0.0, 0.4, 0, 0, -0.7071068, 0.7071068')      
+        T_W_WP_as_tx_ty_tz_qx_qy_qz_qw_TF_W_WP = rospy.get_param('/T_W_WP_as_tx_ty_tz_qx_qy_qz_qw_TF_W_WP', '0.5, 0.0, 0.3, 0, 0, -0.7071068, 0.7071068')      
         self.T_W_WP_as_tx_ty_tz_qx_qy_qz_qw_TF_W_WP_pose = Pose()
         self.T_W_WP_as_tx_ty_tz_qx_qy_qz_qw_TF_W_WP_pose.position.x = float(T_W_WP_as_tx_ty_tz_qx_qy_qz_qw_TF_W_WP.split(',')[0])
         self.T_W_WP_as_tx_ty_tz_qx_qy_qz_qw_TF_W_WP_pose.position.y = float(T_W_WP_as_tx_ty_tz_qx_qy_qz_qw_TF_W_WP.split(',')[1])
