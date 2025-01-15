@@ -99,6 +99,7 @@ MomaPanel::MomaPanel(QWidget *parent)
     move_it_cmd_layout->addWidget( moveit_cmd_toggle_cmd_input_ );
     moveit_cmd_toggle_cmd_input_->setChecked(true);
     move_it_cmd_layout->addWidget( moveit_cmd_execute_path_button_ );
+    move_it_cmd_layout->addWidget( moveit_cmd_execute_waypoints_button_ );
     move_it_cmd_layout->addWidget( moveit_reset_button_ );
     move_it_cmd_layout->addWidget( new QLabel( "Offset tx:" ));
     move_it_cmd_layout->addWidget( moveit_offset_tx_ );
@@ -157,6 +158,7 @@ MomaPanel::MomaPanel(QWidget *parent)
 
     connect( moveit_cmd_toggle_cmd_input_, SIGNAL( stateChanged(int) ), this, SLOT( toggleMoveitCmdInput() ));
     connect( moveit_cmd_execute_path_button_, SIGNAL( clicked() ), this, SLOT( executeMoveitPath() ));
+    connect( moveit_cmd_execute_waypoints_button_, SIGNAL( clicked() ), this, SLOT( executeMoveitWaypoints() ));
   connect( moveit_reset_button_, SIGNAL( clicked() ), this, SLOT( resetMoveit() ));
   connect( moveit_offset_tx_, SIGNAL( editingFinished() ), this, SLOT( updateMoveitOffsetX() ));
     connect( moveit_offset_ty_, SIGNAL( editingFinished() ), this, SLOT( updateMoveitOffsetY() ));
@@ -225,17 +227,6 @@ void MomaPanel::toggleMoveitCmdInput()
 void MomaPanel::executeMoveitPath()
 {
     ROS_WARN("moma_panel: Executing MoveIt path");
-    // ros::ServiceClient client = nh_.serviceClient<std_srvs::Trigger>("moma_ui/commander/execute_path");
-    // std_srvs::Trigger srv;
-    // if (client.call(srv))
-    // {
-    //     ROS_INFO("moma_panel: MoveIt path execution service has been called");
-    // }
-    // else
-    // {
-    //     ROS_ERROR("moma_panel: Failed to call MoveIt path execution service");
-    // }
-
     // Publish true to moma_ui/commander/execute_path
     std_msgs::Bool msg;
     msg.data = true;
@@ -243,7 +234,15 @@ void MomaPanel::executeMoveitPath()
     moveit_trigger_pub_.publish(msg);
 }
 
-
+void MomaPanel::executeMoveitWaypoints()
+{
+    ROS_WARN("moma_panel: Executing MoveIt waypoints");
+    // Publish true to moma_ui/commander/execute_waypoints
+    std_msgs::Bool msg;
+    msg.data = false;
+    // create a publisher
+    moveit_trigger_pub_.publish(msg);
+}
 
 void MomaPanel::resetMoveit()
 {
