@@ -237,8 +237,14 @@ class MoveItClient:
                 
                 # convert to quaternion
                 rrr = R.from_matrix(rotmat)
-                # offset by 90 degrees
-                rrr = rrr * R.from_euler('xyz', [0, 0, 180], degrees=True)
+
+                # print the Z euler angle
+                yaw_rrr = rrr.as_euler('xyz', degrees=True)[2]
+                print('yaw_rrr', yaw_rrr)
+
+                # offset by 180 degrees, if yaw_rrr > 90 or < -90
+                if yaw_rrr > 90 or yaw_rrr < -90:
+                    rrr = rrr * R.from_euler('xyz', [0, 0, 180], degrees=True)
                 rq = rrr.as_quat()
 
                 new_pose = copy.deepcopy(current_pose)
@@ -254,7 +260,7 @@ class MoveItClient:
                 new_pose.position.z += self.ee_offset_t_z
 
                 waypoints.append(new_pose)
-
+                
 
             # publish waypoints as path for visualization
             path = Path()
@@ -267,6 +273,8 @@ class MoveItClient:
                 pose.header.frame_id = self.frame_id
                 pose.pose = wp
                 path.poses.append(pose)
+
+
 
             self.path_pub.publish(path)
 
@@ -285,7 +293,7 @@ class MoveItClient:
                 height_of_second_last_pose = waypoints[-2].position.z
                 last_pose.position.z = self.hover_height + height_of_second_last_pose
             waypoints.append(last_pose)
-        
+       
             # Option 1: Use the planner (should be LIN)
             for wp in waypoints:
                 # Option 1: Use the planner (ideally LIN)
