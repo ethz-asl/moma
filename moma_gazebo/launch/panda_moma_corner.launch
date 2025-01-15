@@ -8,7 +8,7 @@
   <arg name="moveit_planner" default="ompl"/>
   <arg name="use_fixed_camera" default="true"/>
   <arg name="use_wrist_camera" default="false" />
-
+  <arg name="arm_controller" default="position_joint_trajectory_controller" />
   <!-- Sim arguments -->
   <arg name="gazebo" default="true" />
   <arg name="headless" default="false" />
@@ -32,8 +32,7 @@
   <include file="$(find moma_gazebo)/launch/panda_sim.launch" 
     pass_all_args="true">
     <arg name="moveit" value="$(arg moveit)"/>
-    <!-- <arg name="arm_controller" value="position_joint_trajectory_controller"/> -->
-    <arg name="arm_controller" value="cartesian_impedance_trajectory_controller"/>
+    <arg name="arm_controller" value="$(arg arm_controller)"/>
   </include>
 
 </launch>
