@@ -56,6 +56,8 @@ class MoveItClient:
         self.ee_offset_t_y = 0
         self.ee_offset_t_z = 0
 
+        self.hover_height = 0.1 # value or none
+
         # TF listener
         self.tf_listener = tf.TransformListener()
 
@@ -270,10 +272,18 @@ class MoveItClient:
 
             # decorate with first and last pose that are the same height as the current pose
             first_pose = copy.deepcopy(waypoints[0])
-            first_pose.position.z = current_pose.position.z
+            if self.hover_height is None:
+                first_pose.position.z = current_pose.position.z
+            else:   
+                height_of_second_pose = waypoints[1].position.z
+                first_pose.position.z = height_of_second_pose + self.hover_height
             waypoints.insert(0, first_pose)
             last_pose = copy.deepcopy(waypoints[-1])
-            last_pose.position.z = current_pose.position.z
+            if self.hover_height is None:
+                last_pose.position.z = current_pose.position.z
+            else:
+                height_of_second_last_pose = waypoints[-2].position.z
+                last_pose.position.z = self.hover_height + height_of_second_last_pose
             waypoints.append(last_pose)
         
             # Option 1: Use the planner (should be LIN)
