@@ -112,7 +112,7 @@ protected:
     // MOVEIT
     // Qt elements
     QCheckBox* moveit_cmd_toggle_cmd_input_ = new QCheckBox("Pose/Joints");
-    QPushButton* moveit_cmd_execute_path_button_ = new QPushButton("Execute Path");
+    QPushButton* moveit_cmd_execute_path_button_ = new QPushButton("Follow Waypoints");
     QPushButton* moveit_reset_button_ = new QPushButton("Reset MoveIt");
     // LineEdit for offset tx, ty, tz
     QLineEdit* moveit_offset_tx_ = new QLineEdit;
