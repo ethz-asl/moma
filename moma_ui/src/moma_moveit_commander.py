@@ -50,6 +50,8 @@ class MoveItClient:
         rospy.Subscriber("moma_ui/commander/ee_offset_t_x", Float32, self.ee_offset_t_x_cb)
         rospy.Subscriber("moma_ui/commander/ee_offset_t_y", Float32, self.ee_offset_t_y_cb)
         rospy.Subscriber("moma_ui/commander/ee_offset_t_z", Float32, self.ee_offset_t_z_cb)
+        rospy.Subscriber("moma_ui/commander/hover_height", Float32, self.hover_height_cb)
+        rospy.Subscriber("moma_ui/commander/pitch_offset_deg", Float32, self.pitch_offset_deg_cb)
 
         rospy.Subscriber("moma_ui/commander/execute_path_topic", Bool, self.execute_plan_topic_cb)
         
@@ -58,6 +60,7 @@ class MoveItClient:
         self.ee_offset_t_z = 0
 
         self.hover_height = 0.1 # value or none
+        self.pitch_offset_deg = 0 # 0 degrees is the default
 
         # TF listener
         self.tf_listener = tf.TransformListener()
@@ -105,6 +108,12 @@ class MoveItClient:
     
     def ee_offset_t_z_cb(self, msg):
         self.ee_offset_t_z = msg.data
+
+    def hover_height_cb(self, msg):
+        self.hover_height = msg.data
+
+    def pitch_offset_deg_cb(self, msg):
+        self.pitch_offset_deg = msg.data
 
     def toggle_cmd_input_srv(self, req):
         if req.data:
@@ -174,6 +183,8 @@ class MoveItClient:
                 r_tgt = R.from_quat([target_pose.orientation.x, target_pose.orientation.y, target_pose.orientation.z, target_pose.orientation.w])
                 # rotate the target pose by 180 degrees around the x
                 r_tgt = r_tgt * R.from_euler('xyz', [180, 0, 0], degrees=True)
+
+
                 # update target pose
                 target_pose.orientation.x = r_tgt.as_quat()[0]
                 target_pose.orientation.y = r_tgt.as_quat()[1]
@@ -236,7 +247,17 @@ class MoveItClient:
                 # offset by 180 degrees, if yaw_rrr > 90 or < -90
                 if yaw_rrr > 90 or yaw_rrr < -90:
                     rrr = rrr * R.from_euler('xyz', [0, 0, 180], degrees=True)
+                else:
+                    rrr = rrr * R.from_euler('xyz', [0, 0, 0], degrees=True)
                 rq = rrr.as_quat()
+
+                # offset pitch
+                if pos_next.x - pos_current.x >= 0:
+                    rr_pitched = rrr * R.from_euler('xyz', [0, -self.pitch_offset_deg, 0], degrees=True)
+                    rq = rr_pitched.as_quat()
+                else:
+                    rr_pitched = rrr * R.from_euler('xyz', [0, self.pitch_offset_deg, 0], degrees=True)
+                    rq = rr_pitched.as_quat()
 
                 new_pose = copy.deepcopy(current_pose)
                 new_pose.position = pose.pose.position
