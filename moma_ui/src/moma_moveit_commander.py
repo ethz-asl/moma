@@ -170,10 +170,10 @@ class MoveItClient:
             
             if first_pose.header.frame_id != self.frame_id:
                 try:
-                    rospy.loginfo("Transforming first pose to planning frame.")
+                    rospy.loginfo("Transforming first pose from %s to planning frame: %s", first_pose.header.frame_id, self.frame_id)
                     first_pose = self.tf_listener.transformPose(self.frame_id, first_pose)
-                except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
-                    rospy.logerr("Failed to transform pose to planning frame.")
+                except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException) as e:
+                    rospy.logerr(f"Failed to transform pose to planning frame: {e}")
                     return False
 
             # if path only contains one pose, go to that pose directly
@@ -208,13 +208,14 @@ class MoveItClient:
             idx = 0
             for pose in path.poses:
                 if pose.header.frame_id != self.frame_id:
+                    rospy.loginfo(f"Transforming pose {idx} from {pose.header.frame_id} to planning frame: {self.frame_id}")
                     # convert the first point in the path to the planning frame
                     pose.header.stamp.nsecs = 0
                     pose.header.stamp.secs = 0
                     try:
                         pose = self.tf_listener.transformPose(self.frame_id, pose)
-                    except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
-                        rospy.logerr("Failed to transform pose to planning frame.")
+                    except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException) as e:
+                        rospy.logerr(f"Failed to transform pose to planning frame: {e}")
                         return False
 
                 # compute yaw based on the difference between current and next point in path
@@ -246,7 +247,7 @@ class MoveItClient:
 
                 # offset by 180 degrees, if yaw_rrr > 90 or < -90
                 if yaw_rrr > 90 or yaw_rrr < -90:
-                    rrr = rrr * R.from_euler('xyz', [0, 0, 180], degrees=True)
+                    rrr = rrr * R.from_euler('xyz', [0, 0, 90], degrees=True)
                 else:
                     rrr = rrr * R.from_euler('xyz', [0, 0, 0], degrees=True)
                 rq = rrr.as_quat()

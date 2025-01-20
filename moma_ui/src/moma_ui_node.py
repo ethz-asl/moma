@@ -363,6 +363,7 @@ class MomaUiNode:
         transform.transform.rotation.w = rot[3]
 
         # Broadcast the transform
+        rospy.loginfo(f"moma_ui: Broadcasting transform from {transform.header.frame_id} to {transform.child_frame_id}")
         self.tf_broadcaster.sendTransform(transform)
 
     def elevation_map_callback(self, msg):
