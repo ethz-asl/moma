@@ -22,7 +22,9 @@
 
   <node name="franka_control"
     pkg="franka_control" type="franka_control_node" output="screen" required="true">
-    <rosparam command="load" file="$(find franka_control)/config/franka_control_node.yaml"
+    <!-- <rosparam command="load" file="$(find franka_control)/config/franka_control_node.yaml"
+      subst_value="true" /> -->
+    <rosparam command="load" file="$(find moma_bringup)/config/franka_control_node.yaml"
       subst_value="true" />
     <param name="robot_ip" value="$(arg robot_ip)" />
     <remap from="robot_description" to="$(arg robot_description)"/>
