@@ -59,13 +59,15 @@ RUN scripts/install_drivers.sh
 RUN scripts/install_simulation.sh
 
 # Install nikilesh's stuff
+RUN rm /root/scripts/requirements_nikhilesh.txt
+COPY scripts/requirements_nikhilesh.txt /root/scripts/requirements_nikhilesh.txt
 RUN scripts/install_nikhilesh.sh
 
 # Finally, build all the stuff we downloaded.
 RUN scripts/build_ros.sh
 
 # Install deps for the controller
-RUN apt update && apt install -y wget git
-RUN cd $MOMA_DEP_WS/ && wget https://raw.githubusercontent.com/matthias-mayr/Cartesian-Impedance-Controller/refs/heads/master/scripts/install_dependencies.sh
-RUN cd $MOMA_DEP_WS/ && chmod +x install_dependencies.sh
-RUN cd $MOMA_DEP_WS/ && ./install_dependencies.sh
+# RUN apt update && apt install -y wget git
+# RUN cd $MOMA_DEP_WS/ && wget https://raw.githubusercontent.com/matthias-mayr/Cartesian-Impedance-Controller/refs/heads/master/scripts/install_dependencies.sh
+# RUN cd $MOMA_DEP_WS/ && chmod +x install_dependencies.sh
+# RUN cd $MOMA_DEP_WS/ && ./install_dependencies.sh
