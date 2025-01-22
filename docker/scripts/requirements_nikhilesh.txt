@@ -1,0 +1,28 @@
+# Python dependencies
+cmake
+matplotlib==3.7.4
+pyransac3d
+ipympl
+jupyter
+notebook
+transforms3d
+scipy
+torch
+torchvision
+torchaudio
+imageio
+einops
+scikit-learn
+scikit-image
+tqdm
+torchmetrics
+lightgbm
+gymnasium[extra]
+POT
+tensorflow
+stable-baselines3[extra]
+opencv-contrib-python
+numba
+
+# Git-based dependencies
+git+https://github.com/facebookresearch/segment-anything.git

@@ -23,8 +23,11 @@ RUN scripts/install_ros_deps.sh
 # Run the driver (franka, RealSense, etc...) installation
 RUN scripts/install_drivers.sh
 
-# Install python packages
-RUN scripts/install_python_packages.sh
+# Run the gazebo simulation installation
+RUN scripts/install_simulation.sh
+
+# Install nikilesh's stuff
+RUN scripts/install_nikhilesh.sh
 
 # Finally, build all the stuff we downloaded.
 RUN scripts/build_ros.sh

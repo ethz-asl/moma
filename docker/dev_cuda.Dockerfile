@@ -58,8 +58,8 @@ RUN scripts/install_drivers.sh
 # Run the gazebo simulation installation
 RUN scripts/install_simulation.sh
 
-# Install python packages
-RUN scripts/install_python_packages_cuda.sh
+# Install nikilesh's stuff
+RUN scripts/install_nikhilesh.sh
 
 # Finally, build all the stuff we downloaded.
 RUN scripts/build_ros.sh
