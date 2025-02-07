@@ -177,7 +177,6 @@ class MomaUiNode:
         marker_array_msg.markers.append(sweep_marker)
         self.viz_marker_array_pub.publish(marker_array_msg)
 
-
     def use_sweep_from_topic(self, req):
         self.sweep_marker_enabled = req.data
         rospy.loginfo(f"moma_ui: Sweep marker enabled: {self.sweep_marker_enabled}")
@@ -672,22 +671,7 @@ class MomaUiNode:
             resp.message = "No control image to segment!"
             return resp
 
-        # if not self.control_points_xy:
-        #     rospy.logwarn("moma_ui: No control points to segment with")
-        #     resp = TriggerResponse()
-        #     resp.success = False
-        #     resp.message = "No control points to segment with!"     
-        #     return resp
-        
-        # if len(self.control_points_xy) != len(self.control_points_label):
-        #     rospy.logwarn("moma_ui: Number of points and labels do not match")
-        #     resp = TriggerResponse()
-        #     resp.success = False
-        #     resp.message = "Number of points and labels do not match!"
-        #     return resp
-
-        ###########################################################
-        ## in last received height map, filter out the points that are above the fg_min_height
+        # in last received height map, filter out the points that are above the fg_min_height
         elevation_layer = np.array(self.last_elevation_map.data[self.last_elevation_map.layers.index('elevation')].data).reshape((self.last_elevation_map.data[0].layout.dim[0].size, self.last_elevation_map.data[0].layout.dim[1].size))
         # iterate over this array and find the cells that are above the fg_min_height
         control_points_xy_height = []
