@@ -321,21 +321,6 @@ class MomaUiNode:
         # if elev_map mode, store the it as the last received image
         if self.input_mode == 'elevation_map':
             self.last_received_img = ros_image
-            '''
-            # extract elevation layer and create a height image
-            elevation_layer = np.array(msg.data[msg.layers.index('elevation')].data).reshape((num_rows, num_cols))
-            # mask out all nan and inf values
-            elevation_layer[np.isnan(elevation_layer)] = 0
-            elevation_layer[np.isinf(elevation_layer)] = 0
-            # create a height image
-            height_img = np.zeros((num_rows, num_cols), dtype=np.uint8)
-            max_height = np.max(elevation_layer)
-            height_img = (elevation_layer / max_height) * 255.0
-            height_img = height_img.astype(np.uint8)
-            ros_height_img = self.bridge.cv2_to_imgmsg(height_img, encoding="mono8")
-            self.elev_map_height_img_pub.publish(ros_height_img)
-            '''
-
             if self.last_mask is None and self.fg_is_positive:
                 self.last_mask = np.ones((num_rows, num_cols), dtype=bool)
             elif self.last_mask is None and not self.fg_is_positive:
