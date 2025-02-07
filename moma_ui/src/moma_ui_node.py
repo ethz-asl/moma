@@ -609,7 +609,6 @@ class MomaUiNode:
             for i in range(len(control_points_xy_height)):
                 click_xy = control_points_xy_height[i]
                 label = control_points_label_height[i]
-                # color = self.rgba_to_bgr(plt.cm.tab20(label))
                 # choose color as blue
                 if self.fg_is_positive:
                     color = (255, 0, 0)
