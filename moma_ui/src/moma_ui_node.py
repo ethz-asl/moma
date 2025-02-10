@@ -4,20 +4,16 @@ import rospy
 from sensor_msgs.msg import Image
 from geometry_msgs.msg import PointStamped, Point
 from std_srvs.srv import Empty, EmptyResponse, Trigger, TriggerResponse
-from ros_sam_msgs.srv import Segmentation, SegmentationRequest
-from cv_bridge import CvBridge, CvBridgeError
-from std_msgs.msg import Int32MultiArray
+from cv_bridge import CvBridge
 from grid_map_msgs.msg import GridMap
-from std_msgs.msg import String, Float32
+from std_msgs.msg import Float32
 from std_srvs.srv import SetBool, SetBoolResponse, SetBoolRequest
 from visualization_msgs.msg import Marker, MarkerArray
 from dynamic_reconfigure.server import Server
 
+import std_msgs.msg as std_msgs
+
 from interactive_markers.interactive_marker_server import *
-from geometry_msgs.msg import Point
-from tf.transformations import quaternion_from_euler
-from visualization_msgs.msg import InteractiveMarkerControl, InteractiveMarker
-import tf
 
 import subprocess
 import datetime
@@ -48,6 +44,7 @@ import tf2_ros
 from geometry_msgs.msg import TransformStamped, Vector3, Quaternion
 # import color
 
+from segment_anything import SamAutomaticMaskGenerator, sam_model_registry
 
 class MomaUiNode:
     def __init__(self):
@@ -71,6 +68,7 @@ class MomaUiNode:
         self.control_points_xy = []
         self.control_points_label = []
         self.last_mask = None
+        self.last_masks_from_sam = None
 
         # stuff
         self.world_frame = rospy.get_param('world_frame_id', 'world')
@@ -98,8 +96,10 @@ class MomaUiNode:
         self.viz_marker_array_pub = rospy.Publisher('moma_ui/viz_marker_array', MarkerArray, queue_size=10)
 
         ## Services
-        self.reset_sam_cfg_srv = rospy.Service('moma_ui/sam/reset', Empty, self.reset_sam_config)
-        self.run_sam_srv = rospy.Service('moma_ui/sam/run', Trigger, self.run_sam)
+        # self.reset_sam_cfg_srv = rospy.Service('moma_ui/sam/reset', Empty, self.reset_sam_config)
+        self.reset_sam_cfg_topic_srv = rospy.Subscriber('moma_ui/sam/reset', std_msgs.Empty, self.reset_sam_config)
+        # self.run_sam_srv = rospy.Service('moma_ui/sam/run', Trigger, self.run_sam)
+        self.run_sam_topic_srv = rospy.Subscriber('moma_ui/sam/run', std_msgs.Empty, self.run_sam)
         self.set_label_fg_bg_srv = rospy.Service('moma_ui/sam/set_label_fg_bg', SetBool, self.set_label_fg_bg)
         self.start_stop_rosbag_rec_srv = rospy.Service('moma_ui/rosbag_recorder/start_stop', SetBool, self.start_stop_rosbag_rec)
         self.clear_map_srv = rospy.Service('moma_ui/map/clear', Trigger, self.clear_map)
@@ -139,7 +139,6 @@ class MomaUiNode:
 
         # rosbag recorder
         self.rosbag_record_subprocess = None
-
 
     def sweep_callback(self, msg):
         rospy.loginfo(f"moma_ui: Received sweep path")
@@ -285,7 +284,7 @@ class MomaUiNode:
         transform.transform.rotation.w = rot[3]
 
         # Broadcast the transform
-        rospy.loginfo(f"moma_ui: Broadcasting transform from {transform.header.frame_id} to {transform.child_frame_id}")
+        # rospy.loginfo(f"moma_ui: Broadcasting transform from {transform.header.frame_id} to {transform.child_frame_id}")
         self.tf_broadcaster.sendTransform(transform)
 
     def elevation_map_callback(self, msg):
@@ -515,12 +514,12 @@ class MomaUiNode:
             return resp
 
         # check if the point cloud is in the right frame
-        # if self.last_received_pointcloud.header.frame_id != self.world_frame:
-        #     rospy.logwarn("moma_ui: Point cloud is not in the right frame")
-        #     resp = TriggerResponse()
-        #     resp.success = False
-        #     resp.message = "Point cloud is not in the right frame!"
-        #     return resp
+        if self.last_received_pointcloud.header.frame_id != self.world_frame:
+            rospy.logerr("moma_ui: Point cloud is not in the right frame")
+            resp = TriggerResponse()
+            resp.success = False
+            resp.message = "Point cloud is not in the right frame!"
+            return resp
 
         # run RANSAC to detect the work plane
         # unpack array
@@ -547,17 +546,68 @@ class MomaUiNode:
         resp.message = "Successfully detected work plane!"
         return resp
 
-    def reset_sam_config(self, req):
+    def show_anns(self, anns):
+        if len(anns) == 0:
+            return
+        sorted_anns = sorted(anns, key=(lambda x: x['area']), reverse=True)
+        ax = plt.gca()
+        ax.set_autoscale_on(False)
+
+        img = np.ones((sorted_anns[0]['segmentation'].shape[0], sorted_anns[0]['segmentation'].shape[1], 4))
+        img[:,:,3] = 0
+        for ann in sorted_anns:
+            m = ann['segmentation']
+            color_mask = np.concatenate([np.random.random(3), [0.35]])
+            img[m] = color_mask
+        return img
+
+    def reset_sam_config(self, msg):
         rospy.loginfo("moma_ui: Resetting SAM control image, points...")
         """Reset the buffer of click points."""
         self.control_points_xy = []
         self.control_points_label = []
         self.last_mask = None
+        self.last_masks_from_sam = None
         if self.last_received_img is not None:
             self.control_image = self.last_received_img
-            self.control_img_pub.publish(self.control_image)
-        return EmptyResponse()
+            # fully segment with SAM
+            sam = sam_model_registry["vit_h"](checkpoint="/root/moma_ws/src/ros_sam/ros_sam/models/sam_vit_h_4b8939.pth")
+            # sam = sam_model_registry["vit_l"](checkpoint="/root/moma_ws/src/ros_sam/ros_sam/models/sam_vit_l_0b3195.pth")
 
+            device = "cuda"
+            sam = sam.to(device)
+
+            mask_generator = SamAutomaticMaskGenerator(
+                model=sam,
+                points_per_side=32,
+                pred_iou_thresh=0.86,
+                stability_score_thresh=0.92,
+                crop_n_layers=1,
+                crop_n_points_downscale_factor=2,
+                min_mask_region_area=100,  # Requires open-cv to run post-processing
+            )
+            # get the image
+            image = self.bridge.imgmsg_to_cv2(self.control_image, desired_encoding="rgb8")
+            rospy.loginfo("moma_ui: SAM will now find all masks")
+            masks = mask_generator.generate(image)
+            rospy.loginfo("moma_ui: SAM found all masks")
+            mask_img = self.show_anns(masks)
+            # Ensure the mask has the same shape as the image
+            mask_rgb = mask_img[:, :, :3]*255.0  # Take only the RGB channels
+
+            # Blend using alpha from the mask
+            blended = cv2.addWeighted(image, 1, mask_rgb, 0.5,
+                                        0, dtype=cv2.CV_8U)
+            
+            # Convert back to ROS image
+            control_img_msg = self.bridge.cv2_to_imgmsg(blended, "bgr8")
+
+            self.control_img_pub.publish(control_img_msg)
+            self.mask_pub.publish(self.bridge.cv2_to_imgmsg((mask_img[:, :, :3] * 255.0).astype(np.uint8), "bgr8"))
+            self.control_image = control_img_msg
+            self.last_masks_from_sam = masks
+            rospy.loginfo("moma_ui: Reset SAM control image and oversegmented it")
+        
     def set_label_fg_bg(self, req):
         rospy.loginfo("moma_ui: Setting label to POSITIVE or NEGATIVE")
         """Set the label to either foreground or background"""
@@ -569,6 +619,109 @@ class MomaUiNode:
             rospy.loginfo("Label set to NEGATIVE")
         return SetBoolResponse(success=True, message="Label set successfully")
 
+    def run_sam(self, msg):
+        rospy.loginfo("moma_ui: Segmenting image...")
+        if self.control_image is None:
+            rospy.logwarn("moma_ui: No control image to segment")
+            return
+        if self.last_masks_from_sam is None:
+            rospy.logwarn("moma_ui: No masks from SAM")
+            return
+
+        # go through the masks and select the ones that contain the control points
+        control_points_xy = np.array(self.control_points_xy)
+        control_points_label = np.array(self.control_points_label)
+        # get the image
+        image = self.bridge.imgmsg_to_cv2(self.control_image, desired_encoding="rgb8")
+
+        # iterate over the masks and select the ones that contain the control points
+        i = 0
+        positive_masks = []
+        for mask in self.last_masks_from_sam:
+            mask_array = np.array(mask['segmentation'])
+            # go through the control points and check if they are in the mask
+            nr_of_positive_points = 0
+            nr_of_negative_points = 0
+            if len(control_points_xy) == 1:
+                point = control_points_xy[0]
+                # convert to int
+                point = (int(point[0]), int(point[1]))
+                label = control_points_label[0]
+                if mask_array[point[1], point[0]]:
+                    if label == 1:
+                        nr_of_positive_points += 1
+                    else:
+                        nr_of_negative_points += 1
+            elif len(control_points_xy) > 1:
+                for j in range(len(control_points_xy)):
+                    point = control_points_xy[j]
+                    # convert to int
+                    point = (int(point[0]), int(point[1]))
+                    label = control_points_label[j]
+                    if mask_array[point[1], point[0]]:
+                        if label == 1:
+                            nr_of_positive_points += 1
+                        else:
+                            nr_of_negative_points += 1
+            # if the mask contains strictly more positive points than negative points, add it to the positive masks
+            if nr_of_positive_points > nr_of_negative_points:
+                positive_masks.append(mask)
+            i += 1
+               
+        # create final mask from OR across all positive masks
+        final_mask = np.zeros((image.shape[0], image.shape[1]), dtype=bool)
+
+        for mask in positive_masks:
+            final_mask = np.logical_or(final_mask, mask['segmentation'])
+            rospy.loginfo("moma_ui: Publishing positive mask")
+
+        self.last_mask = final_mask
+
+        img_masked = self.bridge.imgmsg_to_cv2(self.control_image).copy()
+
+        # mask the image where the mask is false
+        img_masked[~final_mask] = 0
+
+        # convert to ros image
+        img_masked = self.bridge.cv2_to_imgmsg(img_masked, "bgr8")
+
+        # Now publish
+        self.masked_pub.publish(img_masked)
+
+        # convert the image to 
+        # rospy.loginfo(f"Received {len(response.masks)} masks from segmentation service")
+        # for mask in response.masks:
+        #     actual_mask = self.bridge.imgmsg_to_cv2(mask, desired_encoding='mono8')
+        #     boolean_array = actual_mask.astype(bool)
+        #     self.last_mask = boolean_array
+        #     # mask the image where the mask is false
+        #     if self.fg_is_positive:
+        #         img_masked[~boolean_array] = 0
+        #     else:
+        #         img_masked[boolean_array] = 0
+        #     # img_masked[~boolean_array] = 0              
+
+        # img_masked = self.bridge.cv2_to_imgmsg(img_masked, "bgr8")
+        # mask_image = response.masks[0]
+        # self.mask_pub.publish(mask_image)
+        # self.masked_pub.publish(img_masked)
+
+        '''
+        # publish the final mask
+        mask_img = np.zeros((image.shape[0], image.shape[1], 4))
+        mask_img[:,:,3] = 0
+        mask_img[final_mask] = [0, 255, 0, 0.35]
+        # convert to ros image
+        mask_rgb = mask_img[:, :, :3]*255.0  # Take only the RGB channels
+        # Convert float64 image to uint8
+        mask_rgb = np.clip(mask_rgb * 255, 0, 255).astype(np.uint8)  # Scale and cast
+        # Now publish
+        self.masked_pub.publish(self.bridge.cv2_to_imgmsg(mask_rgb, "bgr8"))
+        '''
+        
+        rospy.loginfo("moma_ui: Successfully segmented image!")
+
+    '''
     def run_sam(self, req):
         rospy.loginfo("moma_ui: Segmenting image...")
         """Call segmentation service with stored image and buffered clicks."""
@@ -714,7 +867,7 @@ class MomaUiNode:
         resp.success = True
         resp.message = "Segmentation successful"
         return resp
-    
+    '''
 
 if __name__ == '__main__':
     try:
