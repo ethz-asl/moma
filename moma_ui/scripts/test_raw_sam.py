@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 
-sam = sam_model_registry["vit_h"](checkpoint="/root/moma_ws/src/ros_sam/ros_sam/models/sam_vit_h_4b8939.pth")
+sam = sam_model_registry["vit_h"](checkpoint="/root/moma_ws/src/moma/moma_ui/sam_models/sam_vit_h_4b8939.pth")
 # sam = sam_model_registry["vit_l"](checkpoint="/root/moma_ws/src/ros_sam/ros_sam/models/sam_vit_l_0b3195.pth")
 
 device = "cuda"
@@ -38,8 +38,8 @@ def show_anns(anns):
         img[m] = color_mask
     return img
 
-image_dir = '/root/moma_ws/bags/real_images/images/elev/'
-output_dir = '/root/moma_ws/bags/real_images/sam/elev/output/'
+image_dir = '/root/moma_ws/bags/real_images/images/rs2/'
+output_dir = '/root/moma_ws/bags/real_images/sam/rs2/output/'
 
 # create output directory if it does not exist
 if not os.path.exists(output_dir):
