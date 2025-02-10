@@ -2,12 +2,12 @@
 
 import rospy
 from sensor_msgs.msg import Image
-from geometry_msgs.msg import PointStamped, Point
-from std_srvs.srv import Empty, EmptyResponse, Trigger, TriggerResponse
+from geometry_msgs.msg import PointStamped
+from std_srvs.srv import Empty, Trigger, TriggerResponse
 from cv_bridge import CvBridge
 from grid_map_msgs.msg import GridMap
 from std_msgs.msg import Float32
-from std_srvs.srv import SetBool, SetBoolResponse, SetBoolRequest
+from std_srvs.srv import SetBool, SetBoolResponse
 from visualization_msgs.msg import Marker, MarkerArray
 from dynamic_reconfigure.server import Server
 
