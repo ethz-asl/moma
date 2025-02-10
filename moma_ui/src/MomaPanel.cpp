@@ -16,6 +16,7 @@
 #include <std_msgs/Float32.h>
 
 #include <std_msgs/Bool.h>
+#include <std_msgs/Empty.h>
 
 #include "moma_ui/MomaPanel.h"
 
@@ -184,6 +185,8 @@ MomaPanel::MomaPanel(QWidget *parent)
 
     moveit_trigger_pub_ = nh_.advertise<std_msgs::Bool>("moma_ui/commander/execute_path_topic", 1);
 
+    reset_sam_trigger_pub_ = nh_.advertise<std_msgs::Empty>("moma_ui/sam/reset", 1);
+    run_sam_trigger_pub_ = nh_.advertise<std_msgs::Empty>("moma_ui/sam/run", 1);
 }
 
 void MomaPanel::updateMoveitOffsetX()
@@ -520,34 +523,40 @@ void MomaPanel::resetSam()
 {
     // Reset the control points of the SAM
     // Call the service to reset the control points
-    ros::ServiceClient client = nh_.serviceClient<std_srvs::Empty>("moma_ui/sam/reset");
-    std_srvs::Empty srv;
-    if (client.call(srv))
-    {
-        ROS_INFO("moma_panel: SAM control points have been reset");
-    }
-    else
-    {
-        ROS_ERROR("moma_panel: Failed to reset SAM control points");
-    }
+    // ros::ServiceClient client = nh_.serviceClient<std_srvs::Empty>("moma_ui/sam/reset");
+    // std_srvs::Empty srv;
+    // if (client.call(srv))
+    // {
+    //     ROS_INFO("moma_panel: SAM control points have been reset");
+    // }
+    // else
+    // {
+    //     ROS_ERROR("moma_panel: Failed to reset SAM control points");
+    // }
+    ROS_INFO("moma_panel: Will request to reset SAM");
+    std_msgs::Empty msg;
+    reset_sam_trigger_pub_.publish(msg);
 }
 
 void MomaPanel::runSam()
 {
     // Run SAM
-    ROS_INFO("moma_panel: Sending request to SAM...");
-    // Call the service to run the SAM
-    ros::ServiceClient client = nh_.serviceClient<std_srvs::Trigger>("moma_ui/sam/run");
-    std_srvs::Trigger srv;
-    client.call(srv);
-    if (srv.response.success)
-    {
-        ROS_INFO("moma_panel: SAM has been run: %s", srv.response.message.c_str());
-    }
-    else
-    {
-        ROS_WARN("moma_panel: Failed to run SAM: %s", srv.response.message.c_str());
-    }
+    // ROS_INFO("moma_panel: Sending request to SAM...");
+    // // Call the service to run the SAM
+    // ros::ServiceClient client = nh_.serviceClient<std_srvs::Trigger>("moma_ui/sam/run");
+    // std_srvs::Trigger srv;
+    // client.call(srv);
+    // if (srv.response.success)
+    // {
+    //     ROS_INFO("moma_panel: SAM has been run: %s", srv.response.message.c_str());
+    // }
+    // else
+    // {
+    //     ROS_WARN("moma_panel: Failed to run SAM: %s", srv.response.message.c_str());
+    // }
+    ROS_INFO("moma_panel: Will request to run SAM");
+    std_msgs::Empty msg;
+    run_sam_trigger_pub_.publish(msg);
 }
 
 void MomaPanel::toggledFgSam()

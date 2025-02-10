@@ -25,8 +25,6 @@
   <build_depend>franka_msgs</build_depend>
   <exec_depend>franka_msgs</exec_depend>
 
-
-  <exec_depend>ros_sam</exec_depend>
   <exec_depend>grid_map_rviz_plugin</exec_depend>
 
   <!-- The export tag contains other, unspecified, tags -->
