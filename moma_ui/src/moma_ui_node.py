@@ -137,6 +137,23 @@ class MomaUiNode:
         # self.interact_marker_server = InteractiveMarkerServer("moma_ui/interactive_marker_server")
         # self.init_interactive_markers()
 
+        # load SAM
+        path_to_sam_model = rospy.get_param('~path_to_sam_model', '/root/moma_ws/src/moma/moma_ui/sam_models/sam_vit_h_4b8939.pth')
+        sam = sam_model_registry["vit_h"](checkpoint=path_to_sam_model)
+        # sam = sam_model_registry["vit_l"](checkpoint="/root/moma_ws/src/ros_sam/ros_sam/models/sam_vit_l_0b3195.pth")
+        device = "cuda"
+        sam = sam.to(device)
+
+        self.mask_generator = SamAutomaticMaskGenerator(
+            model=sam,
+            points_per_side=32,
+            pred_iou_thresh=0.86,
+            stability_score_thresh=0.92,
+            crop_n_layers=1,
+            crop_n_points_downscale_factor=2,
+            min_mask_region_area=100,  # Requires open-cv to run post-processing
+        )
+
         # rosbag recorder
         self.rosbag_record_subprocess = None
 
@@ -570,26 +587,26 @@ class MomaUiNode:
         self.last_masks_from_sam = None
         if self.last_received_img is not None:
             self.control_image = self.last_received_img
-            # fully segment with SAM
-            sam = sam_model_registry["vit_h"](checkpoint="/root/moma_ws/src/ros_sam/ros_sam/models/sam_vit_h_4b8939.pth")
-            # sam = sam_model_registry["vit_l"](checkpoint="/root/moma_ws/src/ros_sam/ros_sam/models/sam_vit_l_0b3195.pth")
+            # # # fully segment with SAM
+            # # # sam = sam_model_registry["vit_h"](checkpoint="/root/moma_ws/src/ros_sam/ros_sam/models/sam_vit_h_4b8939.pth")
+            # # # sam = sam_model_registry["vit_l"](checkpoint="/root/moma_ws/src/ros_sam/ros_sam/models/sam_vit_l_0b3195.pth")
 
-            device = "cuda"
-            sam = sam.to(device)
+            # # device = "cuda"
+            # # sam = sam.to(device)
 
-            mask_generator = SamAutomaticMaskGenerator(
-                model=sam,
-                points_per_side=32,
-                pred_iou_thresh=0.86,
-                stability_score_thresh=0.92,
-                crop_n_layers=1,
-                crop_n_points_downscale_factor=2,
-                min_mask_region_area=100,  # Requires open-cv to run post-processing
-            )
+            # self.mask_generator = SamAutomaticMaskGenerator(
+            #     model=self.sam,
+            #     points_per_side=32,
+            #     pred_iou_thresh=0.86,
+            #     stability_score_thresh=0.92,
+            #     crop_n_layers=1,
+            #     crop_n_points_downscale_factor=2,
+            #     min_mask_region_area=100,  # Requires open-cv to run post-processing
+            # )
             # get the image
             image = self.bridge.imgmsg_to_cv2(self.control_image, desired_encoding="rgb8")
             rospy.loginfo("moma_ui: SAM will now find all masks")
-            masks = mask_generator.generate(image)
+            masks = self.mask_generator.generate(image)
             rospy.loginfo("moma_ui: SAM found all masks")
             mask_img = self.show_anns(masks)
             # Ensure the mask has the same shape as the image
@@ -718,7 +735,7 @@ class MomaUiNode:
         # Now publish
         self.masked_pub.publish(self.bridge.cv2_to_imgmsg(mask_rgb, "bgr8"))
         '''
-        
+
         rospy.loginfo("moma_ui: Successfully segmented image!")
 
     '''
