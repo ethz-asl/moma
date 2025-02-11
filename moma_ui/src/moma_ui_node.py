@@ -54,6 +54,10 @@ class MomaUiNode:
         self.input_mode = rospy.get_param('~input_mode', 'elevation_map') # 'image' or 'elevation_map'
         assert self.input_mode in ['image', 'elevation_map'], "Invalid input mode. Choose 'image' or 'elevation_map'"
 
+        # green screen
+        self.green_screen_lower_hsv = np.array([35, 40, 40])    # Lower bound of green in HSV
+        self.green_screen_upper_hsv = np.array([85, 255, 255])  # Upper bound of green in HSV
+
         # Image subscriber and storage
         self.last_received_img = None
         self.image_sub = rospy.Subscriber("/rs_435_1/color/image_raw", Image, self.image_callback)
@@ -74,7 +78,7 @@ class MomaUiNode:
         self.world_frame = rospy.get_param('world_frame_id', 'world')
         self.work_plane_frame = rospy.get_param('work_plane_id', 'workplane')
         self.last_marker_msg = None
-        self.fg_is_positive = rospy.get_param('~fg_is_positive', False)
+        self.fg_is_positive = rospy.get_param('~fg_is_positive', True)
         
         # label subscriber and storage
         self.fg_min_height_sub = rospy.Subscriber("moma_ui/sam/foreground_min_height", Float32, self.fg_min_height_callback)
@@ -94,6 +98,10 @@ class MomaUiNode:
         self.elev_map_rgb_img_pub = rospy.Publisher('moma_ui/sam/elevation_map_rgb_image', Image, queue_size=10)
         self.elev_map_height_img_pub = rospy.Publisher('moma_ui/sam/elevation_map_height_image', Image, queue_size=10)
         self.viz_marker_array_pub = rospy.Publisher('moma_ui/viz_marker_array', MarkerArray, queue_size=10)
+        self.img_color_filtered_pub = rospy.Publisher('moma_ui/sam/color_filtered_image', Image, queue_size=10)
+        self.elevmap_img_color_filtered_pub = rospy.Publisher('moma_ui/sam/elevation_map_color_filtered_image', Image, queue_size=10)
+        self.hist_img_pub = rospy.Publisher('moma_ui/sam/hsv_histogram_img', Image, queue_size=10)
+        self.hist_elev_img_pub = rospy.Publisher('moma_ui/sam/elevation_histogram_img', Image, queue_size=10)
 
         ## Services
         # self.reset_sam_cfg_srv = rospy.Service('moma_ui/sam/reset', Empty, self.reset_sam_config)
@@ -110,7 +118,7 @@ class MomaUiNode:
 
         ## for WP detection
         self.wp_detection_srv = rospy.Service('moma_ui/work_plane/detect', Trigger, self.wp_detection)
-        self.point_cloud_sub = rospy.Subscriber('/pointcloud', PointCloud2, self.point_cloud_cb)
+        self.point_cloud_sub = rospy.Subscriber('/rs_435_1/depth/color/points_passthrough_xyz', PointCloud2, self.point_cloud_cb)
         self.last_received_pointcloud = None
         # the prior for the work plane either as a pose or as a support and normal
         # T_W_WP_as_tx_ty_tz_qx_qy_qz_qw_TF_W_WP = rospy.get_param('/T_W_WP_as_tx_ty_tz_qx_qy_qz_qw_TF_W_WP', '0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0')      
@@ -250,9 +258,57 @@ class MomaUiNode:
             resp.message = "Stopped rosbag recording"
             return resp
 
+    def get_hsv_histogram(self, img):
+        hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+        h, s, v = cv2.split(hsv)
+        hist_h = cv2.calcHist([h], [0], None, [180], [0, 180])
+        hist_s = cv2.calcHist([s], [0], None, [256], [0, 256])
+        hist_v = cv2.calcHist([v], [0], None, [256], [0, 256])
+        # also create a plot with three histograms
+        fig, axs = plt.subplots(3, 1)
+        axs[0].plot(hist_h)
+        axs[0].set_title('Hue')
+        axs[1].plot(hist_s)
+        axs[1].set_title('Saturation')
+        axs[2].plot(hist_v)
+        axs[2].set_title('Value')
+        
+        # return the canvas as image
+        fig.canvas.draw()
+        hist_img = np.frombuffer(fig.canvas.tostring_rgb(), dtype=np.uint8)
+        hist_img = hist_img.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+        plt.close(fig)
+        return hist_h, hist_s, hist_v, hist_img
+
+    def color_filter(self, img):
+        # apply green mask
+        hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+        foreground_mask = cv2.inRange(hsv, self.green_screen_lower_hsv, self.green_screen_upper_hsv)
+        background = cv2.bitwise_and(img, img, mask=foreground_mask)
+        foreground = cv2.bitwise_and(img, img, mask=cv2.bitwise_not(foreground_mask))
+
+        return foreground_mask, foreground, background
+
     # callbacks
     def image_callback(self, msg):
         """Callback to update the most recent image."""
+
+        # convert the image to cv2
+        img = self.bridge.imgmsg_to_cv2(msg, "bgr8")
+
+        # get hsv histogram
+        hist_h, hist_s, hist_v, hist_img = self.get_hsv_histogram(img)
+        ros_hist_img = self.bridge.cv2_to_imgmsg(hist_img, encoding="rgb8") 
+        self.hist_img_pub.publish(ros_hist_img)
+
+
+        segmented = self.color_filter(img)
+        foreground = segmented[1]
+        
+        # convert foreground to ros image
+        ros_foreground = self.bridge.cv2_to_imgmsg(foreground, encoding="bgr8")
+        self.img_color_filtered_pub.publish(ros_foreground)
+        
         if self.input_mode == 'image':
             self.last_received_img = msg
     
@@ -334,21 +390,39 @@ class MomaUiNode:
         color_img = np.fliplr(color_img)    
         ros_image = self.bridge.cv2_to_imgmsg(color_img, encoding="bgr8")
         self.elev_map_rgb_img_pub.publish(ros_image)
+
+        # get hsv histogram
+        hist_h, hist_s, hist_v, hist_img = self.get_hsv_histogram(color_img)
+        ros_hist_img = self.bridge.cv2_to_imgmsg(hist_img, encoding="rgb8")
+        self.hist_elev_img_pub.publish(ros_hist_img)
+        
+        # apply color filter
+        segmented = self.color_filter(color_img)
+        foreground = segmented[1]
+        # convert foreground to ros image   
+        ros_foreground = self.bridge.cv2_to_imgmsg(foreground, encoding="bgr8")
+        self.elevmap_img_color_filtered_pub.publish(ros_foreground)
+        
         # if elev_map mode, store the it as the last received image
         if self.input_mode == 'elevation_map':
             self.last_received_img = ros_image
-            if self.last_mask is None and self.fg_is_positive:
-                self.last_mask = np.ones((num_rows, num_cols), dtype=bool)
-            elif self.last_mask is None and not self.fg_is_positive:
-                self.last_mask = np.zeros((num_rows, num_cols), dtype=bool)
+            # if self.last_mask is None and self.fg_is_positive:
+            #     self.last_mask = np.ones((num_rows, num_cols), dtype=bool)
+            # elif self.last_mask is None and not self.fg_is_positive:
+            #     self.last_mask = np.zeros((num_rows, num_cols), dtype=bool)
             msg_copy = copy.deepcopy(msg)
             elevation_layer = np.array(msg_copy.data[msg_copy.layers.index('elevation')].data).reshape((num_rows, num_cols))
             
-            corrected_mask = copy.deepcopy(self.last_mask)
+            # corrected_mask = copy.deepcopy(self.last_mask) # this was for sam! ToDo
+            
             # flip lr
-            corrected_mask = np.fliplr(corrected_mask)
-            # rotate it by +90 degrees
-            # corrected_mask = np.rot90(corrected_mask, k=1)
+            # corrected_mask = np.fliplr(corrected_mask)
+
+            # convert to True/False
+            corrected_mask = segmented[0].astype(bool) 
+            corrected_mask = np.fliplr(corrected_mask) 
+            # negate 
+            corrected_mask = np.logical_not(corrected_mask)
 
             if self.fg_is_positive:
                 elevation_layer[~corrected_mask] = 0.0
@@ -381,6 +455,10 @@ class MomaUiNode:
     def dynrecCb(self, config, level):
         rospy.loginfo('moma_ui: Got dynamic reconfigure request.')
         self.dynrec_cfg = config
+        # update hsv values: hsv_filter_hue_min, hsv_filter_sat_min, hsv_filter_val_min
+        self.green_screen_lower_hsv = np.array([config.hsv_filter_hue_min, config.hsv_filter_sat_min, config.hsv_filter_val_min])
+        self.green_screen_upper_hsv = np.array([config.hsv_filter_hue_max, config.hsv_filter_sat_max, config.hsv_filter_val_max])
+        
         return self.dynrec_cfg
 
     def point_cloud_cb(self, msg):

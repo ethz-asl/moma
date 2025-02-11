@@ -10,8 +10,8 @@
         input_frame: world
         output_frame: world
         filter_field_name: x
-        filter_limit_min: 0.2
-        filter_limit_max: 0.87
+        filter_limit_min: 0.125
+        filter_limit_max: 0.88
         filter_limit_negative: False
       </rosparam>
   </node>
@@ -22,8 +22,8 @@
         input_frame: world
         output_frame: world
         filter_field_name: y
-        filter_limit_min: -0.6
-        filter_limit_max: 0.6
+        filter_limit_min: -0.3
+        filter_limit_max: 0.3
         filter_limit_negative: False
       </rosparam>
   </node>
@@ -59,8 +59,8 @@
         input_frame: world
         output_frame: world
         filter_field_name: x
-        filter_limit_min: 0.2
-        filter_limit_max: 0.87
+        filter_limit_min: 0.125
+        filter_limit_max: 0.88
         filter_limit_negative: False
       </rosparam>
   </node>
@@ -71,8 +71,8 @@
         input_frame: world
         output_frame: world
         filter_field_name: y
-        filter_limit_min: -0.6
-        filter_limit_max: 0.6
+        filter_limit_min: -0.3
+        filter_limit_max: 0.3
         filter_limit_negative: False
       </rosparam>
   </node>
@@ -108,8 +108,8 @@
         input_frame: world
         output_frame: world
         filter_field_name: x
-        filter_limit_min: 0.2
-        filter_limit_max: 0.87
+        filter_limit_min: 0.125
+        filter_limit_max: 0.88
         filter_limit_negative: False
       </rosparam>
   </node>
@@ -120,8 +120,8 @@
         input_frame: world
         output_frame: world
         filter_field_name: y
-        filter_limit_min: -0.6
-        filter_limit_max: 0.6
+        filter_limit_min: -0.3
+        filter_limit_max: 0.3
         filter_limit_negative: False
       </rosparam>
   </node>

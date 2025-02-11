@@ -72,7 +72,9 @@
   </include>
   <rosparam>
       /rs_435_1/temporal/filter_smooth_delta: 100
-  </rosparam>
+      /rs_435_1/rgb_camera/enable_auto_exposure: false
+      /rs_435_1/rgb_camera/white_balance: 4600
+    </rosparam>
 
   <!-- Launch rs_435_2 -->
   <include if="$(eval 'rs_435_2' in list_of_sensors)" file="$(find realsense2_camera)/launch/rs_camera.launch">
