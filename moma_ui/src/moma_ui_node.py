@@ -110,7 +110,7 @@ class MomaUiNode:
 
         ## for WP detection
         self.wp_detection_srv = rospy.Service('moma_ui/work_plane/detect', Trigger, self.wp_detection)
-        self.point_cloud_sub = rospy.Subscriber('/rs_435_3/depth/color/points_passthrough_xyz', PointCloud2, self.point_cloud_cb)
+        self.point_cloud_sub = rospy.Subscriber('/pointcloud', PointCloud2, self.point_cloud_cb)
         self.last_received_pointcloud = None
         # the prior for the work plane either as a pose or as a support and normal
         # T_W_WP_as_tx_ty_tz_qx_qy_qz_qw_TF_W_WP = rospy.get_param('/T_W_WP_as_tx_ty_tz_qx_qy_qz_qw_TF_W_WP', '0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0')      
@@ -532,7 +532,7 @@ class MomaUiNode:
 
         # check if the point cloud is in the right frame
         if self.last_received_pointcloud.header.frame_id != self.world_frame:
-            rospy.logerr("moma_ui: Point cloud is not in the right frame")
+            rospy.logwarn("moma_ui: Point cloud is not in the right frame")
             resp = TriggerResponse()
             resp.success = False
             resp.message = "Point cloud is not in the right frame!"
