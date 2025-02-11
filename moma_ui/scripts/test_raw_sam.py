@@ -5,8 +5,8 @@ import numpy as np
 import os
 
 # Define green color range (adjust if needed)
-lower_green = np.array([35, 40, 40])    # Lower bound of green in HSV
-upper_green = np.array([85, 255, 255])  # Upper bound of green in HSV
+lower_green = np.array([30, 40, 100])    # Lower bound of green in HSV
+upper_green = np.array([75, 150, 202])  # Upper bound of green in HSV
 # green_mask = cv2.inRange(hsv, lower_green, upper_green)
 
 sam = sam_model_registry["vit_h"](checkpoint="/root/moma_ws/src/moma/moma_ui/sam_models/sam_vit_h_4b8939.pth")
@@ -25,9 +25,6 @@ mask_generator = SamAutomaticMaskGenerator(
     min_mask_region_area=100,  # Requires open-cv to run post-processing
 )
 
-# mask_generator = SamAutomaticMaskGenerator(sam)
-img_path = '/root/moma_ws/bags/real_images/images/'
-
 def show_anns(anns):
     if len(anns) == 0:
         return
@@ -43,8 +40,8 @@ def show_anns(anns):
         img[m] = color_mask
     return img
 
-image_dir = '/root/moma_ws/bags/real_images/2025-02-10_18-12-38/elevmap_raw_img/'
-output_dir = '/root/moma_ws/bags/real_images/sam/2025-02-10_18-12-38/elevmap_raw_img/output/'
+image_dir = '/root/moma_ws/bags/datasets/2025-02-11_14-40-04/elevmap_raw_img/'
+output_dir = '/root/moma_ws/bags/datasets/segmented/2025-02-11_14-40-04/elevmap_raw_img/output/'
 
 # create output directory if it does not exist
 if not os.path.exists(output_dir):
