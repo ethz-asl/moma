@@ -2,46 +2,53 @@
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
 <!-- adapted from https://github.com/CentroEPiaggio/vito-robot/blob/master/vito_description/model/table.urdf.xacro -->
 
-  <!-- No spawn pause configurable in xacro: "URDF can not specify the pose of the robot itself within a world" -->
-  <!-- see https://classic.gazebosim.org/tutorials/?tut=ros_urdf -->
-  
-  <xacro:property name="side_length" value="0.04" />
-  <xacro:property name="mass_1" value="0.05" />
+  <!-- Adapted from franka_description/robots/common/franka_robot.xacro -->
+  <xacro:macro name="i_object"
+    params="
+    side_length:='0.04'
+    mass_1:='0.05'">
 
-  <material name="blue">
-    <color rgba="0 0 0.8 1"/>
-  </material>
-  <material name="black">
-    <color rgba="0 0 0 1"/>
-  </material>
-  <material name="white">
-    <color rgba="1 1 1 1"/>
-  </material>
-
-  <link name="middle_cube">
-    <visual>
-      <geometry>
-        <box size="${side_length} ${side_length} ${side_length}"/>
-      </geometry>
-      <!-- The reference frame of the visual element with respect to the reference frame of the link. -->
-      <origin rpy="0 0 0" xyz="0.0 0.0 0.0"/>
-      <material name="blue"/>
-    </visual>
-    <collision>
-      <geometry>
-        <box size="${side_length} ${side_length} ${side_length}"/>
-      </geometry>
-      <!-- The reference frame of the collision element, relative to the reference frame of the link.  -->
-      <origin rpy="0 0 0" xyz="0.0 0.0 0.0"/>
-    </collision>
-    <inertial>
-      <!-- This pose (translation, rotation) describes the position and orientation of the link’s center of mass frame C relative to the link-frame L.  -->
-      <origin rpy="0 0 0" xyz="0.0 0.0 0.0"/>
-      <mass value="${mass_1}"/>
-      <inertia ixx="${1/12 * mass_1 * (side_length*side_length + side_length*side_length)}" ixy="0.0" ixz="0.0" 
-                iyy="0.0000416" iyz="0.0" izz="${1/12 * mass_1 * (side_length*side_length + side_length*side_length)}"/>
-    </inertial>
-  </link>
+    <!-- No spawn pause configurable in xacro: "URDF can not specify the pose of the robot itself within a world" -->
+    <!-- see https://classic.gazebosim.org/tutorials/?tut=ros_urdf -->
     
+    <!-- <xacro:property name="side_length" value="0.04" />
+    <xacro:property name="mass_1" value="0.05" /> -->
+
+    <material name="blue">
+      <color rgba="0 0 0.8 1"/>
+    </material>
+    <material name="black">
+      <color rgba="0 0 0 1"/>
+    </material>
+    <material name="white">
+      <color rgba="1 1 1 1"/>
+    </material>
+
+    <link name="middle_cube">
+      <visual>
+        <geometry>
+          <box size="${side_length} ${side_length} ${side_length}"/>
+        </geometry>
+        <!-- The reference frame of the visual element with respect to the reference frame of the link. -->
+        <origin rpy="0 0 0" xyz="0.0 0.0 0.0"/>
+        <material name="blue"/>
+      </visual>
+      <collision>
+        <geometry>
+          <box size="${side_length} ${side_length} ${side_length}"/>
+        </geometry>
+        <!-- The reference frame of the collision element, relative to the reference frame of the link.  -->
+        <origin rpy="0 0 0" xyz="0.0 0.0 0.0"/>
+      </collision>
+      <inertial>
+        <!-- This pose (translation, rotation) describes the position and orientation of the link’s center of mass frame C relative to the link-frame L.  -->
+        <origin rpy="0 0 0" xyz="0.0 0.0 0.0"/>
+        <mass value="${mass_1}"/>
+        <inertia ixx="${1/12 * mass_1 * (side_length*side_length + side_length*side_length)}" ixy="0.0" ixz="0.0" 
+                  iyy="0.0000416" iyz="0.0" izz="${1/12 * mass_1 * (side_length*side_length + side_length*side_length)}"/>
+      </inertial>
+    </link>
+    
+  </xacro:macro>
 
 </robot>
