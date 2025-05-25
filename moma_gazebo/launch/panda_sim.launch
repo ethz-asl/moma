@@ -1,6 +1,9 @@
 <?xml version="1.0"?>
 <launch>
 
+    <!-- Debug arguments -->
+    <arg name="verbose" default="true"/>
+
     <!-- Robot arguments -->
     <arg name="arm_id" default="panda" />
     <arg name="use_gripper" default="true" />
@@ -12,6 +15,10 @@
     <arg name="moveit_planner" default="ompl"/>
     <arg name="use_fixed_camera" default="false"/>
     <arg name="use_wrist_camera" default="true" />
+
+    <!-- Object arguments -->
+    <arg name="side_length" default="0.3"/>
+    <arg name="mass_1" default="0.1" />     
 
   <!-- If we don't do moveit, start the interactive markers. -->
   <arg name="interactive_marker"
@@ -100,6 +107,17 @@
         <param name="rate" value="30"/>
     </node>
 
+    <!-- Spawn cube directly via URDF -->
+    <!-- <node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model" args="-file $(find moma_description)/urdf/single_cube.urdf -urdf -model object" /> -->
+
+    <!-- Spawn cube via xacro -->
+    <!-- send cube urdf to param server -->
+    <param name="cube_description" command="$(find xacro)/xacro $(find moma_description)/urdf/single_cube.xacro side_length:=$(arg side_length) mass_1:=$(arg mass_1)" />
+
+    <!-- push cube_description to factory and spawn robot in gazebo -->
+    <!-- specify init pose with x/y/z params -->
+    <node name="cube_model_spawner" pkg="gazebo_ros" type="spawn_model" args="-param cube_description -urdf -model cube_model -x 0.5 -y 0 -z 0.05" respawn="false" output="screen" />
+
     <!-- Spawn panda -->
     <arg name="unpause" value="$(eval '' if arg('paused') else '-unpause')" />
     <node name="$(arg arm_id)_model_spawner"
@@ -115,4 +133,3 @@
         output="screen"/>
 
 </launch>
-
