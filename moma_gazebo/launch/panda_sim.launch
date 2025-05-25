@@ -19,8 +19,9 @@
     <!-- Object arguments -->
     <arg name="side_length" default="0.04"/>
     <arg name="mass_m" default="0.05" />     
-    <arg name="mass_l" default="0.05" /> 
-    <arg name="mass_r" default="0.2" /> 
+    <arg name="mass_l" default="0.05" />
+    <arg name="mass_r" default="0.05" />  
+    <!-- <arg name="mass_r" default="0.2" />  -->
 
   <!-- If we don't do moveit, start the interactive markers. -->
   <arg name="interactive_marker"
@@ -132,9 +133,12 @@
               $(arg initial_joint_positions)" />
 
     <!-- RViz -->
-    <node if="$(arg rviz)" name="$(anon rviz)" pkg="rviz" type="rviz" 
+    <!-- <node if="$(arg rviz)" name="$(anon rviz)" pkg="rviz" type="rviz" 
         respawn="false" 
         args="-d $(find moma_gazebo)/config/panda.rviz" 
-        output="screen"/>
+        output="screen"/> -->
+
+    <!-- Launch grasp node -->
+    <node pkg="latobj" type="grasp_object.py" name="grasp_object" output="screen"/>
 
 </launch>

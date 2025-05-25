@@ -13,6 +13,7 @@ from franka_gripper.msg import (
     HomingAction,
     HomingGoal,
 )
+from control_msgs.msg import GripperCommand, GripperCommandAction, GripperCommandGoal
 from franka_msgs.msg import ErrorRecoveryAction, ErrorRecoveryActionGoal, FrankaState
 from sensor_msgs.msg import JointState
 
@@ -92,11 +93,22 @@ class PandaGripperClient:
         # print(f"msg: {msg}")
         # print(f"result: {result}")
 
+    # see https://github.com/frankaemika/franka_ros/issues/130
     def grasp(self, width=0.0, e_inner=0.1, e_outer=0.1, speed=0.1, force=5.0):
         rospy.loginfo("Closing gripper")
         msg = GraspGoal(width, GraspEpsilon(e_inner, e_outer), speed, force)
         self.grasp_client.send_goal(msg)
         self.grasp_client.wait_for_result(rospy.Duration(2.0))
+
+    # def grasp_effort(self, width, max_effort=10):
+    def grasp_effort(self, width, max_effort=0):
+        command = GripperCommand(width, max_effort)
+        rospy.loginfo("width: {}".format(width))
+        goal = GripperCommandGoal(command)
+        self.grasp_effort_client.send_goal(goal)
+        self.grasp_effort_client.wait_for_result(timeout=rospy.Duration(5.0))
+        res = self.grasp_effort_client.get_result()
+        rospy.loginfo(f"Gripper res: {res}")
 
     def release(self, width=0.07):
         rospy.loginfo(f"Opening gripper within panda.py with width {width}")
@@ -121,9 +133,11 @@ class PandaGripperClient:
         self.grasp_client = actionlib.SimpleActionClient(ns + "grasp", GraspAction)
         self.stop_client = actionlib.SimpleActionClient(ns + "stop", StopAction)
         self.homing_client = actionlib.SimpleActionClient(ns + "homing", HomingAction)
+        # self.grasp_effort_client = actionlib.SimpleActionClient(ns + "commandaction", GripperCommandAction)
         rospy.loginfo("Waiting for franka_gripper")
         self.move_client.wait_for_server()
         self.grasp_client.wait_for_server()
         self.stop_client.wait_for_server()
         self.homing_client.wait_for_server()
+        # self.grasp_effort_client.wait_for_server()
         rospy.loginfo("Gripper connected")

@@ -41,18 +41,19 @@
     </xacro:unless>
 
     <!-- Input a bota sensor geometry -->
+    <!-- Remove bota collision geometry as otherwise collision between bota and panda_link7-->
     <link name="bota">
       <visual>
         <geometry>
           <box size="0.2 0.2 0.035"/>
         </geometry>
       </visual>
-      <collision>
+      <!-- <collision>
         <origin xyz="0 0 0" rpy="0 0 0" />
         <geometry>
           <box size="0.2 0.2 0.035" />
         </geometry>
-      </collision>
+      </collision> -->
     </link>
 
     <joint name="arm_to_bota" type="revolute">

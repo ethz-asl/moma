@@ -36,7 +36,6 @@
         <xacro:insert_block name="box_geometry"/>
         <!-- The reference frame of the visual element with respect to the reference frame of the link. -->
         <origin rpy="0 0 0" xyz="0.0 0.0 0.0"/>
-        <material name="blue"/>
       </visual>
       <collision>
         <xacro:insert_block name="box_geometry"/>
@@ -72,7 +71,7 @@
     <joint name="left_to_middle" type="fixed">
       <parent link="middle_cube"/>
       <child link="left_cube"/>
-      <origin xyz="0 -${side_length} 0"/>
+      <origin xyz="-${side_length} 0 0"/>
       <!-- <origin xyz="-1.0 0 0"/> -->
     </joint>
 
@@ -96,7 +95,7 @@
     <joint name="right_to_middle" type="fixed">
       <parent link="middle_cube"/>
       <child link="right_cube"/>
-      <origin xyz="0 ${side_length} 0"/>
+      <origin xyz="${side_length} 0 0"/>
       <!-- <origin xyz="1.0 0 0"/> -->
     </joint>
 

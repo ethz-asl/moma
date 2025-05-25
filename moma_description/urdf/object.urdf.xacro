@@ -1,10 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="panda">
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="object">
   <xacro:arg name="side_length" default="0.04" />
-  <xacro:arg name="mass_1" default="0.05" />
+  <xacro:arg name="mass_m" default="0.05" />
+  <xacro:arg name="mass_l" default="0.05" />
+  <xacro:arg name="mass_r" default="0.05" />
 
   <xacro:include filename="$(find moma_description)/urdf/single_cube.xacro" />
   <xacro:i_object side_length="$(arg side_length)"
-    mass_1="$(arg mass_1)" />
+    mass_m="$(arg mass_m)"
+    mass_l="$(arg mass_l)"
+    mass_r="$(arg mass_r)" />
 
 </robot>
