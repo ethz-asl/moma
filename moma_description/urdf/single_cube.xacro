@@ -6,13 +6,20 @@
   <xacro:macro name="i_object"
     params="
     side_length:='0.04'
-    mass_1:='0.05'">
+    mass_m:='0.05'
+    mass_l:='0.05'
+    mass_r:='0.05'">
 
     <!-- No spawn pause configurable in xacro: "URDF can not specify the pose of the robot itself within a world" -->
     <!-- see https://classic.gazebosim.org/tutorials/?tut=ros_urdf -->
-    
-    <!-- <xacro:property name="side_length" value="0.04" />
-    <xacro:property name="mass_1" value="0.05" /> -->
+  
+
+    <!-- define size block -->
+    <xacro:property name="box_geometry">
+      <geometry>
+        <box size="${side_length} ${side_length} ${side_length}"/>
+      </geometry>
+    </xacro:property>
 
     <material name="blue">
       <color rgba="0 0 0.8 1"/>
@@ -26,28 +33,84 @@
 
     <link name="middle_cube">
       <visual>
-        <geometry>
-          <box size="${side_length} ${side_length} ${side_length}"/>
-        </geometry>
+        <xacro:insert_block name="box_geometry"/>
         <!-- The reference frame of the visual element with respect to the reference frame of the link. -->
         <origin rpy="0 0 0" xyz="0.0 0.0 0.0"/>
         <material name="blue"/>
       </visual>
       <collision>
-        <geometry>
-          <box size="${side_length} ${side_length} ${side_length}"/>
-        </geometry>
+        <xacro:insert_block name="box_geometry"/>
         <!-- The reference frame of the collision element, relative to the reference frame of the link.  -->
         <origin rpy="0 0 0" xyz="0.0 0.0 0.0"/>
       </collision>
       <inertial>
         <!-- This pose (translation, rotation) describes the position and orientation of the link’s center of mass frame C relative to the link-frame L.  -->
         <origin rpy="0 0 0" xyz="0.0 0.0 0.0"/>
-        <mass value="${mass_1}"/>
-        <inertia ixx="${1/12 * mass_1 * (side_length*side_length + side_length*side_length)}" ixy="0.0" ixz="0.0" 
-                  iyy="0.0000416" iyz="0.0" izz="${1/12 * mass_1 * (side_length*side_length + side_length*side_length)}"/>
+        <mass value="${mass_m}"/>
+        <inertia ixx="${1/12 * mass_m * (side_length*side_length + side_length*side_length)}" ixy="0.0" ixz="0.0" 
+                  iyy="0.0000416" iyz="0.0" izz="${1/12 * mass_m * (side_length*side_length + side_length*side_length)}"/>
       </inertial>
     </link>
+
+    <link name="left_cube">
+      <visual>
+        <xacro:insert_block name="box_geometry"/>
+        <origin rpy="0 0 0" xyz="0.0 0 0"/>
+        <material name="white"/>
+      </visual>
+      <collision>
+        <xacro:insert_block name="box_geometry"/>
+      </collision>
+      <inertial>
+        <mass value="${mass_l}"/>
+        <inertia ixx="${1/12 * mass_l * (side_length*side_length + side_length*side_length)}" ixy="0.0" ixz="0.0" 
+                  iyy="0.0000416" iyz="0.0" izz="${1/12 * mass_l * (side_length*side_length + side_length*side_length)}"/>
+      </inertial>
+    </link>
+
+    <!-- Let’s start by examining the joint’s origin. It is defined in terms of the parent’s reference frame. -->
+    <joint name="left_to_middle" type="fixed">
+      <parent link="middle_cube"/>
+      <child link="left_cube"/>
+      <origin xyz="0 -${side_length} 0"/>
+      <!-- <origin xyz="-1.0 0 0"/> -->
+    </joint>
+
+    <link name="right_cube">
+      <visual>
+        <xacro:insert_block name="box_geometry"/>
+        <origin rpy="0 0 0" xyz="0.0 0 0"/>
+        <material name="black"/>
+      </visual>
+      <collision>
+        <xacro:insert_block name="box_geometry"/>
+      </collision>
+      <inertial>
+        <mass value="${mass_r}"/>
+        <inertia ixx="${1/12 * mass_r * (side_length*side_length + side_length*side_length)}" ixy="0.0" ixz="0.0" 
+                  iyy="0.0000416" iyz="0.0" izz="${1/12 * mass_r * (side_length*side_length + side_length*side_length)}"/>
+      </inertial>
+    </link>
+
+    <!-- Let’s start by examining the joint’s origin. It is defined in terms of the parent’s reference frame. -->
+    <joint name="right_to_middle" type="fixed">
+      <parent link="middle_cube"/>
+      <child link="right_cube"/>
+      <origin xyz="0 ${side_length} 0"/>
+      <!-- <origin xyz="1.0 0 0"/> -->
+    </joint>
+
+    <!-- create gazebo colors -->
+    <gazebo reference="middle_cube">
+      <material>Gazebo/Blue</material>
+    </gazebo>
+    <gazebo reference="right_cube">
+      <material>Gazebo/Black</material>
+    </gazebo>
+     <gazebo reference="left_cube">
+      <material>Gazebo/White</material>
+    </gazebo>
+
     
   </xacro:macro>
 

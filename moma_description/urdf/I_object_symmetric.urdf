@@ -1,0 +1,85 @@
+<?xml version="1.0"?>
+<robot name="visual">
+
+  <material name="blue">
+    <color rgba="0 0 0.8 1"/>
+  </material>
+  <material name="black">
+    <color rgba="0 0 0 1"/>
+  </material>
+  <material name="white">
+    <color rgba="1 1 1 1"/>
+  </material>
+
+  <link name="middle_cube">
+    <visual>
+      <geometry>
+        <box size="0.1 0.1 0.1"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="2.0 0 0.05"/>
+      <material name="blue"/>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="0.1 0.1 0.1"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.1"/>
+      <inertia ixx="0.0000416" ixy="0.0" ixz="0.0" iyy="0.0000416" iyz="0.0" izz="0.0000416"/>
+    </inertial>
+  </link>
+
+  <link name="left_cube">
+    <visual>
+      <geometry>
+        <box size="0.1 0.1 0.1"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="2.0 0 0.05"/>
+      <material name="white"/>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="0.1 0.1 0.1"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.1"/>
+      <inertia ixx="0.0000416" ixy="0.0" ixz="0.0" iyy="0.0000416" iyz="0.0" izz="0.0000416"/>
+    </inertial>
+  </link>
+
+  <!-- Let’s start by examining the joint’s origin. It is defined in terms of the parent’s reference frame. -->
+  <joint name="left_to_middle" type="fixed">
+    <parent link="middle_cube"/>
+    <child link="left_cube"/>
+    <origin xyz="-0.1 0 0"/>
+  </joint>
+
+  <link name="right_cube">
+    <visual>
+      <geometry>
+        <box size="0.1 0.1 0.1"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="2.0 0 0.05"/>
+      <material name="black"/>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="0.1 0.1 0.1"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="0.1"/>
+      <inertia ixx="0.0000416" ixy="0.0" ixz="0.0" iyy="0.0000416" iyz="0.0" izz="0.0000416"/>
+    </inertial>
+  </link>
+
+  <!-- Let’s start by examining the joint’s origin. It is defined in terms of the parent’s reference frame. -->
+  <joint name="right_to_middle" type="fixed">
+    <parent link="middle_cube"/>
+    <child link="right_cube"/>
+    <origin xyz="0.1 0 0"/>
+  </joint>
+
+</robot>
