@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<launch>
+
+  <!-- Debug arguments -->
+  <arg name="verbose" default="true"/>
+
+  <!-- Sim arguments -->
+  <arg name="gazebo" default="true" />
+  <arg name="headless" default="false" />
+  <arg name="paused" default="false" />
+  <arg name="use_sim_time" default="true" />
+  <arg name="world" default="$(find moma_gazebo)/worlds/force_torque_tutorial.world" />
+  <arg name="rviz" default="true" />
+
+  <include file="$(find gazebo_ros)/launch/empty_world.launch" if="$(arg gazebo)">
+      <arg name="world_name" value="worlds/empty.world" />
+      <arg name="paused" value="$(arg paused)" />
+      <arg name="gui" value="$(eval not arg('headless'))" />
+      <arg name="use_sim_time" value="$(arg use_sim_time)" />
+      <arg name="debug" default="true"/>
+      <arg name="verbose" default="true"/>
+      
+  </include>
+
+  <!-- Load robot description  -->
+  <!-- <param name="robot_description"
+      command="$(find xacro)/xacro $(find moma_description)/urdf/test_ft.xacro"/> -->
+
+  <!-- Spawn a robot into Gazebo -->
+  <!-- <node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model" args="-param $(find moma_description)/urdf/test_ft.urdf -urdf -model panda" /> -->
+  <node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model" args="-file $(find moma_description)/urdf/test_ft.urdf -urdf -model panda" /> \
+  <!-- <node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model" args="-file /home/toni/moma_ws/src/moma_description/urdf/r2d2.urdf -urdf -model panda" /> -->
+
+<!-- rosrun gazebo_ros spawn_model -file `pwd`/object.urdf -urdf -z 1 -model my_object -->
+
+  <!-- rosrun gazebo_ros spawn_model -file `pwd`/object.urdf -urdf -z 1 -model my_object -->
+
+</launch>
