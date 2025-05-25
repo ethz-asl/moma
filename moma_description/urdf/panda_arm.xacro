@@ -20,7 +20,7 @@
     fixed_calibration_rpy:='-0.1566281 1.3870703 2.9725147'
     fixed_calibration_xyz:='0.890 -0.162 1.293'
     fixed_camera_parent_link:='panda_link0'
-    use_bota:=false
+    use_bota:=true
     multiple_robots:=false
     include_control_plugin:=true,
     publish_realsense_extrinsics:=true">
@@ -40,6 +40,51 @@
       <xacro:property name="hand_xyz" value="0 0 0"/>
     </xacro:unless>
 
+    <!-- Input a bota sensor geometry -->
+    <link name="bota">
+      <visual>
+        <geometry>
+          <box size="0.2 0.2 0.035"/>
+        </geometry>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <geometry>
+          <box size="0.2 0.2 0.035" />
+        </geometry>
+      </collision>
+    </link>
+
+    <joint name="arm_to_bota" type="revolute">
+      <parent link="${arm_id}_link8"/>
+      <child link="bota"/>
+      <limit velocity="6.5" effort="1000" lower="0" upper="0" />
+      <!-- Not needed but also doesn't throw an error -->
+      <!-- <sensor name="force_torque" type="force_torque">
+          <update_rate>30</update_rate>
+      </sensor> -->
+    </joint>
+
+    <!-- Enable the Joint Feedback -->
+    <gazebo reference="arm_to_bota">
+      <provideFeedback>true</provideFeedback>
+    </gazebo>
+
+    <!-- Do NOT include "reference="arm_to_bota"" as sometimes seen online, will cause failure without error message -->
+    <gazebo>
+        <always_on>true</always_on>
+        <update_rate>100</update_rate>
+        <visualize>true</visualize>
+        <!-- Do NOT include the plugin inside sensor tags, this will lead to failure as it's a ModelPlugin -->
+        <plugin filename="libgazebo_ros_ft_sensor.so" name="ft_sensor">
+          <topicName>/ft_sensor_topic</topicName>
+          <jointName>arm_to_bota</jointName>
+          <always_on>true</always_on>
+          <update_rate>100</update_rate>
+          <visualize>true</visualize>
+        </plugin>
+    </gazebo>
+
     <!-- Put in a basic hand. -->
     <xacro:if value="${hand}">
       <xacro:include filename="$(find franka_description)/robots/common/franka_hand.xacro" />
@@ -49,7 +94,7 @@
         xyz="${hand_xyz}"
         tcp_xyz="${tcp_xyz}"
         tcp_rpy="${tcp_rpy}"
-        connected_to="${arm_id}_link8"
+        connected_to="bota"
         safety_distance="0.03"
         gazebo="${gazebo}" />
     </xacro:if>
@@ -107,6 +152,8 @@
         transmission="hardware_interface/PositionJointInterface" />
       <xacro:gazebo-joint joint="${arm_id}_joint7"
         transmission="hardware_interface/PositionJointInterface" />
+      <xacro:gazebo-joint joint="arm_to_bota"
+        transmission="hardware_interface/PositionJointInterface" />
 
       <xacro:gazebo-joint joint="${arm_id}_joint1"
         transmission="hardware_interface/VelocityJointInterface" />
@@ -122,6 +169,8 @@
         transmission="hardware_interface/VelocityJointInterface" />
       <xacro:gazebo-joint joint="${arm_id}_joint7"
         transmission="hardware_interface/VelocityJointInterface" />
+      <xacro:gazebo-joint joint="arm_to_bota"
+        transmission="hardware_interface/VelocityJointInterface" />
 
       <xacro:gazebo-joint joint="${arm_id}_joint1"
         transmission="hardware_interface/EffortJointInterface" />
@@ -137,6 +186,9 @@
         transmission="hardware_interface/EffortJointInterface" />
       <xacro:gazebo-joint joint="${arm_id}_joint7"
         transmission="hardware_interface/EffortJointInterface" />
+      <xacro:gazebo-joint joint="arm_to_bota"
+        transmission="hardware_interface/EffortJointInterface" />
+
 
       <xacro:transmission-franka-state arm_id="${arm_id}" />
       <xacro:transmission-franka-model arm_id="${arm_id}"
@@ -163,6 +215,11 @@
               <robotParam>robot_description_arm</robotParam>
               <robotDescription>robot_description_arm</robotDescription>
             </xacro:if>
+            <xacro:unless value="${multiple_robots}">
+              <robotNamespace>/</robotNamespace>
+              <robotParam>robot_description</robotParam>
+              <robotDescription>robot_description</robotDescription>
+            </xacro:unless>
           </plugin>
           <self_collide>true</self_collide>
         </gazebo>
