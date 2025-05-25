@@ -88,6 +88,9 @@ class PandaGripperClient:
         msg = MoveGoal(width, speed)
         self.move_client.send_goal(msg)
         self.move_client.wait_for_result(rospy.Duration.from_sec(2.0))
+        result = self.move_client.get_result()
+        # print(f"msg: {msg}")
+        # print(f"result: {result}")
 
     def grasp(self, width=0.0, e_inner=0.1, e_outer=0.1, speed=0.1, force=5.0):
         rospy.loginfo("Closing gripper")
@@ -95,8 +98,8 @@ class PandaGripperClient:
         self.grasp_client.send_goal(msg)
         self.grasp_client.wait_for_result(rospy.Duration(2.0))
 
-    def release(self, width=0.1):
-        rospy.loginfo("Opening gripper")
+    def release(self, width=0.07):
+        rospy.loginfo(f"Opening gripper within panda.py with width {width}")
         self.move(width)
 
     def stop(self):
