@@ -21,6 +21,17 @@
       </geometry>
     </xacro:property>
 
+    <xacro:property name="friction_properties">
+      <surface>
+        <friction>
+          <ode>
+            <mu>100</mu>
+            <mu2>50</mu2>
+          </ode>
+        </friction>
+      </surface>
+    </xacro:property>
+
     <material name="blue">
       <color rgba="0 0 0.8 1"/>
     </material>
@@ -39,6 +50,7 @@
       </visual>
       <collision>
         <xacro:insert_block name="box_geometry"/>
+        <xacro:insert_block name="friction_properties"/>
         <!-- The reference frame of the collision element, relative to the reference frame of the link.  -->
         <origin rpy="0 0 0" xyz="0.0 0.0 0.0"/>
       </collision>
@@ -59,6 +71,7 @@
       </visual>
       <collision>
         <xacro:insert_block name="box_geometry"/>
+        <xacro:insert_block name="friction_properties"/>
       </collision>
       <inertial>
         <mass value="${mass_l}"/>
@@ -83,6 +96,7 @@
       </visual>
       <collision>
         <xacro:insert_block name="box_geometry"/>
+        <xacro:insert_block name="friction_properties"/>
       </collision>
       <inertial>
         <mass value="${mass_r}"/>
@@ -110,6 +124,11 @@
       <material>Gazebo/White</material>
     </gazebo>
 
+    <!-- create gazebo friction properties -->
+    <xacro:include filename="$(find moma_description)/urdf/utils.urdf.xacro" />
+    <xacro:gazebo-friction link="middle_cube" mu="100" />
+    <xacro:gazebo-friction link="right_cube" mu="100" />
+    <xacro:gazebo-friction link="left_cube" mu="100" />
     
   </xacro:macro>
 

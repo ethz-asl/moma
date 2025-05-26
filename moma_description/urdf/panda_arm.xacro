@@ -202,8 +202,10 @@
         <xacro:gazebo-joint joint="${arm_id}_finger_joint2"
           transmission="hardware_interface/EffortJointInterface" />
           <!-- Friction specific material for Rubber/Rubber contact -->
-        <xacro:gazebo-friction link="${arm_id}_leftfinger" mu="1.13" />
-        <xacro:gazebo-friction link="${arm_id}_rightfinger" mu="1.13" />
+        <!-- <xacro:gazebo-friction link="${arm_id}_leftfinger" mu="1.13" />
+        <xacro:gazebo-friction link="${arm_id}_rightfinger" mu="1.13" /> -->
+        <xacro:gazebo-friction link="${arm_id}_leftfinger" mu="100" />
+        <xacro:gazebo-friction link="${arm_id}_rightfinger" mu="100" />
       </xacro:if>
 
       <xacro:if value="${include_control_plugin}">
