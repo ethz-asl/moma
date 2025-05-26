@@ -295,10 +295,12 @@ class PandaArmClient(object):
     def go_to_safe(self) -> bool:
         return self.go_to_named_target("safe")
 
-    def go_to_joint_goal(self, joint_goal: dict) -> bool:
+    def go_to_joint_goal(self, joint_goal: list) -> bool:
         """
         Planning to a Joint Goal
         """
+        #TODO need to change here joint_goal to JointState msg
+
         self.move_group.go(joint_goal, wait=True)
         self.move_group.stop()
         current_joints = self.move_group.get_current_joint_values()
