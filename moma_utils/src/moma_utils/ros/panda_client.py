@@ -341,7 +341,7 @@ class PandaArmClient(object):
 
 
 class PandaGripperClient(object):
-    def __init__(self, ns : str = "panda/franka_gripper/"):
+    def __init__(self, ns : str = "franka_gripper/"):
         self._init_state_callback()
         self._init_action_clients(ns = ns)
         rospy.loginfo("Panda gripper ready")
