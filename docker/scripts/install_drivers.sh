@@ -10,6 +10,9 @@ sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-key C8B3A55A6F3EFCDE
 
 apt-get update -qq && apt-get install -y librealsense2-dkms librealsense2-utils librealsense2-dev librealsense2-dbg
 
+# install bota stuff
+apt-get update && apt-get install libxmlrpcpp-dev librosconsole-dev
+
 # Install Franka stuff
 apt-get -qq update && apt-get install -y ros-noetic-franka-ros 
 

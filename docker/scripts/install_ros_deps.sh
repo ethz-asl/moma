@@ -13,6 +13,7 @@ catkin config --cmake-args -DCMAKE_BUILD_TYPE=Release
 apt-get update && apt-get install -y \
 	ros-noetic-ros-control \
 	ros-noetic-ros-controllers \
+    ros-noetic-rqt-multiplot \
 	ros-noetic-moveit \
 	ros-noetic-rosmon \
 	ros-noetic-pcl-ros \
@@ -32,7 +33,9 @@ apt-get update && apt-get install -y \
   ros-noetic-fkie-node-manager \
 	ros-noetic-moveit-resources-panda-description \
 	ros-noetic-moveit-visual-tools \
-	ros-noetic-apriltag-ros
+	ros-noetic-apriltag-ros \
+    ros-noetic-ethercat-grant \
+    ros-noetic-soem
 
 # Install all the other dependencies in the moma_dep_ws
 cd $MOMA_DEP_WS/src || exit 1
