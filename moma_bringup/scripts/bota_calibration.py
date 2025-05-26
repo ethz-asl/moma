@@ -42,9 +42,12 @@ class BotaCalibration:
     def __init__(self) -> None:
         rospy.init_node("bota_calibration")
 
+        self.pkg_ = rospkg.RosPack()
+
         self.arm_ = PandaArmClient()
         self.planning_frame_ = self.arm_.planning_frame
         self.ee_frame_ = self.arm_.eef_link
+
         self.tf_buffer_ = tf2_ros.Buffer()
         self.tf_listener_ = tf2_ros.TransformListener(self.tf_buffer_)
         #TODO get poses from yaml
@@ -55,10 +58,8 @@ class BotaCalibration:
         self.arm_.set_planning_pipeline("pilz_industrial_motion_planner")
         
     def load_poses(self, file_name : str = "bota_poses.yaml") -> None:
-        pkg = rospkg.RosPack()
-        
         yaml_file = (
-            pkg.get_path("moma_bringup") + "/config/" + file_name
+            self.pkg_.get_path("moma_bringup") + "/config/" + file_name
         )
         pose_dict = yaml.safe_load(open(yaml_file))["poses"]
         return pose_dict
@@ -117,6 +118,7 @@ class BotaCalibration:
         
     def transform_pose(self, pose : PoseStamped, target_frame : str) -> PoseStamped:
         try:
+            pose.header.stamp = rospy.Time.now()
             pose_transformed = self.tf_buffer_.transform(
                 pose,
                 target_frame,
@@ -131,7 +133,7 @@ class BotaCalibration:
     def record_data(self, pose_name: str, pose_msg: PoseStamped, timeout=2.0):
         """Record a single sensor reading from the Bota F/T sensor."""
         try:
-            data_msg = rospy.wait_for_message("/bus0/ft_sensor0/", Reading, timeout=timeout)
+            data_msg = rospy.wait_for_message("/bus0/ft_sensor0/ft_sensor_readings/reading", Reading, timeout=timeout)
         except rospy.ROSException:
             rospy.logwarn("Timed out waiting for sensor data.")
             return None
@@ -168,7 +170,11 @@ class BotaCalibration:
     
 
     def save_data(self, data_list, file_path="bota_calibration_data.yaml"):
-        with open(file_path, "w") as file:
+        yaml_file = (
+            self.pkg_.get_path("moma_bringup") + "/config/" + file_path
+        )
+        with open(yaml_file, "w") as file:
+            rospy.logwarn(f"Are we actually printing things here?")
             yaml.dump({"samples": data_list}, file, default_flow_style=False)
 
     def run_repeatability_test(self, repeats=10):
@@ -195,6 +201,7 @@ class BotaCalibration:
                 rospy.sleep(5.0)
                 sample = self.record_data(f"{pose_name}_{trial+1}", pose_msg)
                 if sample:
+                    # self.save_data(sample)
                     results.append(sample)
 
         self.save_data(results)
