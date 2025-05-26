@@ -9,7 +9,15 @@ effort_joint_trajectory_controller:
     - panda_joint6
     - panda_joint7
   constraints:
-    goal_time: 10.0
+    goal_time: 1.0
+    # panda_joint1: { goal: 0.005 }
+    # panda_joint2: { goal: 0.005 }
+    # panda_joint3: { goal: 0.005 }
+    # panda_joint4: { goal: 0.005 }
+    # panda_joint5: { goal: 0.005 }
+    # panda_joint6: { goal: 0.005 }
+    # panda_joint7: { goal: 0.005 }
+    # stopped_velocity_tolerance: 0.02
   gains:
     panda_joint1: { p: 50, i: 0, d: 20 }
     panda_joint2: { p: 10000, i: 0, d: 500 }
