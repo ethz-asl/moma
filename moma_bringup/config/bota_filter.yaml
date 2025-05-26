@@ -1,0 +1,8 @@
+WrenchSensorFilterNode:
+    ee_mass: 0.175                # payload mass [kg]
+    ee_dist_x: 0.0              # payload x-axis CoM offset wrt. sensor in ee flange frame [m]
+    ee_dist_y: 0.0              # payload y-axis CoM offset wrt. sensor in ee flange frame [m]
+    ee_dist_z: 0.025             # payload z-axis CoM offset wrt. sensor in ee flange frame [m]
+    force_filter_cutoff: 50    # force filter cutoff frequency [rad/s]
+    torque_filter_cutoff: 500   # torque filter cutoff frequency [rad/s]
+
