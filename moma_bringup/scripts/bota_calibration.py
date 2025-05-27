@@ -173,9 +173,9 @@ class BotaCalibration:
         yaml_file = (
             self.pkg_.get_path("moma_bringup") + "/config/" + file_path
         )
-        with open(yaml_file, "w") as file:
-            rospy.logwarn(f"Are we actually printing things here?")
-            yaml.dump({"samples": data_list}, file, default_flow_style=False)
+        with open(yaml_file, "a") as file: # append
+            yaml.dump({"reset_wrench": data_list}, file, default_flow_style=False)
+
 
     def run_repeatability_test(self, repeats=10):
         pose_dict = self.load_poses()
@@ -203,7 +203,7 @@ class BotaCalibration:
                 if sample:
                     # self.save_data(sample)
                     results.append(sample)
-
+        self.arm_.go_to_ready()
         self.save_data(results)
 
 def main():
