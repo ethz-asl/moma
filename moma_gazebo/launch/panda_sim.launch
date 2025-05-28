@@ -66,12 +66,12 @@
     <!-- Start at pregrasp position essentially -->
     <arg name="initial_joint_positions"
         default="-J $(arg arm_id)_joint1 0
-                -J $(arg arm_id)_joint2 0.3772
+                -J $(arg arm_id)_joint2 0.2226
                 -J $(arg arm_id)_joint3 0
-                -J $(arg arm_id)_joint4 -2.3854
+                -J $(arg arm_id)_joint4 -2.4010
                 -J $(arg arm_id)_joint5 0
-                -J $(arg arm_id)_joint6 2.7617
-                -J $(arg arm_id)_joint7 0.7924
+                -J $(arg arm_id)_joint6 2.6219
+                -J $(arg arm_id)_joint7 0.7849
                 -J $(arg arm_id)_finger_joint1 0.035
                 -J $(arg arm_id)_finger_joint2 0.035" />
 
@@ -166,7 +166,8 @@
         output="screen"/> -->
 
     <!-- Launch grasp node -->
-    <node pkg="latobj" type="grasp_object.py" name="grasp_object" output="screen"/>
+    <node pkg="latobj" type="grasp_object.py" name="grasp_object" 
+      args="$(arg out_path) $(arg obj_name)" output="screen"/>
 
     <!-- Lauch rosbag record -->
     <!-- <node pkg="rosbag" type="record" name="rosbag_record_ft"
