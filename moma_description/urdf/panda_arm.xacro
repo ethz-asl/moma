@@ -43,7 +43,6 @@
     <!-- Input a bota sensor geometry -->
     <!-- Remove bota collision geometry as otherwise collision between bota and panda_link7-->
     <link name="bota">
-      <!-- [ 0, 0, -0.4871745, -0.8733046 ] -->
       <visual>
         <geometry>
           <box size="0.2 0.2 0.035"/>
@@ -94,11 +93,12 @@
     </gazebo>
 
     <!-- Put in a basic hand. -->
+    <!-- Before rotating bota to align with EE rpy was "rpy="0 0 ${-pi/4}""-->
     <xacro:if value="${hand}">
       <xacro:include filename="$(find franka_description)/robots/common/franka_hand.xacro" />
       <xacro:franka_hand
         arm_id="${arm_id}"
-        rpy="0 0 ${-pi/4}"
+        rpy="0 0 0"
         xyz="${hand_xyz}"
         tcp_xyz="${tcp_xyz}"
         tcp_rpy="${tcp_rpy}"
@@ -244,6 +244,25 @@
       <child link="${arm_id}_default_ee"/>
       <origin rpy="0 0 ${-pi/4}" xyz="${tcp_xyz}"/> 
     </joint>
+
+    <!-- gazebo grasp fix plugin to fix object rigidly to end effector as soon as gripper closes -->
+    <gazebo>
+      <plugin name="gazebo_grasp_fix" filename="libgazebo_grasp_fix.so">
+            <arm>
+              <arm_name>${arm_id}_arm</arm_name>
+              <palm_link>bota</palm_link>
+              <gripper_link>${arm_id}_leftfinger</gripper_link>
+              <gripper_link>${arm_id}_rightfinger</gripper_link>
+            </arm>
+          <forces_angle_tolerance>100</forces_angle_tolerance>
+          <update_rate>20</update_rate>
+          <grip_count_threshold>2</grip_count_threshold>
+          <max_grip_count>8</max_grip_count>
+          <release_tolerance>0.005</release_tolerance>
+          <disable_collisions_on_attach>false</disable_collisions_on_attach>
+          <contact_topic>__default_topic__</contact_topic>
+        </plugin>
+    </gazebo>
 
   </xacro:macro>
 </robot>
