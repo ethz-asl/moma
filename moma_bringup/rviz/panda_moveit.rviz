@@ -4,13 +4,13 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
-        - /MoveIt1
+        - /MoveIt1/MotionPlanning1
         - /Controller1
         - /Sensors1
-        - /Sensors1/PointCloud21
-        - /TF1
+        - /Axes1
+        - /Axes2
       Splitter Ratio: 0.7425600290298462
-    Tree Height: 871
+    Tree Height: 577
   - Class: rviz/Help
     Name: Help
   - Class: rviz/Views
@@ -65,6 +65,15 @@ Visualization Manager:
             Expand Link Details: false
             Expand Tree: false
             Link Tree Style: Links in Alphabetic Order
+            bota:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            panda_default_ee:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
             panda_hand:
               Alpha: 1
               Show Axes: false
@@ -74,7 +83,6 @@ Visualization Manager:
               Alpha: 1
               Show Axes: false
               Show Trail: false
-              Value: true
             panda_hand_tcp:
               Alpha: 1
               Show Axes: false
@@ -93,7 +101,6 @@ Visualization Manager:
               Alpha: 1
               Show Axes: false
               Show Trail: false
-              Value: true
             panda_link1:
               Alpha: 1
               Show Axes: false
@@ -103,7 +110,6 @@ Visualization Manager:
               Alpha: 1
               Show Axes: false
               Show Trail: false
-              Value: true
             panda_link2:
               Alpha: 1
               Show Axes: false
@@ -113,7 +119,6 @@ Visualization Manager:
               Alpha: 1
               Show Axes: false
               Show Trail: false
-              Value: true
             panda_link3:
               Alpha: 1
               Show Axes: false
@@ -123,7 +128,6 @@ Visualization Manager:
               Alpha: 1
               Show Axes: false
               Show Trail: false
-              Value: true
             panda_link4:
               Alpha: 1
               Show Axes: false
@@ -133,7 +137,6 @@ Visualization Manager:
               Alpha: 1
               Show Axes: false
               Show Trail: false
-              Value: true
             panda_link5:
               Alpha: 1
               Show Axes: false
@@ -143,7 +146,6 @@ Visualization Manager:
               Alpha: 1
               Show Axes: false
               Show Trail: false
-              Value: true
             panda_link6:
               Alpha: 1
               Show Axes: false
@@ -153,7 +155,6 @@ Visualization Manager:
               Alpha: 1
               Show Axes: false
               Show Trail: false
-              Value: true
             panda_link7:
               Alpha: 1
               Show Axes: false
@@ -163,7 +164,6 @@ Visualization Manager:
               Alpha: 1
               Show Axes: false
               Show Trail: false
-              Value: true
             panda_link8:
               Alpha: 1
               Show Axes: false
@@ -173,6 +173,10 @@ Visualization Manager:
               Show Axes: false
               Show Trail: false
               Value: true
+            world:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
             wrist_camera_bottom_screw_frame:
               Alpha: 1
               Show Axes: false
@@ -254,7 +258,8 @@ Visualization Manager:
           Value: false
         - Acceleration_Scaling_Factor: 0.1
           Class: moveit_rviz_plugin/MotionPlanning
-          Enabled: false
+          Enabled: true
+          JointsTab_Use_Radians: true
           Move Group Namespace: ""
           MoveIt_Allow_Approximate_IK: false
           MoveIt_Allow_External_Program: false
@@ -283,6 +288,159 @@ Visualization Manager:
               Expand Link Details: false
               Expand Tree: false
               Link Tree Style: Links in Alphabetic Order
+              bota:
+                Alpha: 1
+                Show Axes: false
+                Show Trail: false
+                Value: true
+              panda_default_ee:
+                Alpha: 1
+                Show Axes: false
+                Show Trail: false
+              panda_hand:
+                Alpha: 1
+                Show Axes: false
+                Show Trail: false
+                Value: true
+              panda_hand_sc:
+                Alpha: 1
+                Show Axes: false
+                Show Trail: false
+              panda_hand_tcp:
+                Alpha: 1
+                Show Axes: false
+                Show Trail: false
+              panda_leftfinger:
+                Alpha: 1
+                Show Axes: false
+                Show Trail: false
+                Value: true
+              panda_link0:
+                Alpha: 1
+                Show Axes: false
+                Show Trail: false
+                Value: true
+              panda_link0_sc:
+                Alpha: 1
+                Show Axes: false
+                Show Trail: false
+              panda_link1:
+                Alpha: 1
+                Show Axes: false
+                Show Trail: false
+                Value: true
+              panda_link1_sc:
+                Alpha: 1
+                Show Axes: false
+                Show Trail: false
+              panda_link2:
+                Alpha: 1
+                Show Axes: false
+                Show Trail: false
+                Value: true
+              panda_link2_sc:
+                Alpha: 1
+                Show Axes: false
+                Show Trail: false
+              panda_link3:
+                Alpha: 1
+                Show Axes: false
+                Show Trail: false
+                Value: true
+              panda_link3_sc:
+                Alpha: 1
+                Show Axes: false
+                Show Trail: false
+              panda_link4:
+                Alpha: 1
+                Show Axes: false
+                Show Trail: false
+                Value: true
+              panda_link4_sc:
+                Alpha: 1
+                Show Axes: false
+                Show Trail: false
+              panda_link5:
+                Alpha: 1
+                Show Axes: false
+                Show Trail: false
+                Value: true
+              panda_link5_sc:
+                Alpha: 1
+                Show Axes: false
+                Show Trail: false
+              panda_link6:
+                Alpha: 1
+                Show Axes: false
+                Show Trail: false
+                Value: true
+              panda_link6_sc:
+                Alpha: 1
+                Show Axes: false
+                Show Trail: false
+              panda_link7:
+                Alpha: 1
+                Show Axes: false
+                Show Trail: false
+                Value: true
+              panda_link7_sc:
+                Alpha: 1
+                Show Axes: false
+                Show Trail: false
+              panda_link8:
+                Alpha: 1
+                Show Axes: false
+                Show Trail: false
+              panda_rightfinger:
+                Alpha: 1
+                Show Axes: false
+                Show Trail: false
+                Value: true
+              world:
+                Alpha: 1
+                Show Axes: false
+                Show Trail: false
+              wrist_camera_bottom_screw_frame:
+                Alpha: 1
+                Show Axes: false
+                Show Trail: false
+              wrist_camera_color_frame:
+                Alpha: 1
+                Show Axes: false
+                Show Trail: false
+              wrist_camera_color_optical_frame:
+                Alpha: 1
+                Show Axes: false
+                Show Trail: false
+              wrist_camera_depth_frame:
+                Alpha: 1
+                Show Axes: false
+                Show Trail: false
+              wrist_camera_depth_optical_frame:
+                Alpha: 1
+                Show Axes: false
+                Show Trail: false
+              wrist_camera_infra1_frame:
+                Alpha: 1
+                Show Axes: false
+                Show Trail: false
+              wrist_camera_infra1_optical_frame:
+                Alpha: 1
+                Show Axes: false
+                Show Trail: false
+              wrist_camera_infra2_frame:
+                Alpha: 1
+                Show Axes: false
+                Show Trail: false
+              wrist_camera_infra2_optical_frame:
+                Alpha: 1
+                Show Axes: false
+                Show Trail: false
+              wrist_camera_link:
+                Alpha: 1
+                Show Axes: false
+                Show Trail: false
+                Value: true
             Loop Animation: false
             Robot Alpha: 0.5
             Robot Color: 150; 50; 150
@@ -306,7 +464,7 @@ Visualization Manager:
             Goal State Color: 250; 128; 0
             Interactive Marker Size: 0
             Joint Violation Color: 255; 0; 255
-            Planning Group: ""
+            Planning Group: panda_arm
             Query Goal State: true
             Query Start State: false
             Show Workspace: false
@@ -329,10 +487,163 @@ Visualization Manager:
               Expand Link Details: false
               Expand Tree: false
               Link Tree Style: Links in Alphabetic Order
+              bota:
+                Alpha: 1
+                Show Axes: false
+                Show Trail: false
+                Value: true
+              panda_default_ee:
+                Alpha: 1
+                Show Axes: false
+                Show Trail: false
+              panda_hand:
+                Alpha: 1
+                Show Axes: false
+                Show Trail: false
+                Value: true
+              panda_hand_sc:
+                Alpha: 1
+                Show Axes: false
+                Show Trail: false
+              panda_hand_tcp:
+                Alpha: 1
+                Show Axes: false
+                Show Trail: false
+              panda_leftfinger:
+                Alpha: 1
+                Show Axes: false
+                Show Trail: false
+                Value: true
+              panda_link0:
+                Alpha: 1
+                Show Axes: false
+                Show Trail: false
+                Value: true
+              panda_link0_sc:
+                Alpha: 1
+                Show Axes: false
+                Show Trail: false
+              panda_link1:
+                Alpha: 1
+                Show Axes: false
+                Show Trail: false
+                Value: true
+              panda_link1_sc:
+                Alpha: 1
+                Show Axes: false
+                Show Trail: false
+              panda_link2:
+                Alpha: 1
+                Show Axes: false
+                Show Trail: false
+                Value: true
+              panda_link2_sc:
+                Alpha: 1
+                Show Axes: false
+                Show Trail: false
+              panda_link3:
+                Alpha: 1
+                Show Axes: false
+                Show Trail: false
+                Value: true
+              panda_link3_sc:
+                Alpha: 1
+                Show Axes: false
+                Show Trail: false
+              panda_link4:
+                Alpha: 1
+                Show Axes: false
+                Show Trail: false
+                Value: true
+              panda_link4_sc:
+                Alpha: 1
+                Show Axes: false
+                Show Trail: false
+              panda_link5:
+                Alpha: 1
+                Show Axes: false
+                Show Trail: false
+                Value: true
+              panda_link5_sc:
+                Alpha: 1
+                Show Axes: false
+                Show Trail: false
+              panda_link6:
+                Alpha: 1
+                Show Axes: false
+                Show Trail: false
+                Value: true
+              panda_link6_sc:
+                Alpha: 1
+                Show Axes: false
+                Show Trail: false
+              panda_link7:
+                Alpha: 1
+                Show Axes: false
+                Show Trail: false
+                Value: true
+              panda_link7_sc:
+                Alpha: 1
+                Show Axes: false
+                Show Trail: false
+              panda_link8:
+                Alpha: 1
+                Show Axes: false
+                Show Trail: false
+              panda_rightfinger:
+                Alpha: 1
+                Show Axes: false
+                Show Trail: false
+                Value: true
+              world:
+                Alpha: 1
+                Show Axes: false
+                Show Trail: false
+              wrist_camera_bottom_screw_frame:
+                Alpha: 1
+                Show Axes: false
+                Show Trail: false
+              wrist_camera_color_frame:
+                Alpha: 1
+                Show Axes: false
+                Show Trail: false
+              wrist_camera_color_optical_frame:
+                Alpha: 1
+                Show Axes: false
+                Show Trail: false
+              wrist_camera_depth_frame:
+                Alpha: 1
+                Show Axes: false
+                Show Trail: false
+              wrist_camera_depth_optical_frame:
+                Alpha: 1
+                Show Axes: false
+                Show Trail: false
+              wrist_camera_infra1_frame:
+                Alpha: 1
+                Show Axes: false
+                Show Trail: false
+              wrist_camera_infra1_optical_frame:
+                Alpha: 1
+                Show Axes: false
+                Show Trail: false
+              wrist_camera_infra2_frame:
+                Alpha: 1
+                Show Axes: false
+                Show Trail: false
+              wrist_camera_infra2_optical_frame:
+                Alpha: 1
+                Show Axes: false
+                Show Trail: false
+              wrist_camera_link:
+                Alpha: 1
+                Show Axes: false
+                Show Trail: false
+                Value: true
             Robot Alpha: 1
             Show Robot Collision: false
             Show Robot Visual: true
-          Value: false
+          Value: true
           Velocity_Scaling_Factor: 0.1
       Enabled: true
       Name: MoveIt
@@ -348,6 +659,15 @@ Visualization Manager:
             Expand Link Details: false
             Expand Tree: false
             Link Tree Style: Links in Alphabetic Order
+            bota:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            panda_default_ee:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
             panda_hand:
               Alpha: 1
               Show Axes: false
@@ -357,7 +677,6 @@ Visualization Manager:
               Alpha: 1
               Show Axes: false
               Show Trail: false
-              Value: true
             panda_hand_tcp:
               Alpha: 1
               Show Axes: false
@@ -376,7 +695,6 @@ Visualization Manager:
               Alpha: 1
               Show Axes: false
               Show Trail: false
-              Value: true
             panda_link1:
               Alpha: 1
               Show Axes: false
@@ -386,7 +704,6 @@ Visualization Manager:
               Alpha: 1
               Show Axes: false
               Show Trail: false
-              Value: true
             panda_link2:
               Alpha: 1
               Show Axes: false
@@ -396,7 +713,6 @@ Visualization Manager:
               Alpha: 1
               Show Axes: false
               Show Trail: false
-              Value: true
             panda_link3:
               Alpha: 1
               Show Axes: false
@@ -406,7 +722,6 @@ Visualization Manager:
               Alpha: 1
               Show Axes: false
               Show Trail: false
-              Value: true
             panda_link4:
               Alpha: 1
               Show Axes: false
@@ -416,7 +731,6 @@ Visualization Manager:
               Alpha: 1
               Show Axes: false
               Show Trail: false
-              Value: true
             panda_link5:
               Alpha: 1
               Show Axes: false
@@ -426,7 +740,6 @@ Visualization Manager:
               Alpha: 1
               Show Axes: false
               Show Trail: false
-              Value: true
             panda_link6:
               Alpha: 1
               Show Axes: false
@@ -436,7 +749,6 @@ Visualization Manager:
               Alpha: 1
               Show Axes: false
               Show Trail: false
-              Value: true
             panda_link7:
               Alpha: 1
               Show Axes: false
@@ -446,7 +758,6 @@ Visualization Manager:
               Alpha: 1
               Show Axes: false
               Show Trail: false
-              Value: true
             panda_link8:
               Alpha: 1
               Show Axes: false
@@ -456,6 +767,10 @@ Visualization Manager:
               Show Axes: false
               Show Trail: false
               Value: true
+            world:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
             wrist_camera_bottom_screw_frame:
               Alpha: 1
               Show Axes: false
@@ -552,95 +867,91 @@ Visualization Manager:
       Filter (whitelist): ""
       Frame Timeout: 15
       Frames:
-        All Enabled: true
-        fixed_camera_bottom_screw_frame:
+        All Enabled: false
+        bota:
           Value: true
         panda_EE:
-          Value: true
+          Value: false
         panda_K:
-          Value: true
+          Value: false
         panda_NE:
+          Value: false
+        panda_default_ee:
           Value: true
         panda_hand:
-          Value: true
+          Value: false
         panda_hand_sc:
-          Value: true
+          Value: false
         panda_hand_tcp:
-          Value: true
+          Value: false
         panda_leftfinger:
-          Value: true
+          Value: false
         panda_link0:
-          Value: true
+          Value: false
         panda_link0_sc:
-          Value: true
+          Value: false
         panda_link1:
-          Value: true
+          Value: false
         panda_link1_sc:
-          Value: true
+          Value: false
         panda_link2:
-          Value: true
+          Value: false
         panda_link2_sc:
-          Value: true
+          Value: false
         panda_link3:
-          Value: true
+          Value: false
         panda_link3_sc:
-          Value: true
+          Value: false
         panda_link4:
-          Value: true
+          Value: false
         panda_link4_sc:
-          Value: true
+          Value: false
         panda_link5:
-          Value: true
+          Value: false
         panda_link5_sc:
-          Value: true
+          Value: false
         panda_link6:
-          Value: true
+          Value: false
         panda_link6_sc:
-          Value: true
+          Value: false
         panda_link7:
-          Value: true
+          Value: false
         panda_link7_sc:
-          Value: true
+          Value: false
         panda_link8:
-          Value: true
+          Value: false
         panda_rightfinger:
-          Value: true
-        table:
-          Value: true
-        tag_0:
-          Value: true
+          Value: false
         world:
           Value: true
         wrist_camera_bottom_screw_frame:
-          Value: true
+          Value: false
         wrist_camera_color_frame:
-          Value: true
+          Value: false
         wrist_camera_color_optical_frame:
-          Value: true
+          Value: false
         wrist_camera_depth_frame:
-          Value: true
+          Value: false
         wrist_camera_depth_optical_frame:
-          Value: true
+          Value: false
         wrist_camera_infra1_frame:
-          Value: true
+          Value: false
         wrist_camera_infra1_optical_frame:
-          Value: true
+          Value: false
         wrist_camera_infra2_frame:
-          Value: true
+          Value: false
         wrist_camera_infra2_optical_frame:
-          Value: true
+          Value: false
         wrist_camera_link:
-          Value: true
+          Value: false
       Marker Alpha: 1
-      Marker Scale: 1
+      Marker Scale: 0.5
       Name: TF
       Show Arrows: true
       Show Axes: true
       Show Names: true
       Tree:
         world:
-          fixed_camera_bottom_screw_frame:
-            {}
           panda_link0:
             panda_link0_sc:
               {}
@@ -666,25 +977,27 @@ Visualization Manager:
                           panda_link7_sc:
                             {}
                           panda_link8:
+                            bota:
+                              panda_hand:
+                                panda_hand_sc:
+                                  {}
+                                panda_hand_tcp:
+                                  {}
+                                panda_leftfinger:
+                                  {}
+                                panda_rightfinger:
+                                  {}
                             panda_NE:
                               panda_EE:
                                 panda_K:
                                   {}
-                            panda_hand:
-                              panda_hand_sc:
-                                {}
-                              panda_hand_tcp:
-                                {}
-                              panda_leftfinger:
-                                {}
-                              panda_rightfinger:
-                                {}
+                            panda_default_ee:
+                              {}
                             wrist_camera_bottom_screw_frame:
                               wrist_camera_link:
                                 wrist_camera_color_frame:
                                   wrist_camera_color_optical_frame:
-                                    tag_0:
-                                      {}
+                                    {}
                                 wrist_camera_depth_frame:
                                   wrist_camera_depth_optical_frame:
                                     {}
@@ -694,9 +1007,25 @@ Visualization Manager:
                                 wrist_camera_infra2_frame:
                                   wrist_camera_infra2_optical_frame:
                                     {}
-          table:
-            {}
       Update Interval: 0
+      Value: true
+    - Alpha: 1
+      Class: rviz/Axes
+      Enabled: true
+      Length: 1
+      Name: Axes
+      Radius: 0.10000000149011612
+      Reference Frame: panda_EE
+      Show Trail: false
+      Value: true
+    - Alpha: 1
+      Class: rviz/Axes
+      Enabled: true
+      Length: 1
+      Name: Axes
+      Radius: 0.10000000149011612
+      Reference Frame: bota
+      Show Trail: false
       Value: true
   Enabled: true
   Global Options:
@@ -715,7 +1044,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/XYOrbit
-      Distance: 2.661655902862549
+      Distance: 3.3671610355377197
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -723,22 +1052,22 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 0.11356700211763382
-        Y: 0.10592000186443329
+        X: 2.297877311706543
+        Y: -0.3867036700248718
         Z: 2.2351800055275817e-07
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.030204307287931442
+      Pitch: 0.34020426869392395
       Target Frame: panda_link0
-      Yaw: 6.214978218078613
+      Yaw: 0.2717896103858948
     Saved: ~
 Window Geometry:
   Displays:
     collapsed: false
-  Height: 1016
+  Height: 1376
   Help:
     collapsed: false
   Hide Left Dock: false
@@ -747,13 +1076,13 @@ Window Geometry:
     collapsed: false
   MotionPlanning - Trajectory Slider:
     collapsed: false
-  QMainWindow State: 000000ff00000000fd0000000100000000000001f3000003a2fc0200000010fb000000100044006900730070006c006100790073010000003b000003a2000000c700fffffffb0000000800480065006c00700000000342000000bb0000006e00fffffffb0000000a00560069006500770073000000026d000000b5000000a000fffffffb0000000c00430061006d00650072006100000002ff000001610000000000000000fb0000001e004d006f00740069006f006e00200050006c0061006e006e0069006e00670100000374000001890000000000000000fb0000002e004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d00200053006c0069006400650072010000026f000000480000000000000000fb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e0067000000020b000001d20000016900fffffffb00000024005200760069007a00560069007300750061006c0054006f006f006c0073004700750069000000039a000000410000003f00fffffffb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e0067010000034f000001fb0000000000000000fb000000120020002d00200053006c006900640065007201000002df000000480000000000000000fb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e0067010000032d000001fb0000000000000000fb00000044004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000001600000016fb000000280020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000000000000000fb0000003c005400720061006a006500630074006f007200790020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000001600000016fb000000280020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000000000000000fb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e0067010000022800000188000000000000000000000553000003a200000001000000020000000100000002fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd0000000100000000000001f30000050afc0200000010fb000000100044006900730070006c006100790073010000003b0000027c000000c700fffffffb0000000800480065006c00700000000342000000bb0000006e00fffffffb0000000a00560069006500770073000000026d000000b5000000a000fffffffb0000000c00430061006d00650072006100000002ff000001610000000000000000fb0000001e004d006f00740069006f006e00200050006c0061006e006e0069006e00670100000374000001890000000000000000fb0000002e004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d00200053006c0069006400650072010000026f000000480000000000000000fb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e006701000002bd000002880000016900fffffffb00000024005200760069007a00560069007300750061006c0054006f006f006c0073004700750069000000039a000000410000003f00fffffffb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e0067010000034f000001fb0000000000000000fb000000120020002d00200053006c006900640065007201000002df000000480000000000000000fb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e0067010000032d000001fb0000000000000000fb00000044004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000001600000016fb000000280020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000000000000000fb0000003c005400720061006a006500630074006f007200790020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000001600000016fb000000280020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000000000000000fb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e00670100000228000001880000000000000000000007bf0000050a00000001000000020000000100000002fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   RvizVisualToolsGui:
     collapsed: false
   Trajectory - Trajectory Slider:
     collapsed: false
   Views:
     collapsed: false
-  Width: 1868
-  X: 52
+  Width: 2488
+  X: 72
   Y: 27

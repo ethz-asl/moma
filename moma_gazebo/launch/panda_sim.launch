@@ -162,7 +162,7 @@
     <!-- RViz -->
     <!-- <node if="$(arg rviz)" name="$(anon rviz)" pkg="rviz" type="rviz" 
         respawn="false" 
-        args="-d $(find moma_gazebo)/config/panda.rviz" 
+        args="-d $(find moma_bringup)/rviz/panda_moveit.rviz" 
         output="screen"/> -->
 
     <!-- Launch grasp node -->

@@ -43,6 +43,7 @@
     <!-- Input a bota sensor geometry -->
     <!-- Remove bota collision geometry as otherwise collision between bota and panda_link7-->
     <link name="bota">
+      <!-- [ 0, 0, -0.4871745, -0.8733046 ] -->
       <visual>
         <geometry>
           <box size="0.2 0.2 0.035"/>
@@ -56,7 +57,13 @@
       </collision> -->
     </link>
 
+         <!-- rpy="0 0 ${-pi/4}"
+        xyz="${hand_xyz}" -->
+
     <joint name="arm_to_bota" type="revolute">
+      <!-- This is the transform from the parent link to the child link. The joint is located at the origin of the child link, as shown in the figure above.  -->
+      <!-- Rotate the bota joint the same way as the hand for easier interpretation with respect to the EE -->
+      <origin xyz="${hand_xyz}" rpy="0 0 ${-pi/4}" />
       <parent link="${arm_id}_link8"/>
       <child link="bota"/>
       <limit velocity="6.5" effort="1000" lower="0" upper="0" />
