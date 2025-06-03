@@ -1,0 +1,5 @@
+float64 voxel_size
+sensor_msgs/PointCloud2 map_cloud
+---
+geometry_msgs/PoseStamped target_grasp_pose
+---
