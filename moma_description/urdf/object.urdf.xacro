@@ -4,8 +4,9 @@
   <xacro:arg name="mass_m" default="0.05" />
   <xacro:arg name="mass_l" default="0.05" />
   <xacro:arg name="mass_r" default="0.05" />
+  <xacro:arg name="file_name" default="single_cube" />
 
-  <xacro:include filename="$(find moma_description)/urdf/single_cube.xacro" />
+  <xacro:include filename="$(find moma_description)/urdf/$(arg file_name).xacro" />
   <xacro:i_object side_length="$(arg side_length)"
     mass_m="$(arg mass_m)"
     mass_l="$(arg mass_l)"

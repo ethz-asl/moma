@@ -20,8 +20,10 @@
     <arg name="side_length" default="0.04"/>
     <arg name="mass_m" default="0.05" />     
     <arg name="mass_l" default="0.05" />
-    <arg name="mass_r" default="0.05" />  
-    <!-- <arg name="mass_r" default="0.2" />  -->
+    <!-- <arg name="mass_r" default="0.05" />   -->
+    <arg name="mass_r" default="0.2" /> 
+    <arg name="file_name" default="single_cube" /> 
+    <arg name="spawn_x" default="0.5" /> 
 
     <!-- Data recording arguments -->
     <arg name="obj_name" default="I_symmetric_2"/>
@@ -90,11 +92,12 @@
     <param name="cube_description" command="$(find xacro)/xacro $(find moma_description)/urdf/object.urdf.xacro side_length:=$(arg side_length) 
         mass_m:=$(arg mass_m)
         mass_l:=$(arg mass_l)
-        mass_r:=$(arg mass_r)" />
+        mass_r:=$(arg mass_r)
+        file_name:=$(arg file_name)" />
 
     <!-- push cube_description to factory and spawn robot in gazebo -->
     <!-- specify init pose with x/y/z params -->
-    <node name="cube_model_spawner" pkg="gazebo_ros" type="spawn_model" args="-param cube_description -urdf -model cube_model -x 0.5 -y 0 -z 0.1 " respawn="false" output="screen" />
+    <node name="cube_model_spawner" pkg="gazebo_ros" type="spawn_model" args="-param cube_description -urdf -model cube_model -x $(arg spawn_x) -y 0 -z 0.1 " respawn="false" output="screen" />
 
     <!-- Load robot description  -->
     <param name="robot_description"

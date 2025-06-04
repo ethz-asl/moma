@@ -63,14 +63,43 @@
       </inertial>
     </link>
 
+    <link name="left_cube">
+      <visual>
+        <xacro:insert_block name="box_geometry"/>
+        <origin rpy="0 0 0" xyz="0.0 0 0"/>
+        <material name="white"/>
+      </visual>
+      <collision>
+        <xacro:insert_block name="box_geometry"/>
+        <xacro:insert_block name="friction_properties"/>
+      </collision>
+      <inertial>
+        <mass value="${mass_l}"/>
+        <inertia ixx="${1/12 * mass_l * (side_length*side_length + side_length*side_length)}" ixy="0.0" ixz="0.0" 
+                  iyy="0.0000416" iyz="0.0" izz="${1/12 * mass_l * (side_length*side_length + side_length*side_length)}"/>
+      </inertial>
+    </link>
+
+    <!-- Let’s start by examining the joint’s origin. It is defined in terms of the parent’s reference frame. -->
+    <joint name="left_to_middle" type="fixed">
+      <parent link="middle_cube"/>
+      <child link="left_cube"/>
+      <origin xyz="-${side_length} 0 0"/>
+      <!-- <origin xyz="-1.0 0 0"/> -->
+    </joint>
+
     <!-- create gazebo colors -->
     <gazebo reference="middle_cube">
       <material>Gazebo/Blue</material>
+    </gazebo>
+     <gazebo reference="left_cube">
+      <material>Gazebo/White</material>
     </gazebo>
 
     <!-- create gazebo friction properties -->
     <xacro:include filename="$(find moma_description)/urdf/utils.urdf.xacro" />
     <xacro:gazebo-friction link="middle_cube" mu="100" />
+    <xacro:gazebo-friction link="left_cube" mu="100" />
     
   </xacro:macro>
 
