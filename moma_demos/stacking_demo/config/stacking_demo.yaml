@@ -10,7 +10,7 @@ ee_grasp_offset_z: -0.04 #-0.02 #-0.04 # More negative is LOWER into the object
 # ee_grasp_offset_x: 0.010
 
 task_frame_id: task
-table_height: 0.20 #0.25 #-0.05 #0.14  # Measured from the base frame specified above
+table_height: 0.30 #0.25 #-0.05 #0.14  # Measured from the base frame specified above
 
 object_height: 0.04 
 tower_height: 0.08 # need to set from config! 
@@ -34,4 +34,4 @@ workspaces:
 grasp_selection: "auto"  # Choice: manual, auto
 
 arm_velocity_scaling_drop: 0.3
-arm_velocity_scaling_grasp: 0.2
+arm_velocity_scaling_grasp: 0.1

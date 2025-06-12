@@ -4,7 +4,7 @@ import rospy
 from smach import StateMachine
 from smach_ros import ServiceState, SimpleActionState
 from std_srvs.srv import Trigger
-from stacking_demo.srv import MoveToTower
+from stacking_demo.srv import MoveToTower, PlanEasyGrasp
 from stacking_demo.msg import GraspAction, SelectGraspAction, DropAction
 
 """
@@ -46,38 +46,13 @@ def construct_state_machine():
 
     with sm:
         StateMachine.add(
-            "RESET",
-            ServiceState("reset", Trigger),
-            transitions={"succeeded": "RECONSTRUCT_SCENE"},
+            "PLAN_EASY_GRASP",
+            ServiceState("plan_easy_grasp", PlanEasyGrasp, 
+                         response_slots=["target_grasp_pose"]),
+            transitions={
+                "succeeded": "EXECUTE_GRASP",
+            },
         )
-
-        # for michail's scanning
-        # StateMachine.add(
-        #     "RECONSTRUCT_SCENE",
-        #     SimpleActionState(
-        #         "scan_action", ScanSceneAction, result_slots=["voxel_size", "map_cloud"]
-        #     ),
-        #     transitions={
-        #         "succeeded": "PLAN_GRASP",
-        #         "aborted": "RESET",
-        #     },
-        # )
-
-
-        # StateMachine.add(
-        #     "PLAN_GRASP",
-        #     SimpleActionState(
-        #         "grasp_selection_action",
-        #         SelectGraspAction,
-        #         goal_slots=["voxel_size", "map_cloud"],
-        #         result_slots=["target_grasp_pose"],
-        #     ),
-        #     transitions={
-        #         "succeeded": "EXECUTE_GRASP",
-        #         "aborted": "RESET",
-        #     },
-        # )
-
         StateMachine.add(
             "EXECUTE_GRASP",
             SimpleActionState(
@@ -85,42 +60,41 @@ def construct_state_machine():
             ),
             transitions={
                 "succeeded": "DROP_OBJECT",
-                "aborted": "RESET",
             },
         )
 
-        StateMachine.add(
-            "MOVE_TO_MIDDLE",
-            SimpleActionState(
-                "move_to_middle", Trigger, goal_slots=["target_pose"]
-            ),
-            transitions={"succeeded": "MEASURE_FORCE",
-                         "aborted": "RESET"
-            },
-        )
+        # StateMachine.add(
+        #     "MOVE_TO_MIDDLE",
+        #     SimpleActionState(
+        #         "move_to_middle", Trigger, goal_slots=["target_pose"]
+        #     ),
+        #     transitions={"succeeded": "MEASURE_FORCE",
+                         
+        #     },
+        # )
 
-        StateMachine.add(
-            "WAIT_FOR_MODEL",
-            ServiceState("wait_for_model", Trigger, request_slots=["y_offset"]),
-            transitions={"succeeded": "MOVE_TO_TOWER", "aborted": "RESET"},
-        )
+        # StateMachine.add(
+        #     "WAIT_FOR_MODEL",
+        #     ServiceState("wait_for_model", Trigger, request_slots=["y_offset"]),
+        #     transitions={"succeeded": "MOVE_TO_TOWER"},
+        # )
 
-        StateMachine.add(
-            "MOVE_TO_TOWER",
-            ServiceState(
-                "move_to_tower", MoveToTower, request_slots=["y_offset"] 
-            ),
-            transitions={
-                "succeeded": "DROP_OBJECT",
-                "aborted": "RESET",
-            },
-        )
+        # StateMachine.add(
+        #     "MOVE_TO_TOWER",
+        #     ServiceState(
+        #         "move_to_tower", MoveToTower, request_slots=["y_offset"] 
+        #     ),
+        #     transitions={
+        #         "succeeded": "DROP_OBJECT",
+                
+        #     },
+        # )
 
-        StateMachine.add(
-            "DROP_OBJECT",
-            SimpleActionState("drop_action", DropAction),
-            transitions={"succeeded": "RESET"},
-        )
+        # StateMachine.add(
+        #     "DROP_OBJECT",
+        #     SimpleActionState("drop_action", DropAction),
+        #     transitions={"succeeded": "RESET"},
+        # )
 
     return sm
 

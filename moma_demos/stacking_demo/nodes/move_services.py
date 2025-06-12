@@ -117,7 +117,6 @@ class MoveServices:
         # calc pose with y offset, drop offset, and tower_height
         target_stamped = self.get_transform(self.tower_frame_)
         target = utils.from_transform_msg(target_stamped.transform)
-        # target = target * Transform.translation([0.0, req.y_offset, (-self.tower_height_-self.drop_offset_z_)])
         target = target * Transform.translation([0.0, req.y_offset, (-self.drop_offset_z_-self.tower_height_)])
         target_pub.publish(utils.to_pose_stamped_msg(target, self.base_frame_))
 
@@ -141,7 +140,7 @@ class MoveServices:
         grasp_msg = PoseStamped()
         grasp_msg.header.stamp = rospy.Time.now()
         grasp_msg.header.frame_id = self.base_frame_
-        # here make a hardcoded pose!
+        
         grasp_msg.pose = pose
 
         success = self.moveit_.goto(target, self.vel_scaling_)
