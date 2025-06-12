@@ -14,7 +14,7 @@ apt-get update -qq && apt-get install -y librealsense2-dkms librealsense2-utils 
 apt-get update && apt-get install libxmlrpcpp-dev librosconsole-dev
 
 # Install Franka stuff
-apt-get -qq update && apt-get install -y ros-noetic-franka-ros 
+apt-get -qq update && apt-get install -y ros-noetic-franka-ros
 
 # Install the source code in ROS
 cd $MOMA_DEP_WS/src
