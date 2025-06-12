@@ -28,13 +28,14 @@ class GraspExecutionAction(object):
         )
         self.action_server.start()
 
-        self.moveit_target_pub = rospy.Publisher("target", PoseStamped, queue_size=10)
+        self.moveit_target_pub = rospy.Publisher("grasp_target", PoseStamped, queue_size=10)
 
         rospy.loginfo("Grasp action server ready")
 
     def load_parameters(self):
         self.base_frame = rospy.get_param("moma_demo/base_frame_id")
         self.velocity_scaling = rospy.get_param("moma_demo/arm_velocity_scaling_grasp")
+        self.pre_grasp_offset_z = rospy.get_param("moma_demo/pre_grasp_offset")
         self.ee_grasp_offset_z = rospy.get_param("moma_demo/ee_grasp_offset_z")
 
     def execute_cb(self, goal):
@@ -48,7 +49,7 @@ class GraspExecutionAction(object):
         self.moveit.goto("ready", self.velocity_scaling)
 
         rospy.loginfo("Moving to pregrasp pose")
-        target = T_base_grasp * Transform.translation([0, 0, -0.04]) * T_grasp_ee_offset
+        target = T_base_grasp * Transform.translation([0, 0, self.pre_grasp_offset_z]) * T_grasp_ee_offset
         self.moveit_target_pub.publish(to_pose_stamped_msg(target, self.base_frame))
         success = self.moveit.goto(target, self.velocity_scaling)
 

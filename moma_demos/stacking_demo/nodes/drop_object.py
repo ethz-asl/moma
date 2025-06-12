@@ -31,6 +31,7 @@ class DropActionNode(object):
         self.velocity_scaling = rospy.get_param("moma_demo/arm_velocity_scaling_drop")
 
     def drop_object(self, goal):
+        ### should change either drop joints OR change to a pose
         rospy.loginfo("Dropping object")
         i = rospy.get_param("moma_demo/workspace", 0)
         drop_joints = rospy.get_param("moma_demo/workspaces")[i]["drop_joints"]

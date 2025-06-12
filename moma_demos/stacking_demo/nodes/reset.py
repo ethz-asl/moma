@@ -23,7 +23,7 @@ class ResetNode(object):
         rospy.set_param("moma_demo/workspace", 0)
         self.init_robot_connection()
         self.vis = Visualizer()
-        self.cloud_pub = rospy.Publisher("/scene_cloud", sensor_msgs.msg.PointCloud2)
+        self.cloud_pub = rospy.Publisher("/scene_cloud", sensor_msgs.msg.PointCloud2, queue_size=1)
         self.static_broadcaster = tf2_ros.StaticTransformBroadcaster()
         rospy.Service("reset", std_srvs.srv.Trigger, self.reset)
         rospy.loginfo("Reset service ready")

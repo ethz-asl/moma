@@ -1,0 +1,41 @@
+<?xml version="1.0" ?>
+<launch>
+    <!-- Arguments -->
+    <arg name="launch_rviz" default="false"/>
+    <arg name="simulation" default="true" />
+
+    <!-- ======== Launch everything ======== -->
+
+    <!-- Parameters -->
+    <rosparam command="load" file="$(find stacking_demo)/config/stacking_demo.yaml" ns="moma_demo" subst_value="true"/>
+
+    <!-- Panda -->
+    <group if="$(arg simulation)">
+        <include file="$(find moma_gazebo)/launch/panda_sim.launch">
+            <!-- <arg name="rviz" value="false"/> -->
+        </include>
+    </group>
+
+    <group unless="$(arg simulation)">    
+        <include file="$(find moma_bringup)/launch/panda_real.launch">
+            <arg name="rviz" value="false"/>
+        </include>
+        <include file="$(find moma_bringup)/launch/components/sensors.launch">
+        </include>
+    </group>
+
+    <!-- tf frames -->
+    <include file="$(find stacking_demo)/launch/load_static_tf.launch"/>
+
+    <!-- action and server nodes -->
+    <node pkg="stacking_demo" type="reset.py" name="reset" output="screen"/>
+    <node pkg="stacking_demo" type="execute_grasp.py" name="execute_grasp" output="screen"/>
+    <node pkg="stacking_demo" type="drop_object.py" name="drop_object" output="screen"/>
+    <node pkg="stacking_demo" type="move_services.py" name="move_services" output="screen"/>
+
+    <!-- Launch demo script-->
+    <!-- <node pkg="stacking_demo" type="run_plan.py" name="stacking_demo" output="screen"/> -->
+
+    <!-- Open rviz if desired -->
+    <node if="$(arg launch_rviz)" type="rviz" name="rviz" pkg="rviz" args="-d $(find stacking_demo)/config/stacking_demo.rviz"/>
+</launch>
