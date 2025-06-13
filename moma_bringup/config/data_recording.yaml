@@ -20,6 +20,7 @@ object_height: 0.04
 tower_height: 0.08 # need to set from config! 
 tower_offet_y : 0.0
 drop_offset_z : 0.04 # positive is above the object!
+obj_drop_offset_z : 0.01 # positive is above the object!
 
 workspaces:
 # TODO MEASURE THESE!
