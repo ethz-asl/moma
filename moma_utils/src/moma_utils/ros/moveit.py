@@ -36,8 +36,27 @@ class MoveItClient:
 
         return plan
 
+    # adapted from  # copied from https://github.com/ethz-asl/moma/blob/f341dc79d813d65095348e43d7b433277fa8561c/panda_control/src/panda_control/panda_commander.py#L68
+    def gotoJoint(self, target, max_velocity_scaling=0.1, max_acceleration_scaling=0.1):
+        self.move_group.set_max_velocity_scaling_factor(max_velocity_scaling)
+        self.move_group.set_max_acceleration_scaling_factor(max_acceleration_scaling)
+        print(f"Current joint values: {self.move_group.get_current_joint_values()}")
+        self.move_group.set_joint_value_target(target)
+        # somehow returns (Planning success, plan)
+        plan = self.move_group.plan()
+        # print(f"Plan: {plan}")
+        # print(f"Plan 0: {plan[0]}")
+        # print(f"Plan 1: {plan[1]}")
+        success = self.move_group.execute(plan[1], wait=True)
+        print(f"success: {success}")
+        self.move_group.stop()
+
+        # success = self.execute(plan)
+        return success
+
     def gotoL(self, target, velocity_scaling=0.1, acceleration_scaling=0.1, eef_step=0.01):
         plan = self.planL(target, velocity_scaling, acceleration_scaling, eef_step)
+        # print(f"plan: {plan}")
         success = self.execute(plan)
         return success
 
