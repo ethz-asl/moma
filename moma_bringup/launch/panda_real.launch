@@ -7,7 +7,7 @@
   <arg name="arm_id" default="panda" />
   <arg name="controller" default="position_joint_trajectory_controller" />
   <arg name="table" default="true" />
-  <arg name="use_bota" default="false" />
+  <arg name="use_bota" default="true" />
  
   <!-- If we don't do moveit, start the interactive markers. -->
   <arg name="interactive_marker"

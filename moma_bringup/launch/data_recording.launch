@@ -1,0 +1,46 @@
+<?xml version="1.0" ?>
+<launch>
+    <!-- General arguments -->
+    <arg name="launch_rviz" default="false"/>
+    <arg name="simulation" default="false" />
+
+    <!-- Data recording arguments -->
+    <arg name="obj_name" default="I_symmetric_2"/>
+    <arg name="out_path" default="/home/toni/Documents/robotx/dataset"/>
+
+    <!-- ======== Launch everything ======== -->
+
+    <!-- Parameters -->
+    <rosparam command="load" file="$(find moma_bringup)/config/data_recording.yaml" ns="moma_bringup" subst_value="true"/>
+
+    <!-- Panda -->
+    <group if="$(arg simulation)">
+        <include file="$(find moma_gazebo)/launch/panda_sim.launch">
+            <!-- <arg name="rviz" value="false"/> -->
+        </include>
+    </group>
+
+    <group unless="$(arg simulation)">    
+        <include file="$(find moma_bringup)/launch/panda_real.launch">
+            <arg name="rviz" value="false"/>
+        </include>
+        <include file="$(find moma_bringup)/launch/components/sensors.launch">
+        </include>
+    </group>
+
+    <!-- tf frames -->
+    <include file="$(find moma_bringup)/launch/load_static_tf.launch"/>
+
+    <!-- action and server nodes -->
+    <!-- <node pkg="stacking_demo" type="execute_grasp.py" name="execute_grasp" output="screen"/>
+    <node pkg="stacking_demo" type="drop_object.py" name="drop_object" output="screen"/>
+    <node pkg="stacking_demo" type="move_services.py" name="move_services" output="screen"/>
+    <node pkg="stacking_demo" type="wait_for_model.py" name="wait_for_model" output="screen"/> -->
+
+    <!-- Launch grasp node -->
+    <node pkg="latobj" type="grasp_object_real.py" name="grasp_object" 
+      args="$(arg out_path) $(arg obj_name)" output="screen"/>
+
+    <!-- Open rviz if desired -->
+    <!-- <node if="$(arg launch_rviz)" type="rviz" name="rviz" pkg="rviz" args="-d $(find stacking_demo)/config/stacking_demo.rviz"/> -->
+</launch>
