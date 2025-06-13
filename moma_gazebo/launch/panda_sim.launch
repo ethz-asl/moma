@@ -15,6 +15,7 @@
     <arg name="moveit_planner" default="ompl"/>
     <arg name="use_fixed_camera" default="false"/>
     <arg name="use_wrist_camera" default="true" />
+    <arg name="seed" default="5" />
 
     <!-- Object arguments -->
     <arg name="side_length" default="0.04"/>
@@ -50,8 +51,20 @@
                 -J $(arg arm_id)_joint5 0
                 -J $(arg arm_id)_joint6 1.5708
                 -J $(arg arm_id)_joint7 0.7854
-                -J $(arg arm_id)_finger_joint1 0.01
-                -J $(arg arm_id)_finger_joint2 0.01" /> -->
+                -J $(arg arm_id)_finger_joint1 0.035
+                -J $(arg arm_id)_finger_joint2 0.035" /> -->
+
+    <!-- Start at -0.15 pre grasp position essentially -->
+    <arg name="initial_joint_positions"
+        default="-J $(arg arm_id)_joint1 0
+                -J $(arg arm_id)_joint2 0.1079
+                -J $(arg arm_id)_joint3 0
+                -J $(arg arm_id)_joint4 -2.3920
+                -J $(arg arm_id)_joint5 0
+                -J $(arg arm_id)_joint6 2.4988
+                -J $(arg arm_id)_joint7 0.7857
+                -J $(arg arm_id)_finger_joint1 0.035
+                -J $(arg arm_id)_finger_joint2 0.035" />
 
     <!-- Start at grasp position essentially -->
     <!-- <arg name="initial_joint_positions"
@@ -66,7 +79,7 @@
                 -J $(arg arm_id)_finger_joint2 0.035" /> -->
 
     <!-- Start at pregrasp position essentially -->
-    <arg name="initial_joint_positions"
+    <!-- <arg name="initial_joint_positions"
         default="-J $(arg arm_id)_joint1 0
                 -J $(arg arm_id)_joint2 0.2226
                 -J $(arg arm_id)_joint3 0
@@ -75,13 +88,15 @@
                 -J $(arg arm_id)_joint6 2.6219
                 -J $(arg arm_id)_joint7 0.7849
                 -J $(arg arm_id)_finger_joint1 0.035
-                -J $(arg arm_id)_finger_joint2 0.035" />
+                -J $(arg arm_id)_finger_joint2 0.035" /> -->
 
     <include file="$(find gazebo_ros)/launch/empty_world.launch" if="$(arg gazebo)">
         <arg name="world_name" value="$(arg world)" />
         <arg name="paused" value="$(arg paused)" />
         <arg name="gui" value="$(eval not arg('headless'))" />
         <arg name="use_sim_time" value="$(arg use_sim_time)" />
+        <arg name="extra_gazebo_args" value="--seed $(arg seed)" />
+        <arg name="verbose" default="$(arg verbose)"/>
     </include>
 
     <!-- Spawn cube directly via URDF -->
