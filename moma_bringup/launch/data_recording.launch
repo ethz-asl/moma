@@ -5,8 +5,8 @@
     <arg name="simulation" default="false" />
 
     <!-- Data recording arguments -->
-    <arg name="obj_name" default="I_symmetric_2"/>
-    <arg name="out_path" default="/home/toni/Documents/robotx/dataset"/>
+    <arg name="obj_name" default="test"/>
+    <arg name="out_path" default="/root/moma_ws/src/moma/data"/>
 
     <!-- ======== Launch everything ======== -->
 
@@ -27,6 +27,9 @@
         <include file="$(find moma_bringup)/launch/components/sensors.launch">
         </include>
     </group>
+
+    <!-- Launch the bota -->
+    <include file="$(find rokubimini_serial)/launch/rokubimini_serial.launch"> </include>
 
     <!-- tf frames -->
     <include file="$(find moma_bringup)/launch/load_static_tf.launch"/>

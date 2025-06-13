@@ -9,6 +9,8 @@ pre_grasp_offset: 0.04
 ee_grasp_offset_z: 0.04 #-0.02 #-0.04 # More negative is LOWER into the object
 # ee_grasp_offset_x: 0.010
 
+ft_topic: /bus0/ft_sensor0/ft_sensor_readings/reading
+
 home_joints: [0, -0.785, 0, -2.356, 0, 1.57, 0.785]
 
 task_frame_id: task
