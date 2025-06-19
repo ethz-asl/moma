@@ -143,7 +143,7 @@ class MoveServices:
         
         grasp_msg.pose = pose
 
-        success = self.moveit_.goto(target, self.vel_scaling_)
+        # success = self.moveit_.goto(target, self.vel_scaling_)
 
         return PlanEasyGraspResponse(target_grasp_pose=grasp_msg)
 

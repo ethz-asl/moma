@@ -1,7 +1,7 @@
 #! /usr/bin/env python3
 
 import rospy
-from smach import StateMachine
+from smach import State, StateMachine
 from smach_ros import ServiceState, SimpleActionState
 from std_srvs.srv import Trigger
 from stacking_demo.srv import MoveToTower, PlanEasyGrasp
@@ -25,6 +25,13 @@ as follows:
 7. drop the object on the tower
 """
 
+class WaitForUserInput(State):
+    def __init__(self):
+        State.__init__(self, outcomes=["succeeded"])
+
+    def execute(self, userdata):
+        rospy.loginfo("Press Enter to continue...")
+        return "succeeded"
 
 def main():
     rospy.init_node("stacking_demo", log_level=rospy.INFO)
@@ -46,6 +53,21 @@ def construct_state_machine():
 
     with sm:
         StateMachine.add(
+            "WAIT_FOR_USER_INPUT",
+            WaitForUserInput(),
+            transitions={
+                "succeeded": "MOVE_TO_HOME",
+            },
+        )
+
+        StateMachine.add(
+            "MOVE_TO_HOME",
+            ServiceState("move_to_home", Trigger),
+            transitions={
+                "succeeded": "PLAN_EASY_GRASP",
+            },
+        )
+        StateMachine.add(
             "PLAN_EASY_GRASP",
             ServiceState("plan_easy_grasp", PlanEasyGrasp, 
                          response_slots=["target_grasp_pose"]),
@@ -59,7 +81,8 @@ def construct_state_machine():
                 "grasp_execution_action", GraspAction, goal_slots=["target_grasp_pose"]
             ),
             transitions={
-                "succeeded": "DROP_OBJECT",
+                "succeeded": "WAIT_FOR_USER_INPUT",
+                "aborted": "MOVE_TO_HOME",
             },
         )
 

@@ -21,7 +21,7 @@ class PandaArmClient:
     def __init__(self):
         self._init_recovery()
         self._init_state_callbacks()
-        rospy.loginfo("Panda arm ready")
+        rospy.loginfo("Panda arm TEST ready")
 
     def get_state(self):
         q = np.asarray(self._joint_state_msg.position[:7])
@@ -39,6 +39,18 @@ class PandaArmClient:
                 return
         self.has_error = False
         rospy.loginfo("Arm error recovered")
+
+    # copied from https://github.com/ethz-asl/moma/blob/f341dc79d813d65095348e43d7b433277fa8561c/panda_control/src/panda_control/panda_commander.py#L68
+    def goto_joint_target(
+        self, joints, max_velocity_scaling=0.1, max_acceleration_scaling=0.1
+    ):
+        self.move_group.set_max_velocity_scaling_factor(max_velocity_scaling)
+        self.move_group.set_max_acceleration_scaling_factor(max_acceleration_scaling)
+        self.move_group.set_joint_value_target(joints)
+        plan = self.move_group.plan()
+        success = self.move_group.execute(plan, wait=True)
+        self.move_group.stop()
+        return success
 
     def _check_robot_state(self):
         state = rospy.wait_for_message(
