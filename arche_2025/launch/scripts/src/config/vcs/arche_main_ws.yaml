@@ -1,0 +1,13 @@
+repositories:
+  moma:
+    type: git
+    url: git@github.com:ethz-asl/moma.git
+    version: arche_2025
+  franka_ros:
+    type: git
+    url: git@github.com:frankarobotics/franka_ros.git
+    version: noetic-devel
+  Cartesian-Impedance-Controller:
+    type: git
+    url: git@github.com:matthias-mayr/Cartesian-Impedance-Controller.git
+    version: master
