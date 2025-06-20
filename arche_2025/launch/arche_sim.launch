@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<launch>
+    <include file="$(find moma_gazebo)/launch/panda_moma_corner.launch">
+        <arg name="use_wrist_camera" value="true"/>
+    </include>
+</launch>

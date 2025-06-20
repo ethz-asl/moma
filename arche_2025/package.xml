@@ -8,6 +8,7 @@
 
   <buildtool_depend>catkin</buildtool_depend>
   <depend>moma_bringup</depend>
-  <depend>franka_ros</depend>
-  <depend>cartesian_impedance_controller</depend>
+  <depend>moma_gazebo</depend>
+  <!-- <depend>franka_ros</depend> -->
+  <!-- <depend>cartesian_impedance_controller</depend> -->
 </package>
