@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>arche_2025</name>
+  <version>0.0.0</version>
+  <description>The moma_bringup package</description>
+  <maintainer email="alaturn@ethz.ch">Michel Breyer</maintainer>
+  <license>TODO</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <depend>moma_bringup</depend>
+  <depend>franka_ros</depend>
+  <depend>cartesian_impedance_controller</depend>
+</package>
