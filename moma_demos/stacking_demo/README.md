@@ -1,4 +1,4 @@
-# grasp_demo
+# stacking_demo
 
 ## Install
 
@@ -6,33 +6,44 @@
 
 For the following instructions, it is assumed that the user is logged into `asl-panda` and has sourced the catkin workspace containing the demo package.
 
-Frist, launch the hardware drivers and nodes.
+
+Before you start, make sure to have set the correct tower_height in the config/stacking_demo.yaml file.
+
+
+First, Launch the nodes:
 
 ```bash
-roslaunch stacking_demo stacking_demo.launch [semantic:=true] [detect_grasps_with:=vgn]
+roslaunch stacking_demo stacking_demo.launch
 ```
 
-* To run the demo in Gazebo, add `simulation_mode:=true` to the above command.
-* If `semantic:=true` is set, make sure to also launch voxblox++ on `asl-dell` with `roslaunch gsm_node panda.launch`.
-* `detect_grasps_with:=vgn` requires `semantic:=true` as it relies on the TSDF map from voxblox++.
+To pick up the object from the object_position:
+```
+rosservice call /move_to_object
+``` 
 
-Next, for interacting with the demo through Rviz, run 
+To go to the tower and place the object, call the service:
 
 ```
- rosrun grasp_demo run_bt.py __ns:=manipulator
+rosservice call /move_to_tower "y_offset: 0.0"
 ```
 
-Or alternatively, to run the demo continuously, use
+## Debugging
 
+For debugging, 
+To close the gripper, publish in terminal the following command: for opening, set the width to 0.0 
 ```
-rosrun grasp_demo run_plan.py __ns:=manipulator
+rostopic pub --once /franka_gripper/move/goal franka_gripper/MoveActionGoal "header:
+  seq: 0
+  stamp:
+    secs: 0
+    nsecs: 0
+  frame_id: ''
+goal_id:
+  stamp:
+    secs: 0
+    nsecs: 0
+  id: ''
+goal:
+  width: 0.3
+  speed: 0.1"
 ```
-
-## Troubleshooting
-
-- Make sure that `ROS_MASTER_URI` is properly set in all terminal sessions.
-- Restart the ROS core.
-
-## To Do
-
-- [ ] Semantic grasp selection

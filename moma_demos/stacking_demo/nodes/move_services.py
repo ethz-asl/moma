@@ -28,7 +28,7 @@ class MoveServices:
         self.load_parameters()
 
         # start servers here
-        # self.object_srv = rospy.Service("move_to_object", Trigger, self.move_to_object)
+        self.object_srv = rospy.Service("move_to_object", Trigger, self.move_to_object)
         self.home_srv = rospy.Service("move_to_home", Trigger, self.move_to_home)
         self.middle_srv_ = rospy.Service("move_to_middle", Trigger, self.move_to_middle)
         self.tower_srv_ = rospy.Service("move_to_tower", MoveToTower, self.move_to_tower)
@@ -68,12 +68,22 @@ class MoveServices:
 
         target_pub = rospy.Publisher("object_target", PoseStamped, queue_size=10)
         
-        # with pre grasp offset!
-        target = self.get_transform(self.object_frame_) * Transform.translation([0.0, 0.0, -self.pre_grasp_offset_])
-        
-        # target_pub.publish(utils.to_pose_stamped_msg(target.transform, self.base_frame_))
+        # # with pre grasp offset!
+        target_stamped = self.get_transform(self.object_frame_)
+        target = utils.from_transform_msg(target_stamped.transform)
+        target = target * Transform.translation([0.0, 0.0, -self.pre_grasp_offset_])
+        pre_target = target * Transform.translation([0.0, 0.0, -0.1]) #approach from top
 
+        # go to pre-target above object
+        target_pub.publish(utils.to_pose_stamped_msg(pre_target, self.base_frame_))
+        success = self.moveit_.goto(pre_target, self.vel_scaling_)
+
+        # go to actual grasp pose
+        target_pub.publish(utils.to_pose_stamped_msg(target, self.base_frame_))
         success = self.moveit_.goto(target, self.vel_scaling_)
+
+        # grasp object
+        self.gripper_.grasp()
 
         if self.arm_.has_error:
             rospy.loginfo(f"Robot error, aborting")
@@ -117,10 +127,23 @@ class MoveServices:
         # calc pose with y offset, drop offset, and tower_height
         target_stamped = self.get_transform(self.tower_frame_)
         target = utils.from_transform_msg(target_stamped.transform)
-        target = target * Transform.translation([0.0, req.y_offset, (-self.drop_offset_z_-self.tower_height_)])
-        target_pub.publish(utils.to_pose_stamped_msg(target, self.base_frame_))
+        target = target * Transform.translation([req.y_offset, 0.0, (-self.drop_offset_z_-self.tower_height_)])
+        pre_target = target * Transform.translation([0.0, 0.0, -0.1]) #approach from top
 
+        # go to pre-target above object
+        target_pub.publish(utils.to_pose_stamped_msg(pre_target, self.base_frame_))
+        success = self.moveit_.goto(pre_target, self.vel_scaling_)
+
+        # go to actual pose
+        target_pub.publish(utils.to_pose_stamped_msg(target, self.base_frame_))
         success = self.moveit_.goto(target, self.vel_scaling_)
+        
+        # release object
+        self.gripper_.release()
+        
+        # go to pre-target above object
+        target_pub.publish(utils.to_pose_stamped_msg(pre_target, self.base_frame_))
+        success = self.moveit_.goto(pre_target, self.vel_scaling_)
 
         if self.arm_.has_error:
             rospy.loginfo(f"Robot error, aborting")
@@ -146,6 +169,7 @@ class MoveServices:
         # success = self.moveit_.goto(target, self.vel_scaling_)
 
         return PlanEasyGraspResponse(target_grasp_pose=grasp_msg)
+    
 
 if __name__ == "__main__":
     MoveServices()
