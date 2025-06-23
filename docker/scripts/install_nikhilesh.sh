@@ -14,7 +14,7 @@ echo "Installing basic dependencies...done"
 # ROS
 # Install Kalibr stuff
 # apt-get -qq update && apt-get install -y git wget autoconf automake nano \
-#     libeigen3-dev libboost-all-dev libsuitesparse-dev \
+#     libeigen3-dev lib002180boost-all-dev libsuitesparse-dev \
 #     doxygen libopencv-dev \
 #     libpoco-dev libtbb-dev libblas-dev liblapack-dev libv4l-dev
 
@@ -30,16 +30,18 @@ echo "Installing basic dependencies...done"
 
 # DRIVER
 # Bota
-echo "Installing Bota driver..."
-apt-get update -qq && apt install -y ros-noetic-bota-driver
-echo "Installing Bota driver...done"
+# echo "Installing Bota driver..."
+# apt-get update -qq && apt install -y ros-noetic-bota-driver
+# echo "Installing Bota driver...done"
 
 # PYTHON
+'''
 echo "Installing Python dependencies from requirements_nikhilesh.txt..."
 pip3 install --upgrade pip
 echo "Installing pip dependencies..."
 pip3 install --no-cache-dir -r "$SCRIPTS_PATH/requirements_nikhilesh.txt"
 echo "Installing Python dependencies from requirements_nikhilesh.txt...done"
+'''
 
 # Clear cache to reduce Docker image size
 echo "Cleaning up unnecessary files..."

@@ -26,8 +26,8 @@ RUN scripts/install_drivers.sh
 # Run the gazebo simulation installation
 RUN scripts/install_simulation.sh
 
-# Install nikilesh's stuff
-RUN scripts/install_nikhilesh.sh
+# Install ARCHE installs
+RUN scripts/install_arche25.sh
 
 # Finally, build all the stuff we downloaded.
 RUN scripts/build_ros.sh
