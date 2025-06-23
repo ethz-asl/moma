@@ -26,6 +26,17 @@ To go to the tower and place the object, call the service:
 ```
 rosservice call /move_to_tower "y_offset: 0.0"
 ```
+## Local Docker setup:
+On the static panda, here is how to run the docker for this code:
+```
+cd /home/franka/Projects/lucy/robotx_ws/src/moma/docker
+./run_docker.sh -d robot.Dockerfile -d robotx -w ~/Projects/lucy/robotx_ws
+```
+To open a new terminal in docker:
+```
+docker exec -it moma bash
+```
+
 
 ## Debugging
 
@@ -46,4 +57,9 @@ goal_id:
 goal:
   width: 0.3
   speed: 0.1"
+```
+
+If you want to bring up the robot without the stacking:
+```bash
+roslaunch moma_bringup panda_real.launch
 ```
