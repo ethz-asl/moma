@@ -1,8 +1,10 @@
 import moveit_commander
 import rospy
+import tf
+
 
 from std_srvs.srv import Empty
-from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import PoseStamped, Quaternion
 from nav_msgs.msg import Path
 
 from visualization_msgs.msg import Marker, MarkerArray
@@ -12,6 +14,7 @@ class MoveItSweeperClient:
         rospy.init_node('moveit_client_node', anonymous=True)
 
         self.workplane_id = "workplane"
+        self.ee_roll_offset_deg = 180.0  # offset for the end effector roll, in degrees
 
         # Initialize moveit_commander and the move group for the arm
         moveit_commander.roscpp_initialize([])
@@ -31,7 +34,7 @@ class MoveItSweeperClient:
         # Services
         self.go_home_service = rospy.Service('go_home', Empty, self.go_home_service)
         self.follow_navgoal_service = rospy.Service('follow_navgoal', Empty, self.rviz_navgoal_callback)
-
+        self.goto_last_navgoal_service = rospy.Service('goto_last_navgoal', Empty, self.goto_navgoal_srv)
         # Variables
         self.rviz_navgoal_list = None # this can only hold 1-2 goals at a time, so we can use it to store the last goal
         
@@ -78,28 +81,60 @@ class MoveItSweeperClient:
         if "home" not in named_states:
             rospy.logerr("Named target 'home' not found in the move group.")
             return False
+        
         # going home
+        self.arm_group.set_planner_id("PTP")
         self.arm_group.set_named_target("home")
         success = self.arm_group.go(wait=True)
         return success
+
+    def goto_navgoal_srv(self, req):
+        if self.rviz_navgoal_list is None or len(self.rviz_navgoal_list) == 0:
+            rospy.logerr("No navigation goals received yet.")
+            return False
+        
+        # first, go home
+        rospy.loginfo("Going home before navigating to the last goal.")
+        success = self.go_home()
+
+        if not success:
+            rospy.logerr("Failed to go home before navigating to the last goal.")
+            return False
+        # then, navigate to the last goal
+        last_goal = self.rviz_navgoal_list[-1]
+        self.arm_group.set_planner_id("PTP")
+        self.arm_group.set_pose_target(last_goal.pose)
+        success = self.arm_group.go(wait=True)
+        if not success:
+            rospy.logerr("Failed to navigate to the last goal.")
+            return False
+        rospy.loginfo("Successfully navigated to the last goal.")
+
+        return True
 
     def rviz_navgoal_callback(self, msg):
         # ensure msg is in the workplane frame
         if msg.header.frame_id != self.workplane_id:
             rospy.logerr("Received goal is not in the 'workplane' frame.")
             return False
+        
+        # apply the end effector roll offset
+        pose_with_offset = self.apply_rpy_offset(msg, 1.57, 0.0, 0.0)
+
         if self.rviz_navgoal_list is None:
             self.rviz_navgoal_list = []
-            self.rviz_navgoal_list.append(msg)
+            self.rviz_navgoal_list.append(pose_with_offset)
             rospy.loginfo("First goal received, storing in list.")
         elif len(self.rviz_navgoal_list) == 1:
-            self.rviz_navgoal_list.append(msg)
+            self.rviz_navgoal_list.append(pose_with_offset)
             rospy.loginfo("Second goal received, storing in list.")
         elif len(self.rviz_navgoal_list) > 1:
             rospy.logwarn("Waypoint list is too long, only the last two goals will be used.")
             self.rviz_navgoal_list = [self.rviz_navgoal_list[-1]]
-            self.rviz_navgoal_list.append(msg)
+            self.rviz_navgoal_list.append(pose_with_offset)
         
+
+
         # create a Path and publish
         stored_waypoints = Path()
         stored_waypoints.header.frame_id = self.workplane_id
@@ -107,6 +142,32 @@ class MoveItSweeperClient:
         self.stored_wp_path_pub.publish(stored_waypoints)
 
         return True
+
+    def apply_rpy_offset(self, pose_stamped, roll_offset, pitch_offset, yaw_offset):
+        # Extract current orientation
+        quat = (
+            pose_stamped.pose.orientation.x,
+            pose_stamped.pose.orientation.y,
+            pose_stamped.pose.orientation.z,
+            pose_stamped.pose.orientation.w
+        )
+
+        # Convert to rotation matrix
+        original_matrix = tf.transformations.quaternion_matrix(quat)
+
+        # Create a rotation matrix from the RPY offset
+        offset_matrix = tf.transformations.euler_matrix(roll_offset, pitch_offset, yaw_offset)
+
+        # Apply the offset: new_rotation = original * offset
+        new_matrix = tf.transformations.concatenate_matrices(original_matrix, offset_matrix)
+
+        # Convert back to quaternion
+        new_quat = tf.transformations.quaternion_from_matrix(new_matrix)
+
+        # Update the pose
+        pose_stamped.pose.orientation = Quaternion(*new_quat)
+
+        return pose_stamped
 
     def go_home_service(self, req):
         success = self.go_home()
