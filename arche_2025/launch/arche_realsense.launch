@@ -1,6 +1,6 @@
 <launch>
   <include file="$(find realsense2_camera)/launch/rs_camera.launch">
-    <arg name="camera" value="fixed_camera" />
+    <arg name="camera" value="camera" />
     <arg name="depth_width" value="640" />
     <arg name="depth_height" value="480" />
     <arg name="depth_fps" value="30" />
