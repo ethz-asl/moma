@@ -6,7 +6,7 @@
   <arg name="use_gripper" default="true" />
   <arg name="moveit" default="true"/>
   <arg name="moveit_planner" default="ompl"/>
-  <arg name="use_fixed_camera" default="true"/>
+  <arg name="use_fixed_camera" default="false"/>
   <arg name="use_wrist_camera" default="true" />
   <arg name="arm_controller" default="position_joint_trajectory_controller" />
   <!-- Sim arguments -->

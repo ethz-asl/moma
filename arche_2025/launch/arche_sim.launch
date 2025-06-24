@@ -1,6 +1,17 @@
 <?xml version="1.0"?>
 <launch>
-    <include file="$(find moma_gazebo)/launch/panda_moma_corner.launch">
-        <arg name="use_wrist_camera" value="true"/>
-    </include>
+  <!-- Main conditional argument -->
+  <arg name="compliant_control" default="false"/>
+
+  <!-- Set arm_controller based on compliant_control -->
+  <arg name="arm_controller" default="cartesian_impedance_trajectory_controller" if="$(arg compliant_control)"/>
+  <arg name="arm_controller" default="position_joint_trajectory_controller" unless="$(arg compliant_control)"/>
+
+  <!-- Common include block -->
+  <include file="$(find moma_gazebo)/launch/panda_moma_corner.launch">
+    <arg name="use_wrist_camera" value="true"/>
+    <arg name="moveit" value="true"/>
+    <arg name="moveit_planner" value="pilz_industrial_motion_planner"/>
+    <arg name="arm_controller" value="$(arg arm_controller)"/>
+  </include>
 </launch>
