@@ -4,6 +4,7 @@ import rospy
 import ros_numpy
 import numpy as np
 import cv2
+import open3d as o3d
 
 from sensor_msgs.msg import PointCloud2, Image
 from geometry_msgs.msg import TransformStamped
@@ -14,7 +15,8 @@ class HeightmapGenerator:
     def __init__(self):
         self.pixel_size = rospy.get_param("~pixel_size", 0.01)  # meters per pixel
         self.max_height = rospy.get_param("~max_height", 0.01)   # meters
-        self.grid_size = rospy.get_param("~grid_size", 64)   # in cells
+        self.grid_size = rospy.get_param("~grid_size", 32)   # in cells
+        self.voxel_size = rospy.get_param("~voxel_size", 0.005)  # e.g. 5mm
 
         self.hsv_lower = np.array(rospy.get_param("~hsv_lower", [30, 50, 100]), dtype=np.uint8)   # light green default lower
         self.hsv_upper = np.array(rospy.get_param("~hsv_upper", [90, 100, 255]), dtype=np.uint8) # light green default upper
@@ -54,20 +56,17 @@ class HeightmapGenerator:
         plane_y = R_plane[:, 1]  # aligned with camera Y (down)
         plane_z = R_plane[:, 2]  # plane normal (Z up from plane)
 
-        # Convert PointCloud2 to XYZ points
+        # Convert PointCloud2 to structured numpy array
         pc_arr = ros_numpy.point_cloud2.pointcloud2_to_array(self.latest_cloud)
+
+        # Extract XYZ and NaN filter
         xyz = ros_numpy.point_cloud2.get_xyz_points(pc_arr, remove_nans=False)
         valid = np.isfinite(xyz).all(axis=1)
+        xyz_valid = xyz[valid]
 
-        points = xyz[valid]  # shape: (N_valid, 3)
-
-        if points.shape[0] == 0:
-            rospy.logwarn("No valid points in cloud.")
-            return
-
-        # Extract RGB and convert to HSV
-        if 'rgb' in pc_arr.dtype.names:
-            # Extract RGB from packed float32
+        # Handle optional RGB field
+        has_rgb = 'rgb' in pc_arr.dtype.names
+        if has_rgb:
             rgb_floats = pc_arr['rgb'][valid]
             rgb_uint32 = rgb_floats.view(np.uint32)
 
@@ -75,14 +74,31 @@ class HeightmapGenerator:
             g = ((rgb_uint32 >> 8) & 255).astype(np.uint8)
             b = (rgb_uint32 & 255).astype(np.uint8)
 
-            rgb = np.stack([r, g, b], axis=1)  # shape: (N, 3)
-
-            # Reshape to an image-like shape so OpenCV doesn't complain
-            rgb_reshaped = rgb.reshape((-1, 1, 3))
-            hsv_reshaped = cv2.cvtColor(rgb_reshaped, cv2.COLOR_RGB2HSV)
-            hsv = hsv_reshaped.reshape((-1, 3)).astype(np.uint8)  # Final (N, 3)
+            rgb_valid = np.stack([r, g, b], axis=1)
+            colors = rgb_valid.astype(np.float32) / 255.0
         else:
-            rospy.logwarn("No RGB data in point cloud.")
+            colors = None  # No color
+
+        # Create Open3D point cloud
+        pcd = o3d.geometry.PointCloud()
+        pcd.points = o3d.utility.Vector3dVector(xyz_valid)
+        if colors is not None:
+            pcd.colors = o3d.utility.Vector3dVector(colors)
+
+        # Apply voxel filtering
+        pcd = pcd.voxel_down_sample(voxel_size=self.voxel_size)
+
+        # Extract back filtered data
+        points = np.asarray(pcd.points)
+        if points.shape[0] == 0:
+            rospy.logwarn("No valid points in cloud after voxel filtering.")
+            return
+
+        if colors is not None and len(pcd.colors) == len(pcd.points):
+            rgb = (np.asarray(pcd.colors) * 255).astype(np.uint8)
+            hsv = cv2.cvtColor(rgb.reshape(-1, 1, 3), cv2.COLOR_RGB2HSV).reshape(-1, 3)
+        else:
+            rospy.logwarn("No RGB data after filtering or mismatch — skipping HSV masking.")
             hsv = None
 
         # Relative positions to plane centroid
