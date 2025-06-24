@@ -11,7 +11,7 @@
   <include file="$(find moma_gazebo)/launch/panda_moma_corner.launch">
     <arg name="use_wrist_camera" value="true"/>
     <arg name="moveit" value="true"/>
-    <arg name="moveit_planner" value="ompl"/>
+    <arg name="moveit_planner" value="pilz_industrial_motion_planner"/>
     <arg name="arm_controller" value="$(arg arm_controller)"/>
   </include>
 </launch>
