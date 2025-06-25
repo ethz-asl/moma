@@ -7,7 +7,7 @@ from nav_msgs.msg import OccupancyGrid
 from visualization_msgs.msg import Marker, MarkerArray
 from geometry_msgs.msg import Point
 from std_msgs.msg import ColorRGBA
-from sweep_search_core import find_valid_sweeps
+from sweep_search_core import find_valid_sweeps_45
 from scipy.spatial.transform import Rotation as R
 
 class SweepSearchNode:
@@ -30,7 +30,7 @@ class SweepSearchNode:
         rospy.loginfo("Received grid. Processing.")
         grid = np.array(msg.data, dtype=np.int8).reshape(
             (msg.info.height, msg.info.width))
-        valid_sweeps, total_possible = find_valid_sweeps(
+        valid_sweeps, total_possible = find_valid_sweeps_45(
             grid, self.min_len, self.max_len, self.width)
 
         rospy.loginfo(
