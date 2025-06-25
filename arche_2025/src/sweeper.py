@@ -1,7 +1,7 @@
 import moveit_commander
 import rospy
 import tf
-
+import numpy as np
 
 from std_srvs.srv import Empty
 from geometry_msgs.msg import PoseStamped, Quaternion
@@ -179,7 +179,10 @@ class MoveItSweeperClient:
             return False
         
         # apply the end effector roll offset
-        pose_with_offset = self.apply_rpy_offset(msg, 2*1.57, 0.0, 0.0)
+        ee_roll_offset_rad = np.pi
+        ee_pitch_offset_rad = 0.0
+        ee_yaw_offset_rad = 0.0
+        pose_with_offset = self.apply_rpy_offset(msg, ee_roll_offset_rad, ee_pitch_offset_rad, ee_yaw_offset_rad)
 
         if self.rviz_navgoal_list is None:
             self.rviz_navgoal_list = []
@@ -193,6 +196,17 @@ class MoveItSweeperClient:
             self.rviz_navgoal_list = [self.rviz_navgoal_list[-1]]
             self.rviz_navgoal_list.append(pose_with_offset)
         
+        # if len==2, apply yaw offset
+        if len(self.rviz_navgoal_list) == 2:
+            start_pose = self.rviz_navgoal_list[0]
+            end_pose = self.rviz_navgoal_list[1]
+            # calculate the yaw offset
+            yaw_sweep = np.arctan2(end_pose.pose.position.y - start_pose.pose.position.y,
+                                    end_pose.pose.position.x - start_pose.pose.position.x)
+            # override the yaw of both poses
+            start_pose.pose.orientation = Quaternion(*tf.transformations.quaternion_from_euler(ee_roll_offset_rad, 0, yaw_sweep))
+            end_pose.pose.orientation = Quaternion(*tf.transformations.quaternion_from_euler(ee_roll_offset_rad, 0, yaw_sweep))
+
         # create a Path and publish
         stored_waypoints = Path()
         stored_waypoints.header.frame_id = self.workplane_id #self.base_frame
