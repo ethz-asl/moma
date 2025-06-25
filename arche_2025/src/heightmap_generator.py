@@ -8,27 +8,40 @@ import open3d as o3d
 
 from sensor_msgs.msg import PointCloud2, Image
 from geometry_msgs.msg import TransformStamped
+from nav_msgs.msg import OccupancyGrid
+from geometry_msgs.msg import Pose
+
 from cv_bridge import CvBridge
 from scipy.spatial.transform import Rotation as R
 
+
 class HeightmapGenerator:
     def __init__(self):
-        self.pixel_size = rospy.get_param("~pixel_size", 0.01)  # meters per pixel
+        self.pixel_size = rospy.get_param(
+            "~pixel_size", 0.01)  # meters per pixel
         self.max_height = rospy.get_param("~max_height", 0.01)   # meters
         self.grid_size = rospy.get_param("~grid_size", 32)   # in cells
         self.voxel_size = rospy.get_param("~voxel_size", 0.005)  # e.g. 5mm
+        self.downsample = rospy.get_param("~downsample", False)
 
-        self.hsv_lower = np.array(rospy.get_param("~hsv_lower", [30, 50, 100]), dtype=np.uint8)   # light green default lower
-        self.hsv_upper = np.array(rospy.get_param("~hsv_upper", [90, 100, 255]), dtype=np.uint8) # light green default upper
+        self.hsv_lower = np.array(rospy.get_param(
+            "~hsv_lower", [35, 10, 40]), dtype=np.uint8)   # light green default lower
+        self.hsv_upper = np.array(rospy.get_param(
+            "~hsv_upper", [100, 255, 255]), dtype=np.uint8)  # light green default upper
 
         self.bridge = CvBridge()
         self.latest_plane = None
         self.latest_cloud = None
 
-        rospy.Subscriber("/segmented_plane_transform", TransformStamped, self.plane_callback, queue_size=1)
-        rospy.Subscriber("/camera/depth/color/points", PointCloud2, self.cloud_callback, queue_size=1)
+        rospy.Subscriber("/segmented_plane_transform",
+                         TransformStamped, self.plane_callback, queue_size=1)
+        rospy.Subscriber("/camera/depth/color/points",
+                         PointCloud2, self.cloud_callback, queue_size=1)
 
-        self.image_pub = rospy.Publisher("/plane_heightmap", Image, queue_size=1)
+        self.image_pub = rospy.Publisher(
+            "/plane_heightmap", Image, queue_size=1, latch=True)
+        self.occupancy_pub = rospy.Publisher(
+            "/plane_heightmap_grid", OccupancyGrid, queue_size=1, latch=True)
 
         rospy.loginfo("HeightmapGenerator initialized and waiting for data...")
 
@@ -46,8 +59,10 @@ class HeightmapGenerator:
 
         # Extract plane pose
         tf = self.latest_plane.transform
-        origin = np.array([tf.translation.x, tf.translation.y, tf.translation.z])
-        quat = np.array([tf.rotation.x, tf.rotation.y, tf.rotation.z, tf.rotation.w])
+        origin = np.array(
+            [tf.translation.x, tf.translation.y, tf.translation.z])
+        quat = np.array([tf.rotation.x, tf.rotation.y,
+                        tf.rotation.z, tf.rotation.w])
 
         # Rotation: world → plane frame
         rot = R.from_quat(quat)
@@ -86,7 +101,8 @@ class HeightmapGenerator:
             pcd.colors = o3d.utility.Vector3dVector(colors)
 
         # Apply voxel filtering
-        pcd = pcd.voxel_down_sample(voxel_size=self.voxel_size)
+        if self.downsample:
+            pcd = pcd.voxel_down_sample(voxel_size=self.voxel_size)
 
         # Extract back filtered data
         points = np.asarray(pcd.points)
@@ -96,9 +112,11 @@ class HeightmapGenerator:
 
         if colors is not None and len(pcd.colors) == len(pcd.points):
             rgb = (np.asarray(pcd.colors) * 255).astype(np.uint8)
-            hsv = cv2.cvtColor(rgb.reshape(-1, 1, 3), cv2.COLOR_RGB2HSV).reshape(-1, 3)
+            hsv = cv2.cvtColor(rgb.reshape(-1, 1, 3),
+                               cv2.COLOR_RGB2HSV).reshape(-1, 3)
         else:
-            rospy.logwarn("No RGB data after filtering or mismatch — skipping HSV masking.")
+            rospy.logwarn(
+                "No RGB data after filtering or mismatch — skipping HSV masking.")
             hsv = None
 
         # Relative positions to plane centroid
@@ -119,7 +137,8 @@ class HeightmapGenerator:
         # Also filter by HSV
         if hsv is not None:
             hsv_img = hsv.reshape(-1, 1, 3)
-            mask = cv2.inRange(hsv_img, self.hsv_lower, self.hsv_upper).reshape(-1)
+            mask = cv2.inRange(hsv_img, self.hsv_lower,
+                               self.hsv_upper).reshape(-1)
             hsv_masked = valid_mask & (mask != 0)
             valid_mask &= (mask == 0)
 
@@ -137,6 +156,7 @@ class HeightmapGenerator:
         iy_hsv = ((y[hsv_masked] + half_width) / self.pixel_size).astype(int)
         ix_hsv = np.clip(ix_hsv, 0, self.grid_size - 1)
         iy_hsv = np.clip(iy_hsv, 0, self.grid_size - 1)
+        iy_hsv = self.grid_size - 1 - iy_hsv  # Flip vertically
 
         # Normalize heights to 0–255
         height_norm = np.clip(z / self.max_height, 0, 1)
@@ -154,7 +174,49 @@ class HeightmapGenerator:
         ros_img.header = self.latest_cloud.header
         self.image_pub.publish(ros_img)
 
-        rospy.loginfo("Published heightmap image.")
+        # Flip Y back for occupancy grid (OccupancyGrid expects (0,0) at bottom-left)
+        occupancy_img = np.flipud(img)
+
+        # Convert to int8 and compress 0–255 to 0–128
+        occupancy_data = (occupancy_img.astype(
+            np.float32) / 255.0 * 128).astype(np.int8)
+        occupancy_data = occupancy_data.flatten().tolist()
+
+        # Create occupancy grid message
+        grid = OccupancyGrid()
+        grid.header.stamp = rospy.Time.now()
+        grid.header.frame_id = self.latest_cloud.header.frame_id
+        grid.info.resolution = self.pixel_size
+        grid.info.width = self.grid_size
+        grid.info.height = self.grid_size
+
+        # Center the grid on the plane centroid
+        # Compute bottom-left corner in plane frame (X-right, Y-down)
+        half_extent = self.pixel_size * self.grid_size / 2
+        # bottom-left in plane frame
+        offset_plane = np.array([-half_extent, -half_extent, 0.0])
+
+        # Rotate into world frame
+        rot = R.from_quat(quat)
+        offset_world = rot.apply(offset_plane)
+
+        # Add to centroid
+        origin_world = origin + offset_world
+
+        grid.info.origin.position.x = origin_world[0]
+        grid.info.origin.position.y = origin_world[1]
+        grid.info.origin.position.z = origin_world[2]
+        grid.info.origin.orientation.x = quat[0]
+        grid.info.origin.orientation.y = quat[1]
+        grid.info.origin.orientation.z = quat[2]
+        grid.info.origin.orientation.w = quat[3]
+
+        grid.data = occupancy_data
+
+        self.occupancy_pub.publish(grid)
+
+        rospy.loginfo("Published heightmap image and grid map.")
+
 
 if __name__ == "__main__":
     rospy.init_node("heightmap_generator")
