@@ -103,7 +103,6 @@ docker run -it --rm \
     --volume="$XAUTH:$XAUTH" \
     --net=host \
     --privileged \
-    --no-cache \
     --name=$NAME \
     ${DOCKER} \
     bash
