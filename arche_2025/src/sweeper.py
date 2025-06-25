@@ -41,9 +41,10 @@ class MoveItSweeperClient:
         self.go_home_service = rospy.Service('go_home', Empty, self.go_home_service)
         self.follow_navgoal_service = rospy.Service('follow_navgoal', Empty, self.rviz_navgoal_callback)
         self.goto_last_navgoal_service = rospy.Service('goto_last_navgoal', Empty, self.goto_navgoal_srv)
+        self.follow_sweep_service = rospy.Service('follow_sweep', Empty, self.follow_sweep_srv)
         # Variables
         self.rviz_navgoal_list = None # this can only hold 1-2 goals at a time, so we can use it to store the last goal
-        
+        self.moveit_navgoal_list = None
         # go home
         self.go_home()
 
@@ -93,9 +94,17 @@ class MoveItSweeperClient:
         self.arm_group.set_named_target("home")
         success = self.arm_group.go(wait=True)
         return success
+    
+    def go_home_service(self, req):
+        success = self.go_home()
+        if success:
+            rospy.loginfo("Successfully moved to home position.")
+        else:
+            rospy.logerr("Failed to move to home position.")
+        return success        
 
     def goto_navgoal_srv(self, req):
-        if self.rviz_navgoal_list is None or len(self.rviz_navgoal_list) == 0:
+        if self.moveit_navgoal_list is None or len(self.moveit_navgoal_list) == 0:
             rospy.logerr("No navigation goals received yet.")
             return False
         
@@ -107,7 +116,7 @@ class MoveItSweeperClient:
             rospy.logerr("Failed to go home before navigating to the last goal.")
             return False
         # then, navigate to the last goal
-        last_goal = self.rviz_navgoal_list[-1]
+        last_goal = self.moveit_navgoal_list[-1]
         
         # print current EE
         current_ee_pose = self.arm_group.get_current_pose(self.controlled_frame)
@@ -124,6 +133,45 @@ class MoveItSweeperClient:
 
         return True
 
+    def follow_sweep_srv(self, req):
+        # length of the sweep path needs to be >=2
+        if self.moveit_navgoal_list is None or len(self.moveit_navgoal_list) < 2:
+            rospy.logerr("Not enough navigation goals received to perform a sweep.")
+            return False
+        # first, go home
+        rospy.loginfo("Going home before performing the sweep.")
+        success = self.go_home()
+        if not success:
+            rospy.logerr("Failed to go home before performing the sweep.")
+            return False
+        # then, perform the sweep
+        rospy.loginfo("Performing sweep with the last two navigation goals.")
+        # get the last two goals
+        sweep_start = self.moveit_navgoal_list[-2]
+        sweep_end = self.moveit_navgoal_list[-1]
+
+        # go to the start of the sweep
+        self.arm_group.set_planner_id("PTP")
+        self.arm_group.set_pose_target(sweep_start.pose)
+        success = self.arm_group.go(wait=True)
+        if not success:
+            rospy.logerr("Failed to navigate to the start of the sweep.")
+            return False
+        rospy.loginfo("Successfully navigated to the start of the sweep.")
+        # perform the sweep to the end
+        self.arm_group.set_planner_id("LIN")
+        self.arm_group.set_pose_target(sweep_end.pose)
+        success = self.arm_group.go(wait=True)
+        if not success:
+            rospy.logerr("Failed to navigate to the end of the sweep.")
+            return False
+        rospy.loginfo("Successfully navigated to the end of the sweep.")
+        
+        # done
+        rospy.loginfo("Sweep completed successfully.")
+        return True
+
+
     def rviz_navgoal_callback(self, msg):
         # ensure msg is in the workplane frame
         if msg.header.frame_id != self.workplane_id:
@@ -132,17 +180,6 @@ class MoveItSweeperClient:
         
         # apply the end effector roll offset
         pose_with_offset = self.apply_rpy_offset(msg, 2*1.57, 0.0, 0.0)
-
-        # convert back to planning frame (for moveit) with tf lookup
-        try:
-            listener = tf.TransformListener()
-            listener.waitForTransform(self.base_frame, self.workplane_id, rospy.Time(0), rospy.Duration(4.0))
-            pose_with_offset = listener.transformPose(self.base_frame, pose_with_offset)
-        except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException) as e:
-            rospy.logerr(f"TF Exception: {e}")
-            return False
-        rospy.loginfo(f"Received goal pose: {pose_with_offset.pose}")
-
 
         if self.rviz_navgoal_list is None:
             self.rviz_navgoal_list = []
@@ -158,10 +195,22 @@ class MoveItSweeperClient:
         
         # create a Path and publish
         stored_waypoints = Path()
-        stored_waypoints.header.frame_id = self.base_frame
+        stored_waypoints.header.frame_id = self.workplane_id #self.base_frame
         stored_waypoints.poses = self.rviz_navgoal_list
         self.stored_wp_path_pub.publish(stored_waypoints)
 
+        # create the movei navgoal list
+        self.moveit_navgoal_list = []
+        listener = tf.TransformListener()
+        for pose in self.rviz_navgoal_list:
+            try:
+                listener.waitForTransform(self.base_frame, self.workplane_id, rospy.Time(0), rospy.Duration(4.0))
+                moveit_pose = listener.transformPose(self.base_frame, pose)
+            except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException) as e:
+                rospy.logerr(f"TF Exception: {e}")
+                return False
+            rospy.loginfo(f"Received goal pose: {moveit_pose.pose}")
+            self.moveit_navgoal_list.append(moveit_pose)
         return True
 
     def apply_rpy_offset(self, pose_stamped, roll_offset, pitch_offset, yaw_offset):
@@ -189,14 +238,6 @@ class MoveItSweeperClient:
         pose_stamped.pose.orientation = Quaternion(*new_quat)
 
         return pose_stamped
-
-    def go_home_service(self, req):
-        success = self.go_home()
-        if success:
-            rospy.loginfo("Successfully moved to home position.")
-        else:
-            rospy.logerr("Failed to move to home position.")
-        return success        
 
 if __name__ == "__main__":
 
