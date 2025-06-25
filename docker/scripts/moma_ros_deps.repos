@@ -9,3 +9,8 @@ repositories:
     local-name: easy_handeye
     url: https://github.com/IFL-CAMP/easy_handeye.git
     version: 44a27b781b060fe80e259faf5c89628823530e3b
+  Cartesian-Impedance-Controller:
+    type: git
+    local-name: Cartesian-Impedance-Controller
+    url: https://github.com/matthias-mayr/Cartesian-Impedance-Controller.git
+    version: master
