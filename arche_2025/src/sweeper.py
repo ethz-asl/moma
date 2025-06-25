@@ -11,7 +11,7 @@ from visualization_msgs.msg import Marker, MarkerArray
 
 class MoveItSweeperClient:
     def __init__(self):
-        rospy.init_node('moveit_client_node', anonymous=True)
+        rospy.init_node('moveit_client_node', anonymous=False)
 
         self.workplane_id = "workplane"
         self.ee_roll_offset_deg = 180.0  # offset for the end effector roll, in degrees
@@ -23,6 +23,12 @@ class MoveItSweeperClient:
         self.controlled_frame = self.arm_group.get_end_effector_link()
         self.arm_group.set_planning_pipeline_id("pilz_industrial_motion_planner")
         self.arm_group.set_planner_id("LIN")
+        # print controlled frame
+        rospy.loginfo(f"Controlled frame: {self.controlled_frame}")
+        # get base frame for planning
+        self.base_frame = self.arm_group.get_planning_frame()
+        rospy.loginfo(f"Base frame for planning: {self.base_frame}")
+
 
         # Publishers
         self.stored_wp_path_pub = rospy.Publisher("/move_base_simple/goal_path", Path, queue_size=10)
@@ -102,6 +108,12 @@ class MoveItSweeperClient:
             return False
         # then, navigate to the last goal
         last_goal = self.rviz_navgoal_list[-1]
+        
+        # print current EE
+        current_ee_pose = self.arm_group.get_current_pose(self.controlled_frame)
+        rospy.loginfo(f"Current end effector pose: {current_ee_pose}")
+        rospy.loginfo(f"Last goal pose: {last_goal.pose}")
+        
         self.arm_group.set_planner_id("PTP")
         self.arm_group.set_pose_target(last_goal.pose)
         success = self.arm_group.go(wait=True)
@@ -119,7 +131,18 @@ class MoveItSweeperClient:
             return False
         
         # apply the end effector roll offset
-        pose_with_offset = self.apply_rpy_offset(msg, 1.57, 0.0, 0.0)
+        pose_with_offset = self.apply_rpy_offset(msg, 2*1.57, 0.0, 0.0)
+
+        # convert back to planning frame (for moveit) with tf lookup
+        try:
+            listener = tf.TransformListener()
+            listener.waitForTransform(self.base_frame, self.workplane_id, rospy.Time(0), rospy.Duration(4.0))
+            pose_with_offset = listener.transformPose(self.base_frame, pose_with_offset)
+        except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException) as e:
+            rospy.logerr(f"TF Exception: {e}")
+            return False
+        rospy.loginfo(f"Received goal pose: {pose_with_offset.pose}")
+
 
         if self.rviz_navgoal_list is None:
             self.rviz_navgoal_list = []
@@ -133,11 +156,9 @@ class MoveItSweeperClient:
             self.rviz_navgoal_list = [self.rviz_navgoal_list[-1]]
             self.rviz_navgoal_list.append(pose_with_offset)
         
-
-
         # create a Path and publish
         stored_waypoints = Path()
-        stored_waypoints.header.frame_id = self.workplane_id
+        stored_waypoints.header.frame_id = self.base_frame
         stored_waypoints.poses = self.rviz_navgoal_list
         self.stored_wp_path_pub.publish(stored_waypoints)
 
@@ -178,6 +199,7 @@ class MoveItSweeperClient:
         return success        
 
 if __name__ == "__main__":
+
     try:
         client = MoveItSweeperClient()
         rospy.spin()
