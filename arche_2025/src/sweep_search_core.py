@@ -39,18 +39,14 @@ def find_valid_sweeps(grid, min_len=1, max_len=16, width=4):
                         if not (0 <= sx < w and 0 <= sy < h and 0 <= ex < w and 0 <= ey < h):
                             break
                     else:
-                        # All effector lines are in bounds — now check non-zero height at start/end
+                        # All effector lines are in bounds — now check non-zero height at start
                         start_vals = []
-                        end_vals = []
                         for offset in range(-(width // 2), (width + 1) // 2):
                             sx = x0 + perp[0] * offset
                             sy = y0 + perp[1] * offset
-                            ex = x1 + perp[0] * offset
-                            ey = y1 + perp[1] * offset
                             start_vals.append(grid[sy, sx])
-                            end_vals.append(grid[ey, ex])
 
-                        if np.any(start_vals) and np.any(end_vals):
+                        if np.any(start_vals):
                             valid_sweeps.append({
                                 'start': (x0, y0),
                                 'end': (x1, y1),

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Based on the ETH Robotics Summer school docker: 
+# Based on the ETH Robotics Summer school docker:
 # https://github.com/ETHZ-RobotX/smb_docker/
 
 # If not working, first do: sudo rm -rf /tmp/.docker.xauth

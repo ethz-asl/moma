@@ -1,5 +1,9 @@
 #!/bin/bash
-set -o pipefail
+set -e  # Exit on error
+set -o pipefail  # Ensure pipeline failures are propagated
+export DEBIAN_FRONTEND=noninteractive  # Suppress interactive prompts
+
+apt-get install curl
 
 # Update Ubuntu packages to latest.
 apt-get -qq update && apt-get -qq upgrade

@@ -1,5 +1,10 @@
 #!/bin/bash
-set -o pipefail
+set -e  # Exit on error
+set -o pipefail  # Ensure pipeline failures are propagated
+export DEBIAN_FRONTEND=noninteractive  # Suppress interactive prompts
+
+# Add the ROS PPA
+apt-get update
 
 # Set up a ROS workspace
 mkdir -p $MOMA_DEP_WS/src
