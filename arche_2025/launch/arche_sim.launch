@@ -7,11 +7,19 @@
   <arg name="arm_controller" default="cartesian_impedance_trajectory_controller" if="$(arg compliant_control)"/>
   <arg name="arm_controller" default="position_joint_trajectory_controller" unless="$(arg compliant_control)"/>
 
+  <!-- Static TF publisher -->
+  <node pkg="tf2_ros" type="static_transform_publisher" name="static_tf_publisher" args="0.4 0 0.3 0 0 0 world workplane"/>
+
   <!-- Common include block -->
   <include file="$(find moma_gazebo)/launch/panda_moma_corner.launch">
     <arg name="use_wrist_camera" value="true"/>
+    <arg name="rviz" value="false"/>
     <arg name="moveit" value="true"/>
     <arg name="moveit_planner" value="pilz_industrial_motion_planner"/>
     <arg name="arm_controller" value="$(arg arm_controller)"/>
   </include>
+
+  <!-- RVIZ -->
+  <node pkg="rviz" type="rviz" name="rviz" args="-d $(find arche_2025)/config/sim.rviz" output="screen"/>
+
 </launch>
