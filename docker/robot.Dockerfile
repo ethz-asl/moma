@@ -30,10 +30,5 @@ RUN scripts/install_simulation.sh
 # Install ARCHE installs
 RUN scripts/install_arche25.sh
 
-# Install the new impedance controller
-RUN git clone https://github.com/matthias-mayr/Cartesian-Impedance-Controller.git
-RUN mv Cartesian-Impedance-Controller $MOMA_DEP_WS/src
-RUN cd $MOMA_DEP_WS && ./src/Cartesian-Impedance-Controller/scripts/install_dependencies.sh
-
 # Finally, build all the stuff we downloaded.
 RUN scripts/build_ros.sh
