@@ -11,9 +11,15 @@ echo "Installing basic dependencies..."
 apt-get update && apt-get install -y nano vim usbutils
 echo "Installing basic dependencies...done"
 
-# Install controller
-echo "Installing controller dependencies..."
-# cd /root/moma_ws && git clone https://github.com/matthias-mayr/Cartesian-Impedance-Controller.git
+# Python
+echo "Installing Python dependencies from requirements_nikhilesh.txt..."
+pip3 install --upgrade pip
+echo "Installing pip dependencies..."
+pip3 install --no-cache-dir -r "$SCRIPTS_PATH/requirements_nikhilesh.txt"
+echo "Installing Python dependencies from requirements_nikhilesh.txt...done"
+
 # Clear cache to reduce Docker image size
 echo "Cleaning up unnecessary files..."
 rm -rf /var/lib/apt/lists/* ~/.cache/pip
+
+
