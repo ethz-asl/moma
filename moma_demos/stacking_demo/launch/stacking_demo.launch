@@ -34,7 +34,7 @@
     <node pkg="stacking_demo" type="wait_for_model.py" name="wait_for_model" output="screen"/>
 
     <!-- Launch demo script-->
-    <!-- <node pkg="stacking_demo" type="run_plan.py" name="stacking_demo" output="screen"/> -->
+    <node pkg="stacking_demo" type="run_plan.py" name="stacking_demo" output="screen"/>
 
     <!-- Open rviz if desired -->
     <node if="$(arg launch_rviz)" type="rviz" name="rviz" pkg="rviz" args="-d $(find stacking_demo)/config/stacking_demo.rviz"/>

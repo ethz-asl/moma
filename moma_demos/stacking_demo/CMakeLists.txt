@@ -46,6 +46,8 @@ add_message_files(
 add_service_files(
   FILES
   MoveToTower.srv
+  MoveToObjID.srv
+  GetTowerPrediction.srv
   PlanEasyGrasp.srv
 )
 
