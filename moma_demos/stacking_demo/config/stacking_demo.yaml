@@ -1,6 +1,10 @@
 ### old grasp demo config, need to edit for stacking demo
 # e.g.
 object_frame_id: object_base
+object_0_frame_id: object_0_base
+object_1_frame_id: object_1_base
+object_2_frame_id: object_2_base
+
 middle_frame_id: middle
 tower_frame_id: tower_base
 

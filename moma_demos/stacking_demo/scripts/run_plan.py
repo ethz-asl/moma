@@ -1,11 +1,14 @@
 #! /usr/bin/env python3
 
 import rospy
+import numpy as np
+
 from smach import State, StateMachine
 from smach_ros import ServiceState, SimpleActionState
 from std_srvs.srv import Trigger
-from stacking_demo.srv import MoveToTower, PlanEasyGrasp
+from stacking_demo.srv import MoveToTower, PlanEasyGrasp, GetTowerPrediction, MoveToObjID
 from stacking_demo.msg import GraspAction, SelectGraspAction, DropAction
+
 
 """
 stacking demo
@@ -25,14 +28,22 @@ as follows:
 7. drop the object on the tower
 """
 
-class WaitForUserInput(State):
+class Sleep5s(State):
     def __init__(self):
         State.__init__(self, outcomes=["succeeded"])
 
     def execute(self, userdata):
-        rospy.loginfo("Press Enter to continue...")
+        rospy.sleep(5)
         return "succeeded"
+    
+class SelectRandomObject(State):
+    def __init__(self):
+        State.__init__(self, outcomes=["0", "1", "2"])
 
+    def execute(self, userdata):
+        obj_id = np.random.randint(3)
+        return str(obj_id)
+    
 def main():
     rospy.init_node("stacking_demo", log_level=rospy.INFO)
 
@@ -50,41 +61,97 @@ def construct_state_machine():
     """Define the states and their transitions"""
 
     sm = StateMachine(outcomes=["succeeded", "aborted", "preempted"])
+    y_offset = 0.0
 
     with sm:
-        StateMachine.add(
-            "WAIT_FOR_USER_INPUT",
-            WaitForUserInput(),
-            transitions={
-                "succeeded": "MOVE_TO_HOME",
-            },
-        )
 
         StateMachine.add(
             "MOVE_TO_HOME",
             ServiceState("move_to_home", Trigger),
             transitions={
-                "succeeded": "PLAN_EASY_GRASP",
+                "succeeded": "SELECT_RANDOM_OBJECT",
             },
         )
+        # add Time for the operator to check the tower
+        # TODO would be better to save the obj_id in a variable, since we later need it
         StateMachine.add(
-            "PLAN_EASY_GRASP",
-            ServiceState("plan_easy_grasp", PlanEasyGrasp, 
-                         response_slots=["target_grasp_pose"]),
+            "SELECT_RANDOM_OBJECT",
+            SelectRandomObject(),
             transitions={
-                "succeeded": "EXECUTE_GRASP",
+                "0": "MOVE_TO_OBJECT_0",
+                "1": "MOVE_TO_OBJECT_1",
+                "2": "MOVE_TO_OBJECT_2",
             },
         )
+
         StateMachine.add(
-            "EXECUTE_GRASP",
-            SimpleActionState(
-                "grasp_execution_action", GraspAction, goal_slots=["target_grasp_pose"]
-            ),
+            "MOVE_TO_OBJECT_0",
+            ServiceState("move_to_object_id", MoveToObjID, request=0), 
             transitions={
-                "succeeded": "WAIT_FOR_USER_INPUT",
-                "aborted": "MOVE_TO_HOME",
+                "succeeded": "GET_TOWER_PREDICTION",
             },
         )
+
+        StateMachine.add(
+            "MOVE_TO_OBJECT_1",
+            ServiceState("move_to_object_id", MoveToObjID, request=1),
+            transitions={
+                "succeeded": "GET_TOWER_PREDICTION",
+            },
+        )
+
+        StateMachine.add(
+            "MOVE_TO_OBJECT_2",
+            ServiceState("move_to_object_id", MoveToObjID, request=2),
+            transitions={
+                "succeeded": "GET_TOWER_PREDICTION",
+            },
+        )
+
+        # TODO this should get the obj_id as input
+        StateMachine.add(
+            "GET_TOWER_PREDICTION",
+            ServiceState("get_tower_prediction", GetTowerPrediction, response_slots=["y_offset"]),
+            transitions={"succeeded": "MOVE_TO_TOWER"},
+        )
+
+        StateMachine.add(
+            "MOVE_TO_TOWER",
+            ServiceState(
+                "move_to_tower", MoveToTower, request_slots=["y_offset"]),
+            transitions={
+                "succeeded": "SLEEP",
+                
+            },
+        )
+        # Time to check if the tower is stable
+        StateMachine.add(
+            "SLEEP",
+            Sleep5s(),
+            transitions={
+                "succeeded": "REMOVE_OBJECT_FROM_TOWER",
+            },
+        )
+
+        StateMachine.add(
+            "REMOVE_OBJECT_FROM_TOWER",
+            ServiceState(
+                "remove_object_from_tower", MoveToTower, request_slots=["y_offset"]),
+            transitions={
+                "succeeded": "RETURN_OBJECT",
+                
+            },
+        )
+
+        # TODO correctly add here the obj_id logic, currently it always drops it at the same place
+        StateMachine.add(
+            "RETURN_OBJECT",
+            ServiceState("return_object", MoveToObjID, request=0),
+            transitions={
+                "succeeded": "MOVE_TO_HOME",
+            },
+        )
+
 
         # StateMachine.add(
         #     "MOVE_TO_MIDDLE",
@@ -96,29 +163,9 @@ def construct_state_machine():
         #     },
         # )
 
-        # StateMachine.add(
-        #     "WAIT_FOR_MODEL",
-        #     ServiceState("wait_for_model", Trigger, request_slots=["y_offset"]),
-        #     transitions={"succeeded": "MOVE_TO_TOWER"},
-        # )
+ 
 
-        # StateMachine.add(
-        #     "MOVE_TO_TOWER",
-        #     ServiceState(
-        #         "move_to_tower", MoveToTower, request_slots=["y_offset"] 
-        #     ),
-        #     transitions={
-        #         "succeeded": "DROP_OBJECT",
-                
-        #     },
-        # )
-
-        # StateMachine.add(
-        #     "DROP_OBJECT",
-        #     SimpleActionState("drop_action", DropAction),
-        #     transitions={"succeeded": "RESET"},
-        # )
-
+ 
     return sm
 
 
