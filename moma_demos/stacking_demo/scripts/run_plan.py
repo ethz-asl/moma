@@ -74,6 +74,7 @@ def construct_state_machine():
         )
         # add Time for the operator to check the tower
         # TODO would be better to save the obj_id in a variable, since we later need it
+
         StateMachine.add(
             "SELECT_RANDOM_OBJECT",
             SelectRandomObject(),
@@ -144,6 +145,7 @@ def construct_state_machine():
         )
 
         # TODO correctly add here the obj_id logic, currently it always drops it at the same place
+
         StateMachine.add(
             "RETURN_OBJECT",
             ServiceState("return_object", MoveToObjID, request=0),
