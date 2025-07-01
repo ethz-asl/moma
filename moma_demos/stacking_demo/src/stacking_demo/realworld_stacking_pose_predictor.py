@@ -333,8 +333,7 @@ def run_realworld_stacking_pose_predictor(obj_id, checkpoint_path="/root/moma_ws
     test_obj_dataset = ObjDictDataset(test_obj_dicts, cube_len, encoding_type, latent_size_obj)
     test_tower_dataset = TowerDictDataset(test_stable_tower_dicts, max_tower_height, latent_size_obj, cube_len, encoding_type, encoding_info)
     print("Loaded test dataset from", tower_test_data_path)
-    print(f"Number of test objects: {len(test_obj_dataset)}")
-    print(f"Number of test towers: {len(test_tower_dataset)}")
+
     print("ready to start predictions...")
 
     # get a random object idx that fulfills the requirements to be an obj_id
@@ -353,7 +352,7 @@ def run_realworld_stacking_pose_predictor(obj_id, checkpoint_path="/root/moma_ws
         new_obj_fell_down, tower_collapsed = check_stability(stacking_pose_pred.item(), obj_cube_weights, tower_cube_weights, tower_obj_pos, cube_len)
         visualize_prediction(stacking_pose_pred.item(), obj_cube_weights, tower_cube_weights, tower_obj_pos, cube_len, cube_list, new_obj_fell_down, tower_collapsed)
 
-    print(f"Predicted stacking position for object {obj_idx}: {stacking_pose_pred.item()}")
+    print(f"Predicted stacking position for object id {obj_id} with obj_idx {obj_idx}: {stacking_pose_pred.item()}")
 
     return stacking_pose_pred.item()  # Return the predicted stacking position
 

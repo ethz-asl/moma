@@ -28,27 +28,30 @@ as follows:
 7. drop the object on the tower
 """
 
-class Sleep5s(State):
+class Sleep3s(State):
     def __init__(self):
         State.__init__(self, outcomes=["succeeded"])
 
     def execute(self, userdata):
-        rospy.sleep(5)
+        rospy.sleep(3)
         return "succeeded"
     
 class SelectRandomObject(State):
     def __init__(self):
-        State.__init__(self, outcomes=["0", "1", "2"])
+        State.__init__(self, outcomes=["succeeded"], output_keys=["obj_id"])
 
     def execute(self, userdata):
         obj_id = np.random.randint(3)
-        return str(obj_id)
+        print("Selected obj_id ", obj_id)
+        userdata.obj_id = obj_id
+        return "succeeded"
     
 def main():
     rospy.init_node("stacking_demo", log_level=rospy.INFO)
 
     # Construct the state machine
     sm = construct_state_machine()
+    sm.userdata.obj_id = None
 
     # Execute SMACH plan
     sm.execute()
@@ -61,7 +64,6 @@ def construct_state_machine():
     """Define the states and their transitions"""
 
     sm = StateMachine(outcomes=["succeeded", "aborted", "preempted"])
-    y_offset = 0.0
 
     with sm:
 
@@ -73,46 +75,26 @@ def construct_state_machine():
             },
         )
         # add Time for the operator to check the tower
-        # TODO would be better to save the obj_id in a variable, since we later need it
 
         StateMachine.add(
             "SELECT_RANDOM_OBJECT",
             SelectRandomObject(),
             transitions={
-                "0": "MOVE_TO_OBJECT_0",
-                "1": "MOVE_TO_OBJECT_1",
-                "2": "MOVE_TO_OBJECT_2",
+                "succeeded": "MOVE_TO_OBJECT"
             },
         )
 
         StateMachine.add(
-            "MOVE_TO_OBJECT_0",
-            ServiceState("move_to_object_id", MoveToObjID, request=0), 
+            "MOVE_TO_OBJECT",
+            ServiceState("move_to_object_id", MoveToObjID, request_slots=["obj_id"]), 
             transitions={
                 "succeeded": "GET_TOWER_PREDICTION",
             },
         )
 
-        StateMachine.add(
-            "MOVE_TO_OBJECT_1",
-            ServiceState("move_to_object_id", MoveToObjID, request=1),
-            transitions={
-                "succeeded": "GET_TOWER_PREDICTION",
-            },
-        )
-
-        StateMachine.add(
-            "MOVE_TO_OBJECT_2",
-            ServiceState("move_to_object_id", MoveToObjID, request=2),
-            transitions={
-                "succeeded": "GET_TOWER_PREDICTION",
-            },
-        )
-
-        # TODO this should get the obj_id as input
         StateMachine.add(
             "GET_TOWER_PREDICTION",
-            ServiceState("get_tower_prediction", GetTowerPrediction, request=1, response_slots=["y_offset"]), #the request value is the obj_id, TODO hardcoded for now
+            ServiceState("get_tower_prediction", GetTowerPrediction, request_slots=["obj_id"], response_slots=["y_offset"]), 
             transitions={"succeeded": "MOVE_TO_TOWER"},
         )
 
@@ -128,7 +110,7 @@ def construct_state_machine():
         # Time to check if the tower is stable
         StateMachine.add(
             "SLEEP",
-            Sleep5s(),
+            Sleep3s(),
             transitions={
                 "succeeded": "REMOVE_OBJECT_FROM_TOWER",
             },
@@ -144,11 +126,9 @@ def construct_state_machine():
             },
         )
 
-        # TODO correctly add here the obj_id logic, currently it always drops it at the same place
-
         StateMachine.add(
             "RETURN_OBJECT",
-            ServiceState("return_object", MoveToObjID, request=0),
+            ServiceState("return_object", MoveToObjID, request_slots=["obj_id"]),
             transitions={
                 "succeeded": "MOVE_TO_HOME",
             },
