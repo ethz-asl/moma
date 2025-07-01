@@ -1,7 +1,10 @@
 #!/usr/bin/env python
 
 import rospy
+import sys
+sys.path.insert(0,'/root/moma_ws/src/moma/moma_demos/stacking_demo/src/stacking_demo/')
 
+from realworld_stacking_pose_predictor import  run_realworld_stacking_pose_predictor
 
 from stacking_demo.srv import GetTowerPrediction, GetTowerPredictionRequest, GetTowerPredictionResponse
 
@@ -9,13 +12,8 @@ def get_tower_prediction(req: GetTowerPredictionRequest) -> GetTowerPredictionRe
     """wait for model service handler"""
     rospy.loginfo("Waiting for model to predict tower position")
     
-    ## add logic to wait here for model
-    # PW TODO
-
-    # also set the tower position in rosparam
-    # rospy.set_param("tower_offset_y", 0.0)  
-    rospy.sleep(5) # simulating waiting time
-    y_offset =0.05
+    obj_id = req.obj_id 
+    y_offset = run_realworld_stacking_pose_predictor(obj_id)
 
     return GetTowerPredictionResponse(y_offset)
 

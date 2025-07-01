@@ -112,7 +112,7 @@ def construct_state_machine():
         # TODO this should get the obj_id as input
         StateMachine.add(
             "GET_TOWER_PREDICTION",
-            ServiceState("get_tower_prediction", GetTowerPrediction, response_slots=["y_offset"]),
+            ServiceState("get_tower_prediction", GetTowerPrediction, request=1, response_slots=["y_offset"]), #the request value is the obj_id, TODO hardcoded for now
             transitions={"succeeded": "MOVE_TO_TOWER"},
         )
 
