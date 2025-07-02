@@ -83,7 +83,7 @@ class MoveServices:
         pre_target = target * Transform.translation([0.0, 0.0, -0.1]) #approach from top
         
         # make sure gripper is open
-        self.gripper_.release()
+        self.gripper_.release(width=0.07)
 
         # go to pre-target above object
         target_pub.publish(utils.to_pose_stamped_msg(pre_target, self.base_frame_))
@@ -127,7 +127,7 @@ class MoveServices:
         pre_target = target * Transform.translation([0.0, 0.0, -0.1]) #approach from top
         
         # make sure gripper is open
-        self.gripper_.release()
+        self.gripper_.release(width=0.07)
 
         # go to pre-target above object
         target_pub.publish(utils.to_pose_stamped_msg(pre_target, self.base_frame_))
@@ -178,7 +178,7 @@ class MoveServices:
         success = self.moveit_.goto(target, self.vel_scaling_)
 
         # release object
-        self.gripper_.release()
+        self.gripper_.release(width=0.07)
 
         # go to pre-target above object
         target_pub.publish(utils.to_pose_stamped_msg(pre_target, self.base_frame_))
@@ -239,7 +239,7 @@ class MoveServices:
         success = self.moveit_.goto(target, self.vel_scaling_)
         
         # release object
-        self.gripper_.release()
+        self.gripper_.release(width=0.07)
         
         # go to pre-target above object
         target_pub.publish(utils.to_pose_stamped_msg(pre_target, self.base_frame_))
@@ -265,7 +265,7 @@ class MoveServices:
         pre_target = target * Transform.translation([0.0, 0.0, -0.1]) #approach from top
         
         # open gripper
-        self.gripper_.release()
+        self.gripper_.release(width=0.07)
 
         # go to pre-target above object
         target_pub.publish(utils.to_pose_stamped_msg(pre_target, self.base_frame_))

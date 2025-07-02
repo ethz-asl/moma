@@ -1,15 +1,15 @@
 <launch>
     <!-- object 0 (left) base -->
-    <node pkg="tf2_ros" type="static_transform_publisher" name="object_0_base" args="0.4 0.16 0.32 1 0 0 0 panda_link0 object_0_base" />
+    <node pkg="tf2_ros" type="static_transform_publisher" name="object_0_base" args="0.4 0.16 0.315 1 0 0 0 panda_link0 object_0_base" />
 
     <!-- object 1 (middle) base -->
-    <node pkg="tf2_ros" type="static_transform_publisher" name="object_1_base" args="0.4 0.08 0.32 1 0 0 0 panda_link0 object_1_base" />
+    <node pkg="tf2_ros" type="static_transform_publisher" name="object_1_base" args="0.4 0.08 0.315 1 0 0 0 panda_link0 object_1_base" />
 
     <!-- object 2 (right) base -->
-    <node pkg="tf2_ros" type="static_transform_publisher" name="object_2_base" args="0.4 0.0 0.32 1 0 0 0 panda_link0 object_2_base" />
+    <node pkg="tf2_ros" type="static_transform_publisher" name="object_2_base" args="0.4 0.0 0.315 1 0 0 0 panda_link0 object_2_base" />
 
     <!-- tower base -->
-    <node pkg="tf2_ros" type="static_transform_publisher" name="tower_base" args="0.4 -0.16 0.32 1 0 0 0 panda_link0 tower_base" />
+    <node pkg="tf2_ros" type="static_transform_publisher" name="tower_base" args="0.4 -0.16 0.315 1 0 0 0 panda_link0 tower_base" />
     
     <!-- middle point NOT USED -->
     <node pkg="tf2_ros" type="static_transform_publisher" name="middle" args="0.5 0 0.6 1 0 0 0 panda_link0 middle" />

@@ -1,20 +1,27 @@
-### stacking demo
-# Attention: you need to change these frames in the load_static_tf.launch file if the table setup changes
-object_frame_id: object_base # NOT USED
+### old grasp demo config, need to edit for stacking demo
+# e.g.
+object_frame_id: object_base # NOT USED FOR STACKING DEMO
 object_0_frame_id: object_0_base
 object_1_frame_id: object_1_base
 object_2_frame_id: object_2_base
 
-middle_frame_id: middle # NOT USED
+middle_frame_id: middle # NOT USED FOR STACKING DEMO
 tower_frame_id: tower_base
 
 base_frame_id: panda_link0
+pre_grasp_offset: 0.035 # NOT USED FOR STACKING DEMO
+ee_grasp_offset_z: 0.04 # NOT USED FOR STACKING DEMO #-0.02 #-0.04 # More negative is LOWER into the object
+# ee_grasp_offset_x: 0.010
 
+task_frame_id: task # NOT USED FOR STACKING DEMO
+table_height: 0.30 # NOT USED FOR STACKING DEMO #0.25 #-0.05 #0.14  # Measured from the base frame specified above
 
 object_height: 0.04 
 tower_height: 0.12 # need to set from config! 
 drop_offset_z : 0.04 # positive is above the object!
 
+
+# grasp_selection: "auto"  # Choice: manual, auto
 
 arm_velocity_scaling_drop: 0.3
 arm_velocity_scaling_grasp: 0.1
