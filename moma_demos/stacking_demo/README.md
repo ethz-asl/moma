@@ -7,25 +7,15 @@
 For the following instructions, it is assumed that the user is logged into `asl-panda` and has sourced the catkin workspace containing the demo package.
 
 
-Before you start, make sure to have set the correct tower_height in the config/stacking_demo.yaml file.
+Before you start, make sure to have set the correct tower_height in the config/stacking_demo.yaml file and the launch/load_static_tf.launch file.
 
 
-First, Launch the nodes:
+Launching the node will automatically start the state machine:
 
 ```bash
 roslaunch stacking_demo stacking_demo.launch
 ```
 
-To pick up the object from the object_position:
-```
-rosservice call /move_to_object
-``` 
-
-To go to the tower and place the object, call the service:
-
-```
-rosservice call /move_to_tower "y_offset: 0.0"
-```
 ## Local Docker setup:
 On the static panda, here is how to run the docker for this code:
 ```
@@ -62,4 +52,17 @@ goal:
 If you want to bring up the robot without the stacking:
 ```bash
 roslaunch moma_bringup panda_real.launch
+```
+
+To test the stacking functions without the state machine running, you can comment the run_plan.py node in the stacking_demo.launch file and instead manually call the services, e.g.
+
+To pick up the object from the object_position:
+```
+rosservice call /move_to_object
+``` 
+
+To go to the tower and place the object, call the service:
+
+```
+rosservice call /move_to_tower "y_offset: 0.0"
 ```
