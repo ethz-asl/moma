@@ -1,5 +1,5 @@
 <launch>
-    <!-- object 0 (left) base -->
+    <!-- object 0 (left) base PW Was 0.315 -->
     <node pkg="tf2_ros" type="static_transform_publisher" name="object_0_base" args="0.4 0.16 0.315 1 0 0 0 panda_link0 object_0_base" />
 
     <!-- object 1 (middle) base -->

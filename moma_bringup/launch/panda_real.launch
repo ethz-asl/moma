@@ -37,6 +37,8 @@
   <!-- Launch MoveIt -->
   <include if="$(arg moveit)" file="$(find panda_moveit_config)/launch/move_group.launch">
     <arg name="load_robot_description" value="false" />
+    <arg name="pipeline" default="pilz_industrial_motion_planner" />
+
   </include>
 
   <!-- If desired, launch a preconfigured Rviz -->

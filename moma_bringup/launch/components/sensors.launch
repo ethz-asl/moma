@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <launch>
-  <arg name="wrist_camera" default="true" />
+  <arg name="wrist_camera" default="false" />
   <arg name="fixed_camera" default="false" />
 
   <!-- Launch wrist camera -->

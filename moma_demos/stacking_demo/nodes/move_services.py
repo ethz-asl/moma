@@ -23,6 +23,8 @@ class MoveServices:
 
         rospy.init_node("move_node", anonymous=True)
         self.moveit_ = MoveItClient("panda_arm")
+        self.moveit_.move_group.set_planner_id('LIN')
+
         self.arm_ = PandaArmClient()   
         self.gripper_ = PandaGripperClient()
 
@@ -237,7 +239,8 @@ class MoveServices:
         # go to actual pose
         target_pub.publish(utils.to_pose_stamped_msg(target, self.base_frame_))
         success = self.moveit_.goto(target, self.vel_scaling_)
-        
+        # self.gripper_.grasp()
+        # rospy.sleep(200)
         # release object
         self.gripper_.release(width=0.07)
         

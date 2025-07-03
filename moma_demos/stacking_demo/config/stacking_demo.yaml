@@ -18,7 +18,7 @@ table_height: 0.30 # NOT USED FOR STACKING DEMO #0.25 #-0.05 #0.14  # Measured f
 
 object_height: 0.04 
 tower_height: 0.12 # need to set from config! 
-drop_offset_z : 0.04 # positive is above the object!
+drop_offset_z : 0.038 # positive is above the object!
 
 
 # grasp_selection: "auto"  # Choice: manual, auto
