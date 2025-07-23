@@ -1,0 +1,34 @@
+arm_id:                           $(arg arm_id)
+singularity_warning_threshold:    0.0001               # print a warning if the smallest singular value of J x J^T drops below this value (use -1 to disable)
+tau_ext_lowpass_filter:           1.0                  # Exponential Moving average filter: range between and zero (infinite delay) one (no filtering)
+
+franka_gripper:
+  type:    franka_gazebo/FrankaGripperSim
+  arm_id:  $(arg arm_id)
+
+  finger1:
+    gains: { p: 100, i: 0, d: 1.0 }
+
+  finger2:
+    gains: { p: 100, i: 0, d: 1.0 }
+
+# Motion generators PID gains
+motion_generators:
+  position:
+    gains:
+      $(arg arm_id)_joint1: { p: 600, d: 30, i: 0 }
+      $(arg arm_id)_joint2: { p: 600, d: 30, i: 0 }
+      $(arg arm_id)_joint3: { p: 600, d: 30, i: 0 }
+      $(arg arm_id)_joint4: { p: 600, d: 30, i: 0 }
+      $(arg arm_id)_joint5: { p: 250, d: 10, i: 0 }
+      $(arg arm_id)_joint6: { p: 150, d: 10, i: 0 }
+      $(arg arm_id)_joint7: { p:  50, d:  5, i: 0 }
+  velocity:
+    gains:
+      $(arg arm_id)_joint1: { p: 30, d: 0, i: 0 }
+      $(arg arm_id)_joint2: { p: 30, d: 0, i: 0 }
+      $(arg arm_id)_joint3: { p: 30, d: 0, i: 0 }
+      $(arg arm_id)_joint4: { p: 30, d: 0, i: 0 }
+      $(arg arm_id)_joint5: { p: 10, d: 0, i: 0 }
+      $(arg arm_id)_joint6: { p: 10, d: 0, i: 0 }
+      $(arg arm_id)_joint7: { p:  5, d:  0, i: 0 }

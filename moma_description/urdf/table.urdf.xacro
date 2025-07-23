@@ -1,0 +1,60 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="table">
+
+  <xacro:arg name="size_x" default="0.8"/>
+  <xacro:arg name="size_y" default="1.0"/>
+  <xacro:arg name="size_z" default="0.3"/>
+  <xacro:arg name="table_mass" default="10"/>
+
+  <xacro:property name="size_x" value="$(arg size_x)"/>
+  <xacro:property name="size_y" value="$(arg size_y)"/>
+  <xacro:property name="size_z" value="$(arg size_z)"/>
+  <xacro:property name="table_mass" value="$(arg table_mass)"/>
+
+  <!-- Table Base Link -->
+  <link name="table_root">
+    <visual>
+      <geometry>
+        <box size="${size_x} ${size_y} ${size_z}"/>
+      </geometry>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <material name="white">
+        <color rgba="1 1 1 1"/>
+      </material>
+    </visual>
+
+    <collision>
+      <geometry>
+        <box size="${size_x} ${size_y} ${size_z}"/>
+      </geometry>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </collision>
+
+    <inertial>
+      <mass value="${table_mass}"/>
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+    </inertial>
+  </link>
+
+  <!-- Gazebo Static Setting -->
+  <gazebo reference="table_root">
+    <static>true</static>
+  </gazebo>
+
+  <!-- Top Center Frame -->
+  <link name="table_top_link">
+    <visual>
+      <geometry>
+        <box size="0.01 0.01 0.01"/>
+      </geometry>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </visual>
+  </link>
+
+  <joint name="table_top_joint" type="fixed">
+    <parent link="table_root"/>
+    <child link="table_top_link"/>
+    <origin xyz="0 0 ${size_z/2}" rpy="0 0 0"/>
+  </joint>
+
+</robot>
