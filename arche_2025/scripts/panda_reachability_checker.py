@@ -22,8 +22,6 @@ class ReachabilityChecker:
         self.arm_group = moveit_commander.MoveGroupCommander("panda_arm")
         rospy.loginfo("MoveIt client initialized.")
         self.controlled_frame = self.arm_group.get_end_effector_link()
-        # self.arm_group.set_planning_pipeline_id("pilz_industrial_motion_planner")
-        # self.arm_group.set_planner_id("LIN")
         rospy.loginfo(f"Controlled frame: {self.controlled_frame}")
         self.base_frame = self.arm_group.get_planning_frame()
         rospy.loginfo(f"Base frame for planning: {self.base_frame}")
@@ -34,9 +32,9 @@ class ReachabilityChecker:
         self.grasp_markers = None
 
         # Workplane parameters
-        self.workplane_origin = np.array([0.555, 0.0, 0.0])
-        self.workplane_width = 0.4
-        self.workplane_length = 0.4
+        self.workplane_origin = np.array([0.4, 0.0, 0.0])
+        self.workplane_width = 1.0
+        self.workplane_length = 0.8
 
         # Publishers
         self.marker_pub = rospy.Publisher('/reachability_checker/markers', MarkerArray, queue_size=10)
@@ -46,7 +44,7 @@ class ReachabilityChecker:
         self.top_down_grid_points = None
         self.valid_topdown_grasp = []
         # self.top_down_grasp_checker()
-        self.sweep_checker()
+        # self.sweep_checker()
 
         # Start periodic timer for marker publishing
         rospy.Timer(rospy.Duration(1.0), self.publish_markers)
@@ -59,9 +57,9 @@ class ReachabilityChecker:
 
         # sample a uniform grid of points on the workplane
         x_points = np.linspace(self.workplane_origin[0] - self.workplane_length / 2,
-                               self.workplane_origin[0] + self.workplane_length / 2, 10)
+                               self.workplane_origin[0] + self.workplane_length / 2, 30)
         y_points = np.linspace(self.workplane_origin[1] - self.workplane_width / 2,
-                               self.workplane_origin[1] + self.workplane_width / 2, 10)
+                               self.workplane_origin[1] + self.workplane_width / 2, 30)
         
         self.top_down_grid_points = np.array(np.meshgrid(x_points, y_points)).T.reshape(-1, 2)        
         self.valid_topdown_grasp = []
