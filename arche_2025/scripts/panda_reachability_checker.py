@@ -25,15 +25,21 @@ class ReachabilityChecker:
         self.base_frame = self.arm_group.get_planning_frame()
         rospy.loginfo(f"Base frame for planning: {self.base_frame}")
 
+        # Markers
+        self.workplane_marker = None
+        self.sweep_markers = None
+        self.grasp_markers = None
+
         # Workplane parameters
-        self.workplane_origin = np.array([0.4, 0.0, 0.0])
-        self.workplane_width = 1.0
-        self.workplane_length = 0.8
+        self.workplane_origin = np.array([0.555, 0.0, 0.3])
+        self.workplane_width = 0.5
+        self.workplane_length = 0.5
 
         # Initialize workplane grid points
         self.top_down_grid_points = None
         self.valid_topdown_grasp = []
         self.top_down_grasp_checker()
+        self.sweep_checker()
 
         # Publishers
         self.marker_pub = rospy.Publisher('/reachability_checker/markers', MarkerArray, queue_size=10)
@@ -45,9 +51,9 @@ class ReachabilityChecker:
     def top_down_grasp_checker(self):
         # sample a uniform grid of points on the workplane
         x_points = np.linspace(self.workplane_origin[0] - self.workplane_length / 2,
-                               self.workplane_origin[0] + self.workplane_length / 2, 20)
+                               self.workplane_origin[0] + self.workplane_length / 2, 10)
         y_points = np.linspace(self.workplane_origin[1] - self.workplane_width / 2,
-                               self.workplane_origin[1] + self.workplane_width / 2, 20)
+                               self.workplane_origin[1] + self.workplane_width / 2, 10)
         
         self.top_down_grid_points = np.array(np.meshgrid(x_points, y_points)).T.reshape(-1, 2)        
         self.valid_topdown_grasp = []
@@ -55,6 +61,7 @@ class ReachabilityChecker:
         cnt_success = 0
         cnt_fail = 0
         cnt_total = 0
+        self.grasp_markers = []
         for point in self.top_down_grid_points:
             cnt_total += 1
             if cnt_total % 100 == 0:
@@ -69,19 +76,103 @@ class ReachabilityChecker:
             target_pose.pose.position.z = self.workplane_origin[2]
             target_pose.pose.orientation = Quaternion(-1, 0, 0, 0)  # Default orientation
 
+            # create marker already
+            point_marker = Marker()
+            point_marker.header.frame_id = self.base_frame
+            point_marker.header.stamp = rospy.Time.now()
+            point_marker.ns = "grid_points"
+            point_marker.id = cnt_total
+            point_marker.type = Marker.SPHERE
+            point_marker.action = Marker.ADD
+            point_marker.pose.position.x = point[0]
+            point_marker.pose.position.y = point[1]
+            point_marker.pose.position.z = self.workplane_origin[2] + 0.01
+            point_marker.pose.orientation = Quaternion(0, 0, 0, 1)
+            point_marker.scale.x = 0.02
+            point_marker.scale.y = 0.02
+            point_marker.scale.z = 0.02 # Small sphere for grid points  
+            point_marker.lifetime = rospy.Duration(1.5)
+            point_marker.color.a = 1.0
+
             try:
                 plan = self.arm_group.plan(target_pose)
             except Exception as e:
                 rospy.logwarn(f"Planning failed for point {point}: {e}")
                 cnt_fail += 1
+                point_marker.color.r = 1.0
+                point_marker.color.g = 0.0
+                point_marker.color.b = 0.0
+                self.grasp_markers.append(point_marker)
                 self.valid_topdown_grasp.append(False)
                 continue
 
             cnt_success += 1
+            point_marker.color.r = 0.0
+            point_marker.color.g = 1.0
+            point_marker.color.b = 0.0
+
+            self.grasp_markers.append(point_marker)
             self.valid_topdown_grasp.append(True)
             self.arm_group.clear_pose_targets()            
+        
         rospy.loginfo(f"Reachability check complete: {cnt_success} success, {cnt_fail} fail, total {cnt_total} points checked.")
         rospy.loginfo(f"Ratio of reachable points: {cnt_success / cnt_total:.2f}")
+
+    def sweep_checker(self):
+        # use the four corner points of the workplane to define six sweeps
+        corner_points = [
+            (self.workplane_origin[0] - self.workplane_length / 2, self.workplane_origin[1] - self.workplane_width / 2),
+            (self.workplane_origin[0] - self.workplane_length / 2, self.workplane_origin[1] + self.workplane_width / 2),
+            (self.workplane_origin[0] + self.workplane_length / 2, self.workplane_origin[1] - self.workplane_width / 2),
+            (self.workplane_origin[0] + self.workplane_length / 2, self.workplane_origin[1] + self.workplane_width / 2)
+        ]
+        # find all combinations of two distinct corner points
+        from itertools import combinations
+        corner_combinations = list(combinations(corner_points, 2))
+        # define sweeps as tuples of start and end points
+        self.checked_sweeps = []
+        self.sweep_validity = []
+        
+        for start, end in corner_combinations:
+            # move arm to "home" position
+            self.arm_group.set_named_target("home")
+            self.arm_group.go(wait=True)
+            self.arm_group.clear_pose_targets()
+            # create a target pose for the start point
+            start_pose = PoseStamped()
+            start_pose.header.frame_id = self.base_frame
+            start_pose.header.stamp = rospy.Time.now()
+            start_pose.pose.position.x = start[0]
+            start_pose.pose.position.y = start[1]
+            start_pose.pose.position.z = self.workplane_origin[2]
+            start_pose.pose.orientation = Quaternion(-1, 0, 0, 0)  # Default orientation
+            # create a target pose for the end point
+            end_pose = PoseStamped()
+            end_pose.header.frame_id = self.base_frame
+            end_pose.header.stamp = rospy.Time.now()
+            end_pose.pose.position.x = end[0]
+            end_pose.pose.position.y = end[1]
+            end_pose.pose.position.z = self.workplane_origin[2]
+            end_pose.pose.orientation = Quaternion(-1, 0, 0, 0)  # Default orientation
+            # go to the start point
+            '''
+            self.arm_group.set_pose_target(start_pose)
+            try:
+                self.arm_group.go(wait=True)
+            except Exception as e:
+                rospy.logwarn(f"Failed to reach start point {start}: {e}")
+            # go to the end point
+            self.arm_group.set_pose_target(end_pose)
+            try:
+                self.arm_group.go(wait=True)
+            except Exception as e:
+                rospy.logwarn(f"Failed to reach end point {end}: {e}")
+            # check if the arm can reach the end point
+            '''
+
+            self.checked_sweeps.append((start, end))
+        # self.checked_sweeps = sweeps
+        print(f"Checked {len(self.checked_sweeps)} sweeps.")
 
     def publish_markers(self, event):
         # MarkerArray message
@@ -109,34 +200,47 @@ class ReachabilityChecker:
         workplane_marker.lifetime = rospy.Duration(1.5)  # Lifetime a bit longer than timer rate
         marker_array.markers.append(workplane_marker)
 
-        if self.top_down_grid_points is not None:
-            for i, point in enumerate(self.top_down_grid_points):
-                # Create a sphere marker for each grid point
-                point_marker = Marker()
-                point_marker.header.frame_id = self.base_frame
-                point_marker.header.stamp = rospy.Time.now()
-                point_marker.ns = "grid_points"
-                point_marker.id = i + 1
-                point_marker.type = Marker.SPHERE
-                point_marker.action = Marker.ADD
-                point_marker.pose.position.x = point[0]
-                point_marker.pose.position.y = point[1]
-                point_marker.pose.position.z = self.workplane_origin[2] + 0.01
-                point_marker.pose.orientation = Quaternion(0, 0, 0, 1)
-                point_marker.scale.x = 0.02
-                point_marker.scale.y = 0.02
-                point_marker.scale.z = 0.02 # Small sphere for grid points  
-                point_marker.lifetime = rospy.Duration(1.5)
-                if self.valid_topdown_grasp[i]:
-                    point_marker.color.r = 0.0
-                    point_marker.color.g = 1.0
-                    point_marker.color.b = 0.0
-                else:
-                    point_marker.color.r = 1.0
-                    point_marker.color.g = 0.0
-                    point_marker.color.b = 0.0
-                point_marker.color.a = 1.0
-                marker_array.markers.append(point_marker)
+        if self.grasp_markers is not None:
+            # add all grasp markers to the marker array
+            for i, marker in enumerate(self.grasp_markers):
+                marker_array.markers.append(marker)
+
+        # create line markers for the sweeps
+        for i, (start, end) in enumerate(self.checked_sweeps):
+            print(f"Creating sweep marker {i} from {start} to {end}")
+            sweep_marker = Marker()
+            sweep_marker.header.frame_id = self.base_frame
+            sweep_marker.header.stamp = rospy.Time.now()
+            sweep_marker.ns = "sweeps"
+            sweep_marker.id = i + 100
+            sweep_marker.type = Marker.LINE_LIST
+            sweep_marker.action = Marker.ADD
+            sweep_marker.pose.position.x = 0.0
+            sweep_marker.pose.position.y = 0.0
+            sweep_marker.pose.position.z = self.workplane_origin[2] + 0.01
+            sweep_marker.pose.orientation = Quaternion(0, 0, 0, 1)
+            sweep_marker.scale.x = 0.01
+            sweep_marker.color.r = 1.0
+            sweep_marker.color.g = 0.0
+            sweep_marker.color.b = 0.0
+            sweep_marker.color.a = 1.0
+            # sweep_marker.lifetime = rospy.Duration(1.5)
+            # Add start and end points
+            point_start = PoseStamped()
+            point_start.header.frame_id = self.base_frame
+            point_start.header.stamp = rospy.Time.now()
+            point_start.pose.position.x = start[0]
+            point_start.pose.position.y = start[1]
+            point_start.pose.position.z = self.workplane_origin[2] + 0.01
+            point_end = PoseStamped()
+            point_end.header.frame_id = self.base_frame
+            point_end.header.stamp = rospy.Time.now()
+            point_end.pose.position.x = end[0]
+            point_end.pose.position.y = end[1]
+            point_end.pose.position.z = self.workplane_origin[2] + 0.01
+            sweep_marker.points.append(point_start.pose.position)
+            sweep_marker.points.append(point_end.pose.position)
+            marker_array.markers.append(sweep_marker)
 
         # Publish markers and chat
         self.marker_pub.publish(marker_array)
