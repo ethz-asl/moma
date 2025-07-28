@@ -10,6 +10,9 @@ from std_msgs.msg import String
 
 from visualization_msgs.msg import Marker, MarkerArray
 
+import tf.transformations as tf
+import numpy as np
+
 class ReachabilityChecker:
     def __init__(self):
         rospy.init_node('reachability_checker_node', anonymous=False)
@@ -146,7 +149,7 @@ class ReachabilityChecker:
             start_pose.pose.position.x = start[0]
             start_pose.pose.position.y = start[1]
             start_pose.pose.position.z = start[2]
-            start_pose.pose.orientation = Quaternion(-1, 0, 0, 0)  # Default orientation
+            # start_pose.pose.orientation = Quaternion(-1, 0, 0, 0)  # Default orientation
             # create a target pose for the end point
             end_pose = PoseStamped()
             end_pose.header.frame_id = self.base_frame
@@ -154,8 +157,34 @@ class ReachabilityChecker:
             end_pose.pose.position.x = end[0]
             end_pose.pose.position.y = end[1]
             end_pose.pose.position.z = end[2]
-            end_pose.pose.orientation = Quaternion(-1, 0, 0, 0)  # Default orientation
-            self.checked_sweeps.append((start, end))
+            # end_pose.pose.orientation = Quaternion(-1, 0, 0, 0)  # Default orientation
+
+            # compute orientation based on the start and end points
+            dx = end[0] - start[0]
+            dy = end[1] - start[1]
+            dz = end[2] - start[2]
+            yaw = np.arctan2(dy, dx)
+            print(f"Computing yaw for sweep from {start} to {end}: dx={dx}, dy={dy}, yaw={yaw}")
+
+            # Your initial quaternion
+            q_initial = (-1, 0, 0, 0)  # (x, y, z, w) format in tf
+
+            # Desired yaw angle in radians
+            yaw_angle = np.radians(45)  # Example: 45 degrees to radians
+
+            # Create yaw quaternion (only around Z)
+            q_yaw = tf.quaternion_from_euler(0, 0, yaw)
+
+            # Combine (multiply) quaternions: q_offset = q_yaw * q_initial
+            # Note: Quaternion multiplication is not commutative!
+            q_offset = tf.quaternion_multiply(q_yaw, q_initial)
+
+            print("Offset quaternion:", q_offset)
+            start_pose.pose.orientation = Quaternion(*q_offset)
+            end_pose.pose.orientation = Quaternion(*q_offset)
+
+            # self.checked_sweeps.append((start, end))
+            self.checked_sweeps.append((start_pose, end_pose))
             self.sweep_validity.append(-1)
 
         self.sweep_markers = []
@@ -182,15 +211,15 @@ class ReachabilityChecker:
             point_start = PoseStamped()
             point_start.header.frame_id = self.base_frame
             point_start.header.stamp = rospy.Time.now()
-            point_start.pose.position.x = start[0]
-            point_start.pose.position.y = start[1]
-            point_start.pose.position.z = start[2] + 0.01
+            point_start.pose.position.x = start.pose.position.x
+            point_start.pose.position.y = start.pose.position.y
+            point_start.pose.position.z = start.pose.position.z + 0.01
             point_end = PoseStamped()
             point_end.header.frame_id = self.base_frame
             point_end.header.stamp = rospy.Time.now()
-            point_end.pose.position.x = end[0]
-            point_end.pose.position.y = end[1]
-            point_end.pose.position.z = end[2] + 0.01
+            point_end.pose.position.x = end.pose.position.x
+            point_end.pose.position.y = end.pose.position.y
+            point_end.pose.position.z = end.pose.position.z + 0.01
             sweep_marker.points.append(point_start.pose.position)
             sweep_marker.points.append(point_end.pose.position)
             self.sweep_markers.append(sweep_marker)
@@ -213,10 +242,10 @@ class ReachabilityChecker:
             start_pose = PoseStamped()
             start_pose.header.frame_id = self.base_frame
             start_pose.header.stamp = rospy.Time.now()
-            start_pose.pose.position.x = start[0]
-            start_pose.pose.position.y = start[1]
-            start_pose.pose.position.z = start[2]
-            start_pose.pose.orientation = Quaternion(-1, 0, 0, 0)
+            start_pose.pose.position.x = start.pose.position.x
+            start_pose.pose.position.y = start.pose.position.y
+            start_pose.pose.position.z = start.pose.position.z
+            start_pose.pose.orientation = start.pose.orientation  # Use the orientation from the start pose
             # switch to the LIN planner of the pilz industrial motion planner
             rospy.loginfo(f"Moving to start point {start}.")
             self.arm_group.set_planning_pipeline_id("pilz_industrial_motion_planner")
@@ -237,10 +266,10 @@ class ReachabilityChecker:
             end_pose = PoseStamped()
             end_pose.header.frame_id = self.base_frame
             end_pose.header.stamp = rospy.Time.now()
-            end_pose.pose.position.x = end[0]
-            end_pose.pose.position.y = end[1]
-            end_pose.pose.position.z = end[2]
-            end_pose.pose.orientation = Quaternion(-1, 0, 0, 0)
+            end_pose.pose.position.x = end.pose.position.x
+            end_pose.pose.position.y = end.pose.position.y
+            end_pose.pose.position.z = end.pose.position.z
+            end_pose.pose.orientation = end.pose.orientation  # Use the orientation from the end pose
             # go to the end point
             self.arm_group.clear_pose_targets()
             self.arm_group.set_pose_target(end_pose)
