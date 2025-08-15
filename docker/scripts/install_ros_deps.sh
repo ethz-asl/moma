@@ -28,11 +28,12 @@ apt-get update && apt-get install -y \
 	ros-noetic-smach-ros \
 	ros-noetic-tf-conversions \
 	ros-noetic-rviz-visual-tools \
-  ros-noetic-fkie-multimaster \
-  ros-noetic-fkie-node-manager \
+    ros-noetic-fkie-multimaster \
+    ros-noetic-fkie-node-manager \
 	ros-noetic-moveit-resources-panda-description \
 	ros-noetic-moveit-visual-tools \
-	ros-noetic-apriltag-ros
+	ros-noetic-apriltag-ros \
+	ros-noetic-rosbridge-server
 
 # Install all the other dependencies in the moma_dep_ws
 cd $MOMA_DEP_WS/src || exit 1
