@@ -1,0 +1,6 @@
+geometry_msgs/PoseStamped pregrasp_pose
+geometry_msgs/PoseStamped grasp_pose
+geometry_msgs/PoseStamped postgrasp_pose
+---
+bool success
+string message

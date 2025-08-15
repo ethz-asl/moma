@@ -1,19 +1,23 @@
 <?xml version="1.0"?>
 <package format="2">
-    <name>moma_utils</name>
-    <version>0.1.0</version>
-    <description>Common utilities for mobile manipulation tasks</description>
+  <name>moma_utils</name>
+  <version>0.1.0</version>
+  <description>Common utilities for mobile manipulation tasks</description>
 
-    <maintainer email="michel.breyer@mavt.ethz.ch">Michel Breyer</maintainer>
+  <maintainer email="michel.breyer@mavt.ethz.ch">Michel Breyer</maintainer>
+  <license>TODO</license>
+  <url></url>
 
-    <license>TODO</license>
-    <url></url>
+  <!-- Build tool -->
+  <buildtool_depend>catkin</buildtool_depend>
 
-    <buildtool_depend>catkin</buildtool_depend>
+  <!-- Run-time deps you already had -->
+  <depend>rospy</depend>
+  <depend>geometry_msgs</depend>
+  <depend>sensor_msgs</depend>
+  <depend>std_msgs</depend>
 
-    <depend>rospy</depend>
-    <depend>geometry_msgs</depend>
-    <depend>sensor_msgs</depend>
-    <depend>std_msgs</depend>
-
+  <!-- Add service/message generation deps -->
+  <build_depend>message_generation</build_depend>
+  <exec_depend>message_runtime</exec_depend>
 </package>

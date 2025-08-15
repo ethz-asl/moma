@@ -1,8 +1,8 @@
 import moveit_commander
 import numpy as np
 
-from moma_utils.ros.conversions import *
 from moma_utils.spatial import Transform
+from geometry_msgs.msg import PoseStamped
 
 
 class MoveItClient:
@@ -21,8 +21,8 @@ class MoveItClient:
         self.move_group.set_max_velocity_scaling_factor(velocity_scaling)
         self.move_group.set_max_acceleration_scaling_factor(acceleration_scaling)
 
-        if isinstance(target, Transform):
-            self.move_group.set_pose_target(to_pose_msg(target))
+        if isinstance(target, PoseStamped):
+            self.move_group.set_pose_target(target)
         elif isinstance(target, (list, np.ndarray)):
             self.move_group.set_joint_value_target(target)
         elif isinstance(target, str):
@@ -31,9 +31,7 @@ class MoveItClient:
             raise ValueError
 
         plan = self.move_group.plan()
-        if type(plan) is tuple:
-            plan = plan[1]
-
+        if type(plan) is tuple: plan = plan[1]
         return plan
 
     def gotoL(self, target, velocity_scaling=0.1, acceleration_scaling=0.1):
@@ -42,12 +40,12 @@ class MoveItClient:
         return success
 
     def planL(self, target, velocity_scaling=0.1, acceleration_scaling=0.1):
-        waypoints = [to_pose_msg(target)]
+        assert isinstance(target, PoseStamped)
+        waypoints = [target]
         self.move_group.set_max_velocity_scaling_factor(velocity_scaling)
         self.move_group.set_max_acceleration_scaling_factor(acceleration_scaling)
         plan, _ = self.move_group.compute_cartesian_path(waypoints, 0.01, 0.0)
         return plan
-
 
     def execute(self, plan):
         success = self.move_group.execute(plan, wait=True)

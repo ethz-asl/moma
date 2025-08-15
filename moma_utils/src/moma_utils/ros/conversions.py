@@ -5,11 +5,20 @@ import rospy
 import std_msgs.msg
 
 from moma_utils.spatial import Rotation, Transform
-
+from geometry_msgs.msg import PoseStamped
 
 def from_point_msg(msg: geometry_msgs.msg.Point) -> np.array:
     return np.r_[msg.x, msg.y, msg.z]
 
+def normalize_quaternion(msg: PoseStamped):
+    o = msg.pose.orientation
+    orientation = np.array([o.x, o.y, o.z, o.w])
+    orientation /= np.linalg.norm(orientation)
+    msg.pose.orientation.x = orientation[0]
+    msg.pose.orientation.y = orientation[1]
+    msg.pose.orientation.z = orientation[2]
+    msg.pose.orientation.w = orientation[3]
+    return msg
 
 def from_quat_msg(msg: geometry_msgs.msg.Quaternion) -> Rotation:
     return Rotation.from_quat([msg.x, msg.y, msg.z, msg.w])
