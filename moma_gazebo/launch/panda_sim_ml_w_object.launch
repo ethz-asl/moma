@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<launch>
+  <!-- Start your Panda + empty world -->
+  <include file="$(find moma_gazebo)/launch/panda_sim_ml.launch"/>
+
+  <!-- Path to your URDF -->
+  <arg name="urdf_file" default="$(find moma_gazebo)/urdf/block.urdf"/>
+
+  <!-- Load URDF to parameter server -->
+  <rosparam command="load" file="$(arg urdf_file)" param="object_description"/>
+
+  <node
+    name="spawn_block"
+    pkg="gazebo_ros"
+    type="spawn_model"
+    args="-urdf -file $(find moma_gazebo)/urdf/block.urdf -model block_1 -x 0.4 -y 0 -z 0.1"
+    output="screen"
+  />
+
+  <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch" />
+  
+  <node pkg="moma_utils" type="panda_grasping_client.py" name="panda_grasping_client" output="screen" />
+
+</launch>
