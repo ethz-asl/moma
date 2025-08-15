@@ -10,16 +10,18 @@
   <arg name="use_fixed_camera" default="false"/>
   <arg name="use_wrist_camera" default="true" />
   <arg name="interactive_marker" value="false"/>
+  <arg name="rviz" default="true" />
 
-  <!-- Table arguments -->
-  <arg name="table_size_x" default="0.8"/>
+  <!-- Table arguments (renamed + new Z spec) -->
+  <arg name="table_size_x" default="1.0"/>
   <arg name="table_size_y" default="1.0"/>
-  <arg name="table_size_z" default="0.3"/>
+  <!-- Heights are absolute in world coordinates -->
+  <arg name="table_z_top" default="0."/>
+  <arg name="table_z_bottom" default="-0.15"/>
 
   <!-- From the robot base to the edge of the table in the x direction (i.e. forward) -->
-  <arg name="table_offset_x" default="0.2"/>
+  <arg name="table_offset_x" default="0.1"/>
   <arg name="table_root_x" default="$(eval (float(arg('table_size_x'))/2.0 + float(arg('table_offset_x'))))"/>
-  <arg name="table_root_z" default="$(eval float(arg('table_size_z'))/2.0)"/>
 
   <!-- Sim arguments -->
   <arg name="gazebo" default="true" />
@@ -27,7 +29,6 @@
   <arg name="paused" default="false" />
   <arg name="use_sim_time" default="true" />
   <arg name="world" default="$(find moma_gazebo)/worlds/moma_corner.world"/>
-  <arg name="rviz" default="true" />
 
   <!-- Joint positions -->
   <arg name="initial_joint_positions"
@@ -60,17 +61,22 @@
   <!-- Panda robot_state_publisher -->
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" output="screen"/>
 
-
   <!-- Table namespace with its own robot_description -->
   <group ns="table">
     <param name="robot_description" 
-    command="$(find xacro)/xacro $(find moma_description)/urdf/table.urdf.xacro
-        size_x:=$(arg table_size_x)
-        size_y:=$(arg table_size_y)
-        size_z:=$(arg table_size_z)"/>
+      command="$(find xacro)/xacro $(find moma_description)/urdf/table.urdf.xacro
+        table_size_x:=$(arg table_size_x)
+        table_size_y:=$(arg table_size_y)
+        table_z_top:=$(arg table_z_top)
+        table_z_bottom:=$(arg table_z_bottom)"/>
     <node name="state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
-    <node pkg="tf2_ros" type="static_transform_publisher" name="table_tf_pub" args="$(arg table_root_x) 0 $(arg table_root_z) 0 0 0 world table_root" />
+    <node pkg="tf2_ros" type="static_transform_publisher" name="table_tf_pub"
+          args="$(arg table_root_x) 0 0 0 0 0 world table_root" />
   </group>
+
+  <!-- xyz, xyzw quaternion -->
+  <node pkg="tf2_ros" type="static_transform_publisher" name="grasp_area_tf_pub" args="0.30 0.15 0.0 0 0 0 1 panda_link0 table_top_link" />
+
   <!-- Controllers configuration -->
   <rosparam file="$(find moma_gazebo)/config/franka_hw_sim.yaml" subst_value="true" />
   <rosparam file="$(find moma_gazebo)/config/sim_controllers.yaml" subst_value="true" />
@@ -128,14 +134,14 @@
         args="-param robot_description -urdf -model $(arg arm_id) $(arg unpause) $(arg initial_joint_positions)" />
 
   <!-- Table namespace with its own robot_description -->
-  <group ns="table">
+  <!-- <group ns="table">
     <node name="table_spawner"
-        pkg="gazebo_ros"
-        type="spawn_model"
-        output="screen"
-        args="-param robot_description -urdf -model table -x $(arg table_root_x) -y 0 -z $(arg table_root_z)">
+          pkg="gazebo_ros"
+          type="spawn_model"
+          output="screen"
+          args="-param robot_description -urdf -model table -x $(arg table_root_x) -y 0 -z 0">
     </node>
-  </group>
+  </group> -->
 
   <!-- RViz -->
   <node if="$(arg rviz)" name="$(anon rviz)" pkg="rviz" type="rviz"

@@ -1,23 +1,31 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="table">
 
-  <xacro:arg name="size_x" default="0.8"/>
-  <xacro:arg name="size_y" default="1.0"/>
-  <xacro:arg name="size_z" default="0.3"/>
+  <!-- Inputs: top and bottom Z coordinates -->
+  <xacro:arg name="table_z_top" default="0.15"/>
+  <xacro:arg name="table_z_bottom" default="-0.15"/>
+  <xacro:arg name="table_size_x" default="0.8"/>
+  <xacro:arg name="table_size_y" default="1.0"/>
   <xacro:arg name="table_mass" default="10"/>
 
-  <xacro:property name="size_x" value="$(arg size_x)"/>
-  <xacro:property name="size_y" value="$(arg size_y)"/>
-  <xacro:property name="size_z" value="$(arg size_z)"/>
+  <!-- Properties -->
+  <xacro:property name="table_z_top" value="$(arg table_z_top)"/>
+  <xacro:property name="table_z_bottom" value="$(arg table_z_bottom)"/>
+  <xacro:property name="table_size_x" value="$(arg table_size_x)"/>
+  <xacro:property name="table_size_y" value="$(arg table_size_y)"/>
   <xacro:property name="table_mass" value="$(arg table_mass)"/>
+
+  <!-- Derived dimensions -->
+  <xacro:property name="size_z" value="${table_z_top - table_z_bottom}"/>
+  <xacro:property name="center_z" value="${(table_z_top + table_z_bottom) / 2.0}"/>
 
   <!-- Table Base Link -->
   <link name="table_root">
     <visual>
       <geometry>
-        <box size="${size_x} ${size_y} ${size_z}"/>
+        <box size="${table_size_x} ${table_size_y} ${size_z}"/>
       </geometry>
-      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <origin xyz="0 0 ${center_z}" rpy="0 0 0"/>
       <material name="white">
         <color rgba="1 1 1 1"/>
       </material>
@@ -25,9 +33,9 @@
 
     <collision>
       <geometry>
-        <box size="${size_x} ${size_y} ${size_z}"/>
+        <box size="${table_size_x} ${table_size_y} ${size_z}"/>
       </geometry>
-      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <origin xyz="0 0 ${center_z}" rpy="0 0 0"/>
     </collision>
 
     <inertial>
@@ -42,7 +50,7 @@
   </gazebo>
 
   <!-- Top Center Frame -->
-  <link name="table_top_link">
+  <!-- <link name="table_top_link">
     <visual>
       <geometry>
         <box size="0.01 0.01 0.01"/>
@@ -54,7 +62,7 @@
   <joint name="table_top_joint" type="fixed">
     <parent link="table_root"/>
     <child link="table_top_link"/>
-    <origin xyz="0 0 ${size_z/2}" rpy="0 0 0"/>
-  </joint>
+    <origin xyz="0 0 ${table_z_top}" rpy="0 0 0"/>
+  </joint> -->
 
 </robot>
