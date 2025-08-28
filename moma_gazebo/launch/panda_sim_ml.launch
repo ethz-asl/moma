@@ -75,7 +75,7 @@
   </group>
 
   <!-- xyz, xyzw quaternion -->
-  <node pkg="tf2_ros" type="static_transform_publisher" name="grasp_area_tf_pub" args="0.30 0.15 0.0 0 0 0 1 panda_link0 table_top_link" />
+  <node pkg="tf2_ros" type="static_transform_publisher" name="grasp_area_tf_pub" args="0.30 0.15 0.0 0 0 -0.7071068, 0.7071068  panda_link0 table_top_link" />
 
   <!-- Controllers configuration -->
   <rosparam file="$(find moma_gazebo)/config/franka_hw_sim.yaml" subst_value="true" />
