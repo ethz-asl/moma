@@ -30,5 +30,9 @@ RUN scripts/install_simulation.sh
 # Install ARCHE installs
 RUN scripts/install_arche25.sh
 
+# Add these here to avoid rebuilding everything if only these change. Move into install script later.
+RUN pip install open3d
+RUN apt update && apt install ros-noetic-grid-map
+
 # Finally, build all the stuff we downloaded.
 RUN scripts/build_ros.sh
