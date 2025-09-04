@@ -52,7 +52,7 @@
   <!-- Load Panda robot description -->
   <param name="robot_description"
     command="$(find xacro)/xacro $(find moma_description)/urdf/panda.urdf.xacro
-        publish_realsense_extrinsics:=true
+        publish_default_realsense_extrinsics:=true
         gazebo:=$(arg gazebo)
         include_control_plugin:=true
         use_fixed_camera:=$(arg use_fixed_camera)

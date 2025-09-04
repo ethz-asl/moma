@@ -7,10 +7,13 @@
   <xacro:arg name="rpy" default="0 0 0" />
   <xacro:arg name="use_fixed_camera" default="true" />
   <xacro:arg name="use_wrist_camera" default="true" />
+  <xacro:arg name="wrist_calibration_rpy" default="0.0227369 -1.5550382 2.3388778" />
+  <xacro:arg name="wrist_calibration_xyz" default="0.026189514316117823 -0.026817004845920814 0.0464006595138288" />
+  <xacro:arg name="wrist_camera_parent_link" default="panda_link8" />
   <xacro:arg name="use_bota" default="false" />
   <xacro:arg name="include_control_plugin" default="true" />
   <xacro:arg name="parent" default="world" />
-  <xacro:arg name="publish_realsense_extrinsics" default="true" />
+  <xacro:arg name="publish_default_realsense_extrinsics" default="true" />
 
   <xacro:include filename="$(find moma_description)/urdf/panda_arm.xacro" />
   <xacro:moma_panda arm_id="$(arg arm_id)"
@@ -21,6 +24,10 @@
     rpy="$(arg rpy)"
     use_fixed_camera="$(arg use_fixed_camera)"
     use_wrist_camera="$(arg use_wrist_camera)"
+    publish_default_realsense_extrinsics="$(arg publish_default_realsense_extrinsics)"
+    wrist_calibration_rpy="$(arg wrist_calibration_rpy)"
+    wrist_calibration_xyz="$(arg wrist_calibration_xyz)"
+    wrist_camera_parent_link="$(arg wrist_camera_parent_link)"
     use_bota="$(arg use_bota)"
     include_control_plugin="$(arg include_control_plugin)" />
 
