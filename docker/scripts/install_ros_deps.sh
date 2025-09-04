@@ -33,7 +33,9 @@ apt-get update && apt-get install -y \
 	ros-noetic-moveit-resources-panda-description \
 	ros-noetic-moveit-visual-tools \
 	ros-noetic-apriltag-ros \
-	ros-noetic-rosbridge-server
+	ros-noetic-rosbridge-server \
+	ros-noetic-realsense2-camera \
+	ros-noetic-realsense2-description
 
 # Install all the other dependencies in the moma_dep_ws
 cd $MOMA_DEP_WS/src || exit 1
