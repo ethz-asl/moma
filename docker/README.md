@@ -45,6 +45,7 @@ What's important to note:
  - Mount additional volumes with `--volume /home/$USER/data:/root/data` for example.
  - `--net=host` is very important or the networking won't work
  - X forwarding is set up so that you can run rviz and stuff within the docker.
+ - Docker will map only existing devices at startup. So if you need to e.g. use the realsense, you need to connect it before you start the docker instance.
 
 
 
