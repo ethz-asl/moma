@@ -58,7 +58,7 @@
     <xacro:include filename="$(find realsense2_description)/urdf/_d435.urdf.xacro" />
     <xacro:include filename="$(find moma_description)/urdf/realsense.gazebo.xacro" />
 
-    <xacro:if value="${use_wrist_camera and gazebo}">
+    <xacro:if value="${use_wrist_camera}">
       <xacro:realsense_gazebo_plugin camera_name="wrist_camera" />
       <xacro:sensor_d435 parent="${wrist_camera_parent_link}" name="wrist_camera"
         use_nominal_extrinsics="${publish_default_realsense_extrinsics}">
@@ -67,7 +67,7 @@
       </xacro:sensor_d435>
     </xacro:if>
 
-    <xacro:if value="${use_fixed_camera and gazebo}">
+    <xacro:if value="${use_fixed_camera}">
       <xacro:realsense_gazebo_plugin camera_name="fixed_camera" />
       <xacro:sensor_d435 parent="${fixed_camera_parent_link}" name="fixed_camera"
         use_nominal_extrinsics="${publish_default_realsense_extrinsics}">
