@@ -6,35 +6,50 @@
   <arg name="queue_size" default="1" />
   <arg name="handeye" default="true" />
 
+  <!-- new args for frame IDs -->
+  <arg name="robot_base_frame" default="panda_link0" />
+  <arg name="robot_effector_frame" default="panda_link8" />
+  <arg name="camera_base_link" default="wrist_camera_bottom_screw_frame" />
+
+
   <!-- apriltag_ros continuous detection node -->
   <node pkg="apriltag_ros" type="apriltag_ros_continuous_node" name="apriltag_ros_continuous_node" clear_params="true" output="screen">
-    <!-- Remap topics from those used in code to those on the ROS network -->
     <remap from="image_rect" to="$(arg camera_name)/$(arg image_topic)" />
     <remap from="camera_info" to="$(arg camera_name)/camera_info" />
 
-    <param name="publish_tag_detections_image" type="bool" value="true" /><!-- default: false -->
+    <param name="publish_tag_detections_image" type="bool" value="true" />
     <param name="queue_size" type="int" value="$(arg queue_size)" />
 
-    <!-- load parameters (incl. tag family, tags, etc.) -->
+    <!-- assumes tags of family tag36h11 -->
     <rosparam command="load" file="$(find apriltag_ros)/config/settings.yaml"/>
     <rosparam command="load" file="$(find moma_bringup)/config/apriltags.yaml"/>
   </node>
 
+  <!-- easy_handeye calibration tool -->
   <include if="$(arg handeye)" file="$(find easy_handeye)/launch/calibrate.launch">
-    <arg name="eye_on_hand" value="true"/>
-
-    <!-- you can choose any identifier, as long as you use the same for publishing the calibration -->
+    <arg name="eye_on_hand" value="$(arg eye_on_hand)"/>
     <arg name="namespace_prefix" value="wrist_cam_calib"/>
 
-    <!-- fill in the following parameters according to your robot's published tf frames -->
-    <arg name="robot_base_frame" value="panda_link0"/>
-    <arg name="robot_effector_frame" value="panda_link8"/>
+    <!-- robot frames -->
+    <arg name="robot_base_frame" value="$(arg robot_base_frame)"/>
+    <arg name="robot_effector_frame" value="$(arg robot_effector_frame)"/>
 
-    <!-- fill in the following parameters according to your tracking system's published tf frames -->
-    <arg name="tracking_base_frame" value="wrist_camera_bottom_screw_frame"/>
+    <!-- tracking frames -->
+    <arg name="tracking_base_frame" value="$(arg camera_base_link)"/>
     <arg name="tracking_marker_frame" value="tag_0"/>
+
+    <arg name="translation_delta_meters" value="0.1"/>
+    <arg name="rotation_delta_degrees" value="25"/>
+
     <arg name="start_rviz" value="false" />
-    <arg name="freehand_robot_movement" value="true"/>
+    <arg name="move_group" type="str" value="panda_arm" />
+    <arg name="freehand_robot_movement" value="false"/>
     <arg name="publish_dummy" value="false" />
   </include>
+
+  <node pkg="rqt_image_view" type="rqt_image_view" name="rqt_image_view" output="screen">
+        <remap from="/image" to="/tag_detections_image"/>
+  </node>
+
+
 </launch>
