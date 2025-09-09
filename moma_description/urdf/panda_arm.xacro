@@ -187,7 +187,7 @@
     <!-- Custom End Effector -->
     <link name="${arm_id}_morris_ee">
       <visual>
-        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <origin xyz="0 0 0.0" rpy="0 0 0"/>
         <geometry>
           <mesh filename="package://moma_description/meshes/attachment_v2.stl"/>
         </geometry>
