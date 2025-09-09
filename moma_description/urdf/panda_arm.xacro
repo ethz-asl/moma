@@ -201,5 +201,24 @@
       <origin xyz="0 0 0.0" rpy="0 0 ${pi/4}"/> <!-- adjust offset -->
     </joint>
 
+  <!-- Cone tip frame 45mm away along Z -->
+  <link name="${arm_id}_cone_tip"/>
+
+  <joint name="joint_morris_ee_cone_tip" type="fixed">
+    <parent link="${arm_id}_morris_ee"/>
+    <child link="${arm_id}_cone_tip"/>
+    <origin xyz="0 0 0.045" rpy="0 0 0"/> <!-- 45mm in Z -->
+  </joint>
+
+<!-- Slit head frame 43.1945mm in Y, 8.641mm in Z -->
+<link name="${arm_id}_slit_head"/>
+
+<joint name="joint_morris_ee_slit_head" type="fixed">
+  <parent link="${arm_id}_morris_ee"/>
+  <child link="${arm_id}_slit_head"/>
+  <origin xyz="0 0.0438 0.008641" rpy="0 0 0"/> <!-- Y and Z offsets -->
+</joint>
+
+
   </xacro:macro>
 </robot>
