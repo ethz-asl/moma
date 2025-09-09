@@ -193,7 +193,7 @@
     </geometry>
   </visual>
   <collision>
-    <origin xyz="0 0 0" rpy="0 0 0"/>
+  <origin xyz="0 0 0.0" rpy="0 0 ${pi/4}"/> <!-- adjust offset -->
     <geometry>
       <mesh filename="package://moma_description/meshes/attachment_v2.stl"/>
     </geometry>
@@ -203,7 +203,7 @@
 <joint name="joint_link8_custom_ee" type="fixed">
   <parent link="${arm_id}_link8"/>  <!-- or ${arm_id}_hand if you keep the gripper -->
   <child link="${arm_id}_custom_ee"/>
-  <origin xyz="0 0 0.04" rpy="0 0 0"/> <!-- adjust offset -->
+  <origin xyz="0 0 0.0" rpy="0 0 ${pi/4}"/> <!-- adjust offset -->
 </joint>
   </xacro:macro>
 </robot>
