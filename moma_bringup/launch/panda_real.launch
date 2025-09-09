@@ -9,6 +9,7 @@
   <arg name="controller" default="position_joint_trajectory_controller" /> <!-- Options:cartesian_impedance_example_controller position_joint_trajectory_controller, cartesian_impedance_trajectory_controller-->
   <arg name="table" default="true" />
   <arg name="use_bota" default="false" />
+  <arg name="load_gripper" default="true" />
  
   <!-- If we don't do moveit, start the interactive markers. -->
   <arg name="interactive_marker"
@@ -18,6 +19,7 @@
   <!-- Launch control -->
   <include file="$(find moma_bringup)/launch/components/franka_control.launch">
     <arg name="robot_ip" value="$(arg robot_ip)" />
+    <arg name="load_gripper" value="$(arg load_gripper)" />
     <arg name="xacro_args"
       value="use_fixed_camera:=false use_wrist_camera:=false publish_realsense_extrinsics:=false use_bota:=$(arg use_bota)" />
   </include>
