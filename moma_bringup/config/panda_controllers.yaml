@@ -1,32 +1,32 @@
-cartesian_impedance_trajectory_controller:
-  type: cartesian_impedance_controller/CartesianImpedanceController
-  joints:
-      - panda_joint1
-      - panda_joint2
-      - panda_joint3
-      - panda_joint4
-      - panda_joint5
-      - panda_joint6
-      - panda_joint7
-  end_effector: panda_default_ee            # Link to control arm in
-  update_frequency: 1000                 # Controller update frequency in Hz
-  # Optional parameters - the mentioned values are the defaults
-  dynamic_reconfigure: true             # Starts dynamic reconfigure server
-  handle_trajectories: true             # Accept traj., e.g. from MoveIt
-  robot_description: /robot_description # In case of a varying name
-  wrench_ee_frame: panda_default_ee         # Default frame for wrench commands
-  delta_tau_max: 1.0                    # Max. commanded torque diff between steps in Nm
-  filtering:                            # Update existing values (0.0 1.0] per s
-    nullspace_config: 0.1               # Nullspace configuration filtering
-    pose: 0.5                           # Reference pose filtering
-    stiffness: 0.1                      # Cartesian and nullspace stiffness
-    wrench: 0.1                         # Commanded torque
-  stiffness_reconfigure:
-    update_stiffness: true
-  verbosity:
-    verbose_print: false                # Enables additional prints
-    state_msgs: false                   # Messages of controller state
-    tf_frames: false                    # Extra tf frames
+# cartesian_impedance_trajectory_controller:
+#   type: cartesian_impedance_controller/CartesianImpedanceController
+#   joints:
+#       - panda_joint1
+#       - panda_joint2
+#       - panda_joint3
+#       - panda_joint4
+#       - panda_joint5
+#       - panda_joint6
+#       - panda_joint7
+#   end_effector: panda_default_ee            # Link to control arm in
+#   update_frequency: 1000                 # Controller update frequency in Hz
+#   # Optional parameters - the mentioned values are the defaults
+#   dynamic_reconfigure: true             # Starts dynamic reconfigure server
+#   handle_trajectories: true             # Accept traj., e.g. from MoveIt
+#   robot_description: /robot_description # In case of a varying name
+#   wrench_ee_frame: panda_default_ee         # Default frame for wrench commands
+#   delta_tau_max: 1.0                    # Max. commanded torque diff between steps in Nm
+#   filtering:                            # Update existing values (0.0 1.0] per s
+#     nullspace_config: 0.1               # Nullspace configuration filtering
+#     pose: 0.5                           # Reference pose filtering
+#     stiffness: 0.1                      # Cartesian and nullspace stiffness
+#     wrench: 0.1                         # Commanded torque
+#   stiffness_reconfigure:
+#     update_stiffness: true
+#   verbosity:
+#     verbose_print: false                # Enables additional prints
+#     state_msgs: false                   # Messages of controller state
+#     tf_frames: false                    # Extra tf frames
 
 joint_velocity_example_controller:
     type: franka_example_controllers/JointVelocityExampleController
