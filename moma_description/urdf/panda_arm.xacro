@@ -207,7 +207,7 @@
   <joint name="joint_morris_ee_cone_tip" type="fixed">
     <parent link="${arm_id}_morris_ee"/>
     <child link="${arm_id}_cone_tip"/>
-    <origin xyz="0 0 0.045" rpy="0 0 0"/> <!-- 45mm in Z -->
+    <origin xyz="0 0 0.045" rpy="${pi} 0 -${pi/2}"/> <!-- 45mm in Z -->
   </joint>
 
 <!-- Slit head frame 43.1945mm in Y, 8.641mm in Z -->
@@ -216,7 +216,7 @@
 <joint name="joint_morris_ee_slit_head" type="fixed">
   <parent link="${arm_id}_morris_ee"/>
   <child link="${arm_id}_slit_head"/>
-  <origin xyz="0 0.0438 0.008641" rpy="0 0 0"/> <!-- Y and Z offsets -->
+  <origin xyz="0 0.0438 0.008641" rpy="${pi} 0 -${pi/2}"/> <!-- Y and Z offsets -->
 </joint>
 
 
