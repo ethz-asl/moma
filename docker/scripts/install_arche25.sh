@@ -12,11 +12,11 @@ apt-get update && apt-get install -y nano vim usbutils
 echo "Installing basic dependencies...done"
 
 # Python
-echo "Installing Python dependencies from requirements_nikhilesh.txt..."
+echo "Installing Python dependencies from simple_nik.txt..."
 pip3 install --upgrade pip
 echo "Installing pip dependencies..."
-pip3 install --no-cache-dir -r "$SCRIPTS_PATH/requirements_nikhilesh.txt"
-echo "Installing Python dependencies from requirements_nikhilesh.txt...done"
+pip3 install --no-cache-dir -r "$SCRIPTS_PATH/simple_nik.txt"
+echo "Installing Python dependencies from simple_nik.txt...done"
 
 # Clear cache to reduce Docker image size
 echo "Cleaning up unnecessary files..."
