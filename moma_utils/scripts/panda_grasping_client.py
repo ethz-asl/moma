@@ -22,12 +22,13 @@ class PandaGraspController(object):
     def __init__(self):
         rospy.init_node("panda_grasping_interface")
 
-        self.table_top_link = rospy.get_param("~table_top_frame")
-        self.ee_frame = rospy.get_param("~ee_frame")
+        self.table_top_link = "table_top"
+        self.command_frame = "panda_link8"
+        self.ee_frame = "panda_default_ee"
         # if depth and color are aligned
         # self.camera_frame = "wrist_camera_color_optical_frame"
         # if depth and color are NOT aligned
-        self.camera_frame = rospy.get_param("~camera_frame")
+        self.camera_frame = "wrist_camera_depth_optical_frame"
 
         # init robot connection
         self.gripper = PandaGripperClient()
