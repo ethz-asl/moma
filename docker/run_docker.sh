@@ -94,6 +94,8 @@ echo "Running docker..."
 docker run -it --rm \
     --env="DISPLAY=$DISPLAY" \
     --env="FRANKA_IP=$FRANKA_IP" \
+    --env="ROS_MASTER_URI=$ROS_MASTER_URI" \
+    --env="ROS_IP=$ROS_IP" \
     --env="DISABLE_ROS1_EOL_WARNINGS=1"\
     --volume=$WORKSPACE:/root/moma_ws \
     --volume=/home/$USER/data:/root/data \
