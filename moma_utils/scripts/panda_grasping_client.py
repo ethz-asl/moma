@@ -3,6 +3,7 @@
 
 import rospy
 import numpy as np
+import tf2_ros
 
 from geometry_msgs.msg import PoseStamped
 
@@ -13,8 +14,12 @@ from std_srvs.srv import Trigger, TriggerResponse
 
 from moma_utils.ros.moveit import MoveItClient
 from moma_utils.ros.panda import PandaArmClient, PandaGripperClient
-from moma_utils.ros.conversions import to_pose_msg
-from moma_utils.ros.conversions import normalize_quaternion
+from moma_utils.ros.conversions import (
+    from_pose_msg,
+    from_transform_msg,
+    normalize_quaternion,
+    to_pose_msg,
+)
 from moma_utils.srv import PoseTarget, PoseTargetResponse, GraspTarget, GraspTargetResponse
 
 
@@ -29,6 +34,12 @@ class PandaGraspController(object):
         # self.camera_frame = "wrist_camera_color_optical_frame"
         # if depth and color are NOT aligned
         self.camera_frame = "wrist_camera_depth_optical_frame"
+
+        self._tf_buffer = tf2_ros.Buffer()
+        self._tf_listener = tf2_ros.TransformListener(self._tf_buffer)
+
+        self._T_ee_from_command = None
+        self._T_camera_from_command = None
 
         # init robot connection
         self.gripper = PandaGripperClient()
@@ -52,6 +63,7 @@ class PandaGraspController(object):
 
         self.reset_map = rospy.ServiceProxy("reset_map", Empty)
         rospy.sleep(1.0)
+        self._initialize_command_transforms()
 
     def _srv_move_to_ready(self, _req):
         self.moveit_client.move_group.set_end_effector_link(self.ee_frame)
@@ -119,26 +131,63 @@ class PandaGraspController(object):
         return PoseTargetResponse(result, msg)
 
     def _move_ee_srv_cb(self, req: PoseTarget) -> PoseTargetResponse:
+        if self._T_ee_from_command is None:
+            return PoseTargetResponse(False, "command frame transform unavailable")
+
         pose_stamped = req.pose
         # mirror your old callback’s behavior
-        self.moveit_client.move_group.set_end_effector_link(self.ee_frame)
+        self.moveit_client.move_group.set_end_effector_link(self.command_frame)
         pose_stamped.header.frame_id = self.table_top_link
         pose_stamped.header.stamp = rospy.Time.now()
         pose_stamped = normalize_quaternion(pose_stamped)
+        T_world_ee = from_pose_msg(pose_stamped.pose)
+        T_world_command = T_world_ee * self._T_ee_from_command
+        pose_stamped.pose = to_pose_msg(T_world_command)
 
         result: bool = self.moveit_client.goto(pose_stamped)
         return PoseTargetResponse(result, "success")
 
     def _move_camera_srv_cb(self, req: PoseTarget) -> PoseTargetResponse:
+        if self._T_camera_from_command is None:
+            return PoseTargetResponse(False, "camera frame transform unavailable")
+
         pose_stamped = req.pose
         # mirror your old callback’s behavior
-        self.moveit_client.move_group.set_end_effector_link(self.camera_frame)
+        self.moveit_client.move_group.set_end_effector_link(self.command_frame)
         pose_stamped.header.frame_id = self.table_top_link
         pose_stamped.header.stamp = rospy.Time.now()
         pose_stamped = normalize_quaternion(pose_stamped)
 
+        T_world_camera = from_pose_msg(pose_stamped.pose)
+        T_world_command = T_world_camera * self._T_camera_from_command
+        pose_stamped.pose = to_pose_msg(T_world_command)
+
         result: bool = self.moveit_client.goto(pose_stamped)
         return PoseTargetResponse(result, "success")
+
+    def _initialize_command_transforms(self):
+        timeout = rospy.Duration(5.0)
+        self._T_ee_from_command = self._lookup_transform(
+            self.ee_frame, self.command_frame, timeout
+        )
+        self._T_camera_from_command = self._lookup_transform(
+            self.camera_frame, self.command_frame, timeout
+        )
+
+    def _lookup_transform(self, target_frame, source_frame, timeout):
+        try:
+            transform_msg = self._tf_buffer.lookup_transform(
+                target_frame, source_frame, rospy.Time(0), timeout
+            )
+        except tf2_ros.TransformException as exc:
+            rospy.logfatal(
+                "Failed to lookup transform from %s to %s: %s",
+                source_frame,
+                target_frame,
+                exc,
+            )
+            raise
+        return from_transform_msg(transform_msg.transform)
 
 
 if __name__ == "__main__":
