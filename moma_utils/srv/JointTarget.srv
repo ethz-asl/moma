@@ -1,0 +1,4 @@
+float64[] joint_positions
+---
+bool success
+string message

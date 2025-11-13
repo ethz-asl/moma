@@ -20,7 +20,16 @@ from moma_utils.ros.conversions import (
     normalize_quaternion,
     to_pose_msg,
 )
-from moma_utils.srv import PoseTarget, PoseTargetResponse, GraspTarget, GraspTargetResponse
+from moma_utils.srv import (
+    PoseTarget,
+    PoseTargetResponse,
+    GraspTarget,
+    GraspTargetResponse,
+    JointTarget,
+    JointTargetResponse,
+    JointValues,
+    JointValuesResponse,
+)
 
 
 class PandaGraspController(object):
@@ -56,6 +65,8 @@ class PandaGraspController(object):
         self.move_ee_srv = rospy.Service("/panda_grasping_interface/move_ee", PoseTarget, self._move_ee_srv_cb)
         self.grasp_srv = rospy.Service("/panda_grasping_interface/grasp", GraspTarget, self._grasp_srv_cb)
         self.move_camera_srv = rospy.Service("/panda_grasping_interface/move_camera", PoseTarget, self._move_camera_srv_cb)
+        self.move_joints_srv = rospy.Service("/panda_grasping_interface/move_joints", JointTarget, self._move_joints_srv_cb)
+        self.get_joint_values_srv = rospy.Service("/panda_grasping_interface/get_joint_values", JointValues, self._get_joint_values_srv_cb)
 
         self.srv_ready = rospy.Service("/panda_grasping_interface/move_to_ready", Trigger, self._srv_move_to_ready)
         self.srv_grasp = rospy.Service("/panda_grasping_interface/gripper_grasp", Trigger, self._srv_gripper_grasp)
@@ -147,6 +158,15 @@ class PandaGraspController(object):
         result: bool = self.moveit_client.goto(pose_stamped)
         return PoseTargetResponse(result, "success")
 
+    def _move_joints_srv_cb(self, req: JointTarget) -> JointTargetResponse:
+        joint_target = list(req.joint_positions)
+        if not joint_target:
+            return JointTargetResponse(False, "joint target empty")
+
+        success: bool = self.moveit_client.goto(joint_target)
+        message = "success" if success else "plan_failed"
+        return JointTargetResponse(bool(success), message)
+
     def _move_camera_srv_cb(self, req: PoseTarget) -> PoseTargetResponse:
         if self._T_camera_from_command is None:
             return PoseTargetResponse(False, "camera frame transform unavailable")
@@ -164,6 +184,10 @@ class PandaGraspController(object):
 
         result: bool = self.moveit_client.goto(pose_stamped)
         return PoseTargetResponse(result, "success")
+
+    def _get_joint_values_srv_cb(self, _req: JointValues) -> JointValuesResponse:
+        joint_positions = self.moveit_client.move_group.get_current_joint_values()
+        return JointValuesResponse(joint_positions=joint_positions, success=True, message="success")
 
     def _initialize_command_transforms(self):
         timeout = rospy.Duration(5.0)

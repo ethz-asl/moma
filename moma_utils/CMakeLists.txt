@@ -18,6 +18,8 @@ add_service_files(
   FILES
   PoseTarget.srv
   GraspTarget.srv
+  JointTarget.srv
+  JointValues.srv
 )
 
 ## Generate added messages and services
