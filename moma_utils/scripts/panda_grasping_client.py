@@ -30,10 +30,10 @@ class PandaGraspController(object):
         self.table_top_link = "table_top"
         self.command_frame = "panda_link8"
         self.ee_frame = "panda_default_ee"
-        # if depth and color are aligned
-        # self.camera_frame = "wrist_camera_color_optical_frame"
         # if depth and color are NOT aligned
-        self.camera_frame = "wrist_camera_depth_optical_frame"
+        # self.camera_frame = "wrist_camera_depth_optical_frame"
+        # if depth and color are aligned (our use case)
+        self.camera_frame = "wrist_camera_color_optical_frame"
 
         self._tf_buffer = tf2_ros.Buffer()
         self._tf_listener = tf2_ros.TransformListener(self._tf_buffer)

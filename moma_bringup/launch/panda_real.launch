@@ -30,8 +30,8 @@
       use_wrist_camera:=true 
       publish_default_realsense_extrinsics:=false 
       use_bota:=false
-      wrist_calibration_rpy:='0.05886170941712955 -1.5489516731575133 2.3023482849455768'
-      wrist_calibration_xyz:='0.023815825061890047 -0.025524294680885358 0.04051021299479383'" />
+      wrist_calibration_rpy:='-0.3364735294749319 -1.5337040187837523 2.685025444983356'
+      wrist_calibration_xyz:='0.03184164124523161 -0.027347168361784732 0.033005013164940346'" />
   </include>
 
   <!-- Controller settings. -->
@@ -47,9 +47,20 @@
   <node if="$(arg publish_world_link)" pkg="tf" type="static_transform_publisher"
     name="world_link_broadcaster" args="0 0 0 0 0 0 1 world panda_link0 100" />
 
-  <!-- Table ref frame -->
-  <!-- <node pkg="tf" type="static_transform_publisher"
-    name="table_link_broadcaster" args="0 0 0 0 0 0 1 world panda_link0 100" /> -->
+  <!-- Define the table_top_link frams -->
+  <!-- TODO: this needs to be calibrated -->
+  <!-- The pcd integration code relies on a uniformTSDF, which can only have positive xyz values -->
+  <!-- We define the workspace origin to be at the bottom right -->
+  <arg name="workspace_center" default="0.4" />
+  <arg name="workspace_size" default="0.3" />
+  <arg name="table_top_link_name" default="table_top" />
+
+  <arg name="table_link_x" value="$(eval arg('workspace_center') - arg('workspace_size') / 2.0)" />
+  <arg name="table_link_y" value="$(eval -arg('workspace_size') / 2.0)" />
+
+  <node pkg="tf" type="static_transform_publisher"
+        name="table_link_broadcaster"
+        args="$(arg table_link_x) $(arg table_link_y) 0 0 0 0 1 world $(arg table_top_link_name) 100" />
 
   <!-- Launch MoveIt -->
   <include if="$(arg moveit)" file="$(find panda_moveit_config)/launch/move_group.launch">
@@ -81,11 +92,21 @@
     <arg name="depth_fps" value="30" />
     <arg name="enable_pointcloud" value="true" />
     <arg name="publish_tf" value="true" />
+    <arg name="align_depth" value="true" />
     <!-- The initial reset true somehow does not work inside the docker container -->
     <!-- <arg name="initial_reset" value="false"/> -->
   </include>
 
   <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch" />
+
+  <node pkg="tf2_web_republisher"
+        type="tf2_web_republisher"
+        name="tf2_web_republisher"
+        output="screen">
+    <param name="default_fixed_frame" value="$(arg table_top_link_name)" />
+    <param name="tf_buffer_cache_time" value="10" />
+
+  </node>
   
   <!-- <node pkg="moma_utils" type="panda_grasping_client.py" name="panda_grasping_client" output="screen">
     <param name="table_top_frame" value="table_top_link" />
