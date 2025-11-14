@@ -116,7 +116,7 @@ class PandaGraspController(object):
         T_world_ee = from_pose_msg(pose_stamped.pose)
         T_world_command = T_world_ee * self._T_ee_from_command
         pose_stamped.pose = to_pose_msg(T_world_command)
-        result: bool = self.moveit_client.gotoL(pose_stamped)
+        result: bool = self.moveit_client.goto(pose_stamped)
         if not result: return False, "grasp_movement_fail"
 
         # execute grasp
@@ -132,7 +132,7 @@ class PandaGraspController(object):
         T_world_ee = from_pose_msg(pose_stamped.pose)
         T_world_command = T_world_ee * self._T_ee_from_command
         pose_stamped.pose = to_pose_msg(T_world_command)
-        result: bool = self.moveit_client.gotoL(pose_stamped)
+        result: bool = self.moveit_client.goto(pose_stamped)
         if not result: return False, "postgrasp_movement_fail"
 
         # try to close the gripper again
