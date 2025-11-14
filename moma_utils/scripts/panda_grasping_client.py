@@ -123,6 +123,7 @@ class PandaGraspController(object):
         # go away
         pose_stamped = req.postgrasp_pose
         # mirror your old callback’s behavior
+        # TODO: here I need to use the new logic which does not use set_ee_link
         self.moveit_client.move_group.set_end_effector_link(self.ee_frame)
         pose_stamped.header.frame_id = self.table_top_link
         pose_stamped.header.stamp = rospy.Time.now()
@@ -135,7 +136,7 @@ class PandaGraspController(object):
         # this is grasp success (i.e. try to close the hand. If there is an object, it will not close)
         result = self.gripper.read() > 0.004
         if not result: return False, "grasp_empty"
-        return True, "grasp_successful"
+        return GraspTargetResponse(True, "grasp_successful")
 
     def _grasp_srv_cb(self, req: GraspTarget) -> GraspTargetResponse:
         result, msg = self._grasp_util(req)

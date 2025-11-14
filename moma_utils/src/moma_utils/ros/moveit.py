@@ -41,10 +41,10 @@ class MoveItClient:
 
     def planL(self, target, velocity_scaling=0.1, acceleration_scaling=0.1):
         assert isinstance(target, PoseStamped)
-        waypoints = [target]
+        waypoints = [target.pose]
         self.move_group.set_max_velocity_scaling_factor(velocity_scaling)
         self.move_group.set_max_acceleration_scaling_factor(acceleration_scaling)
-        plan, _ = self.move_group.compute_cartesian_path(waypoints, 0.01, 0.0)
+        plan, _ = self.move_group.compute_cartesian_path(waypoints, 0.01, True)
         return plan
 
     def execute(self, plan):
