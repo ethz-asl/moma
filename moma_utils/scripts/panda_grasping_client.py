@@ -37,7 +37,7 @@ class PandaGraspController(object):
         rospy.init_node("panda_grasping_interface")
 
         self.table_top_link = "table_top"
-        self.command_frame = "panda_link8"
+        self.command_frame = "panda_default_ee"
         self.ee_frame = "panda_default_ee"
         # if depth and color are NOT aligned
         # self.camera_frame = "wrist_camera_depth_optical_frame"
@@ -53,7 +53,7 @@ class PandaGraspController(object):
         # init robot connection
         self.gripper = PandaGripperClient()
         self.moveit_client = MoveItClient("panda_arm")
-        self.moveit_client.move_group.set_end_effector_link(self.ee_frame)
+        self.moveit_client.move_group.set_end_effector_link(self.command_frame)
 
         # Add a box to the planning scene to avoid collisions with the table.
         # msg = geometry_msgs.msg.PoseStamped()
@@ -77,7 +77,6 @@ class PandaGraspController(object):
         self._initialize_command_transforms()
 
     def _srv_move_to_ready(self, _req):
-        self.moveit_client.move_group.set_end_effector_link(self.ee_frame)
         success = self.moveit_client.goto("ready")
         return TriggerResponse(success=bool(success), message="")
 
@@ -99,35 +98,40 @@ class PandaGraspController(object):
         # go to pregrasp pose
         pose_stamped = req.pregrasp_pose
         # mirror your old callback’s behavior
-        self.moveit_client.move_group.set_end_effector_link(self.ee_frame)
         pose_stamped.header.frame_id = self.table_top_link
         pose_stamped.header.stamp = rospy.Time.now()
         pose_stamped = normalize_quaternion(pose_stamped)
+        T_world_ee = from_pose_msg(pose_stamped.pose)
+        T_world_command = T_world_ee * self._T_ee_from_command
+        pose_stamped.pose = to_pose_msg(T_world_command)
         result: bool = self.moveit_client.goto(pose_stamped)
         if not result: return False, "pregrasp_movement_fail"
 
         # go to grasp
         pose_stamped = req.grasp_pose
         # mirror your old callback’s behavior
-        self.moveit_client.move_group.set_end_effector_link(self.ee_frame)
         pose_stamped.header.frame_id = self.table_top_link
         pose_stamped.header.stamp = rospy.Time.now()
         pose_stamped = normalize_quaternion(pose_stamped)
+        T_world_ee = from_pose_msg(pose_stamped.pose)
+        T_world_command = T_world_ee * self._T_ee_from_command
+        pose_stamped.pose = to_pose_msg(T_world_command)
         result: bool = self.moveit_client.gotoL(pose_stamped)
         if not result: return False, "grasp_movement_fail"
 
         # execute grasp
-        self.gripper.grasp(width=0.0, force=20.0)
+        self.gripper.grasp(width=0.0, force=10.0)
         # result = self.gripper.read() > 0.004
 
         # go away
         pose_stamped = req.postgrasp_pose
         # mirror your old callback’s behavior
-        # TODO: here I need to use the new logic which does not use set_ee_link
-        self.moveit_client.move_group.set_end_effector_link(self.ee_frame)
         pose_stamped.header.frame_id = self.table_top_link
         pose_stamped.header.stamp = rospy.Time.now()
         pose_stamped = normalize_quaternion(pose_stamped)
+        T_world_ee = from_pose_msg(pose_stamped.pose)
+        T_world_command = T_world_ee * self._T_ee_from_command
+        pose_stamped.pose = to_pose_msg(T_world_command)
         result: bool = self.moveit_client.gotoL(pose_stamped)
         if not result: return False, "postgrasp_movement_fail"
 
@@ -136,11 +140,11 @@ class PandaGraspController(object):
         # this is grasp success (i.e. try to close the hand. If there is an object, it will not close)
         result = self.gripper.read() > 0.004
         if not result: return False, "grasp_empty"
-        return GraspTargetResponse(True, "grasp_successful")
+        return True, "grasp_successful"
 
     def _grasp_srv_cb(self, req: GraspTarget) -> GraspTargetResponse:
         result, msg = self._grasp_util(req)
-        return PoseTargetResponse(result, msg)
+        return GraspTargetResponse(result, msg)
 
     def _move_ee_srv_cb(self, req: PoseTarget) -> PoseTargetResponse:
         if self._T_ee_from_command is None:
@@ -148,7 +152,7 @@ class PandaGraspController(object):
 
         pose_stamped = req.pose
         # mirror your old callback’s behavior
-        self.moveit_client.move_group.set_end_effector_link(self.command_frame)
+        
         pose_stamped.header.frame_id = self.table_top_link
         pose_stamped.header.stamp = rospy.Time.now()
         pose_stamped = normalize_quaternion(pose_stamped)
@@ -174,7 +178,6 @@ class PandaGraspController(object):
 
         pose_stamped = req.pose
         # mirror your old callback’s behavior
-        self.moveit_client.move_group.set_end_effector_link(self.command_frame)
         pose_stamped.header.frame_id = self.table_top_link
         pose_stamped.header.stamp = rospy.Time.now()
         pose_stamped = normalize_quaternion(pose_stamped)
