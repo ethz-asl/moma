@@ -16,3 +16,4 @@ RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 # 4. Inside docker container, run 'cd ~/moma_ws/src/newton/'
 # 5. Run 'uv run -m newton.examples' to initialize uv-venv and print available examples
 # 6. Run 'uv pip install "pyglet>=2.0"'
+# Other modules to install: Pillow, 
