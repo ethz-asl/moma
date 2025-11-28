@@ -17,3 +17,10 @@ RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 # 5. Run 'uv run -m newton.examples' to initialize uv-venv and print available examples
 # 6. Run 'uv pip install "pyglet>=2.0"'
 # Other modules to install: Pillow, 
+
+# +# RUN /root/.local/bin/uv pip install pip install imgui-bundle
+# +# RUN /root/.local/bin/uv pip install usd-core
+# +# RUN /root/.local/bin/uv pip install GitPython
+# +# RUN apt-get update && apt-get install -y git
+# +# RUN /root/.local/bin/uv pip install trimesh
+# +# RUN /root/.local/bin/uv pip install pycollada
