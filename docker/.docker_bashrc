@@ -1,0 +1,5 @@
+echo "Sourcing moma/docker/.docker_bashrc..."
+
+alias startpanda='roslaunch moma_bringup panda_real.launch'
+alias startcomms='python ./src/moma/moma_utils/scripts/panda_grasping_client.py'
+cd moma_ws && source ./devel/setup.bash

@@ -106,6 +106,6 @@ docker run -it --rm \
     --privileged \
     --name=$NAME \
     ${DOCKER} \
-    bash
+    bash -i -c "echo 'source /root/moma_ws/src/moma/docker/.docker_bashrc' >> /root/.bashrc && exec bash -i"
 
 echo "Done."
