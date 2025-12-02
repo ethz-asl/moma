@@ -208,15 +208,15 @@ class PandaGraspController(object):
             transform_msg = self._tf_buffer.lookup_transform(
                 target_frame, source_frame, rospy.Time(0), timeout
             )
+            return from_transform_msg(transform_msg.transform)
         except tf2_ros.TransformException as exc:
-            rospy.logfatal(
+            rospy.logwarn(
                 "Failed to lookup transform from %s to %s: %s",
                 source_frame,
                 target_frame,
                 exc,
             )
-            raise
-        return from_transform_msg(transform_msg.transform)
+            return None
 
 
 if __name__ == "__main__":
