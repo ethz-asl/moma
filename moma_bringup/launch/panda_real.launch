@@ -65,6 +65,7 @@
   <!-- Launch MoveIt -->
   <include if="$(arg moveit)" file="$(find panda_moveit_config)/launch/move_group.launch">
     <arg name="load_robot_description" value="false" />
+    <arg name="pipeline" value="ompl" />
   </include>
 
   <!-- If desired, launch a preconfigured Rviz -->
@@ -82,20 +83,23 @@
     <remap to="cartesian_impedance_example_controller/equilibrium_pose" from="equilibrium_pose" />
   </node> -->
 
-
-  <include file="$(find realsense2_camera)/launch/rs_camera.launch">
-    <arg name="camera" value="wrist_camera" />
-    <arg name="color_width" value="1920" />
-    <arg name="color_height" value="1080" />
-    <arg name="depth_width" value="640" />
-    <arg name="depth_height" value="480" />
-    <arg name="depth_fps" value="30" />
-    <arg name="enable_pointcloud" value="true" />
-    <arg name="publish_tf" value="true" />
-    <arg name="align_depth" value="true" />
-    <!-- The initial reset true somehow does not work inside the docker container -->
-    <!-- <arg name="initial_reset" value="false"/> -->
-  </include>
+  <arg name="launch_camera" default="true"/>
+  <group if="$(arg launch_camera)">
+    <include file="$(find realsense2_camera)/launch/rs_camera.launch">
+      <arg name="camera" value="wrist_camera" />
+      <arg name="color_width" value="1280" />
+      <arg name="color_height" value="720" />
+      <arg name="color_fps" value="30" />
+      <arg name="depth_width" value="1280" />
+      <arg name="depth_height" value="720" />
+      <arg name="depth_fps" value="30" />
+      <arg name="enable_pointcloud" value="true" />
+      <arg name="publish_tf" value="true" />
+      <arg name="align_depth" value="true" />
+      <!-- The initial reset true somehow does not work inside the docker container -->
+      <!-- <arg name="initial_reset" value="false"/> -->
+    </include>
+  </group>
 
   <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch" />
 
