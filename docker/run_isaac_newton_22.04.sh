@@ -1,8 +1,5 @@
 #!/bin/bash
 
-
-#!/bin/bash
-
 # Based on the ETH Robotics Summer school docker: 
 # https://github.com/ETHZ-RobotX/smb_docker/
 
@@ -11,8 +8,8 @@
 
 # Default options
 DOCKER=moma_dev_cuda_newton
-DOCKERFILE=dev_cuda_newton.Dockerfile
-NAME=moma
+DOCKERFILE=newton.Dockerfile
+NAME=newton
 BUILD=false
 WORKSPACE=/home/$USER/moma_ws
 
@@ -94,9 +91,9 @@ ls -FAlh $XAUTH
 echo ""
 echo "Running docker..."
 
-docker run --name isaac-sim --entrypoint bash -it --rm --gpus all \
+# docker run --name isaac-sim --entrypoint bash -it --rm --gpus all \
+docker run -it --rm --gpus all \
   --name=$NAME \
-  -e ACCEPT_EULA=Y \
   -e PRIVACY_CONSENT=Y \
   -e DISPLAY=:1 \
   -e VGL_DISPLAY=$DISPLAY \
@@ -109,7 +106,6 @@ docker run --name isaac-sim --entrypoint bash -it --rm --gpus all \
   -v /usr/lib/libvglfaker-nodl.so:/usr/lib/libvglfaker-nodl.so:ro \
   -v /usr/lib/libvglfaker-opencl.so:/usr/lib/libvglfaker-opencl.so:ro \
   -v /home/nikhilesh/Projects/IsaacLab:/root/IsaacLab \
-  -v /home/nikhilesh/Projects/newton:/root/newton \
   -v ~/docker/isaac-sim/cache/main:/isaac-sim/.cache:rw \
   -v ~/docker/isaac-sim/cache/computecache:/isaac-sim/.nv/ComputeCache:rw \
   -v ~/docker/isaac-sim/logs:/isaac-sim/.nvidia-omniverse/logs:rw \
@@ -119,4 +115,3 @@ docker run --name isaac-sim --entrypoint bash -it --rm --gpus all \
   ${DOCKER} \
 
 echo "Done."
-

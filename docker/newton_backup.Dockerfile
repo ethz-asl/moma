@@ -6,9 +6,22 @@ SHELL ["/bin/bash", "-c"]
 
 # Install uv (Astral)
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Install all the stuff for imgui-bundle
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    pkg-config \
+    python3-dev \
+    cmake \
+    git \
+    libgl1-mesa-dev \
+    libglu1-mesa-dev \
+    libxrandr-dev \
+    libxinerama-dev \
+    libxcursor-dev \
+    libxi-dev
+
 # RUN /root/.local/bin/uv pip install "pyglet>=2.0" --system
-
-
 # USAGE (it's a hack...)
 # 1. Open a terminal on GPU machine in native system 
 # 2. Run 'xhost +' in your native environment
@@ -18,9 +31,8 @@ RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 # 6. Run 'uv pip install "pyglet>=2.0"'
 # Other modules to install: Pillow, 
 
-# +# RUN /root/.local/bin/uv pip install pip install imgui-bundle
-# +# RUN /root/.local/bin/uv pip install usd-core
-# +# RUN /root/.local/bin/uv pip install GitPython
+# +# RUN /root/.local/bin/uv pip install pyglet Pillow  usd-core trimesh pycollada
+# +# RUN /root/.local/bin/uv pip install GitPython imgui-bundle
 # +# RUN apt-get update && apt-get install -y git
 # +# RUN /root/.local/bin/uv pip install trimesh
 # +# RUN /root/.local/bin/uv pip install pycollada
