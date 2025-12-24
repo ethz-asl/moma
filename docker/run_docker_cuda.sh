@@ -95,7 +95,6 @@ docker run -it --rm \
     --env="DISPLAY=$DISPLAY" \
     --env="FRANKA_IP=$FRANKA_IP" \
     --env="ROS_MASTER_URI=$ROS_MASTER_URI" \
-    --env="ROS_HOSTNAME=$ROS_HOSTNAME" \
     --volume=$WORKSPACE:/root/moma_ws \
     --volume=/home/$USER/data:/root/data \
     --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
