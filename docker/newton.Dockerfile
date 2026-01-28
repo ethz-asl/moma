@@ -32,6 +32,11 @@ RUN echo '#!/bin/bash' > /usr/local/bin/uvpy && \
     echo 'uv run --project /root/moma_ws/src/newton "$@"' >> /usr/local/bin/uvpy && \
     chmod +x /usr/local/bin/uvpy
 
+# Add the 'gohome' alias to .bashrc
+RUN echo "alias goto-scripts='cd /root/moma_ws/src/heron_earth_moving_planner/simple_sand_sim/scripts'" >> /root/.bashrc
+RUN echo "alias goto-data='cd /root/moma_ws/data/ICRA2026'" >> /root/.bashrc
+
+
 # 2. Set the ENTRYPOINT
 ENTRYPOINT ["/usr/local/bin/newton_entrypoint.sh"]
 
