@@ -27,10 +27,10 @@ RUN apt-get update && apt-get install -y \
 COPY newton_entrypoint.sh /usr/local/bin/newton_entrypoint.sh
 RUN chmod +x /usr/local/bin/newton_entrypoint.sh
 
-# Create a shortcut 'npy' that runs python within the Newton project context
-RUN echo '#!/bin/bash' > /usr/local/bin/npy && \
+# Create a shortcut 'uvpy' that runs python within the Newton project context
+RUN echo '#!/bin/bash' > /usr/local/bin/uvpy && \
     echo 'uv run --project /root/moma_ws/src/newton "$@"' >> /usr/local/bin/uvpy && \
-    chmod +x /usr/local/bin/npy
+    chmod +x /usr/local/bin/uvpy
 
 # 2. Set the ENTRYPOINT
 ENTRYPOINT ["/usr/local/bin/newton_entrypoint.sh"]
