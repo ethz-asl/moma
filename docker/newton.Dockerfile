@@ -35,7 +35,8 @@ RUN echo '#!/bin/bash' > /usr/local/bin/uvpy && \
 # Add the 'gohome' alias to .bashrc
 RUN echo "alias goto-scripts='cd /root/moma_ws/src/heron_earth_moving_planner/simple_sand_sim/scripts'" >> /root/.bashrc
 RUN echo "alias goto-data='cd /root/moma_ws/data/ICRA2026'" >> /root/.bashrc
-
+RUN echo "alias goto-newton='cd /root/moma_ws/src/newton'" >> /root/.bashrc
+RUN echo "alias install-deps='uv add open3d numpy pyyaml POT shapely numba scikit-image ruamel.yaml pandas'" >> /root/.bashrc
 
 # 2. Set the ENTRYPOINT
 ENTRYPOINT ["/usr/local/bin/newton_entrypoint.sh"]
