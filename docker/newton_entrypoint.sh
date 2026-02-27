@@ -8,7 +8,9 @@ NEWTON_SRC="/root/moma_ws/src/newton"
 VENV_DIR="$NEWTON_SRC/.venv"
 
 # FIX APPLIED HERE: Using the correct confirmed path
-UV_BIN="/root/.local/bin/uv" 
+UV_BIN="/root/.local/bin/uv"
+
+export UV_HTTP_TIMEOUT=300
 
 echo "--- ⚙️ Starting Newton Environment Setup ---"
 
