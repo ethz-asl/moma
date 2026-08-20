@@ -40,3 +40,7 @@ RUN apt-get update \
 
 # Finally, build all the stuff we downloaded.
 RUN scripts/build_ros.sh
+
+# Just for the debug heightmap (model_eval_utils module-level import).
+# 2.0.7 is the last release with a cp38 wheel; 2.1.x needs Python >=3.10.
+RUN pip install shapely==2.0.7
